@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "allowSyntheticDefaultImports": true,
+    "outDir": "./dist",
+    "baseUrl": ".",
+    "paths": {
+      "@backend/*": ["./src/*"],
+      "@backend": ["./src/index"],
+      "@backend/interfaces/*": ["./src/interfaces/*"],
+      "@backend/interfaces": ["./src/interfaces/index"],
+      "@shared/*": ["../shared/src/*"],
+      "@shared": ["../shared/src/index.ts"]
+    }
+  },
+  "include": ["src", "../shared/src"],
+  "exclude": ["node_modules", "dist", "**/*.js", "**/*.d.ts"],
+  "files": ["src/types/express/index.d.ts"]
+}
