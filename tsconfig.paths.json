@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@frontend/*": ["packages/frontend/src/*"],
+      "@backend/*": ["packages/backend/src/*"],
+      "@shared/*": ["packages/shared/src/*"],
+      "@shared": ["packages/shared/src/index.ts"],
+      "~/*": ["packages/frontend/src/*"]
+    }
+  }
+}
+

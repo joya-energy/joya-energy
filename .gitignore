@@ -1,0 +1,33 @@
+# Node modules and builds
+node_modules/
+dist/
+build/
+
+# Logs
+logs/
+*.log
+
+# Environment files
+.env
+.env.*
+
+# Cache / temp
+.cache/
+.tmp/
+coverage/
+
+# TypeScript
+*.tsbuildinfo
+
+# Editors / IDEs
+.vscode/
+.idea/
+*.code-workspace
+
+# Cursor / VSCode AI
+.cursordb/
+.cursorrules.local
+
+# OS files
+.DS_Store
+Thumbs.db
