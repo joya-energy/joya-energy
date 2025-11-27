@@ -6,6 +6,8 @@
   "scripts": {
     "start:backend": "npm run start --workspace joya-backend",
     "dev:backend": "npm run dev --workspace joya-backend",
+    "start:frontend": "npm run start --workspace joya-frontend",
+    "dev:frontend": "npm run dev --workspace joya-frontend",
     "test:backend": "npm run test --workspace joya-backend",
     "test:backend:w": "npm run test:w --workspace joya-backend",
     "test": "npm run test:backend",
@@ -14,6 +16,7 @@
   },
   "workspaces": [
     "packages/backend",
+    "packages/frontend",
     "packages/shared"
   ],
   "dependencies": {
