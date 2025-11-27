@@ -1,0 +1,135 @@
+/**
+ * JOYA Utility Classes
+ * Spacing, layout, and color utilities
+ */
+
+// ========================================
+// Color Utilities
+// ========================================
+
+.text-primary { color: var(--text-primary); }
+.text-body { color: var(--text-body); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-muted); }
+
+.bg-page { background-color: var(--bg-page); }
+.bg-card { background-color: var(--bg-card); }
+.bg-section { background-color: var(--bg-section); }
+.bg-light-teal { background-color: var(--bg-light-teal); }
+
+.text-teal-deep { color: var(--teal-deep); }
+.text-teal-soft { color: var(--teal-soft); }
+.text-orange { color: var(--orange-solar); }
+
+.bg-teal-deep { background-color: var(--teal-deep); }
+.bg-teal-soft { background-color: var(--teal-soft); }
+.bg-orange { background-color: var(--orange-solar); }
+
+// ========================================
+// Spacing Utilities (Margin & Padding)
+// ========================================
+
+$spacers: (
+  0: 0,
+  1: 0.25rem,   // 4px
+  2: 0.5rem,    // 8px
+  3: 0.75rem,   // 12px
+  4: 1rem,      // 16px
+  5: 1.25rem,   // 20px
+  6: 1.5rem,    // 24px
+  8: 2rem,      // 32px
+  10: 2.5rem,   // 40px
+  12: 3rem,     // 48px
+  16: 4rem,     // 64px
+  20: 5rem,     // 80px
+  24: 6rem,     // 96px
+);
+
+@each $key, $value in $spacers {
+  .m-#{$key} { margin: $value; }
+  .mt-#{$key} { margin-top: $value; }
+  .mr-#{$key} { margin-right: $value; }
+  .mb-#{$key} { margin-bottom: $value; }
+  .ml-#{$key} { margin-left: $value; }
+  .mx-#{$key} { margin-left: $value; margin-right: $value; }
+  .my-#{$key} { margin-top: $value; margin-bottom: $value; }
+
+  .p-#{$key} { padding: $value; }
+  .pt-#{$key} { padding-top: $value; }
+  .pr-#{$key} { padding-right: $value; }
+  .pb-#{$key} { padding-bottom: $value; }
+  .pl-#{$key} { padding-left: $value; }
+  .px-#{$key} { padding-left: $value; padding-right: $value; }
+  .py-#{$key} { padding-top: $value; padding-bottom: $value; }
+
+  .gap-#{$key} { gap: $value; }
+}
+
+// ========================================
+// Layout Utilities
+// ========================================
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+
+  @media (min-width: 768px) {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+.flex { display: flex; }
+.inline-flex { display: inline-flex; }
+.grid { display: grid; }
+.hidden { display: none; }
+.block { display: block; }
+.inline-block { display: inline-block; }
+
+.flex-col { flex-direction: column; }
+.flex-row { flex-direction: row; }
+.flex-wrap { flex-wrap: wrap; }
+
+.items-start { align-items: flex-start; }
+.items-center { align-items: center; }
+.items-end { align-items: flex-end; }
+
+.justify-start { justify-content: flex-start; }
+.justify-center { justify-content: center; }
+.justify-end { justify-content: flex-end; }
+.justify-between { justify-content: space-between; }
+.justify-around { justify-content: space-around; }
+
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+
+.rounded-sm { border-radius: 0.25rem; }
+.rounded { border-radius: 0.5rem; }
+.rounded-lg { border-radius: 0.75rem; }
+.rounded-xl { border-radius: 1rem; }
+.rounded-full { border-radius: 9999px; }
+
+// ========================================
+// Shadow Utilities
+// ========================================
+
+.shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.shadow {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+

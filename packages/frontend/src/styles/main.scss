@@ -1,0 +1,60 @@
+/**
+ * JOYA Global Styles
+ * Import this in angular.json or your main component
+ */
+
+@use './variables';
+@use './typography';
+@use './mixins';
+@use './animations';
+@use './layout';
+@use './buttons';
+@use './utilities';
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px; // 1rem = 16px baseline
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--text-body);
+  background-color: var(--bg-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Reset heading margins
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+// Link defaults
+a {
+  color: var(--teal-soft);
+  text-decoration: none;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: var(--teal-deep);
+  }
+}
+
+// Button reset
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+

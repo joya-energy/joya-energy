@@ -1,0 +1,100 @@
+<nav class="navbar" role="navigation" aria-label="Main navigation">
+  <div class="container">
+    <div class="navbar-content">
+      <!-- Logo -->
+      <a 
+        href="/" 
+        class="navbar-logo"
+        aria-label="JOYA Energy Homepage"
+      >
+        <svg 
+          width="24" 
+          height="24" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 1v6m0 6v10M1 12h6m6 0h10" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        <span class="navbar-brand">JOYA Energy</span>
+      </a>
+
+      <!-- Desktop Navigation -->
+      <ul class="navbar-links" role="list">
+        @for (link of navLinks; track link.id) {
+          <li>
+            <a 
+              [routerLink]="link.path"
+              routerLinkActive="active"
+              class="navbar-link"
+              [attr.aria-current]="'page'"
+            >
+              {{ link.label }}
+            </a>
+          </li>
+        }
+      </ul>
+
+      <!-- CTA Button (Desktop) -->
+      <a 
+        href="/estimation" 
+        class="btn btn-cta btn-md navbar-cta"
+        aria-label="Get free energy estimation"
+      >
+        Estimation gratuite
+      </a>
+
+      <!-- Mobile Menu Toggle -->
+      <button
+        type="button"
+        class="navbar-toggle"
+        [class.active]="isMobileMenuOpen()"
+        (click)="toggleMobileMenu()"
+        [attr.aria-expanded]="isMobileMenuOpen()"
+        aria-controls="mobile-menu"
+        aria-label="Toggle navigation menu"
+      >
+        <span class="navbar-toggle-icon"></span>
+        <span class="navbar-toggle-icon"></span>
+        <span class="navbar-toggle-icon"></span>
+      </button>
+    </div>
+
+    <!-- Mobile Navigation -->
+    @if (isMobileMenuOpen()) {
+      <div 
+        id="mobile-menu"
+        class="navbar-mobile animate-slide-in-down"
+        role="navigation"
+        aria-label="Mobile navigation"
+      >
+        <ul class="navbar-mobile-links" role="list">
+          @for (link of navLinks; track link.id) {
+            <li>
+              <a 
+                [routerLink]="link.path"
+                routerLinkActive="active"
+                class="navbar-mobile-link"
+                (click)="closeMobileMenu()"
+                [attr.aria-current]="'page'"
+              >
+                {{ link.label }}
+              </a>
+            </li>
+          }
+        </ul>
+        <a 
+          href="/estimation" 
+          class="btn btn-cta btn-lg btn-block"
+          (click)="closeMobileMenu()"
+          aria-label="Get free energy estimation"
+        >
+          Estimation gratuite
+        </a>
+      </div>
+    }
+  </div>
+</nav>
+
