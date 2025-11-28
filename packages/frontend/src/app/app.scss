@@ -1,0 +1,15 @@
+/**
+ * App Root Component Styles
+ */
+
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 80px); // Adjust based on navbar height
+}
+

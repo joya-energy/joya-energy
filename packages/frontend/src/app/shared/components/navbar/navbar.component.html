@@ -1,27 +1,8 @@
 <nav class="navbar" role="navigation" aria-label="Main navigation">
   <div class="container">
     <div class="navbar-content">
-      <!-- Logo -->
-      <a 
-        href="/" 
-        class="navbar-logo"
-        aria-label="JOYA Energy Homepage"
-      >
-        <svg 
-          width="24" 
-          height="24" 
-          viewBox="0 0 24 24" 
-          fill="none" 
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/>
-          <path d="M12 1v6m0 6v10M1 12h6m6 0h10" stroke="currentColor" stroke-width="2"/>
-        </svg>
-        <span class="navbar-brand">JOYA Energy</span>
-      </a>
+      <app-logo size="md" [showText]="true" />
 
-      <!-- Desktop Navigation -->
       <ul class="navbar-links" role="list">
         @for (link of navLinks; track link.id) {
           <li>
@@ -37,7 +18,6 @@
         }
       </ul>
 
-      <!-- CTA Button (Desktop) -->
       <a 
         href="/estimation" 
         class="btn btn-cta btn-md navbar-cta"
@@ -97,4 +77,3 @@
     }
   </div>
 </nav>
-

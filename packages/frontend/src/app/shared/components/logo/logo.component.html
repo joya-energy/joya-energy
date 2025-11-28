@@ -1,0 +1,24 @@
+<a 
+  [href]="href()"
+  class="logo"
+  [class.logo-sm]="size() === 'sm'"
+  [class.logo-md]="size() === 'md'"
+  [class.logo-lg]="size() === 'lg'"
+  aria-label="JOYA Energy Homepage"
+>
+  <svg 
+    class="logo-icon"
+    viewBox="0 0 24 24" 
+    fill="none" 
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/>
+    <path d="M12 1v6m0 6v10M1 12h6m6 0h10" stroke="currentColor" stroke-width="2"/>
+  </svg>
+  
+  @if (showText()) {
+    <span class="logo-text">JOYA Energy</span>
+  }
+</a>
+

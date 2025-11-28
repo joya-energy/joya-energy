@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { LogoComponent } from '../logo/logo.component';
 
 interface NavLink {
   label: string;
@@ -10,9 +11,11 @@ interface NavLink {
 
 @Component({
   selector: 'app-navbar',
+  standalone: true,
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CommonModule, RouterLink, RouterLinkActive, LogoComponent],
   host: {
     class: 'navbar-wrapper'
   }
@@ -38,4 +41,3 @@ export class NavbarComponent {
     this.isMobileMenuOpen.set(false);
   }
 }
-
