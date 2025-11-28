@@ -9,6 +9,13 @@ interface NavLink {
   id: string;
 }
 
+enum menuItems {
+  SIMULATEURS = 'Simulateurs',
+  MODELE_ESCO = 'Modèle ESCO',
+  COMMENT_CA_MARCHE = 'Comment ça marche',
+  CONTACT = 'Contact',
+  ESTIMATION_GRATUITE = 'Estimation gratuite'
+}
 @Component({
   selector: 'app-navbar',
   standalone: true,
@@ -21,15 +28,15 @@ interface NavLink {
   }
 })
 export class NavbarComponent {
-  // State: Mobile menu toggle
   protected readonly isMobileMenuOpen = signal(false);
+  protected readonly menuItems = menuItems;
 
   // Navigation links
   protected readonly navLinks: NavLink[] = [
-    { label: 'Simulateurs', path: '/simulateurs', id: 'nav-simulateurs' },
-    { label: 'Modèle ESCO', path: '/modele-esco', id: 'nav-modele' },
-    { label: 'Comment ça marche', path: '/comment-ca-marche', id: 'nav-comment' },
-    { label: 'Témoignages', path: '/temoignages', id: 'nav-temoignages' }
+    { label: menuItems.SIMULATEURS, path: '/simulateurs', id: 'nav-simulateurs' },
+    { label: menuItems.MODELE_ESCO, path: '/modele-esco', id: 'nav-modele' },
+    { label: menuItems.COMMENT_CA_MARCHE, path: '/comment-ca-marche', id: 'nav-comment' },
+    {label: menuItems.CONTACT, path: '/contact', id: 'nav-contact' },
   ];
 
   // Actions

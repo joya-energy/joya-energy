@@ -20,6 +20,7 @@
 .text-teal-deep { color: var(--teal-deep); }
 .text-teal-soft { color: var(--teal-soft); }
 .text-orange { color: var(--orange-solar); }
+.text-center { text-align: center; }
 
 .bg-teal-deep { background-color: var(--teal-deep); }
 .bg-teal-soft { background-color: var(--teal-soft); }
@@ -83,7 +84,7 @@ $spacers: (
   }
 }
 
-.flex { display: flex; }
+.d-flex { display: flex; }
 .inline-flex { display: inline-flex; }
 .grid { display: grid; }
 .hidden { display: none; }
@@ -107,6 +108,25 @@ $spacers: (
 .w-full { width: 100%; }
 .h-full { height: 100%; }
 
+.text-left { text-align: left; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+
+.text-nowrap { white-space: nowrap; }
+.text-wrap { white-space: wrap; }
+.text-break { word-break: break-word; }
+.text-ellipsis { text-overflow: ellipsis; }
+.text-clip { text-overflow: clip; }
+.text-truncate { text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+
+.absolute { position: absolute; }
+.relative { position: relative; }
+.fixed { position: fixed; }
+.sticky { position: sticky; }
+.top-0 { top: 0; }
+.right-0 { right: 0; }
+.bottom-0 { bottom: 0; }
+.left-0 { left: 0; }
 .rounded-sm { border-radius: 0.25rem; }
 .rounded { border-radius: 0.5rem; }
 .rounded-lg { border-radius: 0.75rem; }

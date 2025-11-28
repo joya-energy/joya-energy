@@ -1,0 +1,27 @@
+<section class="hero relative" aria-labelledby="hero-title">
+  <div class="hero-background absolute inset-0 bg-hero-gradient z-[-1]"></div>
+  <div class="hero-visual" aria-hidden="true"></div>
+  <div class="container hero-content d-flex flex-col items-center text-center gap-8">
+    <div class="hero-text w-full text-center flex flex-col items-center">
+      <h1 id="hero-title" class="hero-title">
+        {{ heading }}
+        <br />
+        {{ headingLine2 }}
+      </h1>
+      <p class="hero-subtitle">
+        {{ subheading }}
+      </p>
+      <div class="hero-cta glow flex flex-col items-center justify-center gap-4">
+        <a class="btn btn-cta btn-lg" href="/estimation" aria-label="Estimation gratuite CTA">
+          {{ primaryCtaLabel }}
+          <span class="btn-arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="btn btn-secondary btn-lg" href="/modele-esco" aria-label="Découvrir notre modèle ESCO">
+          {{ secondaryCtaLabel }}
+          <span class="btn-arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+

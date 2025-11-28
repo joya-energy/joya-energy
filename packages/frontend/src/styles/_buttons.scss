@@ -11,17 +11,19 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
   font-family: var(--font-family-primary);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-regular);
   font-size: var(--font-size-base);
   line-height: 1;
   text-decoration: none;
-  border: none;
-  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.15s ease;
   white-space: nowrap;
+  padding: 0.9rem 2.2rem;
+  min-width: 210px;
 
   &:disabled {
     opacity: 0.5;
@@ -60,13 +62,12 @@
 
 // Primary (Teal)
 .btn-primary {
-  background: var(--teal-deep);
-  color: white;
+  background: linear-gradient(90deg, #f29917 0%, #f6b83f 100%);
+  color: #fff5ec;
 
   &:hover:not(:disabled) {
-    background: var(--teal-soft);
+    background: linear-gradient(90deg, #f09612 0%, #f3ae31 100%);
     transform: translateY(-1px);
-    box-shadow: 0 4px 6px -1px rgba(10, 61, 70, 0.3);
   }
 
   &:active:not(:disabled) {
@@ -76,30 +77,20 @@
 
 // Secondary (Teal Outline)
 .btn-secondary {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.75);
   color: var(--teal-deep);
-  border: 2px solid var(--teal-deep);
+  border: 1px solid rgba(10, 61, 70, 0.25);
 
   &:hover:not(:disabled) {
-    background: var(--bg-light-teal);
-    border-color: var(--teal-soft);
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(10, 61, 70, 0.45);
+    color: var(--teal-soft);
   }
 }
 
 // CTA (Orange - Solar)
 .btn-cta {
-  background: var(--orange-solar);
-  color: white;
-
-  &:hover:not(:disabled) {
-    background: #d98f19;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px -1px rgba(243, 163, 28, 0.4);
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(0);
-  }
+  @extend .btn-primary;
 }
 
 // Ghost (Transparent)

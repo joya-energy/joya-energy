@@ -1,0 +1,135 @@
+@use 'styles/mixins' as *;
+
+.simulators {
+  background: #e8f5f5;
+  padding: 5rem 0 6rem;
+  position: relative;
+}
+
+.simulators-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.simulators-header {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.simulators-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.85rem;
+  color: var(--teal-muted);
+  margin-bottom: 0.5rem;
+}
+
+.simulators-title {
+  font-family: var(--font-family-secondary);
+  font-size: clamp(2rem, 4vw, 3rem);
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.simulators-subtitle {
+  color: var(--text-secondary);
+  font-size: 1.05rem;
+}
+
+.simulators-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.75rem;
+}
+
+.simulator-card {
+  background: #ffffff;
+  border-radius: 1.5rem;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-height: 100%;
+  box-shadow: 0 30px 70px rgba(6, 40, 51, 0.08);
+  border: 1px solid rgba(10, 61, 70, 0.04);
+  animation: fade-up 0.6s ease both;
+  animation-delay: calc(var(--card-index, 0) * 120ms);
+}
+
+.simulator-card-icon {
+  align-self: flex-start;
+}
+
+.simulator-card-label {
+  align-self: flex-start;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--teal-muted);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.3rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(10, 61, 70, 0.08);
+}
+
+.simulator-card-featured {
+  background: #ffffff;
+  box-shadow: 0 35px 70px rgba(6, 40, 51, 0.12);
+  transform: translateY(-10px);
+
+  .simulator-card-label {
+    color: var(--orange-solar);
+  }
+}
+
+.simulator-card-title {
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.01em;
+}
+
+.simulator-card-description {
+  color: var(--text-secondary);
+  font-weight: 400;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.simulator-card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--teal-deep);
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s ease, transform 0.2s ease;
+  font-size: 0.95rem;
+
+  span {
+    display: inline-block;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover {
+    color: var(--teal-soft);
+
+    span {
+      transform: translateX(3px);
+    }
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
