@@ -22,41 +22,6 @@
 }
 
 // ========================================
-// Logo
-// ========================================
-
-.navbar-logo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  color: var(--teal-deep);
-  text-decoration: none;
-  transition: color 0.2s ease;
-
-  svg {
-    width: 2rem;
-    height: 2rem;
-    flex-shrink: 0;
-  }
-
-  &:hover {
-    color: var(--teal-soft);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--teal-deep);
-    outline-offset: 2px;
-    border-radius: 0.25rem;
-  }
-}
-
-.navbar-brand {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
-}
-
-// ========================================
 // Desktop Navigation
 // ========================================
 
@@ -221,4 +186,3 @@
     outline-offset: 2px;
   }
 }
-
