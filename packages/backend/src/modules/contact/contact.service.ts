@@ -70,7 +70,7 @@ export class ContactService extends CommonService<IContact> {
       html: `<p><strong>Name:</strong> ${contact.name}</p>
              <p><strong>Email:</strong> ${contact.email}</p>
              <p><strong>Message:</strong></p>
-             <p>${contact.message.replace(/\n/g, '<br>')}</p>`
+             <p>${contact.message?.replace(/\n/g, '<br>')}</p>`
     });
   }
 }

@@ -21,7 +21,7 @@ interface FeatureHighlight {
 export class FeatureHighlightsComponent {
   protected readonly features: FeatureHighlight[] = [
     {
-      title: '0 investissement initial',
+      title: 'Investissement initial',
       description: 'Installation photovoltaïque sans débourser un centime',
       icon: 'sun'
     },
