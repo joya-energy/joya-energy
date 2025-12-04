@@ -54,23 +54,26 @@ export class ContactService extends CommonService<IContact> {
       throw new HTTP404Error('Contact not found');
     }
   }
-
   private async sendNotification(contact: IContact): Promise<void> {
-    const recipient = process.env.EMAIL_TO;
-    Logger.info('Sending notification email to:', process.env.EMAIL_TO);
+    const recipient = contact.email;
+    Logger.info('Sending notification email to contact email:', recipient);
+  
     if (!recipient) {
-      Logger.warn('EMAIL_TO is not configured. Skipping notification email.');
+      Logger.warn('Contact email is missing. Skipping notification email.');
       return;
     }
-
+    
+  
     await mailService.sendMail({
-      to: recipient,
-      subject: `New contact from ${contact.name}`,
-      text: contact.message,
-      html: `<p><strong>Name:</strong> ${contact.name}</p>
-             <p><strong>Email:</strong> ${contact.email}</p>
-             <p><strong>Message:</strong></p>
-             <p>${contact.message?.replace(/\n/g, '<br>')}</p>`
+      to: contact.email,
+      subject: 'Contact support',
+      templateId: Number(process.env.POSTMARK_CONTACT_TEMPLATE_ID),
+      templateModel: {
+        name: contact.name,
+        email: contact.email,
+        phoneNumber: (contact as any).phoneNumber,
+        message: contact.message
+      }
     });
   }
 }
