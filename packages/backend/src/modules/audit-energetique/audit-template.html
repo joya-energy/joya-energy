@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+
+    .page {
+      padding: 40px 50px;
+      page-break-after: always;
+    }
+
+    /* ---------- JOYA HEADER ---------- */
+
+.joya-header {
+    background: #D8694A;
+    padding: 25px 40px;
+    display: flex;
+    align-items: center;
+    min-height: 80px;           /* ⬅ Force real height */
+    box-sizing: border-box;     /* ⬅ Prevent collapse */
+}
+
+.joya-logo {
+    background: red !important;    /* TEST */
+    border: 3px solid blue !important; /* TEST */
+    height: 80px !important;
+    width: 80px !important;
+    display: block !important;
+}
+
+
+
+    /* ---------- TITLES ---------- */
+
+    .title-section {
+      background: #D8694A;
+      color: #fff;
+      padding: 18px 20px;
+      font-size: 26px;
+      font-weight: bold;
+      border-radius: 6px;
+      margin-bottom: 22px;
+    }
+
+    /* ---------- HERO COVER ---------- */
+
+    .hero-container {
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    .hero-title {
+      font-size: 36px;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .hero-date {
+      color: #555;
+      font-size: 18px;
+      margin-bottom: 35px;
+    }
+
+    .hero-image img {
+      width: 100%;
+      border-radius: 12px;
+    }
+
+    /* ---------- INFO CARDS ---------- */
+
+    .card {
+      background: #F7F7F7;
+      padding: 25px 30px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      border-left: 8px solid #D8694A;
+    }
+
+    .card h2 {
+      color: #D8694A;
+      margin-top: 0;
+    }
+
+    .info-line {
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .info-key {
+      font-weight: bold;
+      display: inline-block;
+      width: 240px;
+    }
+
+    /* ---------- ENERGY SCALE ---------- */
+
+    .energy-scale {
+      margin-top: 10px;
+    }
+
+    .energy-bar {
+      height: 36px;
+      line-height: 36px;
+      padding-left: 14px;
+      margin-bottom: 10px;
+      color: #fff;
+      font-weight: bold;
+      font-size: 18px;
+      border-radius: 6px;
+    }
+
+    /* ---------- RECOMMENDATIONS ---------- */
+
+    .recommend-box {
+      background: #FFF2EC;
+      border-left: 6px solid #D8694A;
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    .recommend-box ul {
+      padding-left: 20px;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<!-- ======================= PAGE 1 ======================= -->
+<div class="page">
+
+  <div class="joya-header">
+<img class="joya-logo" src="{{logoBase64}}" alt="Joya">
+
+
+  </div>
+
+
+  <div class="hero-container">
+    <h1 class="hero-title">Rapport d’Audit Énergétique</h1>
+    <p class="hero-date">Réalisé le {{auditDate}}</p>
+  </div>
+
+  <div class="hero-image">
+    <img src="https://YOUR-CDN/energy-cover.jpg" alt="Energy Cover">
+  </div>
+
+</div>
+
+
+<!-- ======================= PAGE 2 ======================= -->
+<div class="page">
+
+  <div class="title-section">Informations Client</div>
+
+  <div class="card">
+    <h2>Données Personnelles</h2>
+
+    <p class="info-line"><span class="info-key">Nom complet :</span> {{firstName}} {{lastName}}</p>
+    <p class="info-line"><span class="info-key">Société :</span> {{companyName}}</p>
+    <p class="info-line"><span class="info-key">Email :</span> {{email}}</p>
+    <p class="info-line"><span class="info-key">Téléphone :</span> {{phoneNumber}}</p>
+    <p class="info-line"><span class="info-key">Adresse :</span> {{address}}</p>
+    <p class="info-line"><span class="info-key">Gouvernorat :</span> {{governorate}}</p>
+  </div>
+
+  <div class="card">
+    <h2>Bâtiment & Activité</h2>
+
+    <p class="info-line"><span class="info-key">Type de bâtiment :</span> {{buildingType}}</p>
+    <p class="info-line"><span class="info-key">Surface totale :</span> {{surfaceArea}} m²</p>
+    <p class="info-line"><span class="info-key">Nombre d'étages :</span> {{floors}}</p>
+    <p class="info-line"><span class="info-key">Type d’activité :</span> {{activityType}}</p>
+    <p class="info-line"><span class="info-key">Jours d’ouverture/semaine :</span> {{openingDaysPerWeek}}</p>
+    <p class="info-line"><span class="info-key">Heures/jour :</span> {{openingHoursPerDay}}</p>
+  </div>
+
+</div>
+
+
+<!-- ======================= PAGE 3 ======================= -->
+<div class="page">
+
+  <div class="title-section">Résumé Énergétique</div>
+
+  <div class="card">
+    <h2>Consommation & Émissions</h2>
+
+    <p class="info-line"><span class="info-key">Consommation annuelle :</span> {{annualConsumption}} kWh/an</p>
+    <p class="info-line"><span class="info-key">Consommation par m² :</span> {{consumptionPerM2}} kWh/m².an</p>
+    <p class="info-line"><span class="info-key">CO₂ total :</span> {{co2Total}} kg/an</p>
+    <p class="info-line"><span class="info-key">CO₂ par m² :</span> {{co2PerM2}} kg/m².an</p>
+    <p class="info-line"><span class="info-key">Coût énergétique annuel :</span> {{annualCost}} TND</p>
+
+    <div class="energy-class-box">
+      <p><strong>Classe énergétique :</strong> {{energyClass}}</p>
+      <p><strong>BECTh :</strong> {{becth}}</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Échelle des Classes (A → G)</h2>
+
+    <div class="energy-scale">
+      {{classes}}
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ======================= PAGE 4 ======================= -->
+<div class="page">
+
+  <div class="title-section">Confort & Facturation</div>
+
+  <div class="card">
+    <h2>Équipements & Confort</h2>
+
+    <p class="info-line"><span class="info-key">Isolation :</span> {{insulation}}</p>
+    <p class="info-line"><span class="info-key">Vitrage :</span> {{glazingType}}</p>
+    <p class="info-line"><span class="info-key">Ventilation :</span> {{ventilation}}</p>
+    <p class="info-line"><span class="info-key">Zone climatique :</span> {{climateZone}}</p>
+    <p class="info-line"><span class="info-key">Chauffage :</span> {{heatingSystem}}</p>
+    <p class="info-line"><span class="info-key">Climatisation :</span> {{coolingSystem}}</p>
+    <p class="info-line"><span class="info-key">ECS :</span> {{domesticHotWater}}</p>
+  </div>
+
+  <div class="card">
+    <h2>Facturation Énergétique</h2>
+
+    <p class="info-line"><span class="info-key">Type de tarif :</span> {{tariffType}}</p>
+    <p class="info-line"><span class="info-key">Facture mensuelle :</span> {{monthlyBillAmount}} TND</p>
+    <p class="info-line"><span class="info-key">Puissance souscrite :</span> {{contractedPower}} kVA</p>
+    <p class="info-line"><span class="info-key">Consommation récente :</span> {{recentBillConsumption}} kWh</p>
+    <p class="info-line"><span class="info-key">Facture jointe :</span> {{billAttachmentUrl}}</p>
+  </div>
+
+</div>
+
+
+<!-- ======================= PAGE 5 ======================= -->
+<div class="page">
+
+  <div class="title-section">Recommandations</div>
+
+  <div class="recommend-box">
+    <p>{{recommendations}}</p>
+
+    <ul>
+      <li>Amélioration de l’isolation thermique</li>
+      <li>Optimisation du système HVAC</li>
+      <li>Passage LED pour l’éclairage</li>
+      <li>Installation photovoltaïque si éligible</li>
+    </ul>
+  </div>
+
+</div>
+
+</body>
+</html>
