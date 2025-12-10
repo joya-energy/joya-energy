@@ -2,6 +2,8 @@ import { Router } from 'express';
 import multer from 'multer';
 import { auditEnergetiqueSimulationController } from './audit-energetique.controller';
 import { billExtractionController } from './bill-extraction.controller';
+import { auditReportController } from './audit-report.controller'; // import the new controller
+
 
 export const auditEnergetiqueSimulationRoutes = Router();
 
@@ -365,3 +367,51 @@ auditEnergetiqueSimulationRoutes.post('/', auditEnergetiqueSimulationController.
 auditEnergetiqueSimulationRoutes.get('/:id', auditEnergetiqueSimulationController.getSimulationById);
 
 auditEnergetiqueSimulationRoutes.delete('/:id', auditEnergetiqueSimulationController.deleteSimulation);
+
+
+
+// ------------------------------------------
+// NEW ROUTE: Generate & send audit PDF
+// ------------------------------------------
+/**
+ * @swagger
+ * /audit-energetique-simulations/send-pdf:
+ *   post:
+ *     summary: Generate PDF for an audit simulation and send it by email
+ *     tags: [Audit Simulation]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               simulationId:
+ *                 type: string
+ *                 example: "6936dfef12308673de825e02"
+ *     responses:
+ *       200:
+ *         description: PDF generated and sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 simulationId:
+ *                   type: string
+ *       400:
+ *         description: simulationId missing
+ *       404:
+ *         description: Simulation not found
+ *       500:
+ *         description: PDF generation or email sending failed
+ */
+auditEnergetiqueSimulationRoutes.post(
+  '/send-pdf',
+  (req, res) => auditReportController.sendAuditPDF(req, res)
+);
+

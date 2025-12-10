@@ -34,6 +34,7 @@
     "multer": "^2.0.2",
     "nodemailer": "^7.0.10",
     "openai": "^6.9.1",
+    "postmark": "^4.0.5",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "uniq": "^1.0.1",
