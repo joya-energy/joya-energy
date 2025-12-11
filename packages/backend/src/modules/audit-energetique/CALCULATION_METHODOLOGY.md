@@ -365,7 +365,7 @@ Certains paramètres peuvent être configurés via variables d'environnement :
 - `ENERGY_COST_PER_KWH` : Coût du kWh (défaut: 0.35 TND)
 
 ### 3. Validation des Données
-- Toutes les entrées sont validées via Zod dans le controller
+- Toutes les entrées sont vérifiées via les utilitaires de validation TypeScript du controller
 - Les enums assurent la cohérence des valeurs
 
 ### 4. Évolutivité

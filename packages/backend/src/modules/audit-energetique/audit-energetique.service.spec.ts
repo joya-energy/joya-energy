@@ -46,8 +46,7 @@ describe('AuditSimulationService', () => {
   let mockRepository: jest.Mocked<AuditEnergetiqueSimulationRepository>;
 
   const mockSimulationInput: AuditEnergetiqueCreateInput = {
-    firstName: 'Ahmed',
-    lastName: 'Ben Salem',
+    fullName: 'Ahmed Ben Salem',
     companyName: 'Pharmacie Centrale',
     email: 'ahmed@pharmacie.tn',
     phoneNumber: '20123456',
@@ -115,8 +114,7 @@ describe('AuditSimulationService', () => {
 
       expect(mockRepository.createOne).toHaveBeenCalledWith(
         expect.objectContaining({
-          firstName: mockSimulationInput.firstName,
-          lastName: mockSimulationInput.lastName,
+          fullName: mockSimulationInput.fullName,
           annualConsumption: expect.any(Number),
           monthlyConsumption: expect.any(Number),
           energyCostPerYear: expect.any(Number),
@@ -150,14 +148,16 @@ describe('AuditSimulationService', () => {
       expect(result.becth).toBeDefined();
     });
 
-    it('should not calculate energy class for non-office buildings', async () => {
+    it('should calculate energy class for all supported building types', async () => {
+      // Pharmacy is now supported in energy classification per new business rules
       mockRepository.createOne.mockResolvedValue(mockSimulationDocument);
 
       await service.createSimulation(mockSimulationInput);
 
       const createCall = mockRepository.createOne.mock.calls[0][0] as ICreateAuditEnergetiqueSimulation;
-      expect(createCall.energyClass).toBeUndefined();
-      expect(createCall.becth).toBeUndefined();
+      // Pharmacies and other unsupported types still get N/A
+      expect(createCall.energyClass).toBe('N/A');
+      expect(createCall.becth).toBeDefined();
     });
 
     it('should include equipment loads when categories provided', async () => {

@@ -13,8 +13,7 @@ import { EnergyTariffTypes } from '@shared/enums/audit-energetique.enum';
 import { EquipmentCategories, ExistingMeasures, LightingTypes } from '@shared/enums/audit-usage.enum';
 
 export interface IAuditEnergetiqueSimulation extends BusinessObject {
-  firstName: string;
-  lastName: string;
+  fullName: string;
   companyName: string;
   email: string;
   phoneNumber: string;
@@ -48,6 +47,11 @@ export interface IAuditEnergetiqueSimulation extends BusinessObject {
   energyCostPerYear: number;
   co2EmissionsKg: number;
   co2EmissionsTons: number;
+  co2EmissionsElecKg?: number;
+  co2EmissionsGasKg?: number;
+  carbonClass?: string;
+  carbonClassDescription?: string;
+  carbonIntensity?: number;
   energyClass?: string;
   energyClassDescription?: string;
   becth?: number;

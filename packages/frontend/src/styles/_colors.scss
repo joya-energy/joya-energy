@@ -1,0 +1,26 @@
+/**
+ * JOYA Color Utility Classes
+ * Keeps color helpers separate for cleaner imports.
+ */
+
+@use './variables';
+
+.text-primary { color: var(--text-primary); }
+.text-body { color: var(--text-body); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-muted); }
+.text-teal-deep { color: var(--teal-deep); }
+.text-teal-soft { color: var(--teal-soft); }
+.text-orange { color: var(--orange-solar); }
+
+.bg-page { background-color: var(--bg-page); }
+.bg-card { background-color: var(--bg-card); }
+.bg-section { background-color: var(--bg-section); }
+.bg-light-teal { background-color: var(--bg-light-teal); }
+.bg-teal-deep { background-color: var(--teal-deep); }
+.bg-teal-soft { background-color: var(--teal-soft); }
+.bg-orange { background-color: var(--orange-solar); }
+
+
+
+

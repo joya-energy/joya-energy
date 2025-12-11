@@ -4,26 +4,26 @@ import { HttpStatusCode, type PaginatedResult } from '@shared';
 import { type IAuditSolaireSimulation } from '@shared/interfaces';
 import { HTTP400Error, HTTP404Error } from '@backend/errors/http.error';
 import { Logger } from '@backend/middlewares';
-import { z } from 'zod';
+import { optionalNumber, requireNumber, requireString } from '../common/validation.utils';
 
-const createAuditSolaireSchema = z.object({
-  address: z.string().trim().min(3, 'L\'adresse doit contenir au moins 3 caractères'),
-  surfaceArea: z.coerce.number().positive('La surface doit être supérieure à 0'),
-  annualConsumption: z.coerce.number().positive('La consommation annuelle doit être supérieure à 0'),
-  energyCostPerKwh: z.coerce.number().positive().optional(),
-  latitude: z.coerce.number().min(-90).max(90).optional(),
-  longitude: z.coerce.number().min(-180).max(180).optional()
-});
+type AuditSolairePayload = {
+  address: string;
+  surfaceArea: number;
+  annualConsumption: number;
+  energyCostPerKwh?: number;
+  latitude?: number;
+  longitude?: number;
+};
 
 export class AuditSolaireSimulationController {
   public createSimulation = async (req: Request, res: Response<IAuditSolaireSimulation & { address: string }>): Promise<void> => {
     try {
-      const parsedInput = createAuditSolaireSchema.parse(req.body);
-      const simulation = await auditSolaireSimulationService.createSimulation(parsedInput);
+      const input = AuditSolaireSimulationController.sanitizePayload(req.body);
+      const simulation = await auditSolaireSimulationService.createSimulation(input);
       res.status(HttpStatusCode.CREATED).json(simulation);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        throw new HTTP400Error('Invalid audit solaire request payload', error);
+      if (error instanceof HTTP400Error) {
+        throw error;
       }
 
       Logger.error(`Error: Audit solaire simulation not created: ${String(error)}`);
@@ -63,6 +63,17 @@ export class AuditSolaireSimulationController {
       throw new HTTP400Error('Error: Audit solaire simulation not deleted', error);
     }
   };
+
+  private static sanitizePayload(body: Record<string, unknown>): AuditSolairePayload {
+    return {
+      address: requireString(body.address, 'address'),
+      surfaceArea: requireNumber(body.surfaceArea, 'surfaceArea', { min: 0 }),
+      annualConsumption: requireNumber(body.annualConsumption, 'annualConsumption', { min: 0 }),
+      energyCostPerKwh: optionalNumber(body.energyCostPerKwh, 'energyCostPerKwh', { min: 0 }),
+      latitude: optionalNumber(body.latitude, 'latitude', { min: -90, max: 90 }),
+      longitude: optionalNumber(body.longitude, 'longitude', { min: -180, max: 180 })
+    };
+  }
 }
 
 export const auditSolaireSimulationController = new AuditSolaireSimulationController();

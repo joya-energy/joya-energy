@@ -12,6 +12,11 @@ export const routes: Routes = [
     title: 'Contactez-nous | JOYA Energy'
   },
   {
+    path: 'audit-energetique',
+    loadComponent: () => import('./pages/audit-energetique/audit-energetique.component').then(m => m.AuditEnergetiqueComponent),
+    title: 'Simulation audit énergétique | JOYA Energy'
+  },
+  {
     path: '**',
     redirectTo: ''
   }

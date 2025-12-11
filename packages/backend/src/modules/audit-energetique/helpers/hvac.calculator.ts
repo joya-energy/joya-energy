@@ -26,7 +26,7 @@ export interface HvacCalculationResult {
  * Formulas:
  * - F*_ch = k_ch + (1 - k_ch) × F_usage
  * - F*_fr = k_fr + (1 - k_fr) × F_usage
- * - C_ch = Base_HVAC × (w_hiver×F_ch×F*_ch + 0.5×w_mi×F_ch×F*_ch)
+ * - C_ch = Base_HVAC × (w_hiver×F_ch×F*_ch + 0.5×w_mi×F_ch×F*_ch) / 0.6
  * - C_fr = Base_HVAC × (w_été×F_fr×F*_fr + 0.5×w_mi×F_fr×F*_fr)
  */
 export function computeHvacLoads(params: HvacCalculationInput): HvacCalculationResult {
@@ -47,12 +47,23 @@ export function computeHvacLoads(params: HvacCalculationInput): HvacCalculationR
   let heatingLoad = 0;
   let coolingLoad = 0;
 
-  if (heatingSystem !== HeatingSystemTypes.NONE) {
+  if(heatingSystem === HeatingSystemTypes.GAS_BOILER) {
+    heatingLoad = hvacBase * (
+      climate.winterWeight * climate.heatingFactor * effectiveHeatingUsage +
+      0.5 * climate.midSeasonWeight * climate.heatingFactor * effectiveHeatingUsage
+    ) / 0.6;
+  } else {
     heatingLoad = hvacBase * (
       climate.winterWeight * climate.heatingFactor * effectiveHeatingUsage +
       0.5 * climate.midSeasonWeight * climate.heatingFactor * effectiveHeatingUsage
     );
   }
+/*  if (heatingSystem !== HeatingSystemTypes.NONE) {
+    heatingLoad = hvacBase * (
+      climate.winterWeight * climate.heatingFactor * effectiveHeatingUsage +
+      0.5 * climate.midSeasonWeight * climate.heatingFactor * effectiveHeatingUsage
+    ) / 0.6;
+  }*/
 
   if (coolingSystem !== CoolingSystemTypes.NONE) {
     coolingLoad = hvacBase * (

@@ -23,7 +23,8 @@ import {
   computeDomesticHotWaterLoad,
   computeCo2Emissions,
   computeEnergyClass,
-  computeEnergySplit
+  computeEnergySplit,
+  computeProgressiveTariff
 } from './helpers';
 import { Logger } from '@backend/middlewares';
 
@@ -134,16 +135,18 @@ export class AuditSimulationService extends CommonService<
       ecsLoad.perSquare;
     Logger.info(`Per square total: ${perSquareTotal}`);
 
-    const annualConsumption =
-      (payload.surfaceArea * perSquareTotal) +
-      equipmentLoad.absoluteKwh +
-      ecsLoad.absoluteKwh;
-
+    const annualConsumption = (payload.surfaceArea * perSquareTotal) + (equipmentLoad.absoluteKwh) + (ecsLoad.absoluteKwh);
+    Logger.info(`Equipment load: ${equipmentLoad.absoluteKwh} kWh`);
+    Logger.info(`ECS load: ${ecsLoad.absoluteKwh} kWh`);
+    Logger.info(`Surface area: ${payload.surfaceArea * perSquareTotal} m²`);
+    Logger.info(`Annual consumption: ${annualConsumption} kWh`);
     const monthlyConsumption = annualConsumption / 12;
-
+    Logger.info(`Monthly consumption: ${monthlyConsumption} kWh`);
     // Calculate total heating and cooling loads in kWh/year
-    const annualHeatingLoadKwh = hvacLoads.heatingLoad * payload.surfaceArea;
+    const annualHeatingLoadKwh =( hvacLoads.heatingLoad  ) * payload.surfaceArea;
+    const heatingLoadClass = hvacLoads.heatingLoad;
     const annualCoolingLoadKwh = hvacLoads.coolingLoad * payload.surfaceArea;
+    const coolingLoadClass = hvacLoads.coolingLoad;
     const annualEcsLoadKwh = ecsLoad.perSquare * payload.surfaceArea + ecsLoad.absoluteKwh;
 
     // Split energy consumption between electricity and gas
@@ -155,37 +158,53 @@ export class AuditSimulationService extends CommonService<
       ecsLoadKwh: annualEcsLoadKwh
     });
 
-    // Calculate CO₂ emissions
+    // Calculate conditioned surface for BECTh / Carbon intensity
+    const coverageFactor = COOLING_COVERAGE_FACTORS[payload.conditionedCoverage] ?? 1;
+    const conditionedSurface = payload.surfaceArea * coverageFactor;
+
+    // Calculate CO₂ emissions + carbon class
     const emissions = computeCo2Emissions({
       electricityConsumption: energySplit.electricityConsumption,
       gasConsumption: energySplit.gasConsumption,
+      buildingType: payload.buildingType,
+      conditionedSurface,
       emissionFactorElec: EMISSION_FACTORS.ELECTRICITY,
       emissionFactorGas: EMISSION_FACTORS.NATURAL_GAS
     });
 
-    // Calculate conditioned surface for BECTh
-    const coverageFactor = COOLING_COVERAGE_FACTORS[payload.conditionedCoverage] ?? 1;
-    const conditionedSurface = payload.surfaceArea * coverageFactor;
-
-    // Calculate energy class (only for offices)
+    // Energy class
     const energyClassResult = computeEnergyClass({
       buildingType: payload.buildingType,
-      heatingLoad: annualHeatingLoadKwh,
+      heatingLoad: annualHeatingLoadKwh, 
+      heatingLoadClass: heatingLoadClass,
       coolingLoad: annualCoolingLoadKwh,
+      coolingLoadClass: coolingLoadClass,
       conditionedSurface
     });
 
-    const energyCostPerKwh = Number(process.env.ENERGY_COST_PER_KWH);
-    Logger.info(`Energy cost per kWh: ${energyCostPerKwh}`);
-    Logger.info(`Annual consumption: ${annualConsumption}`);
+    // Calculate energy cost using progressive tariff structure
+    const tariffResult = computeProgressiveTariff({
+      monthlyConsumption
+    });
+
+    Logger.info(`Monthly consumption: ${monthlyConsumption} kWh`);
+    Logger.info(`Monthly cost (progressive tariff): ${tariffResult.monthlyCost} DT`);
+    Logger.info(`Annual cost: ${tariffResult.annualCost} DT`);
+    Logger.info(`Effective rate: ${tariffResult.effectiveRate} DT/kWh`);
+
     const simulationPayload: ICreateAuditEnergetiqueSimulation = {
       ...payload,
       equipmentCategories: payload.equipmentCategories ?? [],
       annualConsumption: Number(annualConsumption.toFixed(2)),
       monthlyConsumption: Number(monthlyConsumption.toFixed(2)),
-      energyCostPerYear: Number((annualConsumption * energyCostPerKwh).toFixed(2)),
+      energyCostPerYear: tariffResult.annualCost,
       co2EmissionsKg: emissions.totalCo2,
       co2EmissionsTons: emissions.totalCo2Tons,
+      co2EmissionsElecKg: emissions.co2FromElectricity,
+      co2EmissionsGasKg: emissions.co2FromGas,
+      carbonClass: emissions.carbonClass ?? undefined,
+      carbonClassDescription: emissions.carbonDescription ?? undefined,
+      carbonIntensity: emissions.carbonIntensity ?? undefined,
       energyClass: energyClassResult.energyClass ?? undefined,
       energyClassDescription: energyClassResult.classDescription ?? undefined,
       becth: energyClassResult.becth ?? undefined

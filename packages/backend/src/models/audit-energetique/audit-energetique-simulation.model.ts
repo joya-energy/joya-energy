@@ -23,8 +23,7 @@ export type AuditEnergetiqueSimulationDocument = IAuditEnergetiqueSimulation & D
 export const AuditEnergetiqueSimulation: Model<AuditEnergetiqueSimulationDocument> = buildSchema<AuditEnergetiqueSimulationDocument>(
   ModelsCollection.AUDIT_ENERGETIQUE_SIMULATION,
   {
-    firstName: { type: String, required: true, trim: true, maxlength: 60 },
-    lastName: { type: String, required: true, trim: true, maxlength: 60 },
+    fullName: { type: String, required: true, trim: true, maxlength: 60 },
     companyName: { type: String, required: true, trim: true, maxlength: 120 },
     email: { type: String, required: true, trim: true, lowercase: true },
     phoneNumber: { type: String, required: true, trim: true, maxlength: 30 },

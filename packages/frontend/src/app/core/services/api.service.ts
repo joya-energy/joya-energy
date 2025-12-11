@@ -36,6 +36,10 @@ export class ApiService {
       .pipe(catchError(this.formatErrors));
   }
 
+  postFormData<T>(path: string, formData: FormData): Observable<T> {
+    return this.http.post<T>(`${this.apiUrl}${path}`, formData).pipe(catchError(this.formatErrors));
+  }
+
   delete<T>(path: string): Observable<T> {
     return this.http.delete<T>(`${this.apiUrl}${path}`).pipe(catchError(this.formatErrors));
   }

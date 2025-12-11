@@ -21,39 +21,95 @@ const upload = multer({
  *       type: object
  *       properties:
  *         monthlyBillAmount:
- *           type: number
- *           description: Total amount to pay in TND
+ *           type: object
+ *           properties:
+ *             value:
+ *               type: number
+ *               description: Total amount to pay in TND
+ *             explanation:
+ *               type: string
+ *               description: Explanation of the value
  *         recentBillConsumption:
- *           type: number
- *           description: Total energy consumption in kWh
+ *           type: object
+ *           properties:
+ *             value:
+ *               type: number
+ *               description: Total energy consumption in kWh
+ *             explanation:
+ *               type: string
+ *               description: Explanation of the value
  *         periodStart:
- *           type: string
- *           format: date
- *           description: Start date of billing period
+ *           type: object
+ *           properties:
+ *             value:
+ *               type: string
+ *               format: date
+ *               description: Start date of billing period
+ *             explanation:
+ *               type: string
+ *               description: Explanation of the value
  *         periodEnd:
- *           type: string
- *           format: date
- *           description: End date of billing period
+ *           type: object
+ *           properties:
+ *             value:
+ *               type: string
+ *               format: date
+ *               description: End date of billing period
+ *             explanation:
+ *               type: string
+ *               description: Explanation of the value
  *         tariffType:
- *           type: string
- *           enum: [Basse Tension, Moyenne Tension, Haute Tension]
+ *           type: object
+ *           properties:
+ *             value:
+ *               type: string
+ *               enum: [Basse Tension, Moyenne Tension, Haute Tension]
+ *             explanation:
+ *               type: string
+ *               description: Explanation of the value
  *         contractedPower:
- *           type: number
- *           description: Contracted power in kVA
+ *           type: object
+ *           properties:
+ *             value:
+ *               type: number
+ *               description: Contracted power in kVA
+ *             explanation:
+ *               type: string
+ *               description: Explanation of the value
  *         address:
- *           type: string
- *           description: Extracted address
+ *           type: object
+ *           properties:
+ *             value:
+ *               type: string
+ *               description: Extracted address
+ *             explanation:
+ *               type: string
+ *               description: Explanation of the value
  *         clientName:
- *           type: string
- *           description: Extracted client name
+ *           type: object
+ *           properties:
+ *             value:
+ *               type: string
+ *               description: Extracted client name
+ *             explanation:
+ *               type: string
+ *               description: Explanation of the value
+ *         governorate:
+ *           type: object
+ *           properties:
+ *             value:
+ *               type: string
+ *               description: Extracted governorate
+ *             explanation:
+ *               type: string
+ *               description: Explanation of the value
  *         confidence:
  *           type: number
  *           description: Confidence score (0-1)
  *     CreateAuditEnergetiqueInput:
  *       type: object
  *       required:
- *         - firstName
- *         - lastName
+ *         - fullName
  *         - companyName
  *         - email
  *         - phoneNumber
@@ -77,12 +133,9 @@ const upload = multer({
  *         - hasRecentBill
  *         - lightingType
  *       properties:
- *         firstName:
+ *         fullName:
  *           type: string
- *           example: "Mohamed"
- *         lastName:
- *           type: string
- *           example: "Ben Ali"
+ *           example: "Mohamed Ben Ali"
  *         companyName:
  *           type: string
  *           example: "Pharmacie Centrale"
@@ -261,6 +314,27 @@ const upload = multer({
  *                     becth:
  *                       type: number
  *                       example: 85
+ *                 carbonClassification:
+ *                   type: object
+ *                   properties:
+ *                     class:
+ *                       type: string
+ *                       example: "B"
+ *                     intensity:
+ *                       type: number
+ *                       example: 22.5
+ *                     unit:
+ *                       type: string
+ *                       example: "kgCO2/m².an"
+ *                     totalElecKg:
+ *                       type: number
+ *                       example: 3200.5
+ *                     totalGasKg:
+ *                       type: number
+ *                       example: 1200.3
+ *                     totalKg:
+ *                       type: number
+ *                       example: 4400.8
  */
 
 /**
@@ -306,10 +380,111 @@ const upload = multer({
  *       500:
  *         description: Extraction failed
  */
+// Remove inline logs to keep code clean after debugging
 auditEnergetiqueSimulationRoutes.post(
   '/extract-bill-data',
   upload.single('billImage'),
   billExtractionController.extractBillData
+);
+
+/**
+ * @swagger
+ * /audit-energetique-simulations/full-upload:
+ *   post:
+ *     summary: Upload a bill and create a simulation in one step
+ *     tags: [Audit Simulation]
+ *     description: Uploads an image/PDF (STEG bill), extracts data using AI, merges with provided fields, and creates the energy simulation.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               billImage:
+ *                 type: string
+ *                 format: binary
+ *                 description: The image or PDF file of the bill (JPG/PNG/PDF)
+ *               fullName:
+ *                 type: string
+ *               companyName:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               phoneNumber:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               governorate:
+ *                 type: string
+ *                 enum: [Tunis, Ariana, Ben Arous, Manouba, Bizerte, Béja, Jendouba, Kairouan, Kasserine, Médenine, Monastir, Nabeul, Sfax, Sousse, Tataouine, Tozeur, Zaghouan, Siliana, Le Kef, Mahdia, Sidi Bouzid, Gabès, Gafsa]
+ *               buildingType:
+ *                 type: string
+ *                 enum: ['Pharmacie', 'Café / Restaurant', 'Centre esthétique / Spa', 'Hôtel / Maison d’hôtes', 'Clinique / Centre médical', 'Bureau / Administration / Banque', 'Atelier léger / Artisanat / Menuiserie', 'Usine lourde / Mécanique / Métallurgie', 'Industrie textile / Emballage', 'Industrie alimentaire', 'Industrie plastique / Injection', 'Industrie agroalimentaire réfrigérée', 'École / Centre de formation']
+ *               surfaceArea:
+ *                 type: number
+ *               floors:
+ *                 type: integer
+ *               activityType:
+ *                 type: string
+ *               openingDaysPerWeek:
+ *                 type: number
+ *               openingHoursPerDay:
+ *                 type: number
+ *               insulation:
+ *                 type: string
+ *               glazingType:
+ *                 type: string
+ *               ventilation:
+ *                 type: string
+ *               climateZone:
+ *                 type: string
+ *               heatingSystem:
+ *                 type: string
+ *               coolingSystem:
+ *                 type: string
+ *               conditionedCoverage:
+ *                 type: string
+ *               domesticHotWater:
+ *                 type: string
+ *               equipmentCategories:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               tariffType:
+ *                 type: string
+ *                 enum: ['Basse Tension', 'Moyenne Tension', 'Haute Tension']
+ *               contractedPower:
+ *                 type: number
+ *               monthlyBillAmount:
+ *                 type: number
+ *               hasRecentBill:
+ *                 type: boolean
+ *               recentBillConsumption:
+ *                 type: number
+ *               existingMeasures:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               lightingType:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Simulation created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuditEnergetiqueResponse'
+ *       400:
+ *         description: Validation error or missing fields
+ *       500:
+ *         description: Server error
+ */
+auditEnergetiqueSimulationRoutes.post(
+  '/full-upload',
+  upload.single('billImage'),
+  auditEnergetiqueSimulationController.createSimulationWithBill
 );
 
 /**

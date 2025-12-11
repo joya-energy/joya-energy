@@ -4,3 +4,4 @@ export * from './audit-general.enum';
 export * from './audit-energetique.enum';
 export * from './audit-batiment.enum';
 export * from './audit-usage.enum';
+export * from './classification.enum';

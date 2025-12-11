@@ -7,13 +7,13 @@
  */
 
 import { type IAuditEnergetiqueSimulation } from '@shared/interfaces/audit-energetique.interface';
+import { ClassificationGrade, EnergyUnit, EmissionUnit } from '@shared/enums/classification.enum';
 
 /**
  * Contact & Building Information
  */
 export interface ContactInfo {
-  firstName: string;
-  lastName: string;
+  fullName: string;
   companyName: string;
   email: string;
   phoneNumber: string;
@@ -61,15 +61,15 @@ export interface BillingInfo {
 export interface EnergyConsumption {
   annual: {
     value: number;
-    unit: 'kWh/an';
+    unit: EnergyUnit.KWH_PER_YEAR;
   };
   monthly: {
     value: number;
-    unit: 'kWh/mois';
+    unit: EnergyUnit.KWH_PER_MONTH;
   };
   perSquareMeter: {
     value: number;
-    unit: 'kWh/m².an';
+    unit: EnergyUnit.KWH_PER_M2_YEAR;
   };
 }
 
@@ -77,31 +77,42 @@ export interface CO2Emissions {
   annual: {
     kilograms: number;
     tons: number;
-    unit: 'kg CO₂/an' | 't CO₂/an';
+    unit: EmissionUnit.KG_CO2_PER_YEAR | EmissionUnit.TONS_CO2_PER_YEAR;
   };
   perSquareMeter: {
     value: number;
-    unit: 'kg CO₂/m².an';
+    unit: EmissionUnit.KG_CO2_PER_M2_YEAR;
   };
 }
 
 export interface EnergyCost {
   annual: {
     value: number;
-    unit: 'TND/an';
+    unit: EnergyUnit.TND_PER_YEAR;
   };
   monthly: {
     value: number;
-    unit: 'TND/mois';
+    unit: EnergyUnit.TND_PER_MONTH;
   };
 }
 
 export interface EnergyClassification {
   becth: number;
-  class: string;
+  class: ClassificationGrade;
   description: string;
   isApplicable: boolean;
   note?: string;
+}
+
+export interface CarbonClassification {
+  class: ClassificationGrade;
+  intensity: number;
+  unit: EmissionUnit.KG_CO2_PER_M2_YEAR;
+  totalElecKg: number;
+  totalGasKg: number;
+  totalKg: number;
+  description: string;
+  isApplicable: boolean;
 }
 
 /**
@@ -127,6 +138,7 @@ export interface AuditEnergetiqueResponseDto {
       co2Emissions: CO2Emissions;
       energyCost: EnergyCost;
       energyClassification?: EnergyClassification;
+      carbonClassification?: CarbonClassification;
     };
   };
   metadata: {
@@ -151,8 +163,7 @@ export function toAuditEnergetiqueResponseDto(
       createdAt: simulation.createdAt.toISOString(),
       
       contact: {
-        firstName: simulation.firstName,
-        lastName: simulation.lastName,
+        fullName: simulation.fullName,
         companyName: simulation.companyName,
         email: simulation.email,
         phoneNumber: simulation.phoneNumber,
@@ -200,15 +211,15 @@ export function toAuditEnergetiqueResponseDto(
         energyConsumption: {
           annual: {
             value: simulation.annualConsumption,
-            unit: 'kWh/an'
+            unit: EnergyUnit.KWH_PER_YEAR
           },
           monthly: {
             value: simulation.monthlyConsumption,
-            unit: 'kWh/mois'
+            unit: EnergyUnit.KWH_PER_MONTH
           },
           perSquareMeter: {
             value: Number(energyConsumptionPerM2.toFixed(2)),
-            unit: 'kWh/m².an'
+            unit: EnergyUnit.KWH_PER_M2_YEAR
           }
         },
         
@@ -216,22 +227,22 @@ export function toAuditEnergetiqueResponseDto(
           annual: {
             kilograms: simulation.co2EmissionsKg,
             tons: simulation.co2EmissionsTons,
-            unit: 'kg CO₂/an'
+            unit: EmissionUnit.KG_CO2_PER_YEAR
           },
           perSquareMeter: {
             value: Number(co2PerM2.toFixed(2)),
-            unit: 'kg CO₂/m².an'
+            unit: EmissionUnit.KG_CO2_PER_M2_YEAR
           }
         },
         
         energyCost: {
           annual: {
             value: simulation.energyCostPerYear,
-            unit: 'TND/an'
+            unit: EnergyUnit.TND_PER_YEAR
           },
           monthly: {
             value: Number((simulation.energyCostPerYear / 12).toFixed(2)),
-            unit: 'TND/mois'
+            unit: EnergyUnit.TND_PER_MONTH
           }
         }
       }
@@ -242,21 +253,45 @@ export function toAuditEnergetiqueResponseDto(
     }
   };
 
-  // Add energy classification if applicable
+  // Add energy classification if computed
   if (simulation.energyClass && simulation.becth != null) {
     response.data.results.energyClassification = {
       becth: simulation.becth,
-      class: simulation.energyClass,
+      class: simulation.energyClass as ClassificationGrade,
       description: simulation.energyClassDescription ?? '',
       isApplicable: true
     };
   } else {
     response.data.results.energyClassification = {
-      becth: 0,
-      class: 'N/A',
-      description: 'Classement énergétique non applicable à ce type de bâtiment',
-      isApplicable: false,
-      note: 'Le classement BECTh est réservé aux bâtiments de type Bureau / Administration / Banque'
+      becth: Number(energyConsumptionPerM2.toFixed(2)),
+      class: ClassificationGrade.NOT_APPLICABLE,
+      description: 'Classement énergétique non disponible pour ce type de bâtiment',
+      isApplicable: false
+    };
+  }
+
+  // Add carbon classification if computed
+  if (simulation.carbonClass && simulation.carbonIntensity != null) {
+    response.data.results.carbonClassification = {
+      class: simulation.carbonClass as ClassificationGrade,
+      intensity: Number(simulation.carbonIntensity.toFixed(2)),
+      unit: EmissionUnit.KG_CO2_PER_M2_YEAR,
+      totalElecKg: Number((simulation.co2EmissionsElecKg ?? simulation.co2EmissionsKg).toFixed(2)),
+      totalGasKg: Number((simulation.co2EmissionsGasKg ?? 0).toFixed(2)),
+      totalKg: Number(simulation.co2EmissionsKg.toFixed(2)),
+      description: simulation.carbonClassDescription ?? '',
+      isApplicable: true
+    };
+  } else {
+    response.data.results.carbonClassification = {
+      class: ClassificationGrade.NOT_APPLICABLE,
+      intensity: Number(co2PerM2.toFixed(2)),
+      unit: EmissionUnit.KG_CO2_PER_M2_YEAR,
+      totalElecKg: Number((simulation.co2EmissionsElecKg ?? simulation.co2EmissionsKg).toFixed(2)),
+      totalGasKg: Number((simulation.co2EmissionsGasKg ?? 0).toFixed(2)),
+      totalKg: Number(simulation.co2EmissionsKg.toFixed(2)),
+      description: 'Classement carbone non disponible',
+      isApplicable: false
     };
   }
 

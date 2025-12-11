@@ -5,7 +5,12 @@
  * Calculates BECTh (Besoins Énergétiques liés au Confort Thermique)
  * and assigns energy class according to Tunisia's building energy regulation
  * 
- * Only applicable to: Bureau / Administration / Banque
+ * Applicable to 5 building types:
+ * 1. Bureaux / Administration / Banque
+ * 2. Café / Restaurant / Centre esthétique / Spa
+ * 3. Hôtel / Maison d'hôtes
+ * 4. Clinique / Centre médical
+ * 5. École / Centre de formation
  * 
  * Formula:
  * BECTh = (BECh + BERef) / STC
@@ -17,98 +22,142 @@
  * - BECTh: Thermal comfort energy needs (kWh/m².year)
  */
 
+import { Logger } from '@backend/middlewares';
 import { BuildingTypes } from '@shared/enums/audit-general.enum';
-
-export enum EnergyClass {
-  CLASS_1 = 'Classe 1',
-  CLASS_2 = 'Classe 2',
-  CLASS_3 = 'Classe 3',
-  CLASS_4 = 'Classe 4',
-  CLASS_5 = 'Classe 5',
-  CLASS_6 = 'Classe 6',
-  CLASS_7 = 'Classe 7',
-  CLASS_8 = 'Classe 8'
-}
+import { ClassificationGrade, EnergyUnit } from '@shared/enums/classification.enum';
 
 export interface EnergyClassInput {
   buildingType: BuildingTypes;
   heatingLoad: number; // kWh/year
+  heatingLoadClass: number; // kWh/year
   coolingLoad: number; // kWh/year
-  conditionedSurface: number; // m²
+  coolingLoadClass: number; // kWh/year
+  conditionedSurface: number; //  :todo: to be removed
 }
 
 export interface EnergyClassResult {
   becth: number | null; // kWh/m².year
-  energyClass: EnergyClass | null;
+  energyClass: ClassificationGrade | null;
   classDescription: string | null;
   isApplicable: boolean;
+  unit: EnergyUnit.KWH_PER_M2_YEAR;
 }
 
-/**
- * Determines energy class based on BECTh value
- */
-function getEnergyClass(becth: number): { class: EnergyClass; description: string } {
-  if (becth <= 75) {
-    return { class: EnergyClass.CLASS_1, description: 'Excellente performance' };
+type Threshold = { max: number; class: ClassificationGrade; description: string };
+
+const OFFICE_THRESHOLDS: Threshold[] = [
+  { max: 60, class: ClassificationGrade.A, description: 'Très bon niveau énergétique (bâtiment récent / clim performante)' },
+  { max: 90, class: ClassificationGrade.B, description: 'Bon confort et bonne enveloppe' },
+  { max: 120, class: ClassificationGrade.C, description: 'Niveau courant en Tunisie' },
+  { max: 160, class: ClassificationGrade.D, description: 'Isolation faible, clim ancienne' },
+  { max: Number.POSITIVE_INFINITY, class: ClassificationGrade.E, description: 'Bâtiment énergivore' }
+];
+
+const CAFE_THRESHOLDS: Threshold[] = [
+  { max: 80, class: ClassificationGrade.A, description: 'Rare, clim performante et bien dimensionnée' },
+  { max: 120, class: ClassificationGrade.B, description: 'Niveau correct' },
+  { max: 160, class: ClassificationGrade.C, description: 'Niveau courant Tunisie (fort usage clim)' },
+  { max: 200, class: ClassificationGrade.D, description: 'Climatisation insuffisante, pertes' },
+  { max: Number.POSITIVE_INFINITY, class: ClassificationGrade.E, description: 'Très énergivore' }
+];
+
+const HOTEL_THRESHOLDS: Threshold[] = [
+  { max: 90, class: ClassificationGrade.A, description: 'Hôtel moderne / bonne enveloppe' },
+  { max: 130, class: ClassificationGrade.B, description: 'Acceptable en Tunisie' },
+  { max: 170, class: ClassificationGrade.C, description: 'Niveau courant pour hôtels 3★' },
+  { max: 220, class: ClassificationGrade.D, description: 'Forte clim, isolation faible' },
+  { max: Number.POSITIVE_INFINITY, class: ClassificationGrade.E, description: 'Très énergivore' }
+];
+
+const CLINIC_THRESHOLDS: Threshold[] = [
+  { max: 110, class: ClassificationGrade.A, description: 'Très bon niveau, bâtiment performant (rare en Tunisie)'},
+  { max: 150, class: ClassificationGrade.B, description: 'Bon niveau , clim et enveloppe maitrisées' },
+  { max: 200, class: ClassificationGrade.C, description: 'Niveau courant en Tunisie pour les cliniques' },
+  { max: 250, class: ClassificationGrade.D, description: 'Consommation élevée (HVAC continu)' },
+  { max: Number.POSITIVE_INFINITY, class: ClassificationGrade.E, description: 'Très énergivore (forte clim + équipements médicaux)' }
+];
+
+const SCHOOL_THRESHOLDS: Threshold[] = [
+  { max: 70, class: ClassificationGrade.A, description: 'Très performant' },
+  { max: 100, class: ClassificationGrade.B, description: 'Bon niveau' },
+  { max: 130, class: ClassificationGrade.C, description: 'Niveau courant Tunisie' },
+  { max: 180, class: ClassificationGrade.D, description: 'Confort faible, clim limitée' },
+  { max: Number.POSITIVE_INFINITY, class: ClassificationGrade.E, description: 'Très énergivore' }
+];
+
+const PHARMACY_THRESHOLDS: Threshold[] = [
+  { max: 75, class: ClassificationGrade.A, description: 'Très performant' },
+  { max: 105, class: ClassificationGrade.B, description: 'Bon niveau' },
+  { max: 135, class: ClassificationGrade.C, description: 'Niveau courant Tunisie' },
+  { max: 170, class: ClassificationGrade.D, description: 'Confort faible, clim limitée' },
+  { max: Number.POSITIVE_INFINITY, class: ClassificationGrade.E, description: 'Très énergivore' }
+];
+function getThresholds(buildingType: BuildingTypes): Threshold[] | null {
+  switch (buildingType) {
+    case BuildingTypes.OFFICE_ADMIN_BANK:
+      return OFFICE_THRESHOLDS;
+    case BuildingTypes.CAFE_RESTAURANT:
+    case BuildingTypes.BEAUTY_CENTER:
+      return CAFE_THRESHOLDS;
+    case BuildingTypes.HOTEL_GUESTHOUSE:
+      return HOTEL_THRESHOLDS;
+    case BuildingTypes.CLINIC_MEDICAL:
+      return CLINIC_THRESHOLDS;
+    case BuildingTypes.SCHOOL_TRAINING:
+      return SCHOOL_THRESHOLDS;
+    case BuildingTypes.PHARMACY:
+      return PHARMACY_THRESHOLDS;
+    default:
+      return null;
   }
-  if (becth <= 85) {
-    return { class: EnergyClass.CLASS_2, description: 'Très bonne performance' };
+}
+
+function classify(becth: number, thresholds: Threshold[]): { class: ClassificationGrade; description: string } {
+  for (const threshold of thresholds) {
+    if (becth <= threshold.max) {
+      return { class: threshold.class, description: threshold.description };
+    }
   }
-  if (becth <= 95) {
-    return { class: EnergyClass.CLASS_3, description: 'Bonne performance' };
-  }
-  if (becth <= 105) {
-    return { class: EnergyClass.CLASS_4, description: 'Performance moyenne' };
-  }
-  if (becth <= 125) {
-    return { class: EnergyClass.CLASS_5, description: 'Performance faible' };
-  }
-  if (becth <= 150) {
-    return { class: EnergyClass.CLASS_6, description: 'Mauvaise performance' };
-  }
-  if (becth <= 180) {
-    return { class: EnergyClass.CLASS_7, description: 'Très mauvaise performance' };
-  }
-  return { class: EnergyClass.CLASS_8, description: 'Performance critique' };
+  // Fallback (should never hit because Infinity is last)
+  return { class: thresholds[thresholds.length - 1].class, description: thresholds[thresholds.length - 1].description };
 }
 
 /**
  * Computes BECTh and energy class
  * 
- * Only applicable to Bureau / Administration / Banque buildings
+ * Returns classification for supported building types (Offices, Cafés, Hotels, Clinics, Schools)
+ * Returns NOT_APPLICABLE for other building types (Pharmacies, Factories, etc.)
  */
 export function computeEnergyClass(input: EnergyClassInput): EnergyClassResult {
-  // Energy classification only applies to offices
-  const isOfficeBuilding = input.buildingType === BuildingTypes.OFFICE_ADMIN_BANK;
-
-  if (!isOfficeBuilding) {
-    return {
-      becth: null,
-      energyClass: null,
-      classDescription: null,
-      isApplicable: false
-    };
-  }
-
-  // Check if conditioned surface is valid
-  if (input.conditionedSurface <= 0) {
+  // Check for invalid surface first
+ /* if (input.conditionedSurface <= 0) {
     return {
       becth: 0,
-      energyClass: null,
+      energyClass: ClassificationGrade.NOT_APPLICABLE,
       classDescription: 'Surface conditionnée invalide',
-      isApplicable: true
+      isApplicable: false,
+      unit: EnergyUnit.KWH_PER_M2_YEAR
     };
   }
+  */
 
-  // Calculate BECTh
-  const becth = (input.heatingLoad + input.coolingLoad) / input.conditionedSurface;
-  const { class: energyClass, description } = getEnergyClass(becth);
+  // Calculate BECTh for all building types (useful metric to display)
+  Logger.info(`Heating load: ${input.heatingLoadClass} kWh/year`);
+  Logger.info(`Cooling load: ${input.coolingLoadClass} kWh/year`);
+  const becth = (input.heatingLoadClass) + (input.coolingLoadClass) ;  
+  Logger.info(`BECTh: ${becth} kWh/year`);
+  
+  const thresholds = getThresholds(input.buildingType);
+
+  // Classify based on thresholds
+  const { class: energyClass, description } = classify(becth, thresholds!);
 
   return {
     becth: Number(becth.toFixed(2)),
     energyClass,
     classDescription: description,
-    isApplicable: true
+    isApplicable: true,
+    unit: EnergyUnit.KWH_PER_M2_YEAR
   };
 }
 

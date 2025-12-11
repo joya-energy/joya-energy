@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input, computed, Input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, computed } from '@angular/core';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
   lucideSun,
@@ -39,5 +39,6 @@ export class FeatureIconComponent {
   readonly variant = input<'default' | 'teal' | 'aqua' | 'neutral'>('default');
   readonly noBackground = input<boolean>(false);
   protected readonly iconName = computed(() => ICON_MAP[this.name()]);
+  readonly size = input<number>(28);
 }
 

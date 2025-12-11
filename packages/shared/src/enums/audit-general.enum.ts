@@ -47,13 +47,17 @@ export enum ClimateZones {
 }
 
 export enum ActivityTypes {
-    INDUSTRY = 'Industrie',
-    MANUFACTURING = 'Manufacturing',
-    HOSPITALITY = 'Hôtellerie',
-    RETAIL = 'Commerce',
-    HEALTHCARE = 'Santé',
-    EDUCATION = 'Éducation',
-    OFFICES = 'Bureaux',
-    FOOD_PROCESSING = 'Agroalimentaire',
-    AGRICULTURE = 'Agriculture'
+  PHARMACY = 'Santé / Paramédical',
+  CAFE_RESTAURANT = 'Restauration / Services alimentaires',
+  BEAUTY_CENTER = 'Beauté / Bien-être', 
+  HOTEL_GUESTHOUSE = 'Hôtellerie / Hébergement',      
+  CLINIC_MEDICAL = 'Santé / Soins médicaux',
+  OFFICE_ADMIN_BANK = 'Services / Administration',
+  LIGHT_WORKSHOP = 'Industrie légère / Artisanat',
+  HEAVY_FACTORY = 'Industrie lourde / Métallurgie',
+  TEXTILE_PACKAGING = 'Textile / Emballage',
+  FOOD_INDUSTRY = 'Agroalimentaire',
+  PLASTIC_INJECTION = 'Plasturgie / Injection',
+  COLD_AGRO_INDUSTRY = 'Froid industriel / Agroalimentaire',
+  SCHOOL_TRAINING = 'Éducation / Formation',
 }
