@@ -15,7 +15,7 @@ const MAX_LIMIT = 100;
 
 const SURFACE_PER_KWP = 6; // m² per kWp
 const PANEL_EFFICIENCY = 0.2;
-const SYSTEM_LOSSES = 0.8;
+const SYSTEM_LOSSES = 14;
 const DEFAULT_COST_PER_KWP = 3000; // TND
 const DEFAULT_ENERGY_COST_PER_KWH = 0.35; // TND
 
@@ -33,13 +33,7 @@ interface GeoCoordinates {
   longitude: number;
 }
 
-interface NasaDailyResponse {
-  properties?: {
-    parameter?: {
-      ALLSKY_SFC_SW_DWN?: Record<string, number>;
-    };
-  };
-}
+
 
 export class AuditSolaireSimulationService extends CommonService<
   IAuditSolaireSimulation,
@@ -145,17 +139,19 @@ export class AuditSolaireSimulationService extends CommonService<
 
     const { data } = response;
 
-    if (!data || data.status !== 'OK' || !Array.isArray(data.results) || data.results.length === 0) {
-      const reason = data?.error_message ?? data?.status ?? 'unknown';
+    if (!data) {
+      throw new HTTP400Error(`Unable to resolve address to coordinates (Google status: ${data.error_message})`);
+    }
+    if (data.status !== 'OK') {
+      const reason = data.error_message ?? data.status;
       throw new HTTP400Error(`Unable to resolve address to coordinates (Google status: ${reason})`);
     }
 
     const location = data.results[0]?.geometry?.location;
 
     if (!location || typeof location.lat !== 'number' || typeof location.lng !== 'number') {
-      throw new HTTP400Error('Google Geocoding response did not include coordinates');
+      throw new HTTP400Error('Google Geocoding response did not include valid coordinates');
     }
-
     Logger.info('Google Geocoding resolved coordinates', { lat: location.lat, lng: location.lng });
 
     return {
@@ -163,55 +159,60 @@ export class AuditSolaireSimulationService extends CommonService<
       longitude: location.lng
     };
   }
+  private async fetchAnnualIrradiation(
+    latitude: number,
+    longitude: number
+  ): Promise<number> {
+    Logger.info('Fetching annual irradiation from PVGIS');
+    Logger.info(`latitude: ${latitude}, longitude: ${longitude}`);
 
-  private async fetchAnnualIrradiation(latitude: number, longitude: number): Promise<number> {
-    const year = new Date().getFullYear() - 1;
-    const start = `${year}0101`;
-    const end = `${year}1231`;
-
-    const nasaPowerApiUrl = process.env.NASA_POWER_API_URL ?? 'https://power.larc.nasa.gov/api/temporal/daily/point';
-    const nasaPowerCommunity = process.env.NASA_POWER_COMMUNITY ?? 'RE';
-    Logger.info(`NASA POWER API URL: ${nasaPowerApiUrl}`);
-    if (!nasaPowerApiUrl) {
-      throw new HTTP400Error('NASA POWER API URL is not configured');
-    }
+    const pvgisApiUrl =
+      process.env.PVGIS_API_URL ??
+      'https://re.jrc.ec.europa.eu/api/v5_2/PVcalc';
 
     let response;
+
     try {
-      response = await axios.get<NasaDailyResponse>(nasaPowerApiUrl, {
+      response = await axios.get(pvgisApiUrl, {
         params: {
-          parameters: process.env.NASA_POWER_PARAMETER ?? 'ALLSKY_SFC_SW_DWN',
-          latitude,
-          longitude,
-          start,
-          end,
-          format: 'JSON',
-          community: nasaPowerCommunity
-        }
+          lat: latitude,
+          lon: longitude,
+          angle: 30,
+          aspect: 0,
+          peakpower: 1,
+          loss: SYSTEM_LOSSES,
+          pvtechchoice: 'crystSi',
+          mountingplace: 'free',
+          raddatabase: 'PVGIS-SARAH3',
+          outputformat: 'json',
+        },
       });
     } catch (error) {
       const axiosError = error as AxiosError;
-      const status = axiosError.response?.status;
-      const statusText = axiosError.response?.statusText;
-      const data = axiosError.response?.data;
-      Logger.error('NASA POWER request failed', { status, statusText, data });
-      const explanation = typeof data === 'string' ? data : JSON.stringify(data);
+      Logger.error('PVGIS request failed', {
+        status: axiosError.response?.status,
+        statusText: axiosError.response?.statusText,
+        data: axiosError.response?.data,
+      });
+      throw new HTTP400Error('Failed to contact PVGIS service', error);
+    }
+
+
+    const annualIrradiation =
+      response.data?.outputs?.totals?.fixed?.E_y ??
+      response.data?.outputs?.totals?.E_y;
+
+    if (typeof annualIrradiation !== 'number') {
+      Logger.error('Unexpected PVGIS response structure', {
+        outputs: response.data?.outputs,
+      });
       throw new HTTP400Error(
-        `Failed to contact NASA POWER service (status: ${status ?? 'unknown'} - ${statusText ?? 'no status text'}) - ${explanation}`,
-        error
+        'PVGIS irradiation data not available for the provided coordinates'
       );
     }
 
-    const values = response.data?.properties?.parameter?.ALLSKY_SFC_SW_DWN;
-
-    if (!values || Object.keys(values).length === 0) {
-      throw new HTTP400Error('NASA POWER irradiation data not available for the provided coordinates');
-    }
-
-    const annualIrradiation = Object.values(values).reduce((total, value) => total + Number(value ?? 0), 0);
-
     return Number(annualIrradiation.toFixed(2));
   }
-}
 
+}
 export const auditSolaireSimulationService = new AuditSolaireSimulationService();
