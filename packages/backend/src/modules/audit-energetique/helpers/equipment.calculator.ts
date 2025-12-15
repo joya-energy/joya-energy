@@ -1,6 +1,6 @@
 import { BuildingTypes } from '@shared/enums/audit-general.enum';
 import { EquipmentCategories } from '@shared/enums/audit-usage.enum';
-import { EQUIPMENT_LOADS, PHARMACY_COLD_THRESHOLDS } from '../config';
+import { EQUIPMENT_LOADS } from '../config';
 
 export interface EquipmentCalculationInput {
   buildingType: BuildingTypes;
@@ -22,7 +22,7 @@ export interface EquipmentCalculationResult {
  * Special case: Pharmacies have mandatory refrigeration based on surface area
  */
 export function computeEquipmentLoads(params: EquipmentCalculationInput): EquipmentCalculationResult {
-  const { buildingType, categories, usageFactor, processFactor, surface } = params;
+  const { categories, usageFactor, processFactor } = params;
 
   let perSquare = 0;
   let absoluteKwh = 0;
@@ -40,12 +40,12 @@ export function computeEquipmentLoads(params: EquipmentCalculationInput): Equipm
     }
   }
 
-  if (buildingType === BuildingTypes.PHARMACY) {
+ /* if (buildingType === BuildingTypes.PHARMACY) {
     const coldLoad = computePharmacyColdLoad(surface);
     if (coldLoad > 0 && surface > 0) {
-      perSquare += coldLoad / surface;
+      perSquare += coldLoad;
     }
-  }
+  } */
 
   return { perSquare, absoluteKwh };
 }
@@ -54,6 +54,7 @@ export function computeEquipmentLoads(params: EquipmentCalculationInput): Equipm
  * Computes mandatory refrigeration load for pharmacies
  * Based on surface area thresholds
  */
+/*
 export function computePharmacyColdLoad(surface: number): number {
   for (const threshold of PHARMACY_COLD_THRESHOLDS) {
     if (surface <= threshold.maxSurface) {
@@ -63,5 +64,5 @@ export function computePharmacyColdLoad(surface: number): number {
 
   return PHARMACY_COLD_THRESHOLDS[PHARMACY_COLD_THRESHOLDS.length - 1]?.energy ?? 0;
 }
-
+*/
 

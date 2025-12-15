@@ -60,7 +60,7 @@ const SCHOOL_THRESHOLDS: CarbonThreshold[] = [
 function getThresholds(buildingType: BuildingTypes): CarbonThreshold[] | null {
   switch (buildingType) {
     case BuildingTypes.OFFICE_ADMIN_BANK:
-    case BuildingTypes.PHARMACY:
+    case BuildingTypes.SERVICE:
       return GENERAL_THRESHOLDS;
     case BuildingTypes.CAFE_RESTAURANT:
     case BuildingTypes.BEAUTY_CENTER:
@@ -76,10 +76,7 @@ function getThresholds(buildingType: BuildingTypes): CarbonThreshold[] | null {
   }
 }
 
-function classify(
-  intensity: number,
-  thresholds: CarbonThreshold[]
-): { class: ClassificationGrade; description: string } {
+function classify(intensity: number,  thresholds: CarbonThreshold[]): { class: ClassificationGrade; description: string } {
   for (const threshold of thresholds) {
     if (intensity <= threshold.max) {
       return { class: threshold.class, description: threshold.description };

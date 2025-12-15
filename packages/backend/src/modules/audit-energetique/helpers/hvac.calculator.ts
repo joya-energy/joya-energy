@@ -18,6 +18,8 @@ export interface HvacCalculationResult {
   heatingLoad: number;
   coolingLoad: number;
 }
+const GAS_BOILER_EFFICIENCY = 0.7;
+const ELECTRIC_HEATING_EFFICIENCY = 0.92;
 
 /**
  * Calculates HVAC loads (heating + cooling) per square meter
@@ -47,29 +49,34 @@ export function computeHvacLoads(params: HvacCalculationInput): HvacCalculationR
   let heatingLoad = 0;
   let coolingLoad = 0;
 
-  if(heatingSystem === HeatingSystemTypes.GAS_BOILER) {
-    heatingLoad = hvacBase * (
-      climate.winterWeight * climate.heatingFactor * effectiveHeatingUsage +
-      0.5 * climate.midSeasonWeight * climate.heatingFactor * effectiveHeatingUsage
-    ) / 0.6;
-  } else {
-    heatingLoad = hvacBase * (
-      climate.winterWeight * climate.heatingFactor * effectiveHeatingUsage +
-      0.5 * climate.midSeasonWeight * climate.heatingFactor * effectiveHeatingUsage
-    );
+  if (heatingSystem !== HeatingSystemTypes.NONE) {
+    if (heatingSystem === HeatingSystemTypes.GAS_BOILER) {
+      heatingLoad =
+        (hvacBase *
+          (climate.winterWeight * climate.heatingFactor * effectiveHeatingUsage +
+            0.5 * climate.midSeasonWeight * climate.heatingFactor * effectiveHeatingUsage)) /
+        GAS_BOILER_EFFICIENCY;
+    }
+    else if (heatingSystem === HeatingSystemTypes.ELECTRIC_HEATING) {
+      heatingLoad =
+        (hvacBase *
+          (climate.winterWeight * climate.heatingFactor * effectiveHeatingUsage +
+            0.5 * climate.midSeasonWeight * climate.heatingFactor * effectiveHeatingUsage)) /
+        ELECTRIC_HEATING_EFFICIENCY;
+    }
+    else {
+      heatingLoad =
+        hvacBase *
+        (climate.winterWeight * climate.heatingFactor * effectiveHeatingUsage +
+          0.5 * climate.midSeasonWeight * climate.heatingFactor * effectiveHeatingUsage);
+    }
   }
-/*  if (heatingSystem !== HeatingSystemTypes.NONE) {
-    heatingLoad = hvacBase * (
-      climate.winterWeight * climate.heatingFactor * effectiveHeatingUsage +
-      0.5 * climate.midSeasonWeight * climate.heatingFactor * effectiveHeatingUsage
-    ) / 0.6;
-  }*/
 
   if (coolingSystem !== CoolingSystemTypes.NONE) {
-    coolingLoad = hvacBase * (
-      climate.summerWeight * climate.coolingFactor * effectiveCoolingUsage +
-      0.5 * climate.midSeasonWeight * climate.coolingFactor * effectiveCoolingUsage
-    );
+    coolingLoad =
+      hvacBase *
+      (climate.summerWeight * climate.coolingFactor * effectiveCoolingUsage +
+        0.5 * climate.midSeasonWeight * climate.coolingFactor * effectiveCoolingUsage);
   }
 
   const coverageFactor = COOLING_COVERAGE_FACTORS[conditionedCoverage] ?? 1;

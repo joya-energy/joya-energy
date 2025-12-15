@@ -4,124 +4,417 @@ import { computeEnergyClass } from './energy-class.calculator';
 
 describe('Energy Class Calculator', () => {
   describe('computeEnergyClass', () => {
-    it('should classify as NOT_APPLICABLE for buildings without energy thresholds', () => {
-      const result = computeEnergyClass({
-        buildingType: BuildingTypes.PHARMACY,
-        heatingLoad: 1000,
-        coolingLoad: 500,
-        conditionedSurface: 100
-      });
-
-      expect(result.isApplicable).toBe(false);
-      expect(result.becth).toBe(15); // BECTh still calculated: (1000 + 500) / 100 = 15
-      expect(result.energyClass).toBe(ClassificationGrade.NOT_APPLICABLE);
-    });
-
-    it('should return NOT_APPLICABLE for invalid conditioned surface', () => {
+    it('returns NOT_APPLICABLE when conditioned surface is invalid', () => {
       const result = computeEnergyClass({
         buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
-        heatingLoad: 1000,
-        coolingLoad: 500,
+        electricityConsumption: 1000,
+        gasConsumption: 1000,
         conditionedSurface: 0
       });
 
       expect(result.isApplicable).toBe(false);
-      expect(result.energyClass).toBe(ClassificationGrade.NOT_APPLICABLE);
-      expect(result.classDescription).toBe('Surface conditionnée invalide');
+      expect(result.joyaClass).toBe(ClassificationGrade.NOT_APPLICABLE);
+      expect(result.classDescription).toContain('Surface conditionnée invalide');
     });
 
-    it('should compute BECTh and class A for very efficient offices', () => {
+    it('maps low-intensity offices to class A', () => {
       const result = computeEnergyClass({
         buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
-        heatingLoad: 3000,
-        coolingLoad: 2000,
+        electricityConsumption: 4000,
+        gasConsumption: 500,
         conditionedSurface: 100
       });
 
-      expect(result.becth).toBe(50);
-      expect(result.energyClass).toBe(ClassificationGrade.A);
-      expect(result.classDescription).toContain('Très bon niveau énergétique');
-      expect(result.isApplicable).toBe(true);
+      expect(result.referenceIntensity).toBe(110);
+      expect(result.joyaClass).toBe(ClassificationGrade.A);
+      expect(result.joyaIndex).toBeLessThanOrEqual(0.6);
     });
 
-    it('should compute BECTh and class B for good offices', () => {
+    it('maps moderate offices to class B', () => {
       const result = computeEnergyClass({
         buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
-        heatingLoad: 5000,
-        coolingLoad: 3000,
+        electricityConsumption: 9000,
+        gasConsumption: 2000,
         conditionedSurface: 100
       });
 
-      expect(result.becth).toBe(80);
-      expect(result.energyClass).toBe(ClassificationGrade.B);
-      expect(result.classDescription).toContain('Bon confort et bonne enveloppe');
-      expect(result.isApplicable).toBe(true);
+      expect(result.joyaClass).toBe(ClassificationGrade.B);
+      expect(result.joyaIndex).toBeGreaterThan(0.6);
+      expect(result.joyaIndex).toBeLessThanOrEqual(0.85);
     });
 
-    it('should compute BECTh and class C for average offices in Tunisia', () => {
-      const result = computeEnergyClass({
-        buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
-        heatingLoad: 7000,
-        coolingLoad: 5000,
-        conditionedSurface: 100
-      });
-
-      expect(result.becth).toBe(120);
-      expect(result.energyClass).toBe(ClassificationGrade.C);
-      expect(result.classDescription).toContain('Niveau courant en Tunisie');
-      expect(result.isApplicable).toBe(true);
-    });
-
-    it('should classify cafes/restaurants correctly', () => {
-      const result = computeEnergyClass({
-        buildingType: BuildingTypes.CAFE_RESTAURANT,
-        heatingLoad: 6000,
-        coolingLoad: 4000,
-        conditionedSurface: 100
-      });
-
-      expect(result.becth).toBe(100);
-      expect(result.energyClass).toBe(ClassificationGrade.B);
-      expect(result.isApplicable).toBe(true);
-    });
-
-    it('should classify hotels correctly', () => {
-      const result = computeEnergyClass({
-        buildingType: BuildingTypes.HOTEL_GUESTHOUSE,
-        heatingLoad: 8000,
-        coolingLoad: 4000,
-        conditionedSurface: 100
-      });
-
-      expect(result.becth).toBe(120);
-      expect(result.energyClass).toBe(ClassificationGrade.B);
-      expect(result.isApplicable).toBe(true);
-    });
-
-    it('should classify clinics correctly', () => {
+    it('maps clinics with high intensity to class E', () => {
       const result = computeEnergyClass({
         buildingType: BuildingTypes.CLINIC_MEDICAL,
-        heatingLoad: 10000,
-        coolingLoad: 8000,
-        conditionedSurface: 100
+        electricityConsumption: 40000,
+        gasConsumption: 12000,
+        conditionedSurface: 100,
+        gasEfficiency: 0.85
       });
 
-      expect(result.becth).toBe(180);
-      expect(result.energyClass).toBe(ClassificationGrade.C);
-      expect(result.isApplicable).toBe(true);
+      expect(result.referenceIntensity).toBe(220);
+      expect(result.joyaIndex).toBeGreaterThan(1.4);
+      expect(result.joyaClass).toBe(ClassificationGrade.E);
+    });
+  });
+});
+import { BuildingTypes } from '@shared/enums/audit-general.enum';
+import { ClassificationGrade } from '@shared/enums/classification.enum';
+import { computeEnergyClass } from './energy-class.calculator';
+
+describe('Energy Class Calculator', () => {
+  describe('computeEnergyClass', () => {
+    it('returns NOT_APPLICABLE when conditioned surface invalid', () => {
+      const result = computeEnergyClass({
+        buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
+        electricityConsumption: 1000,
+        gasConsumption: 1000,
+        conditionedSurface: 0
+      });
+
+      expect(result.isApplicable).toBe(false);
+      expect(result.joyaClass).toBe(ClassificationGrade.NOT_APPLICABLE);
+      expect(result.classDescription).toContain('Surface conditionnée invalide');
     });
 
-    it('should classify schools correctly', () => {
+    it('classifies a low-intensity office as A', () => {
       const result = computeEnergyClass({
-        buildingType: BuildingTypes.SCHOOL_TRAINING,
-        heatingLoad: 5000,
-        coolingLoad: 3000,
+        buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
+        electricityConsumption: 4000,
+        gasConsumption: 500,
         conditionedSurface: 100
       });
 
-      expect(result.becth).toBe(80);
-      expect(result.energyClass).toBe(ClassificationGrade.B);
-      expect(result.isApplicable).toBe(true);
+      expect(result.referenceIntensity).toBe(110);
+      expect(result.joyaClass).toBe(ClassificationGrade.A);
+      expect(result.joyaIndex).toBeLessThanOrEqual(0.6);
+    });
+
+    it('classifies a standard office as B', () => {
+      const result = computeEnergyClass({
+        buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
+        electricityConsumption: 9000,
+        gasConsumption: 2000,
+        conditionedSurface: 100
+      });
+
+      expect(result.joyaClass).toBe(ClassificationGrade.B);
+      expect(result.joyaIndex).toBeGreaterThan(0.6);
+      expect(result.joyaIndex).toBeLessThanOrEqual(0.85);
+    });
+
+    it('classifies clinics as E when intensity high', () => {
+      const result = computeEnergyClass({
+        buildingType: BuildingTypes.CLINIC_MEDICAL,
+        electricityConsumption: 40000,
+        gasConsumption: 12000,
+        conditionedSurface: 100,
+        gasEfficiency: 0.85
+      });
+
+      expect(result.referenceIntensity).toBe(220);
+      expect(result.joyaIndex).toBeGreaterThan(1.4);
+      expect(result.joyaClass).toBe(ClassificationGrade.E);
+    });
+  });
+});
+import { BuildingTypes } from '@shared/enums/audit-general.enum';
+import { ClassificationGrade } from '@shared/enums/classification.enum';
+import { computeEnergyClass } from './energy-class.calculator';
+
+describe('Energy Class Calculator', () => {
+  describe('computeEnergyClass', () => {
+    it('returns NOT_APPLICABLE when conditioned surface is invalid', () => {
+      const result = computeEnergyClass({
+        buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
+        electricityConsumption: 1000,
+        gasConsumption: 1000,
+        conditionedSurface: 0
+      });
+
+      expect(result.isApplicable).toBe(false);
+      expect(result.joyaClass).toBe(ClassificationGrade.NOT_APPLICABLE);
+      expect(result.classDescription).toContain('Surface conditionnée invalide');
+    });
+
+    it('classifies a low-intensity office as A', () => {
+      const result = computeEnergyClass({
+        buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
+        electricityConsumption: 4000,
+        gasConsumption: 500,
+        conditionedSurface: 100
+      });
+
+      expect(result.referenceIntensity).toBe(110);
+      expect(result.joyaClass).toBe(ClassificationGrade.A);
+      expect(result.joyaIndex).toBeLessThanOrEqual(0.6);
+    });
+
+    it('classifies a standard office as B', () => {
+      const result = computeEnergyClass({
+        buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
+        electricityConsumption: 9000,
+        gasConsumption: 2000,
+        conditionedSurface: 100
+      });
+
+      expect(result.joyaClass).toBe(ClassificationGrade.B);
+      expect(result.joyaIndex).toBeGreaterThan(0.6);
+      expect(result.joyaIndex).toBeLessThanOrEqual(0.85);
+    });
+
+    it('classifies clinics as E when intensity is high', () => {
+      const result = computeEnergyClass({
+        buildingType: BuildingTypes.CLINIC_MEDICAL,
+        electricityConsumption: 40000,
+        gasConsumption: 12000,
+        conditionedSurface: 100,
+        gasEfficiency: 0.85
+      });
+
+      expect(result.referenceIntensity).toBe(220);
+      expect(result.joyaIndex).toBeGreaterThan(1.4);
+      expect(result.joyaClass).toBe(ClassificationGrade.E);
+    });
+  });
+});
+import { BuildingTypes } from '@shared/enums/audit-general.enum';
+import { ClassificationGrade } from '@shared/enums/classification.enum';
+import { computeEnergyClass } from './energy-class.calculator';
+
+describe('Energy Class Calculator', () => {
+  describe('computeEnergyClass', () => {
+    it('returns NOT_APPLICABLE when conditioned surface is invalid', () => {
+      const result = computeEnergyClass({
+        buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
+        electricityConsumption: 1000,
+        gasConsumption: 1000,
+        conditionedSurface: 0
+      });
+
+      expect(result.isApplicable).toBe(false);
+      expect(result.joyaClass).toBe(ClassificationGrade.NOT_APPLICABLE);
+      expect(result.classDescription).toContain('Surface conditionnée invalide');
+    });
+
+    it('classifies a low-intensity office as A', () => {
+      const result = computeEnergyClass({
+        buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
+        electricityConsumption: 4000,
+        gasConsumption: 500,
+        conditionedSurface: 100
+      });
+
+      expect(result.referenceIntensity).toBe(110);
+      expect(result.joyaClass).toBe(ClassificationGrade.A);
+      expect(result.joyaIndex).toBeLessThanOrEqual(0.6);
+    });
+
+    it('classifies a standard office as B', () => {
+      const result = computeEnergyClass({
+        buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
+        electricityConsumption: 9000,
+        gasConsumption: 2000,
+        conditionedSurface: 100
+      });
+
+      expect(result.joyaClass).toBe(ClassificationGrade.B);
+      expect(result.joyaIndex).toBeGreaterThan(0.6);
+      expect(result.joyaIndex).toBeLessThanOrEqual(0.85);
+    });
+
+    it('classifies clinics as E when intensity is high', () => {
+      const result = computeEnergyClass({
+        buildingType: BuildingTypes.CLINIC_MEDICAL,
+        electricityConsumption: 40000,
+        gasConsumption: 12000,
+        conditionedSurface: 100,
+        gasEfficiency: 0.85
+      });
+
+      expect(result.referenceIntensity).toBe(220);
+      expect(result.joyaIndex).toBeGreaterThan(1.4);
+      expect(result.joyaClass).toBe(ClassificationGrade.E);
+    });
+  });
+});
+import { BuildingTypes } from '@shared/enums/audit-general.enum';
+import { ClassificationGrade } from '@shared/enums/classification.enum';
+import { computeEnergyClass } from './energy-class.calculator';
+
+describe('Energy Class Calculator', () => {
+  describe('computeEnergyClass', () => {
+    it('returns NOT_APPLICABLE when conditioned surface is invalid', () => {
+      const result = computeEnergyClass({
+        buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
+        electricityConsumption: 1000,
+        gasConsumption: 1000,
+        conditionedSurface: 0
+      });
+
+      expect(result.isApplicable).toBe(false);
+      expect(result.joyaClass).toBe(ClassificationGrade.NOT_APPLICABLE);
+      expect(result.classDescription).toContain('Surface conditionnée invalide');
+    });
+
+    it('classifies a low-intensity office as A', () => {
+      const result = computeEnergyClass({
+        buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
+        electricityConsumption: 4000,
+        gasConsumption: 500,
+        conditionedSurface: 100
+      });
+
+      expect(result.referenceIntensity).toBe(110);
+      expect(result.joyaClass).toBe(ClassificationGrade.A);
+      expect(result.joyaIndex).toBeLessThanOrEqual(0.6);
+    });
+
+    it('classifies a standard office as B', () => {
+      const result = computeEnergyClass({
+        buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
+        electricityConsumption: 9000,
+        gasConsumption: 2000,
+        conditionedSurface: 100
+      });
+
+      expect(result.joyaClass).toBe(ClassificationGrade.B);
+      expect(result.joyaIndex).toBeGreaterThan(0.6);
+      expect(result.joyaIndex).toBeLessThanOrEqual(0.85);
+    });
+
+    it('classifies clinics as E when intensity is high', () => {
+      const result = computeEnergyClass({
+        buildingType: BuildingTypes.CLINIC_MEDICAL,
+        electricityConsumption: 40000,
+        gasConsumption: 12000,
+        conditionedSurface: 100,
+        gasEfficiency: 0.85
+      });
+
+      expect(result.referenceIntensity).toBe(220);
+      expect(result.joyaIndex).toBeGreaterThan(1.4);
+      expect(result.joyaClass).toBe(ClassificationGrade.E);
+    });
+  });
+});
+import { BuildingTypes } from '@shared/enums/audit-general.enum';
+import { ClassificationGrade } from '@shared/enums/classification.enum';
+import { computeEnergyClass } from './energy-class.calculator';
+
+describe('Energy Class Calculator', () => {
+  describe('computeEnergyClass', () => {
+    it('returns NOT_APPLICABLE when conditioned surface is invalid', () => {
+      const result = computeEnergyClass({
+        buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
+        electricityConsumption: 1000,
+        gasConsumption: 1000,
+        conditionedSurface: 0
+      });
+
+      expect(result.isApplicable).toBe(false);
+      expect(result.joyaClass).toBe(ClassificationGrade.NOT_APPLICABLE);
+      expect(result.classDescription).toContain('Surface conditionnée invalide');
+    });
+
+    it('classifies a low-intensity office as A', () => {
+      const result = computeEnergyClass({
+        buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
+        electricityConsumption: 4000,
+        gasConsumption: 500,
+        conditionedSurface: 100
+      });
+
+      expect(result.referenceIntensity).toBe(110);
+      expect(result.joyaClass).toBe(ClassificationGrade.A);
+      expect(result.joyaIndex).toBeLessThanOrEqual(0.6);
+    });
+
+    it('classifies a standard office as B', () => {
+      const result = computeEnergyClass({
+        buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
+        electricityConsumption: 9000,
+        gasConsumption: 2000,
+        conditionedSurface: 100
+      });
+
+      expect(result.joyaClass).toBe(ClassificationGrade.B);
+      expect(result.joyaIndex).toBeGreaterThan(0.6);
+      expect(result.joyaIndex).toBeLessThanOrEqual(0.85);
+    });
+
+    it('classifies clinics as E when intensity is high', () => {
+      const result = computeEnergyClass({
+        buildingType: BuildingTypes.CLINIC_MEDICAL,
+        electricityConsumption: 40000,
+        gasConsumption: 12000,
+        conditionedSurface: 100,
+        gasEfficiency: 0.85
+      });
+
+      expect(result.referenceIntensity).toBe(220);
+      expect(result.joyaIndex).toBeGreaterThan(1.4);
+      expect(result.joyaClass).toBe(ClassificationGrade.E);
+    });
+  });
+});
+import { BuildingTypes } from '@shared/enums/audit-general.enum';
+import { ClassificationGrade } from '@shared/enums/classification.enum';
+import { computeEnergyClass } from './energy-class.calculator';
+
+describe('Energy Class Calculator', () => {
+  describe('computeEnergyClass', () => {
+    it('returns NOT_APPLICABLE for invalid conditioned surface', () => {
+      const result = computeEnergyClass({
+        buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
+        electricityConsumption: 1000,
+        gasConsumption: 1000,
+        conditionedSurface: 0
+      });
+
+      expect(result.isApplicable).toBe(false);
+      expect(result.joyaClass).toBe(ClassificationGrade.NOT_APPLICABLE);
+      expect(result.classDescription).toContain('Surface conditionnée invalide');
+    });
+
+    it('classifies low-intensity office as A', () => {
+      const result = computeEnergyClass({
+        buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
+        electricityConsumption: 4000,
+        gasConsumption: 500,
+        conditionedSurface: 100
+      });
+
+      expect(result.referenceIntensity).toBe(110);
+      expect(result.joyaClass).toBe(ClassificationGrade.A);
+      expect(result.joyaIndex).toBeLessThanOrEqual(0.6);
+    });
+
+    it('sets B for a moderate-intensity office', () => {
+      const result = computeEnergyClass({
+        buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
+        electricityConsumption: 9000,
+        gasConsumption: 2000,
+        conditionedSurface: 100
+      });
+
+      expect(result.joyaClass).toBe(ClassificationGrade.B);
+      expect(result.joyaIndex).toBeGreaterThan(0.6);
+      expect(result.joyaIndex).toBeLessThanOrEqual(0.85);
+    });
+
+    it('classifies clinics as E when intensity is high', () => {
+      const result = computeEnergyClass({
+        buildingType: BuildingTypes.CLINIC_MEDICAL,
+        electricityConsumption: 40000,
+        gasConsumption: 12000,
+        conditionedSurface: 100,
+        gasEfficiency: 0.85
+      });
+
+      expect(result.referenceIntensity).toBe(220);
+      expect(result.joyaIndex).toBeGreaterThan(1.4);
+      expect(result.joyaClass).toBe(ClassificationGrade.E);
     });
   });
 });

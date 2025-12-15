@@ -28,136 +28,113 @@ import { ClassificationGrade, EnergyUnit } from '@shared/enums/classification.en
 
 export interface EnergyClassInput {
   buildingType: BuildingTypes;
-  heatingLoad: number; // kWh/year
-  heatingLoadClass: number; // kWh/year
-  coolingLoad: number; // kWh/year
-  coolingLoadClass: number; // kWh/year
-  conditionedSurface: number; //  :todo: to be removed
+  electricityConsumption: number;
+  gasConsumption: number;
+  conditionedSurface: number;
+  gasEfficiency?: number;
 }
 
 export interface EnergyClassResult {
-  becth: number | null; // kWh/m².year
-  energyClass: ClassificationGrade | null;
-  classDescription: string | null;
+  totalAnnualEnergy: number;
+  siteIntensity: number;
+  referenceIntensity: number | null;
+  joyaIndex: number | null;
+  joyaClass: ClassificationGrade;
+  classDescription: string;
   isApplicable: boolean;
   unit: EnergyUnit.KWH_PER_M2_YEAR;
+  becth: number;
 }
 
 type Threshold = { max: number; class: ClassificationGrade; description: string };
 
-const OFFICE_THRESHOLDS: Threshold[] = [
-  { max: 60, class: ClassificationGrade.A, description: 'Très bon niveau énergétique (bâtiment récent / clim performante)' },
-  { max: 90, class: ClassificationGrade.B, description: 'Bon confort et bonne enveloppe' },
-  { max: 120, class: ClassificationGrade.C, description: 'Niveau courant en Tunisie' },
-  { max: 160, class: ClassificationGrade.D, description: 'Isolation faible, clim ancienne' },
-  { max: Number.POSITIVE_INFINITY, class: ClassificationGrade.E, description: 'Bâtiment énergivore' }
-];
-
-const CAFE_THRESHOLDS: Threshold[] = [
-  { max: 80, class: ClassificationGrade.A, description: 'Rare, clim performante et bien dimensionnée' },
-  { max: 120, class: ClassificationGrade.B, description: 'Niveau correct' },
-  { max: 160, class: ClassificationGrade.C, description: 'Niveau courant Tunisie (fort usage clim)' },
-  { max: 200, class: ClassificationGrade.D, description: 'Climatisation insuffisante, pertes' },
+const JOYA_THRESHOLDS: Threshold[] = [
+  { max: 0.6, class: ClassificationGrade.A, description: 'Optimisé' },
+  { max: 0.85, class: ClassificationGrade.B, description: 'Efficace' },
+  { max: 1.15, class: ClassificationGrade.C, description: 'Standard' },
+  { max: 1.4, class: ClassificationGrade.D, description: 'Surconsommation' },
   { max: Number.POSITIVE_INFINITY, class: ClassificationGrade.E, description: 'Très énergivore' }
 ];
 
-const HOTEL_THRESHOLDS: Threshold[] = [
-  { max: 90, class: ClassificationGrade.A, description: 'Hôtel moderne / bonne enveloppe' },
-  { max: 130, class: ClassificationGrade.B, description: 'Acceptable en Tunisie' },
-  { max: 170, class: ClassificationGrade.C, description: 'Niveau courant pour hôtels 3★' },
-  { max: 220, class: ClassificationGrade.D, description: 'Forte clim, isolation faible' },
-  { max: Number.POSITIVE_INFINITY, class: ClassificationGrade.E, description: 'Très énergivore' }
-];
+const REFERENCE_INTENSITIES: Record<BuildingTypes, number> = {
+  [BuildingTypes.SERVICE]: 138,
+  [BuildingTypes.CAFE_RESTAURANT]: 180,
+  [BuildingTypes.BEAUTY_CENTER]: 140,
+  [BuildingTypes.OFFICE_ADMIN_BANK]: 110,
+  [BuildingTypes.CLINIC_MEDICAL]: 220,
+  [BuildingTypes.HOTEL_GUESTHOUSE]: 200,
+  [BuildingTypes.SCHOOL_TRAINING]: 90,
+  [BuildingTypes.LIGHT_WORKSHOP]: 130,
+  [BuildingTypes.HEAVY_FACTORY]: 180,
+  [BuildingTypes.TEXTILE_PACKAGING]: 160,
+  [BuildingTypes.FOOD_INDUSTRY]: 190,
+  [BuildingTypes.PLASTIC_INJECTION]: 170,
+  [BuildingTypes.COLD_AGRO_INDUSTRY]: 240
+};
 
-const CLINIC_THRESHOLDS: Threshold[] = [
-  { max: 110, class: ClassificationGrade.A, description: 'Très bon niveau, bâtiment performant (rare en Tunisie)'},
-  { max: 150, class: ClassificationGrade.B, description: 'Bon niveau , clim et enveloppe maitrisées' },
-  { max: 200, class: ClassificationGrade.C, description: 'Niveau courant en Tunisie pour les cliniques' },
-  { max: 250, class: ClassificationGrade.D, description: 'Consommation élevée (HVAC continu)' },
-  { max: Number.POSITIVE_INFINITY, class: ClassificationGrade.E, description: 'Très énergivore (forte clim + équipements médicaux)' }
-];
-
-const SCHOOL_THRESHOLDS: Threshold[] = [
-  { max: 70, class: ClassificationGrade.A, description: 'Très performant' },
-  { max: 100, class: ClassificationGrade.B, description: 'Bon niveau' },
-  { max: 130, class: ClassificationGrade.C, description: 'Niveau courant Tunisie' },
-  { max: 180, class: ClassificationGrade.D, description: 'Confort faible, clim limitée' },
-  { max: Number.POSITIVE_INFINITY, class: ClassificationGrade.E, description: 'Très énergivore' }
-];
-
-const PHARMACY_THRESHOLDS: Threshold[] = [
-  { max: 75, class: ClassificationGrade.A, description: 'Très performant' },
-  { max: 105, class: ClassificationGrade.B, description: 'Bon niveau' },
-  { max: 135, class: ClassificationGrade.C, description: 'Niveau courant Tunisie' },
-  { max: 170, class: ClassificationGrade.D, description: 'Confort faible, clim limitée' },
-  { max: Number.POSITIVE_INFINITY, class: ClassificationGrade.E, description: 'Très énergivore' }
-];
-function getThresholds(buildingType: BuildingTypes): Threshold[] | null {
-  switch (buildingType) {
-    case BuildingTypes.OFFICE_ADMIN_BANK:
-      return OFFICE_THRESHOLDS;
-    case BuildingTypes.CAFE_RESTAURANT:
-    case BuildingTypes.BEAUTY_CENTER:
-      return CAFE_THRESHOLDS;
-    case BuildingTypes.HOTEL_GUESTHOUSE:
-      return HOTEL_THRESHOLDS;
-    case BuildingTypes.CLINIC_MEDICAL:
-      return CLINIC_THRESHOLDS;
-    case BuildingTypes.SCHOOL_TRAINING:
-      return SCHOOL_THRESHOLDS;
-    case BuildingTypes.PHARMACY:
-      return PHARMACY_THRESHOLDS;
-    default:
-      return null;
-  }
-}
-
-function classify(becth: number, thresholds: Threshold[]): { class: ClassificationGrade; description: string } {
-  for (const threshold of thresholds) {
-    if (becth <= threshold.max) {
+function classifyIndex(index: number): { class: ClassificationGrade; description: string } {
+  for (const threshold of JOYA_THRESHOLDS) {
+    if (index <= threshold.max) {
       return { class: threshold.class, description: threshold.description };
     }
   }
-  // Fallback (should never hit because Infinity is last)
-  return { class: thresholds[thresholds.length - 1].class, description: thresholds[thresholds.length - 1].description };
+  const finalThreshold = JOYA_THRESHOLDS[JOYA_THRESHOLDS.length - 1];
+  return { class: finalThreshold.class, description: finalThreshold.description };
 }
 
-/**
- * Computes BECTh and energy class
- * 
- * Returns classification for supported building types (Offices, Cafés, Hotels, Clinics, Schools)
- * Returns NOT_APPLICABLE for other building types (Pharmacies, Factories, etc.)
- */
 export function computeEnergyClass(input: EnergyClassInput): EnergyClassResult {
-  // Check for invalid surface first
- /* if (input.conditionedSurface <= 0) {
+  if (input.conditionedSurface <= 0) {
     return {
-      becth: 0,
-      energyClass: ClassificationGrade.NOT_APPLICABLE,
+      totalAnnualEnergy: 0,
+      siteIntensity: 0,
+      referenceIntensity: null,
+      joyaIndex: null,
+      joyaClass: ClassificationGrade.NOT_APPLICABLE,
       classDescription: 'Surface conditionnée invalide',
       isApplicable: false,
-      unit: EnergyUnit.KWH_PER_M2_YEAR
+      unit: EnergyUnit.KWH_PER_M2_YEAR,
+      becth: 0
     };
   }
-  */
 
-  // Calculate BECTh for all building types (useful metric to display)
-  Logger.info(`Heating load: ${input.heatingLoadClass} kWh/year`);
-  Logger.info(`Cooling load: ${input.coolingLoadClass} kWh/year`);
-  const becth = (input.heatingLoadClass) + (input.coolingLoadClass) ;  
-  Logger.info(`BECTh: ${becth} kWh/year`);
-  
-  const thresholds = getThresholds(input.buildingType);
+  const referenceIntensity = REFERENCE_INTENSITIES[input.buildingType] ?? null;
+  if (!referenceIntensity) {
+    return {
+      totalAnnualEnergy: 0,
+      siteIntensity: 0,
+      referenceIntensity: null,
+      joyaIndex: null,
+      joyaClass: ClassificationGrade.NOT_APPLICABLE,
+      classDescription: 'Classement énergétique non disponible pour ce type de bâtiment',
+      isApplicable: false,
+      unit: EnergyUnit.KWH_PER_M2_YEAR,
+      becth: 0
+    };
+  }
 
-  // Classify based on thresholds
-  const { class: energyClass, description } = classify(becth, thresholds!);
+//  const gasEfficiency = input.gasEfficiency ?? DEFAULT_GAS_EFFICIENCY;
+//  const usefulGasEnergy = input.gasConsumption / gasEfficiency;
+//  const totalAnnualEnergy = input.electricityConsumption + usefulGasEnergy;
+  const totalAnnualEnergy = input.electricityConsumption + input.gasConsumption;
+  const siteIntensity = totalAnnualEnergy / input.conditionedSurface;
+  const joyaIndex = siteIntensity / referenceIntensity;
+
+  Logger.info(`Total annual energy: ${totalAnnualEnergy} kWh`);
+  Logger.info(`Site intensity: ${siteIntensity} kWh/m².an`);
+  Logger.info(`Reference intensity: ${referenceIntensity} kWh/m².an`);
+
+  const { class: joyaClass, description } = classifyIndex(joyaIndex);
 
   return {
-    becth: Number(becth.toFixed(2)),
-    energyClass,
+    totalAnnualEnergy: Number(totalAnnualEnergy.toFixed(2)),
+    siteIntensity: Number(siteIntensity.toFixed(2)),
+    referenceIntensity,
+    joyaIndex: Number(joyaIndex.toFixed(2)),
+    joyaClass,
     classDescription: description,
     isApplicable: true,
-    unit: EnergyUnit.KWH_PER_M2_YEAR
+    unit: EnergyUnit.KWH_PER_M2_YEAR,
+    becth: Number(siteIntensity.toFixed(2))
   };
 }
 

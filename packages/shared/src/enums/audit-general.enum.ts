@@ -25,10 +25,10 @@ export enum Governorates {
 }
 
 export enum BuildingTypes {
-  PHARMACY = 'Pharmacie', //service
   CAFE_RESTAURANT = 'Café / Restaurant', //service
   BEAUTY_CENTER = 'Centre esthétique / Spa', //service
   HOTEL_GUESTHOUSE = 'Hôtel',
+  SERVICE = 'Service Tertiaire',
   CLINIC_MEDICAL = 'Clinique / Centre médical', //service
   OFFICE_ADMIN_BANK = 'Bureau / Administration / Banque', 
   LIGHT_WORKSHOP = 'Atelier léger / Artisanat / Menuiserie', //service

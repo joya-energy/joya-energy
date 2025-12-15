@@ -13,7 +13,7 @@ import {
   InsulationQualities,
   VentilationSystems
 } from '@shared/enums/audit-batiment.enum';
-import { EnergyTariffTypes } from '@shared/enums/audit-energetique.enum';
+import { EnergyTariffTypes } from '@shared/enums/audit-energy-tariff';
 import { BuildingTypes, ClimateZones, Governorates } from '@shared/enums/audit-general.enum';
 import { EquipmentCategories, ExistingMeasures, LightingTypes } from '@shared/enums/audit-usage.enum';
 import { type IAuditEnergetiqueSimulation } from '@shared/interfaces/audit-energetique.interface';
@@ -59,6 +59,10 @@ export const AuditEnergetiqueSimulation: Model<AuditEnergetiqueSimulationDocumen
     co2EmissionsTons: { type: Number, required: true, min: 0 },
     energyClass: { type: String, required: false },
     energyClassDescription: { type: String, required: false },
+    totalAnnualEnergy: { type: Number, required: false, min: 0 },
+    siteIntensity: { type: Number, required: false, min: 0 },
+    referenceIntensity: { type: Number, required: false, min: 0 },
+    joyaIndex: { type: Number, required: false, min: 0 },
     becth: { type: Number, required: false, min: 0 }
   },
   {

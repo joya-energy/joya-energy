@@ -11,7 +11,7 @@ import {
   ConditionedCoverage,
   DomesticHotWaterTypes
 } from '@shared/enums/audit-batiment.enum';
-import { EnergyTariffTypes } from '@shared/enums/audit-energetique.enum';
+import { EnergyTariffTypes } from '@shared/enums/audit-energy-tariff';
 import { LightingTypes, EquipmentCategories } from '@shared/enums/audit-usage.enum';
 import { Types } from 'mongoose';
 import {
@@ -149,15 +149,18 @@ describe('AuditSimulationService', () => {
     });
 
     it('should calculate energy class for all supported building types', async () => {
-      // Pharmacy is now supported in energy classification per new business rules
       mockRepository.createOne.mockResolvedValue(mockSimulationDocument);
 
       await service.createSimulation(mockSimulationInput);
 
       const createCall = mockRepository.createOne.mock.calls[0][0] as ICreateAuditEnergetiqueSimulation;
-      // Pharmacies and other unsupported types still get N/A
-      expect(createCall.energyClass).toBe('N/A');
+      // Pharmacy is supported: energy class should be computed, not N/A
+      expect(createCall.energyClass).toBeDefined();
+      expect(createCall.energyClass).not.toBe('N/A');
       expect(createCall.becth).toBeDefined();
+      expect(createCall.totalAnnualEnergy).toBeDefined();
+      expect(createCall.siteIntensity).toBeDefined();
+      expect(createCall.joyaIndex).toBeDefined();
     });
 
     it('should include equipment loads when categories provided', async () => {

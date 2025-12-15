@@ -26,6 +26,7 @@ export enum HeatingSystemTypes {
   ELECTRIC_INDIVIDUAL = 'Chauffage électrique individuel',
   REVERSIBLE_AC = 'Chauffage par climatisation réversible',
   GAS_BOILER = 'Chaudière gaz',
+  ELECTRIC_HEATING = 'Chaudiere électrique',
   OTHER = 'Autre système de chauffage'
 }
 
@@ -48,4 +49,3 @@ export enum DomesticHotWaterTypes {
   SOLAR = 'Chauffe-eau solaire',
   HEAT_PUMP = 'Pompe à chaleur ECS'
 }
-  

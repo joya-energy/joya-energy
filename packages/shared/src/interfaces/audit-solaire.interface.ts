@@ -1,6 +1,6 @@
 import { BusinessObject, CreateBusinessObject, UpdateBusinessObject } from './buisness.interface';
 
-export interface IAuditSolaireSimulation extends BusinessObject {
+export interface  IAuditSolaireSimulation extends BusinessObject {
   latitude: number;
   longitude: number;
   surfaceArea: number;

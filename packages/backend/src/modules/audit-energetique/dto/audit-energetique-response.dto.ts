@@ -97,6 +97,10 @@ export interface EnergyCost {
 }
 
 export interface EnergyClassification {
+  totalAnnualEnergy: number;
+  siteIntensity: number;
+  referenceIntensity: number;
+  joyaIndex: number;
   becth: number;
   class: ClassificationGrade;
   description: string;
@@ -254,15 +258,27 @@ export function toAuditEnergetiqueResponseDto(
   };
 
   // Add energy classification if computed
-  if (simulation.energyClass && simulation.becth != null) {
+  if (
+    simulation.energyClass &&
+    simulation.totalAnnualEnergy != null &&
+    simulation.siteIntensity != null
+  ) {
     response.data.results.energyClassification = {
-      becth: simulation.becth,
+      totalAnnualEnergy: simulation.totalAnnualEnergy,
+      siteIntensity: simulation.siteIntensity,
+      referenceIntensity: simulation.referenceIntensity ?? 0,
+      joyaIndex: simulation.joyaIndex ?? 0,
+      becth: simulation.becth ?? simulation.siteIntensity ?? 0,
       class: simulation.energyClass as ClassificationGrade,
       description: simulation.energyClassDescription ?? '',
       isApplicable: true
     };
   } else {
     response.data.results.energyClassification = {
+      totalAnnualEnergy: Number(energyConsumptionPerM2.toFixed(2)),
+      siteIntensity: Number(energyConsumptionPerM2.toFixed(2)),
+      referenceIntensity: 0,
+      joyaIndex: 0,
       becth: Number(energyConsumptionPerM2.toFixed(2)),
       class: ClassificationGrade.NOT_APPLICABLE,
       description: 'Classement énergétique non disponible pour ce type de bâtiment',

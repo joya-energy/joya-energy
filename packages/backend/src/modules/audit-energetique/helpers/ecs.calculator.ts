@@ -5,9 +5,7 @@ export interface EcsCalculationInput {
   ecsUsageFactor: number;
   reference: number;
   gasEfficiency: number;
-  solarCoverage: number;
-  solarAppointEff: number;
-  heatPumpCop: number;
+  electricEfficiency: number;
 }
 
 export interface EcsCalculationResult {
@@ -20,10 +18,10 @@ export interface EcsCalculationResult {
  * Takes into account system type and efficiency
  * 
  * System types:
- * - Electric: η = 1.0 (100% conversion)
- * - Gas: η ≈ 0.92 (combustion losses)
- * - Solar: 70% solar + 30% appoint
- * - Heat Pump: COP ≈ 3.0 (3x more efficient)
+ * - Electric: η = 0.92 (92% conversion)
+ * - Gas: η ≈ 0.7 (70% conversion)
+ * - Solar: n=1
+ * - Heat Pump: n=1
  */
 export function computeDomesticHotWaterLoad(params: EcsCalculationInput): EcsCalculationResult {
   const {
@@ -31,9 +29,7 @@ export function computeDomesticHotWaterLoad(params: EcsCalculationInput): EcsCal
     ecsUsageFactor,
     reference,
     gasEfficiency,
-    solarCoverage,
-    solarAppointEff,
-    heatPumpCop
+    electricEfficiency,
   } = params;
 
   const ecsUtile = reference * ecsUsageFactor;
@@ -44,18 +40,17 @@ export function computeDomesticHotWaterLoad(params: EcsCalculationInput): EcsCal
 
   switch (ecsType) {
     case DomesticHotWaterTypes.ELECTRIC:
-      return { perSquare: ecsUtile, absoluteKwh: 0 };
+      return { perSquare: ecsUtile / electricEfficiency, absoluteKwh: 0 };
 
     case DomesticHotWaterTypes.GAS:
       return { perSquare: ecsUtile / gasEfficiency, absoluteKwh: 0 };
 
     case DomesticHotWaterTypes.SOLAR: {
-      const appointPart = (1 - solarCoverage) * (ecsUtile / solarAppointEff);
-      return { perSquare: appointPart, absoluteKwh: 0 };
+      return { perSquare: ecsUtile, absoluteKwh: 0 };
     }
 
     case DomesticHotWaterTypes.HEAT_PUMP:
-      return { perSquare: ecsUtile / heatPumpCop, absoluteKwh: 0 };
+      return { perSquare: ecsUtile , absoluteKwh: 0 };
 
     default:
       return { perSquare: ecsUtile, absoluteKwh: 0 };

@@ -1,15 +1,14 @@
-import {
-  ConditionedCoverage,
+import { ConditionedCoverage,
   CoolingSystemTypes,
   DomesticHotWaterTypes,
   GlazingTypes,
   HeatingSystemTypes,
   InsulationQualities,
   VentilationSystems
-} from '@shared/enums/audit-batiment.enum';
+} from '../enums/audit-batiment.enum';
 import { BusinessObject, CreateBusinessObject, UpdateBusinessObject } from './buisness.interface';
 import { BuildingTypes, ClimateZones, Governorates } from '@shared/enums/audit-general.enum';
-import { EnergyTariffTypes } from '@shared/enums/audit-energetique.enum';
+import { EnergyTariffTypes } from '@shared/enums/audit-energy-tariff';
 import { EquipmentCategories, ExistingMeasures, LightingTypes } from '@shared/enums/audit-usage.enum';
 
 export interface IAuditEnergetiqueSimulation extends BusinessObject {
@@ -54,6 +53,10 @@ export interface IAuditEnergetiqueSimulation extends BusinessObject {
   carbonIntensity?: number;
   energyClass?: string;
   energyClassDescription?: string;
+  totalAnnualEnergy?: number;
+  siteIntensity?: number;
+  referenceIntensity?: number;
+  joyaIndex?: number;
   becth?: number;
   createdAt: Date;
   updatedAt: Date;
