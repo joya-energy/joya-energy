@@ -2,7 +2,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import { auditEnergetiqueSimulationController } from './audit-energetique.controller';
 import { billExtractionController } from './bill-extraction.controller';
-import { auditReportController } from './audit-report.controller'; // import the new controller
+import { auditReportController } from './audit-report.controller'; 
 
 
 export const auditEnergetiqueSimulationRoutes = Router();
