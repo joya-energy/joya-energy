@@ -49,17 +49,22 @@ export class ContactService extends CommonService<IContact> {
       Logger.warn('Contact email is missing. Skipping notification.');
       return;
     }
+await mailService.sendMail({
+  to: contact.email,
+  subject: 'Nouveau message de contact',
+  text: 'Vous avez reçu un nouveau message via le formulaire de contact.',
+  html: '<p>Vous avez reçu un nouveau message via le formulaire de contact.</p>',
+  templateId: Number(process.env.POSTMARK_CONTACT_TEMPLATE_ID),
+  templateModel: {
+    name: contact.name ?? '',
+    email: contact.email ?? '',
+    phoneNumber: contact.phoneNumber ?? '',
+    message: contact.message ?? '',
+  },
+  attachments: [], // REQUIRED by interface (empty is OK)
+});
 
-    await mailService.sendMail({
-      to: contact.email,
-      templateId: Number(process.env.POSTMARK_CONTACT_TEMPLATE_ID),
-      templateModel: {
-        name: contact.name,
-        email: contact.email,
-        phoneNumber: (contact as any).phoneNumber,
-        message: contact.message
-      }
-    });
+
   }
 }
 
