@@ -3,7 +3,7 @@ import { AuditEnergetiqueSimulationController } from './audit-energetique.contro
 import { auditSimulationService } from './audit-energetique.service';
 import { HTTP400Error, HTTP404Error } from '@backend/errors/http.error';
 import { HttpStatusCode } from '@shared';
-import { BuildingTypes, ClimateZones, Governorates } from '@shared/enums/audit-general.enum';
+import { ActivityTypes, ClimateZones, Governorates } from '@shared/enums/audit-general.enum';
 import {
   InsulationQualities,
   GlazingTypes,
@@ -53,15 +53,14 @@ describe('AuditEnergetiqueSimulationController', () => {
 
   const validRequestBody = {
     fullName: 'Ahmed Ben Salem',
-    companyName: 'Pharmacie Centrale',
-    email: 'ahmed@pharmacie.tn',
+    companyName: 'Office Central',
+    email: 'ahmed@office.tn',
     phoneNumber: '20123456',
     address: '123 Avenue Bourguiba',
     governorate: Governorates.TUNIS,
-    buildingType: BuildingTypes.PHARMACY,
     surfaceArea: 100,
     floors: 1,
-    activityType: 'Pharmacie',
+    activityType: ActivityTypes.CAFE_RESTAURANT,
     openingDaysPerWeek: 6,
     openingHoursPerDay: 10,
     insulation: InsulationQualities.MEDIUM,

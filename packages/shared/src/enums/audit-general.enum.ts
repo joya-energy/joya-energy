@@ -25,19 +25,19 @@ export enum Governorates {
 }
 
 export enum BuildingTypes {
-  CAFE_RESTAURANT = 'Café / Restaurant', //service
-  BEAUTY_CENTER = 'Centre esthétique / Spa', //service
+  CAFE_RESTAURANT = 'Café / Restaurant', 
+  BEAUTY_CENTER = 'Centre esthétique / Spa', 
   HOTEL_GUESTHOUSE = 'Hôtel',
   SERVICE = 'Service Tertiaire',
-  CLINIC_MEDICAL = 'Clinique / Centre médical', //service
-  OFFICE_ADMIN_BANK = 'Bureau / Administration / Banque', 
-  LIGHT_WORKSHOP = 'Atelier léger / Artisanat / Menuiserie', //service
-  HEAVY_FACTORY = 'Usine lourde / Mécanique / Métallurgie', //service
-  TEXTILE_PACKAGING = 'Industrie textile / Emballage', //service
-  FOOD_INDUSTRY = 'Industrie alimentaire', //service
-  PLASTIC_INJECTION = 'Industrie plastique / Injection', //service
-  COLD_AGRO_INDUSTRY = 'Industrie agroalimentaire réfrigérée', //service
-  SCHOOL_TRAINING = 'École / Centre de formation' //service
+  CLINIC_MEDICAL = 'Clinique / Centre médical', 
+  OFFICE_ADMIN_BANK = 'Bureau / Administration / Banque',
+  LIGHT_WORKSHOP = 'Atelier léger / Artisanat / Menuiserie', 
+  HEAVY_FACTORY = 'Usine lourde / Mécanique / Métallurgie', 
+  TEXTILE_PACKAGING = 'Industrie textile / Emballage', 
+  FOOD_INDUSTRY = 'Industrie alimentaire', 
+  PLASTIC_INJECTION = 'Industrie plastique / Injection', 
+  COLD_AGRO_INDUSTRY = 'Industrie agroalimentaire réfrigérée', 
+  SCHOOL_TRAINING = 'École / Centre de formation' 
 }
 
 export enum ClimateZones {
@@ -47,7 +47,6 @@ export enum ClimateZones {
 }
 
 export enum ActivityTypes {
-  PHARMACY = 'Santé / Paramédical',
   CAFE_RESTAURANT = 'Restauration / Services alimentaires',
   BEAUTY_CENTER = 'Beauté / Bien-être', 
   HOTEL_GUESTHOUSE = 'Hôtellerie / Hébergement',      

@@ -18,20 +18,15 @@ export interface EquipmentCalculationResult {
 /**
  * Calculates equipment loads based on selected categories
  * Some equipment runs 24/7 (industrial cold), others follow usage patterns
- * 
- * Special case: Pharmacies have mandatory refrigeration based on surface area
  */
 export function computeEquipmentLoads(params: EquipmentCalculationInput): EquipmentCalculationResult {
   const { categories, usageFactor, processFactor } = params;
 
   let perSquare = 0;
-  let absoluteKwh = 0;
 
   for (const category of categories) {
     const load = EQUIPMENT_LOADS[category];
-    if (!load) {
-      continue;
-    }
+    if (!load) continue;
 
     if (load.is24h) {
       perSquare += load.value;
@@ -40,29 +35,7 @@ export function computeEquipmentLoads(params: EquipmentCalculationInput): Equipm
     }
   }
 
- /* if (buildingType === BuildingTypes.PHARMACY) {
-    const coldLoad = computePharmacyColdLoad(surface);
-    if (coldLoad > 0 && surface > 0) {
-      perSquare += coldLoad;
-    }
-  } */
-
-  return { perSquare, absoluteKwh };
+  return { perSquare, absoluteKwh: 0 };
 }
 
-/**
- * Computes mandatory refrigeration load for pharmacies
- * Based on surface area thresholds
- */
-/*
-export function computePharmacyColdLoad(surface: number): number {
-  for (const threshold of PHARMACY_COLD_THRESHOLDS) {
-    if (surface <= threshold.maxSurface) {
-      return threshold.energy;
-    }
-  }
-
-  return PHARMACY_COLD_THRESHOLDS[PHARMACY_COLD_THRESHOLDS.length - 1]?.energy ?? 0;
-}
-*/
 
