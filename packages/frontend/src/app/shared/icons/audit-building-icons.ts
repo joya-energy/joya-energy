@@ -40,7 +40,6 @@ export interface BuildingCardConfig {
 }
 
 export const BUILDING_CARD_CONFIG: BuildingCardConfig[] = [
-  { id: BuildingTypes.PHARMACY, label: BuildingTypes.PHARMACY, icon: 'lucidePill' },
   { id: BuildingTypes.CAFE_RESTAURANT, label: BuildingTypes.CAFE_RESTAURANT, icon: 'lucideUtensilsCrossed' },
   { id: BuildingTypes.OFFICE_ADMIN_BANK, label: BuildingTypes.OFFICE_ADMIN_BANK, icon: 'lucideBuilding2' },
   { id: BuildingTypes.LIGHT_WORKSHOP, label: BuildingTypes.LIGHT_WORKSHOP, icon: 'lucideHammer' },

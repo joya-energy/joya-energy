@@ -14,24 +14,24 @@ import { BuildingTypes } from '@shared/enums/audit-general.enum';
 import { ClassificationGrade, EmissionUnit } from '@shared/enums/classification.enum';
 import { computeCarbonClass } from './carbon-class.calculator';
 
-const DEFAULT_EMISSION_FACTOR_ELEC = 0.512; // kg CO₂/kWh
-const DEFAULT_EMISSION_FACTOR_GAS = 0.202; // kg CO₂/kWh
+const DEFAULT_EMISSION_FACTOR_ELEC = 0.512;     
+const DEFAULT_EMISSION_FACTOR_GAS = 0.202;     
 
 export interface EmissionsInput {
-  electricityConsumption: number; // kWh/year
-  gasConsumption: number; // kWh/year
+  electricityConsumption: number; 
+  gasConsumption: number; 
   buildingType: BuildingTypes;
-  conditionedSurface: number; // m²
-  emissionFactorElec?: number; // kg CO₂/kWh
-  emissionFactorGas?: number; // kg CO₂/kWh
+  conditionedSurface: number; 
+  emissionFactorElec?: number; 
+  emissionFactorGas?: number; 
 }
 
 export interface EmissionsResult {
-  co2FromElectricity: number; // kg CO₂/year
-  co2FromGas: number; // kg CO₂/year
-  totalCo2: number; // kg CO₂/year
-  totalCo2Tons: number; // tons CO₂/year
-  carbonIntensity: number | null; // kg CO₂/m².year
+  co2FromElectricity: number; 
+  co2FromGas: number; 
+  totalCo2: number; 
+  totalCo2Tons: number; 
+  carbonIntensity: number | null; 
   carbonIntensityUnit: EmissionUnit.KG_CO2_PER_M2_YEAR;
   carbonClass: ClassificationGrade | null;
   carbonDescription: string | null;

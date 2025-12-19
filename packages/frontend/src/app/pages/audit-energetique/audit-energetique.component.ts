@@ -89,7 +89,6 @@ export class AuditEnergetiqueComponent {
   protected governorates = this.formService.governorates;
 
   private static readonly FEATURED_BUILDING_TYPES: BuildingTypes[] = [
-    BuildingTypes.PHARMACY,
     BuildingTypes.CAFE_RESTAURANT,
     BuildingTypes.OFFICE_ADMIN_BANK,
     BuildingTypes.LIGHT_WORKSHOP,

@@ -4,18 +4,6 @@ import { computeCarbonClass } from './carbon-class.calculator';
 
 describe('Carbon Class Calculator', () => {
   describe('computeCarbonClass', () => {
-    it('should classify pharmacies correctly', () => {
-      const result = computeCarbonClass({
-        buildingType: BuildingTypes.PHARMACY,
-        totalCo2Kg: 5000,
-        conditionedSurface: 100
-      });
-
-      expect(result.isApplicable).toBe(true);
-      expect(result.carbonClass).toBe(ClassificationGrade.D); // 50 kg CO₂/m².an falls in D range (40-60)
-      expect(result.intensity).toBe(50);
-      expect(result.unit).toBe(EmissionUnit.KG_CO2_PER_M2_YEAR);
-    });
 
     it('should return NOT_APPLICABLE for invalid conditioned surface', () => {
       const result = computeCarbonClass({

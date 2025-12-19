@@ -1,22 +1,14 @@
 import { type Request, type Response } from 'express';
-import { auditSolaireSimulationService } from './audit-solaire.service';
+import { auditSolaireSimulationService, type CreateSimulationInput } from './audit-solaire.service';
 import { HttpStatusCode, type PaginatedResult } from '@shared';
 import { type IAuditSolaireSimulation } from '@shared/interfaces';
 import { HTTP400Error, HTTP404Error } from '@backend/errors/http.error';
 import { Logger } from '@backend/middlewares';
-import { optionalNumber, requireNumber, requireString } from '../common/validation.utils';
-
-type AuditSolairePayload = {
-  address: string;
-  surfaceArea: number;
-  annualConsumption: number;
-  energyCostPerKwh?: number;
-  latitude?: number;
-  longitude?: number;
-};
+import { requireNumber, requireString } from '../common/validation.utils';
+import { BuildingTypes, ClimateZones } from '@shared/enums/audit-general.enum';
 
 export class AuditSolaireSimulationController {
-  public createSimulation = async (req: Request, res: Response<IAuditSolaireSimulation & { address: string }>): Promise<void> => {
+  public createSimulation = async (req: Request, res: Response): Promise<void> => {
     try {
       const input = AuditSolaireSimulationController.sanitizePayload(req.body);
       const simulation = await auditSolaireSimulationService.createSimulation(input);
@@ -33,7 +25,8 @@ export class AuditSolaireSimulationController {
 
   public getSimulations = async (req: Request, res: Response<PaginatedResult<IAuditSolaireSimulation>>): Promise<void> => {
     try {
-      const { page, limit } = req.query as unknown as { page: number; limit: number };
+      const page = req.query.page ? Number(req.query.page) : 1;
+      const limit = req.query.limit ? Number(req.query.limit) : 10;
       const simulations = await auditSolaireSimulationService.getSimulations({ page, limit });
       res.status(HttpStatusCode.OK).json(simulations);
     } catch (error) {
@@ -64,14 +57,25 @@ export class AuditSolaireSimulationController {
     }
   };
 
-  private static sanitizePayload(body: Record<string, unknown>): AuditSolairePayload {
+  private static sanitizePayload(body: Record<string, string | number | boolean>): CreateSimulationInput {
+    const buildingType = body.buildingType as BuildingTypes;
+    if (!Object.values(BuildingTypes).includes(buildingType)) {
+      throw new HTTP400Error(`Invalid building type: ${buildingType}`);
+    }
+
+    const climateZone = body.climateZone as ClimateZones;
+    if (!Object.values(ClimateZones).includes(climateZone)) {
+      throw new HTTP400Error(`Invalid climate zone: ${climateZone}`);
+    }
+
+    const referenceMonth = requireNumber(body.referenceMonth, 'referenceMonth', { min: 1, max: 12 });
+
     return {
       address: requireString(body.address, 'address'),
-      surfaceArea: requireNumber(body.surfaceArea, 'surfaceArea', { min: 0 }),
-      annualConsumption: requireNumber(body.annualConsumption, 'annualConsumption', { min: 0 }),
-      energyCostPerKwh: optionalNumber(body.energyCostPerKwh, 'energyCostPerKwh', { min: 0 }),
-      latitude: optionalNumber(body.latitude, 'latitude', { min: -90, max: 90 }),
-      longitude: optionalNumber(body.longitude, 'longitude', { min: -180, max: 180 })
+      buildingType,
+      climateZone,
+      measuredConsumptionKwh: requireNumber(body.measuredConsumption, 'measuredConsumption', { min: 0 }),
+      referenceMonth,
     };
   }
 }

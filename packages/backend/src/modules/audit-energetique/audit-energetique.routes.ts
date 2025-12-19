@@ -138,11 +138,11 @@ const upload = multer({
  *           example: "Mohamed Ben Ali"
  *         companyName:
  *           type: string
- *           example: "Pharmacie Centrale"
+ *           example: "Office Central"
  *         email:
  *           type: string
  *           format: email
- *           example: "contact@pharmacie.tn"
+ *           example: "contact@office.tn"
  *         phoneNumber:
  *           type: string
  *           example: "20123456"
@@ -155,8 +155,8 @@ const upload = multer({
  *           example: "Tunis"
  *         buildingType:
  *           type: string
- *           enum: ['Pharmacie', 'Café / Restaurant', 'Centre esthétique / Spa', 'Hôtel / Maison d’hôtes', 'Clinique / Centre médical', 'Bureau / Administration / Banque', 'Atelier léger / Artisanat / Menuiserie', 'Usine lourde / Mécanique / Métallurgie', 'Industrie textile / Emballage', 'Industrie alimentaire', 'Industrie plastique / Injection', 'Industrie agroalimentaire réfrigérée', 'École / Centre de formation']
- *           example: "Pharmacie"
+ *           enum: ['Café / Restaurant', 'Centre esthétique / Spa', 'Hôtel / Maison d’hôtes', 'Clinique / Centre médical', 'Bureau / Administration / Banque', 'Atelier léger / Artisanat / Menuiserie', 'Usine lourde / Mécanique / Métallurgie', 'Industrie textile / Emballage', 'Industrie alimentaire', 'Industrie plastique / Injection', 'Industrie agroalimentaire réfrigérée', 'École / Centre de formation']
+ *           example: "Bureau / Administration / Banque"
  *         surfaceArea:
  *           type: number
  *           description: Surface area in m²
@@ -421,7 +421,7 @@ auditEnergetiqueSimulationRoutes.post(
  *                 enum: [Tunis, Ariana, Ben Arous, Manouba, Bizerte, Béja, Jendouba, Kairouan, Kasserine, Médenine, Monastir, Nabeul, Sfax, Sousse, Tataouine, Tozeur, Zaghouan, Siliana, Le Kef, Mahdia, Sidi Bouzid, Gabès, Gafsa]
  *               buildingType:
  *                 type: string
- *                 enum: ['Pharmacie', 'Café / Restaurant', 'Centre esthétique / Spa', 'Hôtel / Maison d’hôtes', 'Clinique / Centre médical', 'Bureau / Administration / Banque', 'Atelier léger / Artisanat / Menuiserie', 'Usine lourde / Mécanique / Métallurgie', 'Industrie textile / Emballage', 'Industrie alimentaire', 'Industrie plastique / Injection', 'Industrie agroalimentaire réfrigérée', 'École / Centre de formation']
+ *                 enum: [ 'Café / Restaurant', 'Centre esthétique / Spa', 'Hôtel / Maison d’hôtes', 'Clinique / Centre médical', 'Bureau / Administration / Banque', 'Atelier léger / Artisanat / Menuiserie', 'Usine lourde / Mécanique / Métallurgie', 'Industrie textile / Emballage', 'Industrie alimentaire', 'Industrie plastique / Injection', 'Industrie agroalimentaire réfrigérée', 'École / Centre de formation']
  *               surfaceArea:
  *                 type: number
  *               floors:

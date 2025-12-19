@@ -47,15 +47,15 @@ describe('AuditSimulationService', () => {
 
   const mockSimulationInput: AuditEnergetiqueCreateInput = {
     fullName: 'Ahmed Ben Salem',
-    companyName: 'Pharmacie Centrale',
-    email: 'ahmed@pharmacie.tn',
+    companyName: 'Office Central',
+    email: 'ahmed@office.tn',
     phoneNumber: '20123456',
     address: '123 Avenue Bourguiba',
     governorate: Governorates.TUNIS,
-    buildingType: BuildingTypes.PHARMACY,
+    buildingType: BuildingTypes.CAFE_RESTAURANT,
     surfaceArea: 100,
     floors: 1,
-    activityType: 'Pharmacie',
+    activityType: 'Café / Restaurant',
     openingDaysPerWeek: 6,
     openingHoursPerDay: 10,
     insulation: InsulationQualities.MEDIUM,
@@ -204,26 +204,6 @@ describe('AuditSimulationService', () => {
       expect(createCall.co2EmissionsTons).toBe(Number((createCall.co2EmissionsKg / 1000).toFixed(3)));
     });
 
-    it('should apply pharmacy-specific cold load', async () => {
-      const pharmacyInput = {
-        ...mockSimulationInput,
-        buildingType: BuildingTypes.PHARMACY,
-        surfaceArea: 80
-      };
-
-      const pharmacySimulation: IAuditEnergetiqueSimulation = {
-        ...mockSimulationDocument,
-        surfaceArea: 80
-      };
-
-      mockRepository.createOne.mockResolvedValue(pharmacySimulation);
-
-      const result = await service.createSimulation(pharmacyInput);
-
-      // Pharmacy should have additional cold load factored in
-      expect(result.annualConsumption).toBeGreaterThan(0);
-      expect(mockRepository.createOne).toHaveBeenCalled();
-    });
   });
 
   describe('getSimulationById', () => {

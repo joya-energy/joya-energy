@@ -17,15 +17,15 @@ describe('toAuditEnergetiqueResponseDto', () => {
   const mockSimulation: IAuditEnergetiqueSimulation = {
     id: '507f1f77bcf86cd799439011',
     fullName: 'Ahmed Ben Salem',
-    companyName: 'Pharmacie Centrale',
-    email: 'ahmed@pharmacie.tn',
+    companyName: 'Office Central',
+    email: 'ahmed@office.tn',
     phoneNumber: '20123456',
     address: '123 Avenue Bourguiba',
     governorate: Governorates.TUNIS,
-    buildingType: BuildingTypes.PHARMACY,
+    buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
     surfaceArea: 100,
     floors: 1,
-    activityType: 'Pharmacie',
+    activityType: 'Bureau / Administration / Banque',
     openingDaysPerWeek: 6,
     openingHoursPerDay: 10,
     insulation: InsulationQualities.MEDIUM,
@@ -73,8 +73,8 @@ describe('toAuditEnergetiqueResponseDto', () => {
 
     expect(result.data.contact).toEqual({
       fullName: 'Ahmed Ben Salem',
-      companyName: 'Pharmacie Centrale',
-      email: 'ahmed@pharmacie.tn',
+      companyName: 'Office Central',
+      email: 'ahmed@office.tn',
       phoneNumber: '20123456',
       address: '123 Avenue Bourguiba',
       governorate: Governorates.TUNIS
@@ -85,10 +85,10 @@ describe('toAuditEnergetiqueResponseDto', () => {
     const result = toAuditEnergetiqueResponseDto(mockSimulation);
 
     expect(result.data.building).toEqual({
-      type: BuildingTypes.PHARMACY,
+      type: BuildingTypes.OFFICE_ADMIN_BANK,
       surfaceArea: 100,
       floors: 1,
-      activityType: 'Pharmacie',
+      activityType: 'Bureau / Administration / Banque',
       openingHoursPerDay: 10,
       openingDaysPerWeek: 6
     });
