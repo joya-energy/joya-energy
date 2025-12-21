@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Rapport d’étude photovoltaïque – BT</title>
+  <style>{{INLINE_CSS}}</style>
+</head>
+<body>
+
+
+<!-- ================= PAGE 2 — HYPOTHÈSES ================= -->
+<div class="page dpe-page">
+
+  <div class="page-header">
+    <div class="header-left">
+      <img src="data:image/png;base64,{{joyaLogoBase64}}" />
+      <div>
+        <div class="header-title">Rapport photovoltaïque – BT</div>
+        <div class="header-sub">{{companyName}}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-content">
+
+    <h1>Hypothèses de calcul</h1>
+
+    <div class="dpe-card">
+      <ul class="dpe-info-list">
+        <li><strong>Durée d’étude :</strong> {{studyDuration}} ans</li>
+        <li><strong>Dégradation PV :</strong> {{pvDegradation}} % / an</li>
+        <li><strong>Inflation tarif STEG :</strong> {{stegInflation}} % / an</li>
+        <li><strong>Taux d’actualisation :</strong> {{discountRate}} %</li>
+        <li><strong>Prix du kWc installé :</strong> {{pricePerKwc}} DT/kWc</li>
+        <li><strong>OPEX annuel :</strong> {{opexRate}} % du CAPEX</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="page-footer">
+    <div class="footer-line"></div>
+    <div class="footer-content">
+      <span>Étude photovoltaïque – Hypothèses</span>
+      <span>Page 2</span>
+    </div>
+  </div>
+</div>
+<!-- ================= PAGE 3 — SYNTHÈSE PV ================= -->
+<div class="page energy-page">
+
+  <div class="page-header">
+    <div class="header-left">
+      <img src="data:image/png;base64,{{joyaLogoBase64}}" />
+      <div>
+        <div class="header-title">Rapport photovoltaïque – BT</div>
+        <div class="header-sub">{{companyName}}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-content">
+
+    <h1>Synthèse énergétique photovoltaïque</h1>
+    <p class="energy-subtitle">
+      Production et couverture de la consommation
+    </p>
+
+    <div class="energy-cards-row">
+
+      <div class="energy-card">
+        <h3>Installation photovoltaïque</h3>
+        <div class="energy-value">
+          {{pvPower}}
+          <span>kWc installés</span>
+        </div>
+        <ul class="energy-list">
+          <li>Productible : {{pvYield}} kWh/kWc/an</li>
+          <li>Production année 1 : {{pvProductionYear1}} kWh</li>
+        </ul>
+      </div>
+
+      <div class="energy-card">
+        <h3>Taux de couverture</h3>
+        <div class="energy-value">
+          {{coverageRate}}
+          <span>% de la consommation</span>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="page-footer">
+    <div class="footer-line"></div>
+    <div class="footer-content">
+      <span>Synthèse énergétique PV</span>
+      <span>Page 3</span>
+    </div>
+  </div>
+</div>
+<!-- ================= PAGE 4 — FINANCIER ================= -->
+<div class="page usage-page">
+
+  <div class="page-header">
+    <div class="header-left">
+      <img src="data:image/png;base64,{{joyaLogoBase64}}" />
+      <div>
+        <div class="header-title">Rapport photovoltaïque – BT</div>
+        <div class="header-sub">{{companyName}}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-content">
+
+    <h2>Résultats financiers cumulés (25 ans)</h2>
+
+    <table class="usage-table">
+      <tbody>
+        <tr><td>Gain cumulé non actualisé</td><td>{{gainCumulated}} DT</td></tr>
+        <tr><td>Gain cumulé actualisé</td><td>{{gainDiscounted}} DT</td></tr>
+        <tr><td>Cash-flow cumulé</td><td>{{cashflowCumulated}} DT</td></tr>
+        <tr><td>Cash-flow cumulé actualisé</td><td>{{cashflowDiscounted}} DT</td></tr>
+        <tr><td><strong>VAN</strong></td><td><strong>{{npv}} DT</strong></td></tr>
+      </tbody>
+    </table>
+
+    <div class="reco-block-text">
+      <p class="reco-intro">
+        L’installation photovoltaïque permet une réduction durable de vos coûts
+        énergétiques avec une rentabilité élevée et un temps de retour rapide.
+      </p>
+    </div>
+
+  </div>
+
+  <div class="page-footer">
+    <div class="footer-line"></div>
+    <div class="footer-content">
+      <span>Analyse financière PV</span>
+      <span>Page 4</span>
+    </div>
+  </div>
+</div>
