@@ -13,6 +13,11 @@
   --joya-muted: #6B7280;
   --joya-bg-soft: #F8FAFC;
   --joya-border: #E5E7EB;
+
+  --scale-bar-height: 36px;
+  --scale-bar-gap: 10px;
+  --scale-radius: 6px;
+  --scale-active-border: 3px;
 }
 
 h1 {
@@ -137,7 +142,7 @@ color: var(--joya-blue);
   max-height: 480px;   
   object-fit: contain;
   border-radius: 20px;
-}
+} 
 
 /* ==========================
    FOOTER
@@ -275,27 +280,70 @@ color: var(--joya-blue);
    ENERGY & CO2 BARS
 ========================== */
 
-.energy-bar,
+.energy-scale {
+  display: flex;
+  flex-direction: column;
+  gap: var(--scale-bar-gap);
+
+}
+
+/* Arrow bar */
+.energy-row {
+  position: relative;
+  height: var(--scale-bar-height);
+  padding-left: 14px;
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: #ffffff;
+
+  border-radius: 6px 0 0 6px;
+
+  clip-path: polygon(
+    0 0,
+    calc(100% - 18px) 0,
+    100% 50%,
+    calc(100% - 18px) 100%,
+    0 100%
+  );
+}
+
+.energy-row.active {
+  box-shadow:
+    inset 0 0 0 2px black,
+    0 3px 8px rgba(0,0,0,0.15);
+      font-weight: 800;
+
+}
+
+
+.energy-row.active::after {
+  content: "✓";
+  position: absolute;
+  right: 14px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+
 .co2-bar {
-  height: 34px;
-  margin-bottom: 6px;
-  border-radius: 6px;
+  height: var(--scale-bar-height);
+  border-radius: var(--scale-radius);
   display: flex;
   align-items: center;
   padding-left: 12px;
   font-weight: 700;
   font-size: 14px;
   color: #fff;
-}
-
-.energy-bar.active,
-.co2-bar.active {
-  box-shadow: inset 0 0 0 3px var(--joya-orange);
-  transform: scale(1.03);
   position: relative;
 }
 
-.energy-bar.active::after,
+.co2-bar.active {
+  box-shadow: inset 0 0 0 var(--scale-active-border) black;
+}
+
 .co2-bar.active::after {
   content: "✓";
   position: absolute;
@@ -303,8 +351,11 @@ color: var(--joya-blue);
   font-size: 16px;
 }
 
-
-
+.co2-scale {
+  display: flex;
+  flex-direction: column;
+  gap: var(--scale-bar-gap);
+}
 
 .dpe-card {
   width: 100%;

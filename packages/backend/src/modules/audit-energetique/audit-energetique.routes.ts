@@ -3,6 +3,8 @@ import multer from 'multer';
 import { auditEnergetiqueSimulationController } from './audit-energetique.controller';
 import { billExtractionController } from './bill-extraction.controller';
 import { auditReportController } from './audit-report.controller'; 
+import { pvReportController } from './pv-report.controller';
+
 
 
 export const auditEnergetiqueSimulationRoutes = Router();
@@ -590,3 +592,37 @@ auditEnergetiqueSimulationRoutes.post(
   (req, res) => auditReportController.sendAuditPDF(req, res)
 );
 
+
+// ------------------------------------------
+// NEW ROUTE: Generate & send PV report PDF
+// ------------------------------------------
+/**
+ * @swagger
+ * /audit-energetique-simulations/send-pv-pdf:
+ *   post:
+ *     summary: Generate PV (photovoltaic) report and send it by email
+ *     tags: [Audit Simulation]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               simulationId:
+ *                 type: string
+ *                 example: "6936dfef12308673de825e02"
+ *     responses:
+ *       200:
+ *         description: PV report generated and sent successfully
+ *       400:
+ *         description: simulationId missing
+ *       404:
+ *         description: Simulation not found
+ *       500:
+ *         description: PV PDF generation or email sending failed
+ */
+auditEnergetiqueSimulationRoutes.post(
+  '/send-pv-pdf',
+  (req, res) => pvReportController.sendPVReport(req, res)
+);

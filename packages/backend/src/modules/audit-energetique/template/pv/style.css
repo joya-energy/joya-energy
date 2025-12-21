@@ -1,0 +1,1009 @@
+/* ==========================
+   JOYA BRAND SYSTEM
+========================== */
+
+:root {
+  
+  --joya-orange-light: #F6B8A6;   
+  --joya-orange-soft:  #FCE6DE;   
+  --joya-orange-main:  #E67E5F;  
+  --joya-orange: #D8694A;
+  --joya-blue: #234A63;
+  --joya-blue-dark: #1E3A5F;
+  --joya-muted: #6B7280;
+  --joya-bg-soft: #F8FAFC;
+  --joya-border: #E5E7EB;
+
+  --scale-bar-height: 36px;
+  --scale-bar-gap: 10px;
+  --scale-radius: 6px;
+  --scale-active-border: 3px;
+}
+
+h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--joya-blue);
+  letter-spacing: -0.2px;
+}
+
+h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--joya-blue-dark);
+}
+
+h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--joya-blue);
+}
+
+/* ==========================
+   PDF PAGE BREAKS 
+========================== */
+
+.page {
+  page-break-after: always;
+  break-after: page;
+  min-height: 297mm;
+  width: 210mm;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.page:last-child {
+  page-break-after: auto;
+}
+
+/* ==========================
+   PAGE 1 — COVER 
+========================== */
+
+.cover-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-family: Arial, sans-serif;
+  padding: 30px 60px 40px;
+  box-sizing: border-box;
+}
+
+/* ==========================
+   TOP BAR
+========================== */
+
+.cover-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.cover-logo {
+  height: 44px;
+}
+
+.cover-meta {
+  text-align: right;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+/* ==========================
+   TITLE 
+========================== */
+.cover-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  min-height: 80px;  
+}
+
+.cover-center p,
+.dpe-methodology {
+  font-size: 13px;
+  color: #6b7280;        
+  line-height: 1.6;
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+   text-align: center;
+   margin: 10px auto 0; 
+}
+
+.cover-center h1 {
+  font-size: 24px;
+  font-weight: 700;
+color: var(--joya-blue);
+  margin: 0;
+  white-space: nowrap;          
+}
+
+.cover-center {
+  margin-top: 140px;   
+  text-align: center;
+}
+
+
+/* ==========================
+   IMAGE 
+========================== */
+
+.cover-image-big {
+  margin-top:  80px; ;             
+  display: flex;
+  justify-content: center;
+}
+
+.cover-image-big img {
+  width: 100%;
+  max-width: 900px;     
+  max-height: 480px;   
+  object-fit: contain;
+  border-radius: 20px;
+} 
+
+/* ==========================
+   FOOTER
+========================== */
+
+.cover-footer {
+  text-align: center;
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 14px;
+}
+
+
+/* ==========================
+   PAGE 2 — DPE PAGE
+========================== */
+
+.dpe-page {
+  font-family: Arial, sans-serif;
+  position: relative;
+}
+
+.page-content {
+  padding: 110px 60px 90px 60px;
+  box-sizing: border-box;
+}
+
+/* ==========================
+   TITLE & BADGE
+========================== */
+
+.dpe-page h1 {
+  font-size: 22px;
+  font-weight: 700;
+color: var(--joya-blue);
+  margin-bottom: 6px;
+}
+
+.dpe-subtitle {
+  font-size: 14px;
+  color: #5a6d84;
+  margin-bottom: 14px;
+}
+
+.energy-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 6px 14px;
+  font-weight: 700;
+  font-size: 15px;
+  color: #fff;
+  border-radius: 8px;
+  background: linear-gradient(
+    135deg,
+    var(--joya-orange),
+    #f2a18a
+  );}
+
+/* ==========================
+   NEW DPE LAYOUT (PDF SAFE)
+========================== */
+
+.dpe-scales-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.dpe-scale {
+  background: #ffffff;
+  border: 1px solid var(--joya-border);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
+.dpe-info-below {
+  margin-top: 0;
+}
+
+.dpe-scale,
+.dpe-info-below {
+  page-break-inside: avoid;
+}
+
+
+
+.dpe-scale {
+  background: #ffffff;
+  border: 1px solid var(--joya-border);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+
+.dpe-scale h3 {
+  font-size: 15px;
+  font-weight: 600;
+color: var(--joya-blue);
+  margin-bottom: 10px;
+}
+
+
+
+/* ==========================
+   SCALE KPI 
+========================== */
+
+.scale-kpi {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--joya-blue);
+  background: #ffffff;
+  border: 2px solid var(--joya-blue);
+}
+
+.scale-kpi span {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--joya-muted);
+  margin-left: 4px;
+}
+
+/* CO₂ variant */
+.scale-kpi-co2 {
+  border-color: var(--joya-orange);
+  color: var(--joya-orange);
+}
+
+/* ==========================
+   ENERGY & CO2 BARS
+========================== */
+
+.energy-scale {
+  display: flex;
+  flex-direction: column;
+  gap: var(--scale-bar-gap);
+
+}
+
+/* Arrow bar */
+.energy-row {
+  position: relative;
+  height: var(--scale-bar-height);
+  padding-left: 14px;
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: #ffffff;
+
+  border-radius: 6px 0 0 6px;
+
+  clip-path: polygon(
+    0 0,
+    calc(100% - 18px) 0,
+    100% 50%,
+    calc(100% - 18px) 100%,
+    0 100%
+  );
+}
+
+.energy-row.active {
+  box-shadow:
+    inset 0 0 0 2px black,
+    0 3px 8px rgba(0,0,0,0.15);
+      font-weight: 800;
+
+}
+
+
+.energy-row.active::after {
+  content: "✓";
+  position: absolute;
+  right: 14px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+
+.co2-bar {
+  height: var(--scale-bar-height);
+  border-radius: var(--scale-radius);
+  display: flex;
+  align-items: center;
+  padding-left: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  color: #fff;
+  position: relative;
+}
+
+.co2-bar.active {
+  box-shadow: inset 0 0 0 var(--scale-active-border) black;
+}
+
+.co2-bar.active::after {
+  content: "✓";
+  position: absolute;
+  right: 12px;
+  font-size: 16px;
+}
+
+.co2-scale {
+  display: flex;
+  flex-direction: column;
+  gap: var(--scale-bar-gap);
+}
+
+.dpe-card {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 16px 20px;
+}
+
+.dpe-card h4 {
+  font-size: 15px;
+  font-weight: 600;
+color: var(--joya-blue);
+  margin-bottom: 10px;
+}
+
+.dpe-info-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dpe-info-list li {
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: #243b53;
+}
+
+
+/* ==========================
+   INFO CARD — LIST + IMAGE
+========================== */
+
+.dpe-info-layout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding-right: 70px;
+
+}
+
+.dpe-info-image {
+  margin-left: -16px;
+}
+
+.dpe-info-list {
+  flex: 1;
+}
+
+.dpe-info-image {
+  width: 120px;
+  height: auto;
+  object-fit: contain;
+  flex-shrink: 0;
+  margin-top: 8px;
+}
+
+.building {
+  width: 280px;        
+  height: auto;     
+  display: block;
+}
+
+
+
+/* ==========================
+   HEADER
+========================== */
+
+.page-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  padding: 20px 60px;
+  box-sizing: border-box;
+}
+
+.page-header::after {
+  content: "";
+  position: absolute;
+  left: 60px;
+  right: 60px;
+  bottom: 0;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+
+.page-header img {
+  height: 34px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-title {
+  font-size: 14px;
+  font-weight: 600;
+color: var(--joya-blue);
+}
+
+.header-sub {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* ==========================
+   FOOTER
+========================== */
+
+.page-footer {
+  position: absolute;
+  bottom: 24px;
+  left: 60px;
+  right: 60px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.footer-line {
+  height: 1px;
+  background: #e5e7eb;
+  margin-bottom: 6px;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+}
+
+
+/* ==========================
+   PAGE 3 — ENERGY ANALYSIS
+========================== */
+.energy-page {
+  font-family: Arial, sans-serif;
+}
+
+/* Subtitle */
+.energy-subtitle {
+  font-size: 14px;
+  color: #5a6d84;
+  margin-bottom: 22px;
+}
+
+/* ==========================
+   CARDS LAYOUT
+========================== */
+
+.energy-cards-row {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+  margin-bottom: 26px;
+}
+
+/* Cards */
+.energy-card {
+  flex: 1;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 18px 20px;
+}
+
+/* Card title */
+.energy-card h3 {
+  font-size: 16px;
+  font-weight: 600;
+color: var(--joya-blue);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+/* Highlight text */
+.energy-highlight {
+  font-size: 13px;
+  color: #374151;
+  margin-bottom: 10px;
+  text-align: center;
+}
+/* ==========================
+   ENERGY VALUE WITH ICON
+========================== */
+
+.energy-value-row {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+
+.energy-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--joya-orange);
+  text-align: right;
+  line-height: 1.1;
+}
+
+.energy-value span {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--joya-muted);
+  margin-top: 4px;
+}
+
+.energy-value-icon {
+  width: 42px;        
+  height: auto;
+  flex-shrink: 0;
+}
+
+
+/* Bullet list */
+.energy-list {
+  padding-left: 16px;
+  margin: 0;
+}
+
+.energy-list li {
+  font-size: 12px;
+  color: #5a6d84;
+  margin-bottom: 5px;
+}
+
+/* ==========================
+   BILL VISUAL (IMAGE + BUBBLE)
+========================== */
+
+.bill-visual-vertical {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+/* Building image */
+.bill-building {
+  width: 140px;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Speech bubble */
+.bill-bubble {
+  position: relative;
+  padding: 10px 18px;
+  background: #ffffff;
+  border: 2px solid var(--joya-orange);
+  border-radius: 14px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--joya-orange);
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* Bubble unit */
+.bill-bubble span {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+/* Bubble arrow (DOWN — compact & PDF safe) */
+.bill-bubble::after {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0 8px 8px 8px;
+  border-style: solid;
+  border-color: transparent transparent #dbe4ef transparent;
+}
+
+.bill-bubble::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0 7px 7px 7px;
+  border-style: solid;
+  border-color: transparent transparent #ffffff transparent;
+}
+
+
+
+/* ==========================
+   USAGE ICONS (TABLE)
+========================== */
+
+.icon-ac {
+  background-image: url("data:image/png;base64,{{iconACBase64}}");
+}
+
+.icon-heating {
+  background-image: url("data:image/png;base64,{{iconHeatingBase64}}");
+}
+
+.icon-light {
+  background-image: url("data:image/png;base64,{{iconLightBase64}}");
+}
+
+.icon-equipment {
+  background-image: url("data:image/png;base64,{{iconEquipmentBase64}}");
+}
+
+.icon-ecs {
+  background-image: url("data:image/png;base64,{{iconECSBase64}}");
+}
+
+
+
+/* Icon + label layout */
+.usage-label {
+  display: flex;
+  align-items: center;   /* 🔑 fixes vertical misalignment */
+  gap: 10px;
+}
+
+.usage-icon {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
+
+.usage-text {
+  font-weight: 600;
+  color: #0f2a44;
+}
+
+
+/* ======================================================
+   USAGE TABLE 
+====================================================== */
+
+/* TABLE */
+.usage-table {
+  width: 100%;
+  font-size: 14px;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 3px solid #c9d2dc;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px #c9d2dc;
+}
+
+/* HEADER */
+.usage-table thead th {
+  background: #ffffff;
+  color: var(--joya-blue);
+  padding: 14px 12px;
+  font-weight: 700;
+  text-align: center;
+  border-bottom: 2px solid #e6bfb2;
+}
+
+.usage-table thead th:first-child {
+  text-align: left;
+}
+
+/* BODY CELLS */
+.usage-table tbody td {
+  padding: 14px 12px;
+  color: #243b53;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.usage-table tbody td:first-child {
+  text-align: left;
+}
+
+/* ZEBRA (LIGHT & CONSISTENT) */
+.usage-table tbody tr:nth-child(odd) {
+  background: var(--joya-orange-soft); 
+}
+
+.usage-table tbody tr:nth-child(even) {
+  background: #ffffff;
+}
+
+/* TOTAL ROW (same as zebra logic) */
+.usage-table tfoot td {
+  padding: 14px 12px;
+  font-weight: 700;
+  background: #ffffff;
+  border-top: 2px solid #e6bfb2;
+  color: #243b53;
+  text-align: center;
+}
+
+.usage-table tfoot td:first-child {
+  text-align: left;
+}
+
+
+/* ================= TOTAL ROW ================= */
+
+
+/* FOOTER — FOLLOW ZEBRA LIKE BODY */
+
+.usage-table tfoot td {
+  padding: 14px 12px;
+  font-weight: 700;
+  color: #243b53;
+  background: #ffffff;
+  border-top: 2px solid #e6bfb2;
+  text-align: center;
+}
+
+.usage-table tfoot td:first-child {
+  text-align: left;
+}
+
+
+
+/* ===== COST SPLIT BAR ===== */
+
+.cost-split {
+  display: flex;
+  align-items: center;
+  justify-content: center;       
+  gap: 8px;
+}
+
+/* Optional: tighten numbers */
+.usage-table td {
+  border-right: 1px solid var(--joya-border);
+
+}
+
+/* ==========================
+   RECOMMENDATION — PAGE 4
+========================== */
+
+.recommendation-section {
+  margin-top: 30px;
+  padding: 22px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border-left: 4px solid #D8694A;
+}
+
+/* Title */
+.recommendation-section h2 {
+  margin-bottom: 16px;
+  color: #0f2a44;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* ==========================
+   BLOCKS STRUCTURE
+========================== */
+
+.reco-block {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+
+/* Table block */
+.reco-block-table {
+  margin-bottom: 14px;
+  border: 1px solid #e5e7eb;
+}
+
+/* Text / explanation block */
+.reco-block-text {
+  border: 1px solid #e5e7eb;
+background: var(--joya-bg-soft);
+}
+
+/* Intro paragraph */
+.reco-intro {
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+/* Benefits list */
+.reco-benefits {
+  padding-left: 18px;
+  margin: 0;
+}
+
+.reco-benefits li {
+  font-size: 13px;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+/* ==========================
+   COST SPLIT BAR 
+========================== */
+
+.cost-split {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cost-bar {
+  width: 70px;
+  height: 12px;
+  background: #fde2d7;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.cost-bar-fill {
+  height: 100%;
+    background: var(--joya-orange-main);
+  border-radius: 6px;
+}
+
+.cost-pct {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--joya-orange-main);
+  white-space: nowrap;
+}
+/* ==========================
+   RECOMMENDATION — PAGE 4
+========================== */
+
+/* TITLE */
+.recommendation-section h2 {
+  margin-bottom: 14px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--joya-blue);
+}
+
+/* ==========================
+   MAIN CARD (TABLE)
+========================== */
+
+.reco-block {
+  background: #ffffff;
+  border: 2px solid #e3b4a4;
+  border-radius: 10px;
+  padding: 18px;
+}
+
+/* ==========================
+   RECOMMENDATION TABLE
+========================== */
+
+.reco-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.reco-table thead th {
+  background: #ffffff;
+  color: var(--joya-blue);
+  font-weight: 700;
+  padding: 12px;
+  text-align: left;
+  border-bottom: 2px solid #e3b4a4;
+}
+
+.reco-table thead th:nth-child(3),
+.reco-table tbody td:nth-child(3) {
+  text-align: center;
+  font-weight: 600;
+}
+
+/* BODY CELLS */
+.reco-table tbody td {
+  padding: 12px;
+  color: #243b53;
+  border-bottom: 1px solid #f2d8cf;
+  vertical-align: middle;
+}
+
+.reco-table tbody tr:nth-child(odd) {
+  background: var(--joya-orange-soft); 
+}
+
+.reco-table tbody tr:nth-child(even) {
+  background: #ffffff;
+}
+
+/* REMOVE LAST BORDER */
+.reco-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ==========================
+   TEXT / EXPLANATION BLOCK
+========================== */
+
+.reco-block-text {
+  margin-top: 16px;
+  background: #ffffff;
+  border: 2px solid #e3b4a4;
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+
+/* INTRO PARAGRAPH */
+.reco-intro {
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+/* BENEFITS LIST */
+.reco-benefits {
+  padding-left: 18px;
+  margin: 0;
+}
+
+.reco-benefits li {
+  font-size: 13px;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+/* HIGHLIGHT */
+.pv-highlight {
+  font-weight: 700;
+  color: #1b5e20;
+  background: #e8f4ec;
+  padding: 2px 6px;
+  border-radius: 6px;
+}

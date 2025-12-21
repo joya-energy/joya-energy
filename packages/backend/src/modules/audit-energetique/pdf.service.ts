@@ -199,28 +199,36 @@ function getRecommendationsHTML(buildingType: string): string {
 /* ======================================================
    PDF SERVICE
 ====================================================== */
+export type PDFTemplateType = 'audit' | 'pv';
+
 
 export class AuditPDFService {
-  async generatePDF(dto: AuditEnergetiqueResponseDto): Promise<Buffer> {
+  async generatePDF(
+    dto: AuditEnergetiqueResponseDto,
+    template: PDFTemplateType = 'audit'
+  ): Promise<Buffer> {
+
+
+
     /* ===============================
        LOAD TEMPLATE
     =============================== */
-    const templatePath = path.resolve(__dirname, './template/template.html');
-    let html = fs.readFileSync(templatePath, 'utf8');
 
-    /* ===============================
-       LOAD CSS (BOOTSTRAP + CUSTOM)
-    =============================== */
-    const bootstrapCSS = fs.readFileSync(
-      path.resolve(__dirname, './template/bootstrap.min.css'),
-      'utf8'
-    );
-    const customCSS = fs.readFileSync(
-      path.resolve(__dirname, './template/style.css'),
-      'utf8'
-    );
+const templateDir = path.resolve(__dirname, `./template/${template}`);
 
-    html = html.replace('{{INLINE_CSS}}', `${bootstrapCSS}\n${customCSS}`);
+const templatePath = path.join(templateDir, 'template.html');
+const cssPath = path.join(templateDir, 'style.css');
+const bootstrapPath = path.join(templateDir, 'bootstrap.min.css');
+
+let html = fs.readFileSync(templatePath, 'utf8');
+
+const bootstrapCSS = fs.readFileSync(bootstrapPath, 'utf8');
+const customCSS = fs.readFileSync(cssPath, 'utf8');
+
+html = html.replace('{{INLINE_CSS}}', `${bootstrapCSS}\n${customCSS}`);
+
+
+
 
     /* ===============================
        LOAD IMAGES
@@ -281,44 +289,48 @@ const energyIconBase64 = fs
     /* ===============================
        ENERGY & CO₂ SCALES
     =============================== */
-    const energyScale = [
-      { label: 'A', color: '#008000' },
-      { label: 'B', color: '#4CAF50' },
-      { label: 'C', color: '#CDDC39' },
-      { label: 'D', color: '#FFC107' },
-      { label: 'E', color: '#FF9800' },
-      { label: 'F', color: '#FF5722' },
-      { label: 'G', color: '#B71C1C' },
-    ];
+const energyScale = [
+  { label: 'A', color: '#008000', width: 40 },
+  { label: 'B', color: '#4CAF50', width: 46 },
+  { label: 'C', color: '#CDDC39', width: 52 },
+  { label: 'D', color: '#FFC107', width: 60 },
+  { label: 'E', color: '#FF9800', width: 68 },
+  { label: 'F', color: '#FF5722', width: 76 },
+  { label: 'G', color: '#B71C1C', width: 84 },
+];
 
-    const energyClass =
-      dto.data.results.energyClassification?.class ?? 'N/A';
+const energyClass =
+  dto.data.results.energyClassification?.class ?? 'N/A';
 
-    const classes = energyScale
-      .map(
-        c => `
-        <div class="energy-bar ${c.label === energyClass ? 'active' : ''}"
-             style="background:${c.color}">
-          ${c.label}
-        </div>`
-      )
-      .join('');
+const classes = energyScale
+  .map(
+    c => `
+    <div class="energy-row-wrapper">
+      <div class="energy-row ${c.label === energyClass ? 'active' : ''}"
+           style="background:${c.color}; width:${c.width}%;">
+        ${c.label}
+      </div>
+    </div>
+  `
+  )
+  .join('');
+
 
     const co2Scale = [
-      { label: 'A', color: '#b0e3ff' },
-      { label: 'B', color: '#99c9f3' },
-      { label: 'C', color: '#7aaed4' },
-      { label: 'D', color: '#5f93b5' },
-      { label: 'E', color: '#466f95' },
-      { label: 'F', color: '#2e4c76' },
-      { label: 'G', color: '#1b2f4f' },
+      { label: 'A', color: '#b0e3ff' ,width: 40 },
+      { label: 'B', color: '#99c9f3' ,width: 46 },
+      { label: 'C', color: '#7aaed4' ,width: 52 },
+      { label: 'D', color: '#5f93b5' ,width: 60 },
+      { label: 'E', color: '#466f95' ,width: 68 },
+      { label: 'F', color: '#2e4c76' ,width: 76 },
+      { label: 'G', color: '#1b2f4f' ,width: 84 },
     ];
 
     const co2Classes = co2Scale
       .map(
         c => `
         <div class="co2-bar ${c.label === energyClass ? 'active' : ''}"
-             style="background:${c.color}">
+         style="background:${c.color}; width:${c.width}%;">
           ${c.label}
         </div>`
       )
@@ -330,6 +342,34 @@ const energyIconBase64 = fs
     const data = dto.data;
 
     const flattened: Record<string, string | number> = {
+      studyDuration: 25,
+pvDegradation: 0.4,
+stegInflation: 7,
+discountRate: 8,
+pvPower: 3.3,
+pvYield: 1566.6,
+pvProductionYear1: 5169,
+coverageRate: 100,
+gainCumulated: 97012,
+gainDiscounted: 31909,
+cashflowCumulated: 87101,
+cashflowDiscounted: 24717,
+npv: 25969,
+paybackSimple: 3.52,
+paybackDiscounted: 4.22,
+irr: 32.84,
+roi: 15.33,
+co2PerYear: 2.65,
+co2Total: 66,
+
+
+
+
+
+
+
+
+
       heroImageBase64,
       joyaLogoBase64,
       buildingImageBase64,
@@ -359,11 +399,6 @@ const energyIconBase64 = fs
       ventilation: data.envelope.ventilation,
       domesticHotWater: data.systems.domesticHotWater,
       glazingType: data.envelope.glazingType,
-
-
- 
-
-
 
       buildingType: data.building.type,
       surfaceArea: data.building.surfaceArea,
@@ -423,10 +458,13 @@ const energyIconBase64 = fs
     const outputDir = path.resolve(process.cwd(), 'exports');
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
 
-    const filePath = path.join(
-      outputDir,
-      `Audit_${data.contact.firstName}_${Date.now()}.pdf`
-    );
+ const filePrefix = template === 'pv' ? 'PV' : 'Audit';
+
+const filePath = path.join(
+  outputDir,
+  `${filePrefix}_${data.contact.companyName || data.contact.firstName}_${Date.now()}.pdf`
+);
+
 
     fs.writeFileSync(filePath, pdf);
     console.log('✅ PDF saved:', filePath);
