@@ -320,7 +320,7 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
             roofSegmentStats: solarData.roofSegmentStats ?? []
           });
 
-          // Note: Solar layer visualization would require additional implementation
+            // Note: Solar layer visualization would require additional implementation
           // For now, we just store the data
           console.log('Solar analysis completed:', this.solarInfo());
         } else {
