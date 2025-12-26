@@ -77,7 +77,7 @@ import { animate, style, transition, trigger } from '@angular/animations';
       flex-shrink: 0;
       display: flex;
       align-items: center;
-      font-size: 1.25rem;
+      font-size: var(--font-size-lg);
       margin-top: 2px;
 
       .success & { color: var(--success-500, #10b981); }
@@ -92,13 +92,13 @@ import { animate, style, transition, trigger } from '@angular/animations';
 
     .toast-title {
       font-weight: 600;
-      font-size: 0.95rem;
+      font-size: var(--font-size-sm);
       color: var(--text-primary, #1f2937);
       margin: 0 0 0.25rem;
     }
 
     .toast-message {
-      font-size: 0.875rem;
+      font-size: var(--font-size-xs);
       color: var(--text-secondary, #6b7280);
       margin: 0;
       line-height: 1.4;

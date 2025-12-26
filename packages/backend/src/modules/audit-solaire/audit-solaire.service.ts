@@ -13,6 +13,7 @@ import { BuildingTypes, ClimateZones } from '@shared/enums/audit-general.enum';
 import { extrapolateConsumption } from './helpers/consumption-extrapolation.calculator';
 import { calculatePVProduction } from './helpers/pv-production.calculator';
 import { analyzeEconomics } from './helpers/economic-analysis.calculator';
+import { convertAmountToConsumption } from '../audit-energetique/helpers/progressive-tariff.calculator';
 
 
 
@@ -40,11 +41,11 @@ const EXTERNAL_APIS = {
 
 
 export interface CreateSimulationInput {
-  address: string; 
+  address: string;
   buildingType: BuildingTypes;
   climateZone: ClimateZones;
-  measuredConsumptionKwh: number;
-  referenceMonth: number; 
+  measuredAmountTnd: number;
+  referenceMonth: number;
 }
 
 interface GeoCoordinates {
@@ -87,10 +88,19 @@ export class AuditSolaireSimulationService extends CommonService<
   public async createSimulation(input: CreateSimulationInput): Promise<IAuditSolaireSimulation> {
     Logger.info(
       `Creating solar audit simulation: ${input.buildingType} in ${input.climateZone}, ` +
-      `${input.measuredConsumptionKwh} kWh measured in month ${input.referenceMonth}`
+      `${input.measuredAmountTnd} DT measured in month ${input.referenceMonth}`
     );
 
     try {
+      // Convert amount to consumption
+      const consumptionConversion = convertAmountToConsumption({
+        monthlyAmount: input.measuredAmountTnd
+      });
+      Logger.info(
+        `Amount converted: ${input.measuredAmountTnd} DT → ${consumptionConversion.monthlyConsumption} kWh/month ` +
+        `(effective rate: ${consumptionConversion.effectiveRate} DT/kWh)`
+      );
+
       const coordinates = await this.resolveGeoCoordinates(input);
       Logger.info(`Geographic coordinates: lat=${coordinates.latitude}, lon=${coordinates.longitude}`);
 
@@ -98,7 +108,7 @@ export class AuditSolaireSimulationService extends CommonService<
       Logger.info(`Solar data fetched: ${solarData.annualProductibleKwhPerKwp.toFixed(2)} kWh/kWp/year`);
 
       const consumptionData = extrapolateConsumption({
-        measuredConsumption: input.measuredConsumptionKwh,
+        measuredConsumption: consumptionConversion.monthlyConsumption,
         referenceMonth: input.referenceMonth,
         buildingType: input.buildingType,
         climateZone: input.climateZone,
@@ -349,7 +359,7 @@ export class AuditSolaireSimulationService extends CommonService<
       buildingType: input.buildingType,
       climateZone: input.climateZone,
 
-      measuredConsumption: input.measuredConsumptionKwh,
+      measuredAmount: input.measuredAmountTnd,
       referenceMonth: input.referenceMonth,
 
       baseConsumption: consumptionData.baseConsumption,
@@ -383,7 +393,12 @@ export class AuditSolaireSimulationService extends CommonService<
       monthlyEconomics: economicData.monthlyResults,
       annualEconomics: economicData.annualResults,
 
-      paybackYears: economicData.simplePaybackYears,
+      // Extract first year economic summary
+      annualBillWithoutPV: economicData.annualResults[0]?.annualBillWithoutPV || 0,
+      annualBillWithPV: economicData.annualResults[0]?.annualBillWithPV || 0,
+      averageAnnualSavings: economicData.annualResults[0]?.annualSavings || 0,
+
+      paybackMonths: economicData.simplePaybackYears,
     };
   }
 

@@ -21,9 +21,6 @@
   gap: 2rem;
 }
 
-// ========================================
-// Desktop Navigation
-// ========================================
 
 .navbar-links {
   display: none;
@@ -31,6 +28,8 @@
   margin: 0;
   padding: 0;
   gap: 2rem;
+  font-size: 1rem;
+  white-space: nowrap;
 
   @media (min-width: 1024px) {
     display: flex;
@@ -76,21 +75,14 @@
   }
 }
 
-// ========================================
-// CTA Button
-// ========================================
-
 .navbar-cta {
   display: none;
+  font-size: 1rem;
 
   @media (min-width: 1024px) {
     display: inline-flex;
   }
 }
-
-// ========================================
-// Mobile Menu Toggle
-// ========================================
 
 .navbar-toggle {
   display: flex;
@@ -138,10 +130,6 @@
     }
   }
 }
-
-// ========================================
-// Mobile Navigation
-// ========================================
 
 .navbar-mobile {
   display: flex;

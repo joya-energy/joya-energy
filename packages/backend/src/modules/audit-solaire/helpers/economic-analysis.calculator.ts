@@ -61,8 +61,8 @@ export interface EconomicAnalysisResult {
   monthlyResults: MonthlyEconomicResult[];
   annualResults: AnnualEconomicResult[];
   totalSavings25Years: number;
-  simplePaybackYears: number;
-  discountedPaybackYears: number;
+  simplePaybackYears: number; // Now represents months instead of years
+  discountedPaybackYears: number; // Now represents months instead of years
   returnOnInvestmentPercent: number; // ROI (%)
   netPresentValue: number; // NPV/VAN (DT)
   internalRateOfReturnPercent: number; // IRR/TRI (%)
@@ -327,11 +327,12 @@ export function calculateDiscountedValue(
 
 
 /**
- * Calculate simple payback period (years)
- * 
+ * Calculate simple payback period (months)
+ *
  * Simple payback is when: Σ Gain_net(n) = CAPEX
- * 
+ *
  * This ignores time value of money.
+ * Returns payback period in months for better granularity.
  */
 export function calculateSimplePayback(
   investmentCost: number,
@@ -342,19 +343,25 @@ export function calculateSimplePayback(
   for (const result of annualResults) {
     cumulativeGain += result.netGain;
     if (cumulativeGain >= investmentCost) {
-      return result.year;
+      // If we reach the investment cost in this year, calculate exact month
+      const remainingCost = investmentCost - (cumulativeGain - result.netGain);
+      const monthlyGain = result.netGain / 12; // Assume uniform monthly distribution
+      const additionalMonths = Math.ceil(remainingCost / monthlyGain);
+
+      return (result.year - 1) * 12 + additionalMonths;
     }
   }
 
-  return 0; 
+  return 0;
 }
 
 /**
- * Calculate discounted payback period (years)
- * 
+ * Calculate discounted payback period (months)
+ *
  * Discounted payback is when: Σ Gain_net(n)/(1+r)^n = CAPEX
- * 
+ *
  * This accounts for time value of money.
+ * Returns payback period in months for better granularity.
  */
 export function calculateDiscountedPayback(
   investmentCost: number,
@@ -365,11 +372,16 @@ export function calculateDiscountedPayback(
   for (const result of annualResults) {
     cumulativeDiscountedGain += result.cumulativeNetGainDiscounted;
     if (cumulativeDiscountedGain >= investmentCost) {
-      return result.year;
+      // If we reach the investment cost in this year, calculate exact month
+      const remainingCost = investmentCost - (cumulativeDiscountedGain - result.cumulativeNetGainDiscounted);
+      const monthlyGain = result.cumulativeNetGainDiscounted / 12; // Assume uniform monthly distribution
+      const additionalMonths = Math.ceil(remainingCost / monthlyGain);
+
+      return (result.year - 1) * 12 + additionalMonths;
     }
   }
 
-  return 0; 
+  return 0;
 }
 
 /**

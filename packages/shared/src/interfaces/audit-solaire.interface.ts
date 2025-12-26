@@ -52,10 +52,10 @@ export interface  IAuditSolaireSimulation extends BusinessObject {
   buildingType: BuildingTypes;
   climateZone: ClimateZones;
 
-  measuredConsumption: number; 
-  referenceMonth: number; 
+  measuredAmount: number; // Monthly bill amount in TND
+  referenceMonth: number;
 
-  baseConsumption: number;
+  baseConsumption: number; // Calculated from amount in kWh
   monthlyConsumptions: MonthlyConsumptionData[];
   annualConsumption: number;
 
@@ -78,12 +78,17 @@ export interface  IAuditSolaireSimulation extends BusinessObject {
   discountedPaybackYears: number;
   roi25Years: number;
   npv: number; 
-  irr: number; 
+  irr: number;
+
+  // First year annual economic summary
+  annualBillWithoutPV: number;
+  annualBillWithPV: number;
+  averageAnnualSavings: number;
 
   monthlyEconomics: MonthlyEconomicData[];
   annualEconomics: AnnualEconomicData[];
 
-  paybackYears: number; 
+  paybackMonths: number; // Payback period in months
   createdAt: Date;
   updatedAt: Date;
 }

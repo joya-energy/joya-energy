@@ -34,18 +34,21 @@
 }
 
 .tooltip-title {
+  font-size: var(--font-size-sm);
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 0.3rem;
 }
 
 .tooltip-description {
+  font-size: var(--font-size-sm);
   color: var(--text-body);
   line-height: 1.4;
   margin-bottom: 0.4rem;
 }
 
 .tooltip-options {
+  font-size: var(--font-size-sm);
   padding-left: 1.2rem;
   color: var(--text-body);
   margin: 0.2rem 0 0;
