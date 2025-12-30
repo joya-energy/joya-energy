@@ -46,6 +46,17 @@ export interface IAuditEnergetiqueSimulation extends BusinessObject {
   energyCostPerYear: number;
   co2EmissionsKg: number;
   co2EmissionsTons: number;
+  energyEndUseBreakdown?: {
+    totalConsumptionKwh: number;
+    totalCostTnd: number;
+    breakdown: {
+      cooling: { consumptionKwh: number; costTnd: number; sharePercent: number };
+      heating: { consumptionKwh: number; costTnd: number; sharePercent: number };
+      lighting: { consumptionKwh: number; costTnd: number; sharePercent: number };
+      equipment: { consumptionKwh: number; costTnd: number; sharePercent: number };
+      dhw: { consumptionKwh: number; costTnd: number; sharePercent: number };
+    };
+  };
   co2EmissionsElecKg?: number;
   co2EmissionsGasKg?: number;
   carbonClass?: string;

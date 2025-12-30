@@ -159,8 +159,8 @@ const upload = multer({
  *           example: "Tunis"
  *         buildingType:
  *           type: string
- *           enum: ['Café / Restaurant', 'Centre esthétique / Spa', 'Hôtel / Maison d’hôtes', 'Clinique / Centre médical', 'Bureau / Administration / Banque', 'Atelier léger / Artisanat / Menuiserie', 'Usine lourde / Mécanique / Métallurgie', 'Industrie textile / Emballage', 'Industrie alimentaire', 'Industrie plastique / Injection', 'Industrie agroalimentaire réfrigérée', 'École / Centre de formation']
- *           example: "Bureau / Administration / Banque"
+ *           enum: ['Café / Restaurant', 'Centre esthétique / Spa', 'Hôtel', 'Service Tertiaire', 'Clinique / Centre médical', 'Bureau / Administration / Banque', 'Atelier léger / Artisanat / Menuiserie', 'Usine lourde / Mécanique / Métallurgie', 'Industrie textile / Emballage', 'Industrie alimentaire', 'Industrie plastique / Injection', 'Industrie agroalimentaire réfrigérée', 'École / Centre de formation']
+ *           example: "Café / Restaurant"
  *         surfaceArea:
  *           type: number
  *           description: Surface area in m²
@@ -201,7 +201,7 @@ const upload = multer({
  *           example: "Nord"
  *         heatingSystem:
  *           type: string
- *           enum: ['Aucun chauffage', 'Chauffage électrique individuel', 'Chauffage par climatisation réversible', 'Chaudière gaz', 'Autre système de chauffage']
+ *           enum: ['Aucun chauffage', 'Chauffage électrique individuel', 'Chauffage par climatisation réversible', 'Chaudière gaz', 'Chaudiere électrique', 'Autre système de chauffage']
  *           example: "Chauffage par climatisation réversible"
  *         coolingSystem:
  *           type: string
@@ -223,8 +223,8 @@ const upload = multer({
  *           example: ["Éclairage", "Bureautique", "Froid commercial"]
  *         tariffType:
  *           type: string
- *           enum: ['Tarif basse tension', 'Tarif moyenne tension', 'Tarif haute tension']
- *           example: "Tarif basse tension"
+ *           enum: ['Basse Tension', 'Moyenne Tension', 'Haute Tension']
+ *           example: "Basse Tension"
  *         contractedPower:
  *           type: number
  *           description: Contracted power in kVA
@@ -252,8 +252,8 @@ const upload = multer({
  *           example: ["LED"]
  *         lightingType:
  *           type: string
- *           enum: ['LED', 'Fluocompacte', 'Halogène', 'Incandescent']
- *           example: "Fluocompacte"
+ *           enum: ['Éclairage LED', 'Tubes fluorescents', 'Ampoules classiques']
+ *           example: "Éclairage LED"
  *
  *     AuditEnergetiqueResponse:
  *       type: object
@@ -425,7 +425,7 @@ auditEnergetiqueSimulationRoutes.post(
  *                 enum: [Tunis, Ariana, Ben Arous, Manouba, Bizerte, Béja, Jendouba, Kairouan, Kasserine, Médenine, Monastir, Nabeul, Sfax, Sousse, Tataouine, Tozeur, Zaghouan, Siliana, Le Kef, Mahdia, Sidi Bouzid, Gabès, Gafsa]
  *               buildingType:
  *                 type: string
- *                 enum: [ 'Café / Restaurant', 'Centre esthétique / Spa', 'Hôtel / Maison d’hôtes', 'Clinique / Centre médical', 'Bureau / Administration / Banque', 'Atelier léger / Artisanat / Menuiserie', 'Usine lourde / Mécanique / Métallurgie', 'Industrie textile / Emballage', 'Industrie alimentaire', 'Industrie plastique / Injection', 'Industrie agroalimentaire réfrigérée', 'École / Centre de formation']
+ *                 enum: [ 'Café / Restaurant', 'Centre esthétique / Spa', 'Hôtel', 'Service Tertiaire', 'Clinique / Centre médical', 'Bureau / Administration / Banque', 'Atelier léger / Artisanat / Menuiserie', 'Usine lourde / Mécanique / Métallurgie', 'Industrie textile / Emballage', 'Industrie alimentaire', 'Industrie plastique / Injection', 'Industrie agroalimentaire réfrigérée', 'École / Centre de formation']
  *               surfaceArea:
  *                 type: number
  *               floors:
@@ -589,9 +589,8 @@ auditEnergetiqueSimulationRoutes.delete('/:id', auditEnergetiqueSimulationContro
  */
 auditEnergetiqueSimulationRoutes.post(
   '/send-pdf',
-  (req, res) => auditReportController.sendAuditPDF(req, res)
+  (req, res) => auditReportController.sendAuditReport(req, res)
 );
-
 
 // ------------------------------------------
 // NEW ROUTE: Generate & send PV report PDF
@@ -602,6 +601,19 @@ auditEnergetiqueSimulationRoutes.post(
  *   post:
  *     summary: Generate PV (photovoltaic) report and send it by email
  *     tags: [Audit Simulation]
+ *     description: |
+ *       **IMPORTANT:** PV reports require Audit Solaire data for PV calculations.
+ *       
+ *       **Data Sources:**
+ *       - **solaireId (REQUIRED)**: Audit Solaire simulation ID - provides PV power, production, yield, financial metrics (NPV, IRR, ROI, payback)
+ *       - **energetiqueId (OPTIONAL but recommended)**: Audit Energetique simulation ID - provides CO₂ emissions data and contact information
+ *       
+ *       **Best Practice:** Provide both IDs for a complete report:
+ *       - solaireId → PV calculations, financial metrics
+ *       - energetiqueId → CO₂ data, contact info, building details
+ *       
+ *       **Note:** If only energetiqueId is provided, PV values will be 0 (no PV calculations available).
+ *       If only solaireId is provided, CO₂ values will be estimated and contact info may be incomplete.
  *     requestBody:
  *       required: true
  *       content:
@@ -609,14 +621,40 @@ auditEnergetiqueSimulationRoutes.post(
  *           schema:
  *             type: object
  *             properties:
+ *               solaireId:
+ *                 type: string
+ *                 description: Audit Solaire simulation ID (REQUIRED for PV calculations - provides power, production, financial metrics). Either solaireId or energetiqueId must be provided.
+ *                 example: "69539fae7d92e87c2930f85e"
+ *               energetiqueId:
+ *                 type: string
+ *                 description: Audit Energetique simulation ID (OPTIONAL but recommended - provides CO₂ emissions and contact info). For complete report, provide both solaireId and energetiqueId.
+ *                 example: "695268f9f6dcdc59f2c82461"
  *               simulationId:
  *                 type: string
- *                 example: "6936dfef12308673de825e02"
+ *                 description: Legacy support - will try to find in Audit Solaire first, then Energetique. Prefer using solaireId/energetiqueId instead.
+ *                 example: "69539fae7d92e87c2930f85e"
  *     responses:
  *       200:
  *         description: PV report generated and sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "PV PDF generated and sent successfully"
+ *                 email:
+ *                   type: string
+ *                   example: "hello@joya-energy.com"
+ *                 solaireId:
+ *                   type: string
+ *                   example: "69539fae7d92e87c2930f85e"
+ *                 energetiqueId:
+ *                   type: string
+ *                   example: "695268f9f6dcdc59f2c82461"
  *       400:
- *         description: simulationId missing
+ *         description: Either solaireId or energetiqueId (or legacy simulationId) is required, or email address is missing
  *       404:
  *         description: Simulation not found
  *       500:
@@ -625,4 +663,61 @@ auditEnergetiqueSimulationRoutes.post(
 auditEnergetiqueSimulationRoutes.post(
   '/send-pv-pdf',
   (req, res) => pvReportController.sendPVReport(req, res)
+);
+
+/**
+ * @swagger
+ * /audit-energetique-simulations/pv/report/pdf:
+ *   post:
+ *     summary: Generate PV (photovoltaic) report PDF for download
+ *     tags: [Audit Simulation]
+ *     description: |
+ *       Generates a PV report PDF and returns it as a downloadable file.
+ *       Same data requirements as `/send-pv-pdf` but returns PDF directly instead of sending email.
+ *       
+ *       **Data Sources:**
+ *       - **solaireId (REQUIRED)**: Audit Solaire simulation ID - provides PV calculations
+ *       - **energetiqueId (OPTIONAL)**: Audit Energetique simulation ID - provides CO₂ and contact info
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               solaireId:
+ *                 type: string
+ *                 description: Audit Solaire simulation ID (REQUIRED for PV calculations - provides power, production, financial metrics). Either solaireId or energetiqueId must be provided.
+ *                 example: "69539fae7d92e87c2930f85e"
+ *               energetiqueId:
+ *                 type: string
+ *                 description: Audit Energetique simulation ID (OPTIONAL but recommended - provides CO₂ emissions and contact info). For complete report, provide both solaireId and energetiqueId.
+ *                 example: "695268f9f6dcdc59f2c82461"
+ *               simulationId:
+ *                 type: string
+ *                 description: Legacy support - will try to find in Audit Solaire first, then Energetique. Prefer using solaireId/energetiqueId instead.
+ *                 example: "69539fae7d92e87c2930f85e"
+ *     responses:
+ *       200:
+ *         description: PV report PDF generated successfully
+ *         content:
+ *           application/pdf:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *         headers:
+ *           Content-Disposition:
+ *             schema:
+ *               type: string
+ *               example: 'attachment; filename="rapport-pv.pdf"'
+ *       400:
+ *         description: Either solaireId or energetiqueId (or legacy simulationId) is required
+ *       404:
+ *         description: Simulation not found
+ *       500:
+ *         description: PV PDF generation failed
+ */
+auditEnergetiqueSimulationRoutes.post(
+  '/pv/report/pdf',
+  (req, res) => pvReportController.generatePVReportPDF(req, res)
 );

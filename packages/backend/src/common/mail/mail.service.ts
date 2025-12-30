@@ -194,6 +194,25 @@ export class MailService {
       throw err;
     }
   }
+
+  /**
+   * Returns true if POSTMARK_SERVER_TOKEN is configured (Postmark will be used)
+   */
+  public isPostmarkConfigured(): boolean {
+    return Boolean(process.env.POSTMARK_SERVER_TOKEN);
+  }
+
+  /**
+   * Returns true if either Postmark or SMTP transport is available. Does not throw.
+   */
+  public isTransportAvailable(): boolean {
+    try {
+      this.ensureTransport();
+      return true;
+    } catch (_err) {
+      return false;
+    }
+  }
 }
 
 export const mailService = new MailService();

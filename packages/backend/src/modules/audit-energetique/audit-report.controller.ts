@@ -8,14 +8,52 @@ import { toAuditEnergetiqueResponseDto } from './dto/audit-energetique-response.
 export class AuditReportController {
   private pdfService = new AuditPDFService();
 
-  public async sendAuditPDF(req: Request, res: Response) {
+ 
+  private async buildAuditPdf(simulationId: string): Promise<Buffer> {
+    const simulation = await AuditEnergetiqueSimulation.findById(simulationId);
+
+    if (!simulation) {
+      throw new Error('Simulation not found');
+    }
+
+    const dto = toAuditEnergetiqueResponseDto(simulation);
+
+    
+    return this.pdfService.generatePDF(dto);
+  }
+
+  // 🔹 SWAGGER / DOWNLOAD
+  async generateAuditReportPDF(req: Request, res: Response) {
     try {
       const { simulationId } = req.body;
 
       if (!simulationId) {
-        return res.status(400).json({
-          error: 'simulationId is required in body',
-        });
+        return res.status(400).json({ error: 'simulationId is required' });
+      }
+
+      const pdfBuffer = await this.buildAuditPdf(simulationId);
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader(
+        'Content-Disposition',
+        'attachment; filename="rapport-audit-energetique.pdf"',
+      );
+
+      return res.send(pdfBuffer);
+
+    } catch (error) {
+      Logger.error(`❌ Audit PDF error: ${(error as Error).message}`);
+      return res.status(500).json({ error: 'Failed to generate audit PDF' });
+    }
+  }
+
+  // 🔹 ASYNC / BACKGROUND (EMAIL)
+  async sendAuditReport(req: Request, res: Response) {
+    try {
+      const { simulationId } = req.body;
+
+      if (!simulationId) {
+        return res.status(400).json({ error: 'simulationId is required' });
       }
 
       // ---------------------------------------------------------------------
@@ -23,48 +61,66 @@ export class AuditReportController {
       // ---------------------------------------------------------------------
       const simulation = await AuditEnergetiqueSimulation.findById(simulationId);
       if (!simulation) {
-        return res.status(404).json({
-          error: 'Simulation not found',
-        });
+        return res.status(404).json({ error: 'Simulation not found' });
       }
 
       // ---------------------------------------------------------------------
-      // 2️⃣ Build DTO (SINGLE SOURCE OF TRUTH)
+      // 2️⃣ Build DTO
       // ---------------------------------------------------------------------
       const dto = toAuditEnergetiqueResponseDto(simulation);
 
       // ---------------------------------------------------------------------
-      // 3️⃣ Generate PDF from DTO (✅ FIXED)
+      // 3️⃣ Infra checks 
       // ---------------------------------------------------------------------
-      Logger.info('📄 Generating audit PDF...');
+      if (!mailService.isPostmarkConfigured()) {
+        Logger.warn(`Postmark not configured — cannot send audit report ${simulationId}`);
+        return res.status(500).json({
+          error: 'Postmark is not configured. Set POSTMARK_SERVER_TOKEN.',
+        });
+      }
+
+      if (!mailService.isTransportAvailable()) {
+        Logger.warn(`Mail transport unavailable — audit report ${simulationId}`);
+        return res.status(500).json({
+          error: 'Email transport is not available or misconfigured.',
+        });
+      }
+
+      // ---------------------------------------------------------------------
+      // 4️⃣ Generate PDF
+      // ---------------------------------------------------------------------
       const pdfBuffer = await this.pdfService.generatePDF(dto);
 
       // ---------------------------------------------------------------------
-      // 4️⃣ Extract data for email (SAFE ACCESS)
+      // 5️⃣ Extract email data (SAFE)
       // ---------------------------------------------------------------------
       const contact = dto.data.contact;
       const results = dto.data.results;
 
-      const firstName = contact.firstName ?? '';
-      const lastName = contact.lastName ?? '';
+      const fullName = contact.fullName ?? '';
       const email = contact.email ?? '';
+      const company = contact.companyName ?? '';
 
       const auditDate = dto.data.createdAt.split('T')[0];
       const energyClass = results.energyClassification?.class ?? 'N/A';
       const becth = results.energyClassification?.becth ?? 0;
 
       // ---------------------------------------------------------------------
-      // 5️⃣ Build mail attachment (✅ ContentID REQUIRED)
+      // 6️⃣ Attachment
       // ---------------------------------------------------------------------
       const attachment: MailAttachment = {
-        Name: `AuditReport-${firstName}-${lastName}.pdf`,
+        Name: `AuditReport-${company.replace(/\s+/g, '_')}.pdf`,
         Content: pdfBuffer.toString('base64'),
         ContentType: 'application/pdf',
-        ContentID: '', // required by interface
+        ContentID: '',
       };
 
+      // Template configurable via env
+      const templateId =
+        Number(process.env.POSTMARK_AUDIT_TEMPLATE_ID) ;
+
       // ---------------------------------------------------------------------
-      // 6️⃣ Send email (✅ subject / text / html REQUIRED)
+      // 7️⃣ Send email
       // ---------------------------------------------------------------------
       Logger.info(`📧 Sending audit report to ${email}...`);
 
@@ -73,10 +129,10 @@ export class AuditReportController {
         subject: 'Votre audit énergétique JOYA',
         text: 'Veuillez trouver votre rapport d’audit énergétique en pièce jointe.',
         html: '<p>Veuillez trouver votre rapport d’audit énergétique en pièce jointe.</p>',
-        templateId: 42449222,
+        templateId,
         templateModel: {
-          firstName,
-          lastName,
+          fullName,
+          company,
           auditDate,
           energyClass,
           becth,
@@ -87,18 +143,15 @@ export class AuditReportController {
       Logger.info(`✅ Audit PDF sent to ${email}`);
 
       return res.status(200).json({
-        message: 'Audit PDF generated and sent successfully.',
+        message: 'Audit PDF generated and sent successfully',
         email,
         simulationId,
       });
 
     } catch (error) {
-      Logger.error(
-        `❌ Failed to generate/send audit PDF: ${(error as Error).message}`
-      );
-
+      Logger.error(`❌ Audit PDF send error: ${(error as Error).message}`);
       return res.status(500).json({
-        error: 'Failed to generate/send audit PDF.',
+        error: 'Failed to generate or send audit PDF',
       });
     }
   }

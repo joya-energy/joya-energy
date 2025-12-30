@@ -68,17 +68,6 @@ h3 {
   padding: 30px 60px 40px;
   box-sizing: border-box;
 }
-
-/* ==========================
-   TOP BAR
-========================== */
-
-.cover-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
 .cover-logo {
   height: 44px;
 }
@@ -90,9 +79,6 @@ h3 {
   line-height: 1.4;
 }
 
-/* ==========================
-   TITLE 
-========================== */
 .cover-header {
   display: flex;
   justify-content: space-between;
@@ -126,10 +112,6 @@ color: var(--joya-blue);
 }
 
 
-/* ==========================
-   IMAGE 
-========================== */
-
 .cover-image-big {
   margin-top:  80px; ;             
   display: flex;
@@ -143,10 +125,6 @@ color: var(--joya-blue);
   object-fit: contain;
   border-radius: 20px;
 } 
-
-/* ==========================
-   FOOTER
-========================== */
 
 .cover-footer {
   text-align: center;
@@ -169,10 +147,6 @@ color: var(--joya-blue);
   padding: 110px 60px 90px 60px;
   box-sizing: border-box;
 }
-
-/* ==========================
-   TITLE & BADGE
-========================== */
 
 .dpe-page h1 {
   font-size: 22px;
@@ -201,10 +175,6 @@ color: var(--joya-blue);
     #f2a18a
   );}
 
-/* ==========================
-   NEW DPE LAYOUT (PDF SAFE)
-========================== */
-
 .dpe-scales-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -228,8 +198,6 @@ color: var(--joya-blue);
   page-break-inside: avoid;
 }
 
-
-
 .dpe-scale {
   background: #ffffff;
   border: 1px solid var(--joya-border);
@@ -237,19 +205,12 @@ color: var(--joya-blue);
   padding: 16px;
 }
 
-
 .dpe-scale h3 {
   font-size: 15px;
   font-weight: 600;
 color: var(--joya-blue);
   margin-bottom: 10px;
 }
-
-
-
-/* ==========================
-   SCALE KPI 
-========================== */
 
 .scale-kpi {
   display: inline-block;
@@ -276,18 +237,6 @@ color: var(--joya-blue);
   color: var(--joya-orange);
 }
 
-/* ==========================
-   ENERGY & CO2 BARS
-========================== */
-
-.energy-scale {
-  display: flex;
-  flex-direction: column;
-  gap: var(--scale-bar-gap);
-
-}
-
-/* Arrow bar */
 .energy-row {
   position: relative;
   height: var(--scale-bar-height);
@@ -385,10 +334,6 @@ color: var(--joya-blue);
 }
 
 
-/* ==========================
-   INFO CARD — LIST + IMAGE
-========================== */
-
 .dpe-info-layout {
   display: flex;
   align-items: center;
@@ -398,21 +343,10 @@ color: var(--joya-blue);
 
 }
 
-.dpe-info-image {
-  margin-left: -16px;
-}
-
 .dpe-info-list {
   flex: 1;
 }
 
-.dpe-info-image {
-  width: 120px;
-  height: auto;
-  object-fit: contain;
-  flex-shrink: 0;
-  margin-top: 8px;
-}
 
 .building {
   width: 280px;        
@@ -420,11 +354,6 @@ color: var(--joya-blue);
   display: block;
 }
 
-
-
-/* ==========================
-   HEADER
-========================== */
 
 .page-header {
   position: absolute;
@@ -468,10 +397,6 @@ color: var(--joya-blue);
   color: #6b7280;
 }
 
-/* ==========================
-   FOOTER
-========================== */
-
 .page-footer {
   position: absolute;
   bottom: 24px;
@@ -500,16 +425,12 @@ color: var(--joya-blue);
   font-family: Arial, sans-serif;
 }
 
-/* Subtitle */
 .energy-subtitle {
   font-size: 14px;
   color: #5a6d84;
   margin-bottom: 22px;
 }
 
-/* ==========================
-   CARDS LAYOUT
-========================== */
 
 .energy-cards-row {
   display: flex;
@@ -518,7 +439,6 @@ color: var(--joya-blue);
   margin-bottom: 26px;
 }
 
-/* Cards */
 .energy-card {
   flex: 1;
   background: #ffffff;
@@ -527,7 +447,6 @@ color: var(--joya-blue);
   padding: 18px 20px;
 }
 
-/* Card title */
 .energy-card h3 {
   font-size: 16px;
   font-weight: 600;
@@ -536,16 +455,13 @@ color: var(--joya-blue);
   text-align: center;
 }
 
-/* Highlight text */
 .energy-highlight {
   font-size: 13px;
   color: #374151;
   margin-bottom: 10px;
   text-align: center;
 }
-/* ==========================
-   ENERGY VALUE WITH ICON
-========================== */
+
 
 .energy-value-row {
   display: flex;
@@ -579,7 +495,6 @@ color: var(--joya-blue);
 }
 
 
-/* Bullet list */
 .energy-list {
   padding-left: 16px;
   margin: 0;
@@ -590,10 +505,6 @@ color: var(--joya-blue);
   color: #5a6d84;
   margin-bottom: 5px;
 }
-
-/* ==========================
-   BILL VISUAL (IMAGE + BUBBLE)
-========================== */
 
 .bill-visual-vertical {
   display: flex;
@@ -657,11 +568,6 @@ color: var(--joya-blue);
 }
 
 
-
-/* ==========================
-   USAGE ICONS (TABLE)
-========================== */
-
 .icon-ac {
   background-image: url("data:image/png;base64,{{iconACBase64}}");
 }
@@ -682,12 +588,9 @@ color: var(--joya-blue);
   background-image: url("data:image/png;base64,{{iconECSBase64}}");
 }
 
-
-
-/* Icon + label layout */
 .usage-label {
   display: flex;
-  align-items: center;   /* 🔑 fixes vertical misalignment */
+  align-items: center;   
   gap: 10px;
 }
 
@@ -703,12 +606,6 @@ color: var(--joya-blue);
   color: #0f2a44;
 }
 
-
-/* ======================================================
-   USAGE TABLE 
-====================================================== */
-
-/* TABLE */
 .usage-table {
   width: 100%;
   font-size: 14px;
@@ -720,7 +617,6 @@ color: var(--joya-blue);
   box-shadow: inset 0 0 0 1px #c9d2dc;
 }
 
-/* HEADER */
 .usage-table thead th {
   background: #ffffff;
   color: var(--joya-blue);
@@ -734,7 +630,6 @@ color: var(--joya-blue);
   text-align: left;
 }
 
-/* BODY CELLS */
 .usage-table tbody td {
   padding: 14px 12px;
   color: #243b53;
@@ -746,7 +641,6 @@ color: var(--joya-blue);
   text-align: left;
 }
 
-/* ZEBRA (LIGHT & CONSISTENT) */
 .usage-table tbody tr:nth-child(odd) {
   background: var(--joya-orange-soft); 
 }
@@ -755,7 +649,6 @@ color: var(--joya-blue);
   background: #ffffff;
 }
 
-/* TOTAL ROW (same as zebra logic) */
 .usage-table tfoot td {
   padding: 14px 12px;
   font-weight: 700;
@@ -770,11 +663,6 @@ color: var(--joya-blue);
 }
 
 
-/* ================= TOTAL ROW ================= */
-
-
-/* FOOTER — FOLLOW ZEBRA LIKE BODY */
-
 .usage-table tfoot td {
   padding: 14px 12px;
   font-weight: 700;
@@ -787,10 +675,6 @@ color: var(--joya-blue);
 .usage-table tfoot td:first-child {
   text-align: left;
 }
-
-
-
-/* ===== COST SPLIT BAR ===== */
 
 .cost-split {
   display: flex;
@@ -799,7 +683,6 @@ color: var(--joya-blue);
   gap: 8px;
 }
 
-/* Optional: tighten numbers */
 .usage-table td {
   border-right: 1px solid var(--joya-border);
 
@@ -809,25 +692,6 @@ color: var(--joya-blue);
    RECOMMENDATION — PAGE 4
 ========================== */
 
-.recommendation-section {
-  margin-top: 30px;
-  padding: 22px;
-  background: #f8fafc;
-  border-radius: 12px;
-  border-left: 4px solid #D8694A;
-}
-
-/* Title */
-.recommendation-section h2 {
-  margin-bottom: 16px;
-  color: #0f2a44;
-  font-size: 18px;
-  font-weight: 700;
-}
-
-/* ==========================
-   BLOCKS STRUCTURE
-========================== */
 
 .reco-block {
   background: transparent;
@@ -835,20 +699,16 @@ color: var(--joya-blue);
   padding: 0;
 }
 
-
-/* Table block */
 .reco-block-table {
   margin-bottom: 14px;
   border: 1px solid #e5e7eb;
 }
 
-/* Text / explanation block */
 .reco-block-text {
   border: 1px solid #e5e7eb;
 background: var(--joya-bg-soft);
 }
 
-/* Intro paragraph */
 .reco-intro {
   font-size: 13px;
   color: #374151;
@@ -856,7 +716,6 @@ background: var(--joya-bg-soft);
   margin-bottom: 10px;
 }
 
-/* Benefits list */
 .reco-benefits {
   padding-left: 18px;
   margin: 0;
@@ -866,16 +725,6 @@ background: var(--joya-bg-soft);
   font-size: 13px;
   color: #374151;
   margin-bottom: 6px;
-}
-
-/* ==========================
-   COST SPLIT BAR 
-========================== */
-
-.cost-split {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .cost-bar {
@@ -910,9 +759,6 @@ background: var(--joya-bg-soft);
   color: var(--joya-blue);
 }
 
-/* ==========================
-   MAIN CARD (TABLE)
-========================== */
 
 .reco-block {
   background: #ffffff;
@@ -920,10 +766,6 @@ background: var(--joya-bg-soft);
   border-radius: 10px;
   padding: 18px;
 }
-
-/* ==========================
-   RECOMMENDATION TABLE
-========================== */
 
 .reco-table {
   width: 100%;
@@ -946,7 +788,6 @@ background: var(--joya-bg-soft);
   font-weight: 600;
 }
 
-/* BODY CELLS */
 .reco-table tbody td {
   padding: 12px;
   color: #243b53;
@@ -962,14 +803,9 @@ background: var(--joya-bg-soft);
   background: #ffffff;
 }
 
-/* REMOVE LAST BORDER */
 .reco-table tbody tr:last-child td {
   border-bottom: none;
 }
-
-/* ==========================
-   TEXT / EXPLANATION BLOCK
-========================== */
 
 .reco-block-text {
   margin-top: 16px;
@@ -979,7 +815,6 @@ background: var(--joya-bg-soft);
   padding: 16px 18px;
 }
 
-/* INTRO PARAGRAPH */
 .reco-intro {
   font-size: 13px;
   color: #374151;
@@ -987,7 +822,6 @@ background: var(--joya-bg-soft);
   margin-bottom: 10px;
 }
 
-/* BENEFITS LIST */
 .reco-benefits {
   padding-left: 18px;
   margin: 0;
@@ -999,7 +833,6 @@ background: var(--joya-bg-soft);
   margin-bottom: 6px;
 }
 
-/* HIGHLIGHT */
 .pv-highlight {
   font-weight: 700;
   color: #1b5e20;

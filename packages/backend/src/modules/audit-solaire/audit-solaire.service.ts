@@ -16,6 +16,8 @@ import { analyzeEconomics } from './helpers/economic-analysis.calculator';
 
 
 
+
+
 const PAGINATION_DEFAULTS = {
   DEFAULT_PAGE: 1,
   DEFAULT_LIMIT: 10,
@@ -26,15 +28,16 @@ const EXTERNAL_APIS = {
   GOOGLE_MAPS: {
     URL: process.env.GOOGLE_MAPS_API_URL ?? '',
     API_KEY: process.env.GOOGLE_MAPS_API_KEY ?? '',
-    TIMEOUT: Number(process.env.EXTERNAL_APIS_TIMEOUT),
+    TIMEOUT: Number(process.env.EXTERNAL_APIS_TIMEOUT) || 10000,
   },
   PVGIS: {
-    URL: process.env.PVGIS_API_URL ?? '',
+    // PVGIS API v5.2 - Default URL if not configured
+    URL: process.env.PVGIS_API_URL ?? 'https://re.jrc.ec.europa.eu/api/v5_2/PVcalc',
     DEFAULT_PEAK_POWER: 1,
     DEFAULT_SYSTEM_LOSS: 14,
     DEFAULT_PANEL_ANGLE: 30,
     USE_HORIZON: 1,
-    TIMEOUT: Number(process.env.EXTERNAL_APIS_TIMEOUT),
+    TIMEOUT: Number(process.env.EXTERNAL_APIS_TIMEOUT) || 30000,
   },
 } as const;
 
@@ -267,6 +270,15 @@ export class AuditSolaireSimulationService extends CommonService<
     Logger.info(`Fetching solar data from PVGIS: lat=${latitude}, lon=${longitude}`);
 
     const apiUrl = process.env.PVGIS_API_URL ?? EXTERNAL_APIS.PVGIS.URL;
+    
+    if (!apiUrl || apiUrl.trim() === '') {
+      Logger.error('❌ PVGIS_API_URL is not configured. Using default URL.');
+      throw new HTTP400Error(
+        'PVGIS_API_URL is not configured. ' +
+        'Please add PVGIS_API_URL=https://re.jrc.ec.europa.eu/api/v5_2/PVcalc to your .env file. ' +
+        'Or the default URL will be used if configured in code.'
+      );
+    }
 
     const requestParams = {
       lat: latitude,
@@ -279,6 +291,9 @@ export class AuditSolaireSimulationService extends CommonService<
     };
 
     try {
+      Logger.info(`PVGIS API URL: ${apiUrl}`);
+      Logger.info(`PVGIS Request params:`, requestParams);
+      
       const response = await axios.get<PVGISResponse>(apiUrl, {
         params: requestParams,
         timeout: EXTERNAL_APIS.PVGIS.TIMEOUT,
@@ -287,8 +302,19 @@ export class AuditSolaireSimulationService extends CommonService<
       return this.parsePVGISResponse(response);
 
     } catch (error) {
-      Logger.error('PVGIS API request failed', error);
-      throw new HTTP400Error('Failed to fetch solar irradiation data from PVGIS', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      Logger.error(`PVGIS API request failed: ${errorMessage}`, error);
+      
+      // Provide more helpful error message
+      if (errorMessage.includes('Invalid URL') || errorMessage.includes('ENOTFOUND')) {
+        throw new HTTP400Error(
+          `PVGIS API URL is invalid or unreachable: ${apiUrl}. ` +
+          `Please check your PVGIS_API_URL environment variable.`,
+          error
+        );
+      }
+      
+      throw new HTTP400Error(`Failed to fetch solar irradiation data from PVGIS: ${errorMessage}`, error);
     }
   }
 
