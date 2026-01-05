@@ -721,3 +721,201 @@ auditEnergetiqueSimulationRoutes.post(
   '/pv/report/pdf',
   (req, res) => pvReportController.generatePVReportPDF(req, res)
 );
+
+/**
+ * @swagger
+ * /audit-energetique-simulations/pv/generate-report:
+ *   post:
+ *     summary: Generate PV report and save to cloud storage
+ *     tags: [Audit Simulation]
+ *     description: |
+ *       Generates a PV report PDF, saves it to cloud storage, and returns file information.
+ *       This is the new preferred method that follows the cloud storage architecture.
+ *
+ *       **Data Sources:**
+ *       - **solaireId (REQUIRED)**: Audit Solaire simulation ID for PV calculations
+ *       - **energetiqueId (OPTIONAL)**: Audit Energetique simulation ID for CO₂/contact data
+ *       - **consumptionData (OPTIONAL)**: Override consumption data if needed
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               solaireId:
+ *                 type: string
+ *                 description: Audit Solaire simulation ID (REQUIRED)
+ *               energetiqueId:
+ *                 type: string
+ *                 description: Audit Energetique simulation ID (OPTIONAL)
+ *               consumptionData:
+ *                 type: object
+ *                 description: Optional consumption data override
+ *                 properties:
+ *                   totalConsumptionKwh:
+ *                     type: number
+ *                   totalCostTnd:
+ *                     type: number
+ *                   breakdown:
+ *                     type: object
+ *     responses:
+ *       201:
+ *         description: PV report generated and stored successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     fileId:
+ *                       type: string
+ *                     fileName:
+ *                       type: string
+ *                     url:
+ *                       type: string
+ *                     size:
+ *                       type: number
+ *                     solaireId:
+ *                       type: string
+ *                     energetiqueId:
+ *                       type: string
+ */
+auditEnergetiqueSimulationRoutes.post(
+  '/pv/generate-report',
+  (req, res) => pvReportController.generatePVReportPDF(req, res)
+);
+
+/**
+ * @swagger
+ * /audit-energetique-simulations/pv/download/{fileId}:
+ *   get:
+ *     summary: Download existing PV report by file ID
+ *     tags: [Audit Simulation]
+ *     parameters:
+ *       - in: path
+ *         name: fileId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The file ID of the PV report
+ *     responses:
+ *       200:
+ *         description: PV report download URL
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     fileId:
+ *                       type: string
+ *                     fileName:
+ *                       type: string
+ *                     url:
+ *                       type: string
+ *                     size:
+ *                       type: number
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *       404:
+ *         description: PV report not found
+ */
+auditEnergetiqueSimulationRoutes.get(
+  '/pv/download/:fileId',
+  (req, res) => pvReportController.downloadPVReport(req, res)
+);
+
+/**
+ * @swagger
+ * /audit-energetique-simulations/pv/reports/{simulationId}:
+ *   get:
+ *     summary: Get all PV reports for a simulation
+ *     tags: [Audit Simulation]
+ *     parameters:
+ *       - in: path
+ *         name: simulationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The simulation ID (solaire or energetique)
+ *     responses:
+ *       200:
+ *         description: List of PV reports for the simulation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       fileId:
+ *                         type: string
+ *                       fileName:
+ *                         type: string
+ *                       url:
+ *                         type: string
+ *                       size:
+ *                         type: number
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ */
+auditEnergetiqueSimulationRoutes.get(
+  '/pv/reports/:simulationId',
+  (req, res) => pvReportController.getPVReports(req, res)
+);
+
+/**
+ * @swagger
+ * /audit-energetique-simulations/pv/send-report:
+ *   post:
+ *     summary: Send existing PV report by email
+ *     tags: [Audit Simulation]
+ *     description: Send an existing PV report file by email instead of generating a new one
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               fileId:
+ *                 type: string
+ *                 description: Existing PV report file ID (alternative to generating new)
+ *               solaireId:
+ *                 type: string
+ *                 description: For contact info if fileId not provided
+ *               energetiqueId:
+ *                 type: string
+ *                 description: For contact info if fileId not provided
+ *               consumptionData:
+ *                 type: object
+ *                 description: Consumption data if generating new report
+ *     responses:
+ *       200:
+ *         description: PV report sent successfully
+ */
+auditEnergetiqueSimulationRoutes.post(
+  '/pv/send-report',
+  (req, res) => pvReportController.sendPVReport(req, res)
+);

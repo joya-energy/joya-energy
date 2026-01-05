@@ -31,3 +31,7 @@ coverage/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Generated files
+packages/backend/exports/
+packages/backend/uploads/

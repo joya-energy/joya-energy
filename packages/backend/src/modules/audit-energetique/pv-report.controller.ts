@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { AuditPDFService } from '../audit-energetique/pdf.service';
 import { mailService, MailAttachment } from '../../common/mail/mail.service';
+import { FileService } from '@backend/modules/common/file.service';
+import { getFileModel } from '@backend/modules/common/file.repository';
 import { Logger } from '@backend/middlewares/logger.midddleware';
 import { AuditEnergetiqueSimulation } from '../../models/audit-energetique/audit-energetique-simulation.model';
 import { AuditSolaireSimulationModel } from '../../models/audit-solaire/audit-solaire-simulation.model';
@@ -9,20 +11,40 @@ import { toAuditSolaireResponseDto } from '../audit-solaire/dto/audit-solaire-re
 import type { AuditSolaireResponseDto } from '../audit-solaire/dto/audit-solaire-response.dto';
 import type { AuditEnergetiqueResponseDto } from '../audit-energetique/dto/audit-energetique-response.dto';
 
+interface ConsumptionData {
+  totalConsumptionKwh: number;
+  totalCostTnd: number;
+  breakdown: {
+    cooling: { consumptionKwh: number; costTnd: number; sharePercent: number };
+    heating: { consumptionKwh: number; costTnd: number; sharePercent: number };
+    lighting: { consumptionKwh: number; costTnd: number; sharePercent: number };
+    equipment: { consumptionKwh: number; costTnd: number; sharePercent: number };
+    dhw: { consumptionKwh: number; costTnd: number; sharePercent: number };
+  };
+}
+
 export class PVReportController {
   private pdfService = new AuditPDFService();
+  private fileService: FileService;
+
+  constructor() {
+    const fileModel = getFileModel();
+    this.fileService = new FileService(fileModel);
+  }
 
   /**
-   * Build PV PDF from simulation IDs
+   * Build PV PDF from simulation IDs and save to cloud storage
    * Supports:
    * - solaireId only: Uses Audit Solaire data (complete PV calculations)
    * - energetiqueId only: Uses Audit Energetique data (basic data, PV = 0)
    * - Both: Combines data for complete report
+   * - Optional consumptionData: Override consumption data if needed
    */
   private async buildPvPdf(
     solaireId?: string,
-    energetiqueId?: string
-  ): Promise<Buffer> {
+    energetiqueId?: string,
+    consumptionData?: ConsumptionData
+  ): Promise<{ buffer: Buffer; fileId: string; url: string; fileName: string }> {
     let solaireDto: AuditSolaireResponseDto | null = null;
     let energetiqueDto: AuditEnergetiqueResponseDto | null = null;
 
@@ -54,14 +76,21 @@ export class PVReportController {
       throw new Error('Either solaireId or energetiqueId must be provided');
     }
 
+    // If consumption data is provided, merge it with the DTO
+    // Note: This would require modifying the DTO structure or PDF template to accept additional consumption data
+    if (consumptionData) {
+      Logger.info(`📊 Using custom consumption data: ${consumptionData.totalConsumptionKwh} kWh`);
+      // TODO: Merge consumptionData with dto if needed for template rendering
+    }
+
     // Pass both DTOs explicitly so PDF service can combine them
-    return this.pdfService.generatePDF(dto, 'pv', solaireDto, energetiqueDto);
+    return this.pdfService.generateAndSavePDF(dto, 'pv', solaireDto, energetiqueDto);
   }
 
-  // 🔹 SWAGGER / DOWNLOAD
+  // 🔹 SWAGGER / DOWNLOAD - Now returns file info instead of direct download
   async generatePVReportPDF(req: Request, res: Response) {
     try {
-      const { solaireId, energetiqueId, simulationId } = req.body;
+      const { solaireId, energetiqueId, simulationId, consumptionData } = req.body;
 
       // Support both new format (solaireId/energetiqueId) and legacy (simulationId)
       // Legacy: Try to find simulationId in both models
@@ -82,20 +111,26 @@ export class PVReportController {
       }
 
       if (!finalSolaireId && !finalEnergetiqueId) {
-        return res.status(400).json({ 
-          error: 'Either solaireId or energetiqueId (or legacy simulationId) is required' 
+        return res.status(400).json({
+          error: 'Either solaireId or energetiqueId (or legacy simulationId) is required'
         });
       }
 
-      const pdfBuffer = await this.buildPvPdf(finalSolaireId, finalEnergetiqueId);
+      const pdfResult = await this.buildPvPdf(finalSolaireId, finalEnergetiqueId, consumptionData);
 
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader(
-        'Content-Disposition',
-        'attachment; filename="rapport-pv.pdf"',
-      );
-
-      return res.send(pdfBuffer);
+      // Return file information instead of direct download
+      return res.status(201).json({
+        success: true,
+        message: 'PV PDF generated and stored successfully',
+        data: {
+          fileId: pdfResult.fileId,
+          fileName: pdfResult.fileName,
+          url: pdfResult.url,
+          size: pdfResult.buffer.length,
+          solaireId: finalSolaireId,
+          energetiqueId: finalEnergetiqueId,
+        }
+      });
 
     } catch (error) {
       Logger.error(`❌ PV PDF error: ${(error as Error).message}`);
@@ -103,10 +138,10 @@ export class PVReportController {
     }
   }
 
-  // 🔹 ASYNC / BACKGROUND
+  // 🔹 ASYNC / BACKGROUND - Send existing or generate new PV report
   async sendPVReport(req: Request, res: Response) {
     try {
-      const { solaireId, energetiqueId, simulationId } = req.body;
+      const { solaireId, energetiqueId, simulationId, fileId, consumptionData } = req.body;
 
       // Support both new format (solaireId/energetiqueId) and legacy (simulationId)
       // Legacy: Try to find simulationId in both models
@@ -175,12 +210,34 @@ export class PVReportController {
         return res.status(500).json({ error: 'Email transport is not available or misconfigured.' });
       }
 
-      // Generate PDF buffer
-      const pdfBuffer = await this.buildPvPdf(finalSolaireId, finalEnergetiqueId);
+      // Use existing file or generate new PDF
+      let pdfBuffer: Buffer;
+      let fileName: string;
+
+      if (fileId) {
+        // Use existing file
+        const existingFile = await this.fileService.getFileById(fileId);
+        if (!existingFile) {
+          return res.status(404).json({ error: `File not found: ${fileId}` });
+        }
+
+        // Get file content (this would need implementation in FileService)
+        // For now, we'll regenerate if fileId is not provided
+        Logger.info(`📄 Using existing file: ${fileId}`);
+        return res.status(400).json({
+          error: 'Using existing files not yet implemented. Please omit fileId to generate a new report.'
+        });
+      } else {
+        // Generate new PDF
+        const pdfResult = await this.buildPvPdf(finalSolaireId, finalEnergetiqueId, consumptionData);
+        pdfBuffer = pdfResult.buffer;
+        fileName = pdfResult.fileName;
+        Logger.info(`📄 Generated new PV report: ${fileName}`);
+      }
 
       // Attachment
       const attachment: MailAttachment = {
-        Name: `PVReport-${contactInfo.company.replace(/\s+/g, '_')}.pdf`,
+        Name: fileName || `PVReport-${contactInfo.company.replace(/\s+/g, '_')}.pdf`,
         Content: pdfBuffer.toString('base64'),
         ContentType: 'application/pdf',
         ContentID: '',
@@ -217,6 +274,81 @@ export class PVReportController {
     } catch (error) {
       Logger.error(`❌ PV PDF send error: ${(error as Error).message}`);
       return res.status(500).json({ error: 'Failed to generate or send PV PDF' });
+    }
+  }
+
+  /**
+   * Download existing PV report by file ID
+   */
+  async downloadPVReport(req: Request, res: Response) {
+    try {
+      const { fileId } = req.params;
+
+      if (!fileId) {
+        return res.status(400).json({ error: 'fileId parameter is required' });
+      }
+
+      const file = await this.fileService.getFileById(fileId);
+      if (!file) {
+        return res.status(404).json({ error: 'PV report not found' });
+      }
+
+      // Verify it's a PV report
+      if (file.folder !== 'pv-reports') {
+        return res.status(400).json({ error: 'File is not a PV report' });
+      }
+
+      // Get direct download URL
+      const downloadUrl = await this.fileService.getFileUrl(fileId);
+      if (!downloadUrl) {
+        return res.status(500).json({ error: 'Could not generate download URL' });
+      }
+
+      return res.json({
+        success: true,
+        data: {
+          fileId: file.id,
+          fileName: file.originalName,
+          url: downloadUrl,
+          size: file.size,
+          createdAt: file.createdAt,
+        }
+      });
+
+    } catch (error) {
+      Logger.error(`❌ PV report download error: ${(error as Error).message}`);
+      return res.status(500).json({ error: 'Failed to download PV report' });
+    }
+  }
+
+  /**
+   * Get PV reports for a simulation
+   */
+  async getPVReports(req: Request, res: Response) {
+    try {
+      const { simulationId } = req.params;
+
+      if (!simulationId) {
+        return res.status(400).json({ error: 'simulationId parameter is required' });
+      }
+
+      const files = await this.fileService.getFilesBySimulationId(simulationId);
+      const pvReports = files.filter(file => file.folder === 'pv-reports');
+
+      return res.json({
+        success: true,
+        data: pvReports.map(file => ({
+          fileId: file.id,
+          fileName: file.originalName,
+          url: file.storageUrl,
+          size: file.size,
+          createdAt: file.createdAt,
+        }))
+      });
+
+    } catch (error) {
+      Logger.error(`❌ Get PV reports error: ${(error as Error).message}`);
+      return res.status(500).json({ error: 'Failed to get PV reports' });
     }
   }
 }

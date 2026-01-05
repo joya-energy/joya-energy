@@ -12,6 +12,7 @@
     "test:coverage": "jest --runInBand --coverage",
     "test:w": "jest --runInBand --detectOpenHandles --watch",
     "setup-email": "node -r ts-node/register -r tsconfig-paths/register ./src/scripts/setup-email-dev.ts",
+    "cleanup-exports": "node -r ts-node/register -r tsconfig-paths/register ./src/scripts/cleanup-exports.ts",
     "script-example": "node -r ts-node/register -r tsconfig-paths/register ../../dist/packages/backend/src/scripts/example-script.js"
   },
   "keywords": [],
@@ -35,6 +36,7 @@
     "nodemailer": "^7.0.10",
     "openai": "^6.9.1",
     "pdf-to-png-converter": "^3.11.0",
+    "postmark": "^4.0.5",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "uniq": "^1.0.1",

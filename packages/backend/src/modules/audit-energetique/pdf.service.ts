@@ -5,6 +5,8 @@ import { AuditEnergetiqueResponseDto } from './dto/audit-energetique-response.dt
 import { AuditSolaireResponseDto } from '../audit-solaire/dto/audit-solaire-response.dto';
 import { buildPvReportData, buildPvReportDataFromSolaire, type PvReportData } from './pv-report.builder';
 import { AuditReportBuilder } from './audit-report.builder';
+import { FileService, FileMetadata } from '@backend/modules/common/file.service';
+import { getFileModel } from '@backend/modules/common/file.repository';
 
 
 
@@ -214,6 +216,14 @@ export type PDFTemplateType = 'audit' | 'pv';
 
 
 export class AuditPDFService {
+  private fileService: FileService;
+
+  constructor() {
+    // Initialize file service with file model
+    const fileModel = getFileModel();
+    this.fileService = new FileService(fileModel);
+  }
+
   async generatePDF(
     dto: PDFInputDto,
     template: PDFTemplateType = 'audit',
@@ -616,25 +626,84 @@ if (isPv && finalSolaireDto && 'monthlyEconomics' in finalSolaireDto) {
     await browser.close();
 
     /* ===============================
-       SAVE LOCALLY (DEBUG)
+       SAVE TO CLOUD STORAGE
     =============================== */
-    const outputDir = path.resolve(process.cwd(), 'exports');
-    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
+    const filePrefix = template === 'pv' ? 'PV' : 'Audit';
 
- const filePrefix = template === 'pv' ? 'PV' : 'Audit';
+    const fileName = data
+      ? `${data.contact.companyName || data.contact.fullName}`
+      : (finalSolaireDto ? 'Client' : 'Unknown');
 
-const fileName = data 
-  ? `${data.contact.companyName || data.contact.fullName}`
-  : (finalSolaireDto ? 'Client' : 'Unknown');
-const filePath = path.join(
-  outputDir,
-  `${filePrefix}_${fileName}_${Date.now()}.pdf`
-);
+    const fileMetadata: FileMetadata = {
+      fileName: `${filePrefix}_${fileName}_${Date.now()}.pdf`,
+      originalName: `${filePrefix}_${fileName}.pdf`,
+      mimeType: 'application/pdf',
+      size: pdf.length,
+      folder: 'audit-reports',
+      auditId: data?.id,
+      simulationId: finalSolaireDto?.id,
+      uploadedBy: data?.contact?.email || finalSolaireDto?.createdBy,
+    };
 
+    const uploadResult = await this.fileService.uploadFile(pdf, fileMetadata);
 
-    fs.writeFileSync(filePath, pdf);
+    if (!uploadResult.success) {
+      Logger.error('Failed to upload PDF to storage', uploadResult.error);
+      // Fallback: still return the PDF buffer even if upload failed
+      Logger.warn('Returning PDF buffer despite upload failure');
+    } else {
+      Logger.info(`PDF uploaded successfully: ${uploadResult.file?.storageUrl}`);
+    }
 
-    return Buffer.from(pdf);
+    return pdf;
+  }
+
+  /**
+   * Generate PDF and save to cloud storage (returns file info)
+   */
+  async generateAndSavePDF(
+    dto: PDFInputDto,
+    template: PDFTemplateType = 'audit',
+    solaireDto?: AuditSolaireResponseDto | null,
+    energetiqueDto?: AuditEnergetiqueResponseDto | null
+  ): Promise<{ buffer: Buffer; fileId: string; url: string; fileName: string }> {
+    const buffer = await this.generatePDF(dto, template, solaireDto, energetiqueDto);
+
+    // Extract metadata for file storage
+    const data = (isAudit && auditDto) ? auditDto.data :
+                 (isPv && auditDto) ? auditDto.data :
+                 (dto as AuditEnergetiqueResponseDto).data;
+
+    const finalSolaireDto = solaireDto ?? (isPv && ('installedPower' in dto || 'systemSize_kWp' in dto || 'expectedProduction' in dto) ? dto as AuditSolaireResponseDto : null);
+
+    const filePrefix = template === 'pv' ? 'PV' : 'Audit';
+    const fileName = data
+      ? `${data.contact.companyName || data.contact.fullName}`
+      : (finalSolaireDto ? 'Client' : 'Unknown');
+
+    const fileMetadata: FileMetadata = {
+      fileName: `${filePrefix}_${fileName}_${Date.now()}.pdf`,
+      originalName: `${filePrefix}_${fileName}.pdf`,
+      mimeType: 'application/pdf',
+      size: buffer.length,
+      folder: 'pv-reports',
+      auditId: data?.id,
+      simulationId: finalSolaireDto?.id,
+      uploadedBy: data?.contact?.email || finalSolaireDto?.createdBy,
+    };
+
+    const uploadResult = await this.fileService.uploadFile(buffer, fileMetadata);
+
+    if (!uploadResult.success || !uploadResult.file) {
+      throw new Error(`PDF upload failed: ${uploadResult.error}`);
+    }
+
+    return {
+      buffer,
+      fileId: uploadResult.file.id,
+      url: uploadResult.file.storageUrl,
+      fileName: uploadResult.file.originalName,
+    };
   }
 }
 
