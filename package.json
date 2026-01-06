@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "JOYA Application Monorepo",
   "private": true,
+  "engines": {
+    "node": ">=20.10.0",
+    "npm": ">=9.7.2"
+  },
   "scripts": {
     "start:backend": "npm run start --workspace joya-backend",
     "dev:backend": "npm run dev --workspace joya-backend",

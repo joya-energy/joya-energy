@@ -7,60 +7,84 @@ import {
 } from '@shared/enums/audit-batiment.enum';
 
 /**
+ * Helper function to safely extract numbers from DTO
+ * Returns defaultValue if value is null, undefined, or not a finite number
+ */
+const ensureNumber = (value: number | null | undefined, defaultValue: number = 0): number => {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return defaultValue;
+  }
+  return value;
+};
+
+/**
  * AuditReportBuilder
  *
  * Builds a compact, template-ready view model from
  * AuditEnergetiqueResponseDto.
  *
  * ⚠️ This builder MUST NOT perform energy calculations.
+ * It only extracts and formats data from the DTO.
  */
 export class AuditReportBuilder {
   static build(dto: AuditEnergetiqueResponseDto) {
     const data = dto.data;
 
-    /* ------------------------------------------------------------------
-     * HELPERS
-     * ------------------------------------------------------------------ */
+    if (!data) {
+      throw new Error('Cannot build audit report: DTO data is missing');
+    }
 
-    const safe = (v?: number) => (typeof v === 'number' && !isNaN(v) ? v : 0);
+    if (!data.results) {
+      throw new Error('Cannot build audit report: DTO results are missing');
+    }
 
     /* ------------------------------------------------------------------
      * TOTALS
      * ------------------------------------------------------------------ */
 
-    const annualConsumption =
-      safe(data.results?.energyConsumption?.annual?.value);
+    const annualConsumption = ensureNumber(
+      data.results.energyConsumption?.annual?.value,
+      0
+    );
 
-    const totalAnnualCost =
-      safe(data.results?.energyCost?.annual?.value);
+    const totalAnnualCost = ensureNumber(
+      data.results.energyCost?.annual?.value,
+      0
+    );
 
-    const annualCo2Kg =
-      safe(data.results?.co2Emissions?.annual?.kilograms);
-
-    const surfaceArea = safe(data.building?.surfaceArea) || 1;
+    const annualCo2Kg = ensureNumber(
+      data.results.co2Emissions?.annual?.kilograms,
+      0
+    );
 
     /* ------------------------------------------------------------------
      * INTENSITIES
      * ------------------------------------------------------------------ */
 
-    const energyIntensity =
-      safe(data.results?.energyConsumption?.perSquareMeter?.value) ||
-      annualConsumption / surfaceArea;
+    // Extract intensities from DTO (already calculated)
+    // Do NOT calculate here - builder must not perform calculations
+    const energyIntensity = ensureNumber(
+      data.results.energyConsumption?.perSquareMeter?.value,
+      0
+    );
 
-    const carbonIntensity =
-      safe(data.results?.co2Emissions?.perSquareMeter?.value) ||
-      annualCo2Kg / surfaceArea;
+    const carbonIntensity = ensureNumber(
+      data.results.co2Emissions?.perSquareMeter?.value,
+      0
+    );
 
     /* ------------------------------------------------------------------
      * CLASSIFICATIONS
      * ------------------------------------------------------------------ */
 
-    const energyClassification = data.results?.energyClassification;
+    const energyClassification = data.results.energyClassification;
     const energyClass = energyClassification?.class ?? 'N/A';
     const energyIsApplicable = !!energyClassification?.isApplicable;
-    const becth = safe(energyClassification?.becth) || energyIntensity;
+    
+    // Extract becth from classification (do not calculate/fallback)
+    const becth = ensureNumber(energyClassification?.becth, 0);
 
-    const carbonClassification = data.results?.carbonClassification;
+    const carbonClassification = data.results.carbonClassification;
     const carbonClass = carbonClassification?.class ?? 'N/A';
     const carbonIsApplicable = !!carbonClassification?.isApplicable;
 
@@ -69,62 +93,73 @@ export class AuditReportBuilder {
      * ------------------------------------------------------------------ */
 
     const heatingSystemRaw = data.systems?.heating ?? '';
-    const heatingSystem =
-      (HeatingSystemTypes as any)[heatingSystemRaw] ?? heatingSystemRaw;
+    const heatingSystem = heatingSystemRaw in HeatingSystemTypes
+      ? (HeatingSystemTypes as Record<string, string>)[heatingSystemRaw]
+      : heatingSystemRaw;
 
     const ecsTypeRaw = data.systems?.domesticHotWater ?? '';
-    const ecsType =
-      (DomesticHotWaterTypes as any)[ecsTypeRaw] ?? ecsTypeRaw;
+    const ecsType = ecsTypeRaw in DomesticHotWaterTypes
+      ? (DomesticHotWaterTypes as Record<string, string>)[ecsTypeRaw]
+      : ecsTypeRaw;
 
     /* ------------------------------------------------------------------
      * END-USE ENERGY BREAKDOWN (PDF READY)
      * ------------------------------------------------------------------ */
 
-    const breakdown = data.results?.energyEndUseBreakdown;
-    const totalCost = safe(breakdown?.totalCostTnd);
+    const breakdown = data.results.energyEndUseBreakdown;
+    
+    if (!breakdown) {
+      Logger.warn('Energy end-use breakdown is missing from audit data');
+    }
 
-    const percent = (cost: number) =>
-      totalCost > 0 ? Math.round((cost / totalCost) * 100) : 0;
+    const totalCost = ensureNumber(breakdown?.totalCostTnd, 0);
+
+    const percent = (cost: number): number => {
+      if (totalCost <= 0) {
+        return 0;
+      }
+      return Math.round((cost / totalCost) * 100);
+    };
 
     const endUses = breakdown
       ? {
           cooling: {
-            consumptionKwh: safe(breakdown.breakdown?.cooling?.consumptionKwh),
-            costTnd: safe(breakdown.breakdown?.cooling?.costTnd),
+            consumptionKwh: ensureNumber(breakdown.breakdown?.cooling?.consumptionKwh, 0),
+            costTnd: ensureNumber(breakdown.breakdown?.cooling?.costTnd, 0),
             sharePercent: percent(
-              safe(breakdown.breakdown?.cooling?.costTnd)
+              ensureNumber(breakdown.breakdown?.cooling?.costTnd, 0)
             ),
           },
           heating: {
-            consumptionKwh: safe(breakdown.breakdown?.heating?.consumptionKwh),
-            costTnd: safe(breakdown.breakdown?.heating?.costTnd),
+            consumptionKwh: ensureNumber(breakdown.breakdown?.heating?.consumptionKwh, 0),
+            costTnd: ensureNumber(breakdown.breakdown?.heating?.costTnd, 0),
             sharePercent: percent(
-              safe(breakdown.breakdown?.heating?.costTnd)
+              ensureNumber(breakdown.breakdown?.heating?.costTnd, 0)
             ),
           },
           lighting: {
-            consumptionKwh: safe(breakdown.breakdown?.lighting?.consumptionKwh),
-            costTnd: safe(breakdown.breakdown?.lighting?.costTnd),
+            consumptionKwh: ensureNumber(breakdown.breakdown?.lighting?.consumptionKwh, 0),
+            costTnd: ensureNumber(breakdown.breakdown?.lighting?.costTnd, 0),
             sharePercent: percent(
-              safe(breakdown.breakdown?.lighting?.costTnd)
+              ensureNumber(breakdown.breakdown?.lighting?.costTnd, 0)
             ),
           },
           equipment: {
-            consumptionKwh: safe(breakdown.breakdown?.equipment?.consumptionKwh),
-            costTnd: safe(breakdown.breakdown?.equipment?.costTnd),
+            consumptionKwh: ensureNumber(breakdown.breakdown?.equipment?.consumptionKwh, 0),
+            costTnd: ensureNumber(breakdown.breakdown?.equipment?.costTnd, 0),
             sharePercent: percent(
-              safe(breakdown.breakdown?.equipment?.costTnd)
+              ensureNumber(breakdown.breakdown?.equipment?.costTnd, 0)
             ),
           },
           ecs: {
-            consumptionKwh: safe(breakdown.breakdown?.dhw?.consumptionKwh),
-            costTnd: safe(breakdown.breakdown?.dhw?.costTnd),
+            consumptionKwh: ensureNumber(breakdown.breakdown?.dhw?.consumptionKwh, 0),
+            costTnd: ensureNumber(breakdown.breakdown?.dhw?.costTnd, 0),
             sharePercent: percent(
-              safe(breakdown.breakdown?.dhw?.costTnd)
+              ensureNumber(breakdown.breakdown?.dhw?.costTnd, 0)
             ),
           },
           total: {
-            consumptionKwh: safe(breakdown.totalConsumptionKwh),
+            consumptionKwh: ensureNumber(breakdown.totalConsumptionKwh, 0),
             costTnd: totalCost,
           },
         }

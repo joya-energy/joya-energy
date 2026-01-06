@@ -4,9 +4,10 @@ import { mailService, MailAttachment } from '../../common/mail/mail.service';
 import { Logger } from '@backend/middlewares/logger.midddleware';
 import { AuditEnergetiqueSimulation } from '../../models/audit-energetique/audit-energetique-simulation.model';
 import { toAuditEnergetiqueResponseDto } from './dto/audit-energetique-response.dto';
+import { getFileService } from '../file/file.service.factory';
 
 export class AuditReportController {
-  private pdfService = new AuditPDFService();
+  private pdfService = new AuditPDFService(getFileService());
 
  
   private async buildAuditPdf(simulationId: string): Promise<Buffer> {

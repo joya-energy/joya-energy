@@ -69,6 +69,7 @@ export class AuditEnergetiqueComponent {
 
   protected isExtracting = signal(false);
   protected isSubmitting = signal(false);
+  protected isGeneratingPDF = signal(false);
   protected extraction = signal<ExtractedBillData | null>(null);
   protected billFile = signal<File | null>(null);
   protected simulationResult = signal<AuditEnergetiqueResponse['data'] | null>(null);
@@ -298,6 +299,40 @@ export class AuditEnergetiqueComponent {
     const normalized = value.replace(/\s+/g, '').replace(',', '.');
     const parsed = Number(normalized);
     return Number.isNaN(parsed) ? null : parsed;
+  }
+
+  protected downloadPDF(): void {
+    const result = this.simulationResult();
+    if (!result?.simulationId) {
+      this.notificationStore.addNotification({
+        type: 'error',
+        title: 'Erreur',
+        message: 'Aucune simulation trouvée. Veuillez d\'abord compléter l\'audit.'
+      });
+      return;
+    }
+
+    this.isGeneratingPDF.set(true);
+    this.auditService
+      .generateAndSendPDF(result.simulationId)
+      .pipe(finalize(() => this.isGeneratingPDF.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.notificationStore.addNotification({
+            type: 'success',
+            title: 'PDF généré',
+            message: `Le rapport PDF a été généré et envoyé à ${response.email}. Il a également été sauvegardé dans le cloud.`
+          });
+        },
+        error: (error) => {
+          console.error('Error generating PDF:', error);
+          this.notificationStore.addNotification({
+            type: 'error',
+            title: 'Erreur',
+            message: 'Impossible de générer le PDF. Veuillez réessayer.'
+          });
+        }
+      });
   }
 
   protected submitSimulation(): void {

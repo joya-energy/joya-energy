@@ -397,15 +397,22 @@ export function calculateROI(
  * NPV > 0 → Project is profitable
  * NPV < 0 → Project loses money
  * NPV = 0 → Break-even
+ * 
+ * Note: We use the last year's cumulativeNetGainDiscounted which already contains
+ * the sum of all discounted net gains over the project lifetime.
  */
 export function calculateNPV(
   investmentCost: number,
   annualResults: AnnualEconomicResult[]
 ): number {
-  const totalDiscountedGain = annualResults.reduce(
-    (sum, result) => sum + result.cumulativeNetGainDiscounted,
-    0
-  );
+  if (annualResults.length === 0) {
+    return -investmentCost;
+  }
+
+  // Use the last year's cumulative discounted net gain
+  // This already contains the sum of all discounted net gains (Σ [Gain_net(n) / (1+r)^n])
+  const lastYear = annualResults[annualResults.length - 1];
+  const totalDiscountedGain = lastYear.cumulativeNetGainDiscounted;
 
   const npv = -investmentCost + totalDiscountedGain;
   return Number(npv.toFixed(2));

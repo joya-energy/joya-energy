@@ -134,4 +134,11 @@ export class AuditEnergetiqueService {
   createSimulation(payload: AuditEnergetiqueRequest): Observable<AuditEnergetiqueResponse> {
     return this.api.post<AuditEnergetiqueResponse>('/audit-energetique-simulations', payload);
   }
+
+  generateAndSendPDF(simulationId: string): Observable<{ message: string; email: string; simulationId: string }> {
+    return this.api.post<{ message: string; email: string; simulationId: string }>(
+      '/audit-energetique-simulations/send-pdf',
+      { simulationId }
+    );
+  }
 }

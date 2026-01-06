@@ -155,8 +155,18 @@
                     <button type="button" class="pill-button pill-button--secondary" (click)="step.set(1)">
                         Nouvelle simulation
                     </button>
-                    <button type="button" class="pill-button pill-button--primary">
-                        Télécharger le rapport PDF
+                    <button 
+                        type="button" 
+                        class="pill-button pill-button--primary"
+                        (click)="downloadPDF()"
+                        [disabled]="isGeneratingPDF() || !simulationResult()?.simulationId">
+                        <ng-container *ngIf="!isGeneratingPDF(); else generatingLabel">
+                            Télécharger le rapport PDF
+                        </ng-container>
+                        <ng-template #generatingLabel>
+                            <span class="button-loader"></span>
+                            Génération en cours...
+                        </ng-template>
                     </button>
                 </div>
             </div>

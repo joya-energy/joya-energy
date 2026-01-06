@@ -18,7 +18,15 @@ export const AuditSolaireSimulationModel: Model<AuditSolaireSimulationDocument> 
     installationCost: { type: Number, required: true, min: 0 },
     annualSavings: { type: Number, required: true, min: 0 },
     coverage: { type: Number, required: true, min: 0 },
-    paybackYears: { type: Number, required: true, min: 0 }
+    paybackYears: { type: Number, required: true, min: 0 },
+    // Financial metrics from economic analysis
+    // Note: These are optional to handle old records, but should always be present for new records
+    npv: { type: Number, required: false },
+    irr: { type: Number, required: false },
+    roi25Years: { type: Number, required: false },
+    simplePaybackYears: { type: Number, required: false },
+    discountedPaybackYears: { type: Number, required: false },
+    totalSavings25Years: { type: Number, required: false }
   },
   {
     timestamps: true

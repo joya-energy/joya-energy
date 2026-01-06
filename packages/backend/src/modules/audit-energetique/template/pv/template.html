@@ -112,10 +112,11 @@
           alt="Investissement"
         />
       </div>
+      <span style="font-size: 1.2em; font-weight: bold; color: #021022;">{{capexTotal}} DT</span>
 
       <p class="investment-price">
         <strong>Prix par kWc installé :</strong><br />
-        <span>2 000 DT / kWc</span>
+        <span>2 000 DT / kWc</span><br />
       </p>
 
       <p class="investment-includes">Ce prix inclut :</p>
@@ -138,11 +139,15 @@
           src="data:image/png;base64,{{iconEquipmentBase64}}"
           alt="Investissement"
         />
+        
  </div>
+
       <div class="maintenance-box">
-        <div class="maintenance-value">4 %</div>
+        <div style="font-size: 1.2em; font-weight: bold; color: #021022; margin-top: 10px;">{{opexAnnual}} DT / an</div>
+
+        <div class="maintenance-value">4 % </div>
         <div class="maintenance-label">
-          OPEX annuel du coût d’investissement
+          OPEX annuel du coût d'investissement
         </div>
 
         <div class="maintenance-includes">
@@ -228,14 +233,12 @@
           Facture Achat Électricité sans IPV
         </h3>
 
-        <p>Consommation d’électricité : <strong>{{consumptionWithoutPV}} kWh/an</strong></p>
+        <p>Consommation d’électricité :<br /> </p>
+        <p> <strong>{{consumptionWithoutPV}} kWh/an</strong></p>
 
         <div class="old-arrow">⬇</div>
 
-        <p class="old-price">
-          <strong>{{avgPriceWithoutPV_mDt}} mDt HT</strong><br />
-          
-        </p>
+
 
         <p class="old-price">
           <strong>{{avgPriceWithoutPV}}</strong> Dt HT/kWh<br />
@@ -261,13 +264,10 @@
           Facture Achat Électricité avec IPV
         </h3>
 
-        <p>Consommation d’électricité : <strong>{{consumptionWithPV}} kWh/an</strong></p>
-
+        <p>Consommation d’électricité :<br /> </p>
+        <p> <strong>{{consumptionWithPV}} kWh/an</strong></p>
         <div class="old-arrow">⬇</div>
 
-        <p class="old-price">
-          <strong>{{avgPriceWithPV_mDt}} mDt HT/kWh</strong><br />
-        </p>
 
         <p class="old-price">
           <strong>{{avgPriceWithPV}}</strong> Dt HT/kWh<br />

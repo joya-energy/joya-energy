@@ -128,6 +128,18 @@ export class AuditSolaireSimulationService extends CommonService<
         monthlyRawConsumptions: monthlyConsumptions,
         installedPowerKwp: pvSystemData.installedPower,
       });
+      
+      // Validate that economic analysis produced valid results
+      if (economicData.netPresentValue === null || economicData.netPresentValue === undefined) {
+        throw new Error('Economic analysis failed: NPV is null or undefined');
+      }
+      if (economicData.internalRateOfReturnPercent === null || economicData.internalRateOfReturnPercent === undefined) {
+        throw new Error('Economic analysis failed: IRR is null or undefined');
+      }
+      if (economicData.returnOnInvestmentPercent === null || economicData.returnOnInvestmentPercent === undefined) {
+        throw new Error('Economic analysis failed: ROI is null or undefined');
+      }
+      
       Logger.info(
         `Economic analysis: Investment=${economicData.investmentCost} DT, ` +
         `NPV=${economicData.netPresentValue} DT, IRR=${economicData.internalRateOfReturnPercent}%, ` +

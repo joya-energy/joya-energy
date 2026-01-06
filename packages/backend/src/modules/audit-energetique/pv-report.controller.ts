@@ -2,15 +2,49 @@ import { Request, Response } from 'express';
 import { AuditPDFService } from '../audit-energetique/pdf.service';
 import { mailService, MailAttachment } from '../../common/mail/mail.service';
 import { Logger } from '@backend/middlewares/logger.midddleware';
+import { HTTP400Error } from '@backend/errors/http.error';
 import { AuditEnergetiqueSimulation } from '../../models/audit-energetique/audit-energetique-simulation.model';
 import { AuditSolaireSimulationModel } from '../../models/audit-solaire/audit-solaire-simulation.model';
 import { toAuditEnergetiqueResponseDto } from '../audit-energetique/dto/audit-energetique-response.dto';
 import { toAuditSolaireResponseDto } from '../audit-solaire/dto/audit-solaire-response.dto';
 import type { AuditSolaireResponseDto } from '../audit-solaire/dto/audit-solaire-response.dto';
 import type { AuditEnergetiqueResponseDto } from '../audit-energetique/dto/audit-energetique-response.dto';
+import { getFileService } from '../file/file.service.factory';
 
 export class PVReportController {
-  private pdfService = new AuditPDFService();
+  private pdfService = new AuditPDFService(getFileService());
+
+  /**
+   * Resolve simulation IDs from request body
+   * Supports both new format (solaireId/energetiqueId) and legacy (simulationId)
+   */
+  private async resolveSimulationIds(
+    solaireId?: string,
+    energetiqueId?: string,
+    simulationId?: string
+  ): Promise<{ solaireId?: string; energetiqueId?: string }> {
+    let finalSolaireId = solaireId;
+    let finalEnergetiqueId = energetiqueId;
+
+    if (simulationId && !finalSolaireId && !finalEnergetiqueId) {
+      const solaireSim = await AuditSolaireSimulationModel.findById(simulationId);
+      if (solaireSim) {
+        finalSolaireId = simulationId;
+        Logger.info(`📋 Using legacy simulationId as solaireId: ${simulationId}`);
+      } else {
+        finalEnergetiqueId = simulationId;
+        Logger.info(`📋 Using legacy simulationId as energetiqueId: ${simulationId}`);
+      }
+    }
+
+    if (!finalSolaireId && !finalEnergetiqueId) {
+      throw new HTTP400Error(
+        'Either solaireId or energetiqueId (or legacy simulationId) is required'
+      );
+    }
+
+    return { solaireId: finalSolaireId, energetiqueId: finalEnergetiqueId };
+  }
 
   /**
    * Build PV PDF from simulation IDs
@@ -32,6 +66,17 @@ export class PVReportController {
       if (!solaireSimulation) {
         throw new Error(`Audit Solaire simulation not found: ${solaireId}`);
       }
+      
+      // Validate that required financial metrics are present
+      if (solaireSimulation.npv === null || solaireSimulation.npv === undefined) {
+        Logger.warn(
+          `⚠️ Audit Solaire simulation ${solaireId} is missing NPV. ` +
+          `This appears to be an old record or the economic analysis was not completed. ` +
+          `Record created: ${solaireSimulation.createdAt}, ` +
+          `Has annualEconomics: ${solaireSimulation.annualEconomics?.length ?? 0} years`
+        );
+      }
+      
       solaireDto = toAuditSolaireResponseDto(solaireSimulation);
       Logger.info(`✅ Loaded Audit Solaire simulation: ${solaireId}`);
     }
@@ -58,79 +103,14 @@ export class PVReportController {
     return this.pdfService.generatePDF(dto, 'pv', solaireDto, energetiqueDto);
   }
 
-  // 🔹 SWAGGER / DOWNLOAD
-  async generatePVReportPDF(req: Request, res: Response) {
-    try {
-      const { solaireId, energetiqueId, simulationId } = req.body;
-
-      // Support both new format (solaireId/energetiqueId) and legacy (simulationId)
-      // Legacy: Try to find simulationId in both models
-      let finalSolaireId = solaireId;
-      let finalEnergetiqueId = energetiqueId;
-
-      if (simulationId && !finalSolaireId && !finalEnergetiqueId) {
-        // Try to find in Audit Solaire first (preferred for PV reports)
-        const solaireSim = await AuditSolaireSimulationModel.findById(simulationId);
-        if (solaireSim) {
-          finalSolaireId = simulationId;
-          Logger.info(`📋 Using legacy simulationId as solaireId: ${simulationId}`);
-        } else {
-          // Fallback to Audit Energetique
-          finalEnergetiqueId = simulationId;
-          Logger.info(`📋 Using legacy simulationId as energetiqueId: ${simulationId}`);
-        }
-      }
-
-      if (!finalSolaireId && !finalEnergetiqueId) {
-        return res.status(400).json({ 
-          error: 'Either solaireId or energetiqueId (or legacy simulationId) is required' 
-        });
-      }
-
-      const pdfBuffer = await this.buildPvPdf(finalSolaireId, finalEnergetiqueId);
-
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader(
-        'Content-Disposition',
-        'attachment; filename="rapport-pv.pdf"',
-      );
-
-      return res.send(pdfBuffer);
-
-    } catch (error) {
-      Logger.error(`❌ PV PDF error: ${(error as Error).message}`);
-      return res.status(500).json({ error: 'Failed to generate PV PDF' });
-    }
-  }
-
   // 🔹 ASYNC / BACKGROUND
   async sendPVReport(req: Request, res: Response) {
     try {
       const { solaireId, energetiqueId, simulationId } = req.body;
-
-      // Support both new format (solaireId/energetiqueId) and legacy (simulationId)
-      // Legacy: Try to find simulationId in both models
-      let finalSolaireId = solaireId;
-      let finalEnergetiqueId = energetiqueId;
-
-      if (simulationId && !finalSolaireId && !finalEnergetiqueId) {
-        // Try to find in Audit Solaire first (preferred for PV reports)
-        const solaireSim = await AuditSolaireSimulationModel.findById(simulationId);
-        if (solaireSim) {
-          finalSolaireId = simulationId;
-          Logger.info(`📋 Using legacy simulationId as solaireId: ${simulationId}`);
-        } else {
-          // Fallback to Audit Energetique
-          finalEnergetiqueId = simulationId;
-          Logger.info(`📋 Using legacy simulationId as energetiqueId: ${simulationId}`);
-        }
-      }
-
-      if (!finalSolaireId && !finalEnergetiqueId) {
-        return res.status(400).json({ 
-          error: 'Either solaireId or energetiqueId (or legacy simulationId) is required' 
-        });
-      }
+      const ids = await this.resolveSimulationIds(solaireId, energetiqueId, simulationId);
+      
+      const finalSolaireId = ids.solaireId;
+      const finalEnergetiqueId = ids.energetiqueId;
 
       // Load simulations to extract contact info (prefer energetique for contact data)
       let contactInfo: { fullName: string; email: string; company: string } | null = null;
@@ -216,6 +196,9 @@ export class PVReportController {
 
     } catch (error) {
       Logger.error(`❌ PV PDF send error: ${(error as Error).message}`);
+      if (error instanceof HTTP400Error) {
+        return res.status(400).json({ error: error.message });
+      }
       return res.status(500).json({ error: 'Failed to generate or send PV PDF' });
     }
   }

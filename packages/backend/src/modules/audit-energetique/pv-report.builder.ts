@@ -30,105 +30,50 @@ export type PvReportData = {
 
   co2PerYear: number;
   co2Total: number;
+
+  // Investment information
+  capexPerKwp: number;
+  annualOpexRate: number;
+  capexTotal: number; // Total investment cost (pvPower * capexPerKwp)
+  opexAnnual: number; // Annual maintenance cost (capexTotal * annualOpexRate / 100)
 };
+
+// Constants
+const DEFAULT_CAPEX_PER_KWP = 2000;
+const DEFAULT_ANNUAL_OPEX_RATE = 4;
 
 const round = (n: number, d = 2) =>
   Number.isFinite(n) ? Number(n.toFixed(d)) : 0;
 
+// Shared helper to ensure value is never null/undefined
+const ensureNumber = (value: number | null | undefined, defaultValue: number = 0): number => {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return defaultValue;
+  }
+  return value;
+};
+
 /**
  * Build PV report data from Audit Energetique DTO
- * This is used when only energy audit data is available (no PV calculations yet)
+ * 
+ * @throws {Error} When PV data is missing - PV reports require actual PV calculation data.
+ * Use buildPvReportDataFromSolaire() when you have solar audit data with PV calculations.
  */
 export function buildPvReportData(
   dto: AuditEnergetiqueResponseDto
 ): PvReportData {
-  // Helper to ensure value is never null/undefined
-  const ensureNumber = (value: number | null | undefined, defaultValue: number = 0): number => {
-    if (value === null || value === undefined || !Number.isFinite(value)) {
-      return defaultValue;
-    }
-    return value;
-  };
-
   const r = dto.data?.results;
   if (!r) {
     throw new Error('Invalid Audit Energetique DTO: missing data.results');
   }
 
-  /* ===============================
-     AVAILABLE DATA
-  =============================== */
-
-  const annualConsumption = ensureNumber(r.energyConsumption?.annual?.value, 0);
-  const annualCost = ensureNumber(r.energyCost?.annual?.value, 0);
-
-  const avgPriceWithoutPV =
-    annualConsumption > 0 ? annualCost / annualConsumption : 0;
-
-  const co2PerYear = ensureNumber(r.co2Emissions?.annual?.tons, 0);
-
-  /* ===============================
-     PV DATA — NOT YET AVAILABLE
-     (SAFE DEFAULTS)
-  =============================== */
-
-  const pvPower = 0;
-  const pvYield = 0;
-  const pvProductionYear1 = 0;
-  const coverageRate = 0;
-
-  const consumptionWithoutPV = annualConsumption;
-  const consumptionWithPV = annualConsumption;
-
-  const avgPriceWithPV = avgPriceWithoutPV;
-  const annualSavings = 0;
-
-  const gainCumulated = 0;
-  const gainDiscounted = 0;
-  const cashflowCumulated = 0;
-  const cashflowDiscounted = 0;
-  const npv = 0;
-  const irr = 0;
-  const roi = 0;
-  const paybackSimple = 0;
-  const paybackDiscounted = 0;
-
-  const co2Total = co2PerYear * 25;
-
-  /* ===============================
-     RETURN — PDF SAFE
-  =============================== */
-
-  return {
-    pvPower,
-    pvYield,
-    pvProductionYear1,
-    coverageRate,
-
-    consumptionWithoutPV: round(consumptionWithoutPV, 0),
-    consumptionWithPV: round(consumptionWithPV, 0),
-
-    avgPriceWithoutPV: round(avgPriceWithoutPV, 3),
-    avgPriceWithoutPV_mDt: round(avgPriceWithoutPV * 1000, 0),
-
-    avgPriceWithPV: round(avgPriceWithPV, 3),
-    avgPriceWithPV_mDt: round(avgPriceWithPV * 1000, 0),
-
-    annualSavings: round(annualSavings, 0),
-
-    gainCumulated: round(gainCumulated, 0),
-    gainDiscounted: round(gainDiscounted, 0),
-    cashflowCumulated: round(cashflowCumulated, 0),
-    cashflowDiscounted: round(cashflowDiscounted, 0),
-    npv: round(npv, 0),
-    paybackSimple: round(paybackSimple, 2),
-    paybackDiscounted: round(paybackDiscounted, 2),
-    irr: round(irr, 2),
-    roi: round(roi, 2),
-
-    co2PerYear: round(co2PerYear, 2),
-    co2Total: round(co2Total, 0),
-  };
+  // PV reports require actual PV calculation data
+  // This function should not be used for PV reports without solar audit data
+  throw new Error(
+    'Cannot build PV report without PV data. ' +
+    'This function requires solar audit data with PV calculations. ' +
+    'Use buildPvReportDataFromSolaire() with AuditSolaireResponseDto instead.'
+  );
 }
 
 /**
@@ -139,17 +84,6 @@ export function buildPvReportDataFromSolaire(
   solaireDto: AuditSolaireResponseDto,
   energetiqueDto?: AuditEnergetiqueResponseDto
 ): PvReportData {
-  /* ===============================
-     VALIDATION - NO NULL/UNDEFINED
-  =============================== */
-  
-  // Helper to ensure value is never null/undefined
-  const ensureNumber = (value: number | null | undefined, defaultValue: number = 0): number => {
-    if (value === null || value === undefined || !Number.isFinite(value)) {
-      return defaultValue;
-    }
-    return value;
-  };
   
   /* ===============================
      PV DATA FROM SOLAIRE AUDIT
@@ -265,145 +199,163 @@ export function buildPvReportDataFromSolaire(
       0
     );
   }
-  const gainCumulated = ensureNumber(solaireDto.totalSavings25Years, 0);
-  const npv = ensureNumber(solaireDto.npv, 0);
-  let irr = ensureNumber(solaireDto.irr, 0);
-  let roi = ensureNumber(solaireDto.roi25Years, 0);
-  let paybackSimple = ensureNumber(solaireDto.simplePaybackYears, 0);
-  let paybackDiscounted = ensureNumber(solaireDto.discountedPaybackYears, 0);
-  
-  // FALLBACK: Calculate profitability indicators if not available
+  // Validate required financial metrics are present
+  // These must come from proper economic analysis, not fallback calculations
   const installationCost = ensureNumber(solaireDto.installationCost, 0);
-  if (paybackSimple === 0 && annualSavings > 0 && installationCost > 0) {
-    // Simple payback = investment cost / annual savings
-    paybackSimple = installationCost / annualSavings;
+  const annualOpexFromDto = ensureNumber(solaireDto.annualOpex, 0);
+  const totalSavings25Years = ensureNumber(solaireDto.totalSavings25Years, 0);
+  
+  // Check if NPV is null/undefined (not just 0, as NPV can legitimately be 0 for break-even)
+  if (solaireDto.npv === null || solaireDto.npv === undefined) {
+    const recordId = (solaireDto as any).id || 'unknown';
+    throw new Error(
+      `Cannot build PV report: NPV (Net Present Value) is missing from solar audit data (ID: ${recordId}). ` +
+      'This record appears to be missing economic analysis data. ' +
+      'Possible causes: ' +
+      '1. This is an old record created before economic analysis was implemented, ' +
+      '2. The economic analysis failed during creation, or ' +
+      '3. The data was not saved properly. ' +
+      'Solution: Please recreate the solar audit simulation to generate proper financial metrics.'
+    );
+  }
+  const npv = ensureNumber(solaireDto.npv, 0);
+  
+  // Check if IRR is null/undefined
+  if (solaireDto.irr === null || solaireDto.irr === undefined) {
+    throw new Error(
+      'Cannot build PV report: IRR (Internal Rate of Return) is missing from solar audit data. ' +
+      'The solar audit must include proper economic analysis with calculated IRR.'
+    );
+  }
+  const irr = ensureNumber(solaireDto.irr, 0);
+  
+  // Check if ROI is null/undefined
+  if (solaireDto.roi25Years === null || solaireDto.roi25Years === undefined) {
+    throw new Error(
+      'Cannot build PV report: ROI (Return on Investment) is missing from solar audit data. ' +
+      'The solar audit must include proper economic analysis with calculated ROI.'
+    );
+  }
+  const roi = ensureNumber(solaireDto.roi25Years, 0);
+  
+  // Check if payback periods are null/undefined
+  if (solaireDto.simplePaybackYears === null || solaireDto.simplePaybackYears === undefined) {
+    throw new Error(
+      'Cannot build PV report: Simple payback period is missing from solar audit data. ' +
+      'The solar audit must include proper economic analysis with calculated payback period.'
+    );
+  }
+  const paybackSimple = ensureNumber(solaireDto.simplePaybackYears, 0);
+  
+  if (solaireDto.discountedPaybackYears === null || solaireDto.discountedPaybackYears === undefined) {
+    throw new Error(
+      'Cannot build PV report: Discounted payback period is missing from solar audit data. ' +
+      'The solar audit must include proper economic analysis with calculated discounted payback period.'
+    );
+  }
+  const paybackDiscounted = ensureNumber(solaireDto.discountedPaybackYears, 0);
+  
+  // Validate that values are calculated (not just defaulted to 0)
+  // If we have installation cost and savings but all metrics are 0, something is wrong
+  if (installationCost > 0 && totalSavings25Years > 0 && npv === 0 && irr === 0 && roi === 0 && paybackSimple === 0) {
+    throw new Error(
+      'Cannot build PV report: Financial metrics appear to be missing or not calculated. ' +
+      'The solar audit has installation cost and savings, but all financial metrics (NPV, IRR, ROI, Payback) are zero. ' +
+      'This indicates the economic analysis was not properly executed.'
+    );
   }
   
-  // ROI calculation will be done after gainCumulatedFromEconomics is calculated
-  // (moved to after fallback calculations)
-  
-  if (paybackDiscounted === 0 && paybackSimple > 0) {
-    // Discounted payback is typically 20-30% longer than simple payback
-    // Using 25% as a rough estimate
-    paybackDiscounted = paybackSimple * 1.25;
-    console.log('📊 Estimated discounted payback:', paybackDiscounted);
+  if (irr === 0) {
+    throw new Error(
+      'Cannot build PV report: IRR (Internal Rate of Return) is missing. ' +
+      'The solar audit must include proper economic analysis with calculated IRR.'
+    );
   }
   
-  if (irr === 0 && annualSavings > 0 && installationCost > 0) {
-    // IRR approximation: For a simple case, IRR ≈ annualSavings / installationCost
-    // But this is a very rough estimate. Real IRR requires iterative calculation.
-    // Using a formula: IRR ≈ (annualSavings / installationCost) * 100 / paybackSimple
-    // This gives a ballpark figure
-    if (paybackSimple > 0) {
-      irr = (annualSavings / installationCost) * 100 / paybackSimple;
-      // Cap at reasonable values (IRR typically 5-25% for solar)
-      irr = Math.min(Math.max(irr, 5), 25);
-    }
-    console.log('📊 Estimated IRR:', irr);
+  if (roi === 0) {
+    throw new Error(
+      'Cannot build PV report: ROI (Return on Investment) is missing. ' +
+      'The solar audit must include proper economic analysis with calculated ROI.'
+    );
   }
   
-  // Extract cumulative values from year 25 of annualEconomics
-  // Try to find year 25 specifically, otherwise use the last year
+  if (paybackSimple === 0) {
+    throw new Error(
+      'Cannot build PV report: Simple payback period is missing. ' +
+      'The solar audit must include proper economic analysis with calculated payback period.'
+    );
+  }
+  
+  if (paybackDiscounted === 0) {
+    throw new Error(
+      'Cannot build PV report: Discounted payback period is missing. ' +
+      'The solar audit must include proper economic analysis with calculated discounted payback period.'
+    );
+  }
+  
+  // Extract cumulative values from year 25 of annualEconomics if available
+  // Otherwise, calculate from available financial metrics
   const annualEconomicsLength = solaireDto.annualEconomics?.length ?? 0;
   const year25Data = solaireDto.annualEconomics?.find(ae => ae.year === 25);
   const lastYearData = annualEconomicsLength > 0
     ? (year25Data ?? solaireDto.annualEconomics![annualEconomicsLength - 1])
     : null;
   
+  let gainCumulatedFromEconomics: number;
+  let gainDiscounted: number;
+  let cashflowCumulated: number;
+  let cashflowDiscounted: number;
   
-  // Gain cumulé non actualisé = cumulativeNetGain (year 25)
-  // If annualEconomics is not available, calculate from available data
-  let gainCumulatedFromEconomics = ensureNumber(lastYearData?.cumulativeNetGain, 0);
-  let gainDiscounted = ensureNumber(lastYearData?.cumulativeNetGainDiscounted, 0);
-  let cashflowCumulated = ensureNumber(lastYearData?.cumulativeCashFlow, 0);
-  let cashflowDiscounted = ensureNumber(lastYearData?.cumulativeCashFlowDiscounted, 0);
-  
-  // FALLBACK: If annualEconomics is empty, estimate from available data
-  if (!lastYearData && annualEconomicsLength === 0) {
-    Logger.warn('annualEconomics is empty - using fallback calculations');
+  if (lastYearData && annualEconomicsLength > 0) {
+    // Use values from annualEconomics if available (most accurate)
+    gainCumulatedFromEconomics = ensureNumber(lastYearData.cumulativeNetGain, 0);
+    gainDiscounted = ensureNumber(lastYearData.cumulativeNetGainDiscounted, 0);
+    cashflowCumulated = ensureNumber(lastYearData.cumulativeCashFlow, 0);
+    cashflowDiscounted = ensureNumber(lastYearData.cumulativeCashFlowDiscounted, 0);
+  } else {
+    // Calculate from available financial metrics (fallback for records without annualEconomics)
+    Logger.warn('Annual economics data not available - calculating cumulative values from financial metrics');
     
-    // Use totalSavings25Years if available (this is the sum of all annual savings)
-    const totalSavings25Years = ensureNumber(solaireDto.totalSavings25Years, 0);
-    const installationCost = ensureNumber(solaireDto.installationCost, 0);
-    const annualOpex = ensureNumber(solaireDto.annualOpex, 0);
+    // Calculate total OPEX over 25 years (with inflation)
+    // Approximate: OPEX increases ~2% per year, so total ≈ annualOpex * 25 * 1.25 (rough average)
+    const totalOpex25Years = annualOpexFromDto * 25 * 1.25; // Rough approximation accounting for inflation
     
-    if (totalSavings25Years > 0) {
-      gainCumulatedFromEconomics = totalSavings25Years;
-      // Estimate: subtract installation cost and approximate OPEX over 25 years
-      const estimatedOpex25Years = annualOpex * 25;
-      cashflowCumulated = totalSavings25Years - installationCost - estimatedOpex25Years;
-    } else if (annualSavings > 0) {
-      // Fallback: Estimate from annual savings (simple multiplication, no inflation)
-      // This is a rough estimate - ideally the simulation should have proper economic analysis
-      const estimatedTotalSavings = annualSavings * 25;
-      gainCumulatedFromEconomics = estimatedTotalSavings;
-      const estimatedOpex25Years = annualOpex * 25;
-      cashflowCumulated = estimatedTotalSavings - installationCost - estimatedOpex25Years;
-      Logger.warn('Using estimated values from annualSavings - simulation needs economic analysis for accurate values');
-    }
+    // Gain cumulated (non-discounted) = Total savings - Total OPEX
+    gainCumulatedFromEconomics = totalSavings25Years - totalOpex25Years;
     
-    // For discounted values, we'd need the discount rate, but we can approximate
-    // Using a simple discount factor (rough approximation at 8% discount rate)
-    if (cashflowCumulated > 0) {
-      // Rough approximation: discounted value is about 60-70% of non-discounted for 25 years at 8%
-      cashflowDiscounted = cashflowCumulated * 0.65;
-      gainDiscounted = gainCumulatedFromEconomics * 0.65;
-    }
+    // Cashflow cumulated = Total savings - Installation cost - Total OPEX
+    cashflowCumulated = totalSavings25Years - installationCost - totalOpex25Years;
+    
+    // Gain discounted: From NPV formula: NPV = -installationCost + cumulativeNetGainDiscounted
+    // So: cumulativeNetGainDiscounted = NPV + installationCost
+    // This is the sum of all discounted net gains (savings - OPEX) over 25 years
+    gainDiscounted = npv + installationCost;
+    
+    // Cashflow discounted: Similar to gainDiscounted but represents cash flows
+    // We can approximate: cashflowDiscounted ≈ gainDiscounted (they're very similar)
+    // Or calculate: discountedNetCashFlows = NPV + installationCost (same as gainDiscounted)
+    cashflowDiscounted = npv + installationCost;
+    
+    Logger.warn(
+      `Calculated cumulative values from metrics: ` +
+      `gainCumulated=${gainCumulatedFromEconomics}, ` +
+      `gainDiscounted=${gainDiscounted} (from NPV), ` +
+      `cashflowCumulated=${cashflowCumulated}, ` +
+      `cashflowDiscounted=${cashflowDiscounted}`
+    );
   }
   
-  // Final fallback to gainCumulated (which is from totalSavings25Years or 0)
-  gainCumulatedFromEconomics = gainCumulatedFromEconomics > 0 ? gainCumulatedFromEconomics : gainCumulated;
-  
-  // Calculate ROI now that we have the final gainCumulatedFromEconomics
-  if (roi === 0 && gainCumulatedFromEconomics > 0 && installationCost > 0) {
-    // ROI = (Total savings - Investment) / Investment * 100
-    roi = ((gainCumulatedFromEconomics - installationCost) / installationCost) * 100;
+  // Validate calculated values are reasonable
+  if (gainCumulatedFromEconomics <= 0 && totalSavings25Years > 0) {
+    Logger.warn('Calculated gainCumulated is <= 0 - this may indicate an issue with the calculation');
   }
   
-  // Calculate NPV if missing
-  // NPV Formula: NPV = -CAPEX + Σ [NetGain(n) / (1+r)^n] for n=1 to 25
-  // Where NetGain(n) = Savings(n) - OPEX(n)
-  // 
-  // In our fallback:
-  // - cashflowCumulated = totalSavings - installationCost - totalOPEX (non-discounted)
-  // - cashflowDiscounted = cashflowCumulated * 0.65 (rough discount approximation)
-  //
-  // But for proper NPV, we need:
-  // NPV = -installationCost + sum of discounted (savings - OPEX)
-  // Since cashflowDiscounted approximates the discounted net cash flows,
-  // and cashflowCumulated already subtracts installationCost, we need to adjust:
-  // NPV = cashflowDiscounted (if it represents discounted net flows)
-  // OR: NPV = -installationCost + discountedNetFlows
-  //
-  // Actually, since cashflowDiscounted is based on cashflowCumulated which already
-  // subtracts installationCost, we need to recalculate:
-  // discountedNetFlows = (totalSavings - totalOPEX) * discountFactor
-  // NPV = -installationCost + discountedNetFlows
-  // Calculate NPV if missing
-  // NPV Formula: NPV = -CAPEX + Σ [NetGain(n) / (1+r)^n] for n=1 to 25
-  // Where NetGain(n) = Savings(n) - OPEX(n)
-  let finalNpv = npv;
-  if (npv === 0 && gainCumulatedFromEconomics > 0 && installationCost > 0) {
-    const annualOpexValue = ensureNumber(solaireDto.annualOpex, 0);
-    const totalOpex25Years = annualOpexValue * 25;
-    
-    // Calculate discounted net cash flows
-    // Net cash flows = totalSavings - totalOPEX (before discounting)
-    const netCashFlows = gainCumulatedFromEconomics - totalOpex25Years;
-    
-    // Apply discount factor (65% for 25 years at 8% discount rate)
-    const discountedNetCashFlows = netCashFlows * 0.65;
-    
-    // NPV = -initial investment + discounted cash flows
-    finalNpv = -installationCost + discountedNetCashFlows;
-    
-    Logger.warn(`Calculated NPV from fallback: ${finalNpv} DT`);
-  }
-  
-  // Ensure all values are numbers (never null/undefined)
-  const finalGainDiscounted = ensureNumber(gainDiscounted, 0);
-  const finalCashflowCumulated = ensureNumber(cashflowCumulated, 0);
-  const finalCashflowDiscounted = ensureNumber(cashflowDiscounted, 0);
+  // Calculate CAPEX and OPEX values
+  // Prefer values from DTO if available, otherwise calculate from pvPower
+  const capexPerKwp = DEFAULT_CAPEX_PER_KWP;
+  const annualOpexRate = DEFAULT_ANNUAL_OPEX_RATE;
+  const capexTotal = installationCost > 0 ? installationCost : round(pvPower * capexPerKwp, 0);
+  const opexAnnual = annualOpexFromDto > 0 ? annualOpexFromDto : round(capexTotal * annualOpexRate / 100, 0);
 
   /* ===============================
      CO2 DATA
@@ -443,10 +395,10 @@ export function buildPvReportDataFromSolaire(
     annualSavings: round(annualSavings, 0),
 
     gainCumulated: round(gainCumulatedFromEconomics, 0),
-    gainDiscounted: round(finalGainDiscounted, 0),
-    cashflowCumulated: round(finalCashflowCumulated, 0),
-    cashflowDiscounted: round(finalCashflowDiscounted, 0),
-    npv: round(finalNpv, 0),
+    gainDiscounted: round(gainDiscounted, 0),
+    cashflowCumulated: round(cashflowCumulated, 0),
+    cashflowDiscounted: round(cashflowDiscounted, 0),
+    npv: round(npv, 0),
     paybackSimple: round(paybackSimple, 2),
     paybackDiscounted: round(paybackDiscounted, 2),
     irr: round(irr, 2),
@@ -454,5 +406,11 @@ export function buildPvReportDataFromSolaire(
 
     co2PerYear: round(co2PerYear, 2),
     co2Total: round(co2Total, 0),
+
+    // Investment information
+    capexPerKwp: capexPerKwp,
+    annualOpexRate: annualOpexRate,
+    capexTotal: round(capexTotal, 0),
+    opexAnnual: round(opexAnnual, 0),
   };
 }
