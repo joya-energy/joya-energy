@@ -1,0 +1,53 @@
+.field-tooltip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tooltip-trigger {
+  cursor: pointer;
+  color: var(--text-muted);
+  width: 18px;
+  height: 18px;
+  margin-top: 0.2rem;
+}
+
+.tooltip-icon {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.tooltip-panel {
+  position: fixed;
+  background: var(--bg-card);
+  border: 1px solid var(--teal-soft);
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--teal-soft) 12%, transparent);
+  min-width: 15rem;
+  max-width: 22rem;
+  z-index: 9999;
+  pointer-events: none;
+  white-space: normal;
+}
+
+.tooltip-title {
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.3rem;
+}
+
+.tooltip-description {
+  color: var(--text-body);
+  line-height: 1.4;
+  margin-bottom: 0.4rem;
+}
+
+.tooltip-options {
+  padding-left: 1.2rem;
+  color: var(--text-body);
+  margin: 0.2rem 0 0;
+}
+

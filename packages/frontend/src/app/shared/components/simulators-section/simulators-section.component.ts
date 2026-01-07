@@ -1,5 +1,8 @@
 import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { NgIconComponent, provideIcons } from '@ng-icons/core';
+import { lucideArrowRight } from '@ng-icons/lucide';
 import { FeatureIconComponent, FeatureIconName } from '../feature-icon/feature-icon.component';
 
 interface SimulatorCard {
@@ -11,15 +14,17 @@ interface SimulatorCard {
   iconVariant: 'default' | 'teal' | 'aqua' | 'neutral';
   label?: string;
   featured?: boolean;
+  route?: string;
 }
 
 @Component({
   selector: 'app-simulators-section',
   standalone: true,
-  imports: [CommonModule, FeatureIconComponent],
+  imports: [CommonModule, RouterModule, NgIconComponent, FeatureIconComponent],
   templateUrl: './simulators-section.component.html',
   styleUrl: './simulators-section.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [provideIcons({ lucideArrowRight })]
 })
 export class SimulatorsSectionComponent {
   protected readonly cards = signal<SimulatorCard[]>([
@@ -30,7 +35,8 @@ export class SimulatorsSectionComponent {
       href: '/simulateurs/audit-energetique',
       icon: 'chart',
       iconVariant: 'neutral',
-      label: 'Diagnostic'
+      label: 'Diagnostic',
+      route: '/audit-energetique'
     },
     {
       title: 'Simulation photovoltaïque',

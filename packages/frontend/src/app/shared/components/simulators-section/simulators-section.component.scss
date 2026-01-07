@@ -100,6 +100,7 @@
 
 .simulator-card-link {
   display: inline-flex;
+  justify-content: space-between;
   align-items: center;
   gap: 0.25rem;
   color: var(--teal-deep);

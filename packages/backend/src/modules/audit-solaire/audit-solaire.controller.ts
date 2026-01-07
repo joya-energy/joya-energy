@@ -1,29 +1,21 @@
 import { type Request, type Response } from 'express';
-import { auditSolaireSimulationService } from './audit-solaire.service';
+import { auditSolaireSimulationService, type CreateSimulationInput } from './audit-solaire.service';
 import { HttpStatusCode, type PaginatedResult } from '@shared';
 import { type IAuditSolaireSimulation } from '@shared/interfaces';
 import { HTTP400Error, HTTP404Error } from '@backend/errors/http.error';
 import { Logger } from '@backend/middlewares';
-import { z } from 'zod';
-
-const createAuditSolaireSchema = z.object({
-  address: z.string().trim().min(3, 'L\'adresse doit contenir au moins 3 caractères'),
-  surfaceArea: z.coerce.number().positive('La surface doit être supérieure à 0'),
-  annualConsumption: z.coerce.number().positive('La consommation annuelle doit être supérieure à 0'),
-  energyCostPerKwh: z.coerce.number().positive().optional(),
-  latitude: z.coerce.number().min(-90).max(90).optional(),
-  longitude: z.coerce.number().min(-180).max(180).optional()
-});
+import { requireNumber, requireString } from '../common/validation.utils';
+import { BuildingTypes, ClimateZones } from '@shared/enums/audit-general.enum';
 
 export class AuditSolaireSimulationController {
-  public createSimulation = async (req: Request, res: Response<IAuditSolaireSimulation & { address: string }>): Promise<void> => {
+  public createSimulation = async (req: Request, res: Response): Promise<void> => {
     try {
-      const parsedInput = createAuditSolaireSchema.parse(req.body);
-      const simulation = await auditSolaireSimulationService.createSimulation(parsedInput);
+      const input = AuditSolaireSimulationController.sanitizePayload(req.body);
+      const simulation = await auditSolaireSimulationService.createSimulation(input);
       res.status(HttpStatusCode.CREATED).json(simulation);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        throw new HTTP400Error('Invalid audit solaire request payload', error);
+      if (error instanceof HTTP400Error) {
+        throw error;
       }
 
       Logger.error(`Error: Audit solaire simulation not created: ${String(error)}`);
@@ -33,7 +25,8 @@ export class AuditSolaireSimulationController {
 
   public getSimulations = async (req: Request, res: Response<PaginatedResult<IAuditSolaireSimulation>>): Promise<void> => {
     try {
-      const { page, limit } = req.query as unknown as { page: number; limit: number };
+      const page = req.query.page ? Number(req.query.page) : 1;
+      const limit = req.query.limit ? Number(req.query.limit) : 10;
       const simulations = await auditSolaireSimulationService.getSimulations({ page, limit });
       res.status(HttpStatusCode.OK).json(simulations);
     } catch (error) {
@@ -63,6 +56,28 @@ export class AuditSolaireSimulationController {
       throw new HTTP400Error('Error: Audit solaire simulation not deleted', error);
     }
   };
+
+  private static sanitizePayload(body: Record<string, string | number | boolean>): CreateSimulationInput {
+    const buildingType = body.buildingType as BuildingTypes;
+    if (!Object.values(BuildingTypes).includes(buildingType)) {
+      throw new HTTP400Error(`Invalid building type: ${buildingType}`);
+    }
+
+    const climateZone = body.climateZone as ClimateZones;
+    if (!Object.values(ClimateZones).includes(climateZone)) {
+      throw new HTTP400Error(`Invalid climate zone: ${climateZone}`);
+    }
+
+    const referenceMonth = requireNumber(body.referenceMonth, 'referenceMonth', { min: 1, max: 12 });
+
+    return {
+      address: requireString(body.address, 'address'),
+      buildingType,
+      climateZone,
+      measuredConsumptionKwh: requireNumber(body.measuredConsumption, 'measuredConsumption', { min: 0 }),
+      referenceMonth,
+    };
+  }
 }
 
 export const auditSolaireSimulationController = new AuditSolaireSimulationController();

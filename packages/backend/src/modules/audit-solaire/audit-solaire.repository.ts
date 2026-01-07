@@ -1,13 +1,6 @@
 import CommonRepository from '@backend/modules/common/common.repository';
-import {
-  type IAuditSolaireSimulation,
-  type ICreateAuditSolaireSimulation,
-  type IUpdateAuditSolaireSimulation
-} from '@shared/interfaces';
-import {
-  AuditSolaireSimulation,
-  type AuditSolaireSimulationDocument
-} from '@backend/models/audit-solaire';
+import {type IAuditSolaireSimulation,type ICreateAuditSolaireSimulation,type IUpdateAuditSolaireSimulation} from '@shared/interfaces';
+import {AuditSolaireSimulationModel,type AuditSolaireSimulationDocument} from '@backend/models/audit-solaire';
 import { PaginationOptions, PaginatedResult } from '@shared/interfaces/pagination.interface';
 
 const DEFAULT_SORT = { createdAt: -1 } as const;
@@ -19,7 +12,7 @@ export class AuditSolaireSimulationRepository extends CommonRepository<
   IUpdateAuditSolaireSimulation
 > {
   constructor() {
-    super(AuditSolaireSimulation);
+    super(AuditSolaireSimulationModel);
   }
 
   public async paginate(options: PaginationOptions): Promise<PaginatedResult<IAuditSolaireSimulation>> {

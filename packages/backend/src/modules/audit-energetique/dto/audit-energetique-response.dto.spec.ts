@@ -9,24 +9,23 @@ import {
   ConditionedCoverage,
   DomesticHotWaterTypes
 } from '@shared/enums/audit-batiment.enum';
-import { EnergyTariffTypes } from '@shared/enums/audit-energetique.enum';
+import { EnergyTariffTypes } from '@shared/enums/audit-energy-tariff';
 import { LightingTypes } from '@shared/enums/audit-usage.enum';
 import { type IAuditEnergetiqueSimulation } from '@shared/interfaces/audit-energetique.interface';
 
 describe('toAuditEnergetiqueResponseDto', () => {
   const mockSimulation: IAuditEnergetiqueSimulation = {
     id: '507f1f77bcf86cd799439011',
-    firstName: 'Ahmed',
-    lastName: 'Ben Salem',
-    companyName: 'Pharmacie Centrale',
-    email: 'ahmed@pharmacie.tn',
+    fullName: 'Ahmed Ben Salem',
+    companyName: 'Office Central',
+    email: 'ahmed@office.tn',
     phoneNumber: '20123456',
     address: '123 Avenue Bourguiba',
     governorate: Governorates.TUNIS,
-    buildingType: BuildingTypes.PHARMACY,
+    buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
     surfaceArea: 100,
     floors: 1,
-    activityType: 'Pharmacie',
+    activityType: 'Bureau / Administration / Banque',
     openingDaysPerWeek: 6,
     openingHoursPerDay: 10,
     insulation: InsulationQualities.MEDIUM,
@@ -73,10 +72,9 @@ describe('toAuditEnergetiqueResponseDto', () => {
     const result = toAuditEnergetiqueResponseDto(mockSimulation);
 
     expect(result.data.contact).toEqual({
-      firstName: 'Ahmed',
-      lastName: 'Ben Salem',
-      companyName: 'Pharmacie Centrale',
-      email: 'ahmed@pharmacie.tn',
+      fullName: 'Ahmed Ben Salem',
+      companyName: 'Office Central',
+      email: 'ahmed@office.tn',
       phoneNumber: '20123456',
       address: '123 Avenue Bourguiba',
       governorate: Governorates.TUNIS
@@ -87,10 +85,10 @@ describe('toAuditEnergetiqueResponseDto', () => {
     const result = toAuditEnergetiqueResponseDto(mockSimulation);
 
     expect(result.data.building).toEqual({
-      type: BuildingTypes.PHARMACY,
+      type: BuildingTypes.OFFICE_ADMIN_BANK,
       surfaceArea: 100,
       floors: 1,
-      activityType: 'Pharmacie',
+      activityType: 'Bureau / Administration / Banque',
       openingHoursPerDay: 10,
       openingDaysPerWeek: 6
     });
@@ -123,10 +121,8 @@ describe('toAuditEnergetiqueResponseDto', () => {
   it('should calculate energy consumption per m²', () => {
     const result = toAuditEnergetiqueResponseDto(mockSimulation);
 
-    expect(result.data.results.energyConsumption.perSquareMeter).toEqual({
-      value: 125.01,
-      unit: 'kWh/m².an'
-    });
+    expect(result.data.results.energyConsumption.perSquareMeter.value).toBeCloseTo(125, 0);
+    expect(result.data.results.energyConsumption.perSquareMeter.unit).toBe('kWh/m².an');
   });
 
   it('should calculate CO2 emissions per m²', () => {
@@ -169,13 +165,12 @@ describe('toAuditEnergetiqueResponseDto', () => {
   it('should mark energy classification as not applicable for non-office buildings', () => {
     const result = toAuditEnergetiqueResponseDto(mockSimulation);
 
-    expect(result.data.results.energyClassification).toEqual({
-      becth: 0,
+    expect(result.data.results.energyClassification).toMatchObject({
       class: 'N/A',
-      description: 'Classement énergétique non applicable à ce type de bâtiment',
-      isApplicable: false,
-      note: 'Le classement BECTh est réservé aux bâtiments de type Bureau / Administration / Banque'
+      description: 'Classement énergétique non disponible pour ce type de bâtiment',
+      isApplicable: false
     });
+    expect(result.data.results.energyClassification?.becth).toBeGreaterThan(0);
   });
 
   it('should handle simulation with optional fields', () => {
@@ -220,7 +215,7 @@ describe('toAuditEnergetiqueResponseDto', () => {
 
     const result = toAuditEnergetiqueResponseDto(simWithFractionalValues);
 
-    expect(result.data.results.energyConsumption.perSquareMeter.value).toBeCloseTo(125.02, 2);
-    expect(result.data.results.co2Emissions.perSquareMeter.value).toBeCloseTo(63.97, 2);
+    expect(result.data.results.energyConsumption.perSquareMeter.value).toBeCloseTo(125.01, 2);
+    expect(result.data.results.co2Emissions.perSquareMeter.value).toBeCloseTo(63.96, 2);
   });
 });

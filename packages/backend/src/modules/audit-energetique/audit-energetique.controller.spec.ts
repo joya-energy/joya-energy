@@ -3,7 +3,7 @@ import { AuditEnergetiqueSimulationController } from './audit-energetique.contro
 import { auditSimulationService } from './audit-energetique.service';
 import { HTTP400Error, HTTP404Error } from '@backend/errors/http.error';
 import { HttpStatusCode } from '@shared';
-import { BuildingTypes, ClimateZones, Governorates } from '@shared/enums/audit-general.enum';
+import { ActivityTypes, ClimateZones, Governorates } from '@shared/enums/audit-general.enum';
 import {
   InsulationQualities,
   GlazingTypes,
@@ -13,12 +13,12 @@ import {
   ConditionedCoverage,
   DomesticHotWaterTypes
 } from '@shared/enums/audit-batiment.enum';
-import { EnergyTariffTypes } from '@shared/enums/audit-energetique.enum';
+import { EnergyTariffTypes } from '@shared/enums/audit-energy-tariff';
 import { LightingTypes, EquipmentCategories } from '@shared/enums/audit-usage.enum';
 import { Types } from 'mongoose';
 
 // Mock the service
-jest.mock('../../../modules/audit-energetique/audit-energetique.service', () => ({
+jest.mock('./audit-energetique.service', () => ({
   auditSimulationService: {
     createSimulation: jest.fn(),
     getSimulationById: jest.fn(),
@@ -27,12 +27,19 @@ jest.mock('../../../modules/audit-energetique/audit-energetique.service', () => 
 }));
 
 // Mock the logger
-jest.mock('../../../middlewares', () => ({
+jest.mock('@backend/middlewares', () => ({
   Logger: {
     info: jest.fn(),
     error: jest.fn(),
     warn: jest.fn(),
     debug: jest.fn()
+  }
+}));
+
+// Mock BillExtractionService to avoid OpenAI API key requirement
+jest.mock('./bill-extraction.service', () => ({
+  billExtractionService: {
+    extractBillData: jest.fn()
   }
 }));
 
@@ -45,17 +52,15 @@ describe('AuditEnergetiqueSimulationController', () => {
   let mockSend: jest.Mock;
 
   const validRequestBody = {
-    firstName: 'Ahmed',
-    lastName: 'Ben Salem',
-    companyName: 'Pharmacie Centrale',
-    email: 'ahmed@pharmacie.tn',
+    fullName: 'Ahmed Ben Salem',
+    companyName: 'Office Central',
+    email: 'ahmed@office.tn',
     phoneNumber: '20123456',
     address: '123 Avenue Bourguiba',
     governorate: Governorates.TUNIS,
-    buildingType: BuildingTypes.PHARMACY,
     surfaceArea: 100,
     floors: 1,
-    activityType: 'Pharmacie',
+    activityType: ActivityTypes.CAFE_RESTAURANT,
     openingDaysPerWeek: 6,
     openingHoursPerDay: 10,
     insulation: InsulationQualities.MEDIUM,
@@ -117,7 +122,7 @@ describe('AuditEnergetiqueSimulationController', () => {
 
       expect(auditSimulationService.createSimulation).toHaveBeenCalledWith(
         expect.objectContaining({
-          firstName: validRequestBody.firstName,
+          fullName: validRequestBody.fullName,
           email: validRequestBody.email
         })
       );
@@ -148,7 +153,7 @@ describe('AuditEnergetiqueSimulationController', () => {
 
     it('should throw HTTP400Error for missing required fields', async () => {
       mockRequest.body = {
-        firstName: 'Ahmed',
+        fullName: 'Ahmed Ben Salem'
         // Missing other required fields
       };
 

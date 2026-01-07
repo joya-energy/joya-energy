@@ -1,19 +1,10 @@
 import CommonService from '@backend/modules/common/common.service';
-import {
-  type IAuditEnergetiqueSimulation,
-  type ICreateAuditEnergetiqueSimulation,
-  type IUpdateAuditEnergetiqueSimulation
-} from '@shared/interfaces/audit-energetique.interface';
+import { type IAuditEnergetiqueSimulation, type ICreateAuditEnergetiqueSimulation, type IUpdateAuditEnergetiqueSimulation } from '@shared/interfaces/audit-energetique.interface';
 import { AuditEnergetiqueSimulationRepository } from './audit-energetique.repository';
 import { HTTP404Error } from '@backend/errors/http.error';
-import {
-  BUILDING_COEFFICIENTS,
-  PROCESS_FACTORS,
-  ECS_USAGE_FACTORS,
-  CLIMATE_FACTORS,
-  COOLING_COVERAGE_FACTORS,
-  EMISSION_FACTORS
-} from './config';
+import { HeatingSystemTypes } from '@shared/enums/audit-batiment.enum';
+import { BUILDING_COEFFICIENTS, PROCESS_FACTORS, ECS_USAGE_FACTORS, CLIMATE_FACTORS, COOLING_COVERAGE_FACTORS, EMISSION_FACTORS } from './config';
+
 import {
   computeEnvelopeFactor,
   computeCompactnessFactor,
@@ -23,7 +14,8 @@ import {
   computeDomesticHotWaterLoad,
   computeCo2Emissions,
   computeEnergyClass,
-  computeEnergySplit
+  computeEnergySplit,
+  computeProgressiveTariff
 } from './helpers';
 import { Logger } from '@backend/middlewares';
 
@@ -39,6 +31,15 @@ type AuditEnergetiqueCreateInput = Omit<
   | 'becth'
 >;
 export type { AuditEnergetiqueCreateInput };
+
+const HEATING_SYSTEM_EFFICIENCIES: Record<HeatingSystemTypes, number> = {
+  [HeatingSystemTypes.NONE]: 1,
+  [HeatingSystemTypes.ELECTRIC_INDIVIDUAL]: 1,
+  [HeatingSystemTypes.ELECTRIC_HEATING]: 0.92,
+  [HeatingSystemTypes.REVERSIBLE_AC]: 1,
+  [HeatingSystemTypes.GAS_BOILER]: 0.7,
+  [HeatingSystemTypes.OTHER]: 0.8
+};
 
 /**
  * Service for Energy Audit Simulations
@@ -66,25 +67,18 @@ export class AuditSimulationService extends CommonService<
    * 6. Sum all loads and convert to annual consumption
    */
   public async createSimulation(payload: AuditEnergetiqueCreateInput): Promise<IAuditEnergetiqueSimulation> {
-  
-    // Calculate envelope factors F_enveloppe = F_isolation × F_vitrage × F_VMC
-    const envelopeFactor = computeEnvelopeFactor(payload.insulation, payload.glazingType, payload.ventilation);
-    Logger.info(`Envelope factor: ${envelopeFactor}`);
-    const compactnessFactor = computeCompactnessFactor(payload.floors);
-    Logger.info(`Compactness factor: ${compactnessFactor}`);
-    // Calculate process (Depend on the building type)
-    const processFactor = PROCESS_FACTORS[payload.buildingType] ?? 1;
-    Logger.info(`Process factor: ${processFactor}`);
 
+    const envelopeFactor = computeEnvelopeFactor(payload.insulation, payload.glazingType, payload.ventilation);
+
+    const compactnessFactor = computeCompactnessFactor(payload.floors);
+
+    const processFactor = PROCESS_FACTORS[payload.buildingType] ?? 1;
     const climate = CLIMATE_FACTORS[payload.climateZone];
-    Logger.info(`Climate factor: ${JSON.stringify(climate)}`);
 
     const usageFactor = computeUsageFactor(payload.openingHoursPerDay, payload.openingDaysPerWeek);
-    Logger.info(`Usage factor: ${usageFactor}`);
-    const buildingCoefficients = BUILDING_COEFFICIENTS[payload.buildingType];
 
-  
- 
+
+    const buildingCoefficients = BUILDING_COEFFICIENTS[payload.buildingType];
 
     const lightingLoad = buildingCoefficients.light * usageFactor;
     const itLoad = buildingCoefficients.it * usageFactor * processFactor;
@@ -100,10 +94,6 @@ export class AuditSimulationService extends CommonService<
 
     const hvacBase = buildingCoefficients.hvac * envelopeFactor * compactnessFactor;
 
-    Logger.info(`HVAC base: ${hvacBase}`);
-
-    Logger.info(`Heating K: ${Number(process.env.ENERGY_AUDIT_K_CH)}`);
-    Logger.info(`Cooling K: ${Number(process.env.ENERGY_AUDIT_K_FR)}`);
     const hvacLoads = computeHvacLoads({
       hvacBase,
       climate,
@@ -120,31 +110,30 @@ export class AuditSimulationService extends CommonService<
       ecsUsageFactor: ECS_USAGE_FACTORS[payload.buildingType] ?? 1,
       reference: buildingCoefficients.ecs,
       gasEfficiency: Number(process.env.ENERGY_AUDIT_ECS_GAS_EFF),
-      solarCoverage: Number(process.env.ENERGY_AUDIT_ECS_SOLAR_COVERAGE),
-      solarAppointEff: Number(process.env.ENERGY_AUDIT_ECS_SOLAR_APPOINT_EFF),
-      heatPumpCop: Number(process.env.ENERGY_AUDIT_ECS_PAC_COP)
+      electricEfficiency: Number(process.env.ENERGY_AUDIT_ECS_ELEC_EFF),
     });
 
-    const perSquareTotal =
-      hvacLoads.perSquare +
-      lightingLoad +
-      itLoad +
-      baseLoad +
-      equipmentLoad.perSquare +
-      ecsLoad.perSquare;
-    Logger.info(`Per square total: ${perSquareTotal}`);
 
-    const annualConsumption =
-      (payload.surfaceArea * perSquareTotal) +
-      equipmentLoad.absoluteKwh +
-      ecsLoad.absoluteKwh;
+    const perSquareTotal = lightingLoad + itLoad + baseLoad + equipmentLoad.perSquare + ecsLoad.perSquare + hvacLoads.perSquare;
+
+
+    Logger.info(`perSquareTotal: ${perSquareTotal}`);
+
+    let annualConsumption: number;
+
+ 
+      // Standard: multiply sum by surface
+      annualConsumption =
+        (lightingLoad + itLoad + baseLoad + ecsLoad.perSquare + equipmentLoad.perSquare + hvacLoads.perSquare) * payload.surfaceArea ;
+    
 
     const monthlyConsumption = annualConsumption / 12;
 
     // Calculate total heating and cooling loads in kWh/year
     const annualHeatingLoadKwh = hvacLoads.heatingLoad * payload.surfaceArea;
-    const annualCoolingLoadKwh = hvacLoads.coolingLoad * payload.surfaceArea;
     const annualEcsLoadKwh = ecsLoad.perSquare * payload.surfaceArea + ecsLoad.absoluteKwh;
+
+
 
     // Split energy consumption between electricity and gas
     const energySplit = computeEnergySplit({
@@ -155,40 +144,55 @@ export class AuditSimulationService extends CommonService<
       ecsLoadKwh: annualEcsLoadKwh
     });
 
-    // Calculate CO₂ emissions
+    // Calculate conditioned surface for BECTh / Carbon intensity
+    const coverageFactor = COOLING_COVERAGE_FACTORS[payload.conditionedCoverage] ?? 1;
+    const conditionedSurface = payload.surfaceArea * coverageFactor;
+
+    // Calculate CO₂ emissions + carbon class
     const emissions = computeCo2Emissions({
       electricityConsumption: energySplit.electricityConsumption,
       gasConsumption: energySplit.gasConsumption,
+      buildingType: payload.buildingType,
+      conditionedSurface,
       emissionFactorElec: EMISSION_FACTORS.ELECTRICITY,
       emissionFactorGas: EMISSION_FACTORS.NATURAL_GAS
     });
 
-    // Calculate conditioned surface for BECTh
-    const coverageFactor = COOLING_COVERAGE_FACTORS[payload.conditionedCoverage] ?? 1;
-    const conditionedSurface = payload.surfaceArea * coverageFactor;
+    // Energy class
+    const gasEfficiency = HEATING_SYSTEM_EFFICIENCIES[payload.heatingSystem] ?? 0.9;
 
-    // Calculate energy class (only for offices)
     const energyClassResult = computeEnergyClass({
       buildingType: payload.buildingType,
-      heatingLoad: annualHeatingLoadKwh,
-      coolingLoad: annualCoolingLoadKwh,
-      conditionedSurface
+      electricityConsumption: annualConsumption,  // annualConsumption  ?
+      gasConsumption: energySplit.gasConsumption,
+      conditionedSurface,
+      gasEfficiency
     });
 
-    const energyCostPerKwh = Number(process.env.ENERGY_COST_PER_KWH);
-    Logger.info(`Energy cost per kWh: ${energyCostPerKwh}`);
-    Logger.info(`Annual consumption: ${annualConsumption}`);
+    // Calculate energy cost using progressive tariff structure
+    const tariffResult = computeProgressiveTariff({
+      monthlyConsumption
+    });
+    
     const simulationPayload: ICreateAuditEnergetiqueSimulation = {
       ...payload,
       equipmentCategories: payload.equipmentCategories ?? [],
       annualConsumption: Number(annualConsumption.toFixed(2)),
       monthlyConsumption: Number(monthlyConsumption.toFixed(2)),
-      energyCostPerYear: Number((annualConsumption * energyCostPerKwh).toFixed(2)),
+      energyCostPerYear: tariffResult.annualCost,
       co2EmissionsKg: emissions.totalCo2,
       co2EmissionsTons: emissions.totalCo2Tons,
-      energyClass: energyClassResult.energyClass ?? undefined,
+      co2EmissionsElecKg: emissions.co2FromElectricity,
+      co2EmissionsGasKg: emissions.co2FromGas,
+      carbonClass: emissions.carbonClass ?? undefined,
+      carbonClassDescription: emissions.carbonDescription ?? undefined,
+      carbonIntensity: emissions.carbonIntensity ?? undefined,
+      energyClass: energyClassResult.joyaClass ?? undefined,
       energyClassDescription: energyClassResult.classDescription ?? undefined,
-      becth: energyClassResult.becth ?? undefined
+      totalAnnualEnergy: energyClassResult.totalAnnualEnergy,
+      siteIntensity: energyClassResult.siteIntensity,
+      referenceIntensity: energyClassResult.referenceIntensity ?? undefined,
+      joyaIndex: energyClassResult.joyaIndex ?? undefined
     };
 
     return await this.create(simulationPayload);

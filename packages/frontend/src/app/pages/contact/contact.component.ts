@@ -75,11 +75,11 @@ export class ContactComponent {
     email: ['', [Validators.required, Validators.email]],
     // Update pattern to accept:
     // 1. International: +216... (min 8 digits after +)
-    // 2. 8 digits starting with 2, 3, 4, 5, 7, 9 (Tunisian Mobile/Fixed)
+    // 2. 8 digits starting with 2, 4, 5, 7, 9 (Tunisian Mobile/Fixed)
     phoneNumber: ['', [Validators.required, Validators.pattern(/^(\+|00)[0-9]{8,15}$|^[0-9]{8}$/)]],
     companyName: ['', [Validators.required, Validators.minLength(2)]],
     subject: [ContactSubject.GENERAL_INFO, [Validators.required]],
-    message: ['', [Validators.required, Validators.minLength(10)]]
+    message: ['', [Validators.required, Validators.minLength(2)]]
   });
 
   onSubmit() {

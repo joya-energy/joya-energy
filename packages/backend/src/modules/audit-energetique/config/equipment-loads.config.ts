@@ -18,11 +18,5 @@ export const EQUIPMENT_LOADS: Record<EquipmentCategories, EquipmentLoadConfig> =
   [EquipmentCategories.AUXILIARY_EQUIPMENT]: { value: 8, is24h: false }
 };
 
-export const PHARMACY_COLD_THRESHOLDS = [
-  { maxSurface: 40, energy: 4818 },
-  { maxSurface: 80, energy: 6132 },
-  { maxSurface: 120, energy: 7446 },
-  { maxSurface: Infinity, energy: 10950 }
-] as const;
 
 
