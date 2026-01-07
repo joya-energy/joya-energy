@@ -43,7 +43,6 @@ export class ContactService extends CommonService<IContact> {
     const deleted = await this.delete(id);
     if (!deleted) throw new HTTP404Error('Contact not found');
   }
-
   private async sendNotification(contact: IContact): Promise<void> {
     if (!contact.email) {
       Logger.warn('Contact email is missing. Skipping notification.');

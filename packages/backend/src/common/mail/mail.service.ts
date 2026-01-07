@@ -22,7 +22,6 @@ export interface MailOptions {
   templateModel: Record<string, string | number | boolean>;
   attachments: MailAttachment[];
 }
-
 interface MailConfig {
   host: string;
   port: number;
@@ -213,6 +212,23 @@ export class MailService {
       return false;
     }
   }
+
+
+  private postmarkClient?: ServerClient;
+
+  private ensurePostmarkClient(): ServerClient | null {
+    if (this.postmarkClient) return this.postmarkClient;
+  
+    const token = process.env.POSTMARK_SERVER_TOKEN;
+    if (!token) {
+      Logger.warn('POSTMARK_SERVER_TOKEN missing. Falling back to SMTP.');
+      return null;
+    }
+  
+    this.postmarkClient = new ServerClient(token);
+    return this.postmarkClient;
+  }
+
 }
 
 export const mailService = new MailService();
