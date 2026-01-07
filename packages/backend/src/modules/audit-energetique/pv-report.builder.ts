@@ -1,6 +1,7 @@
 import { AuditEnergetiqueResponseDto } from './dto/audit-energetique-response.dto';
 import { AuditSolaireResponseDto } from '../audit-solaire/dto/audit-solaire-response.dto';
 import { Logger } from '@backend/middlewares/logger.midddleware';
+import { analyzeEconomics } from '../audit-solaire/helpers/economic-analysis.calculator';
 
 export type PvReportData = {
   pvPower: number;
@@ -294,12 +295,19 @@ export function buildPvReportDataFromSolaire(
   }
   
   // Extract cumulative values from year 25 of annualEconomics if available
-  // Otherwise, calculate from available financial metrics
+  // Otherwise, try to recalculate from monthlyEconomics, or fallback to financial metrics
   const annualEconomicsLength = solaireDto.annualEconomics?.length ?? 0;
   const year25Data = solaireDto.annualEconomics?.find(ae => ae.year === 25);
   const lastYearData = annualEconomicsLength > 0
     ? (year25Data ?? solaireDto.annualEconomics![annualEconomicsLength - 1])
     : null;
+  
+  // Debug logging
+  Logger.info(
+    `📊 Economics data check: annualEconomics.length=${annualEconomicsLength}, ` +
+    `monthlyEconomics.length=${solaireDto.monthlyEconomics?.length ?? 0}, ` +
+    `pvPower=${pvPower}`
+  );
   
   let gainCumulatedFromEconomics: number;
   let gainDiscounted: number;
@@ -312,37 +320,70 @@ export function buildPvReportDataFromSolaire(
     gainDiscounted = ensureNumber(lastYearData.cumulativeNetGainDiscounted, 0);
     cashflowCumulated = ensureNumber(lastYearData.cumulativeCashFlow, 0);
     cashflowDiscounted = ensureNumber(lastYearData.cumulativeCashFlowDiscounted, 0);
-  } else {
-    // Calculate from available financial metrics (fallback for records without annualEconomics)
-    Logger.warn('Annual economics data not available - calculating cumulative values from financial metrics');
+  } else if (solaireDto.monthlyEconomics && solaireDto.monthlyEconomics.length === 12 && pvPower > 0) {
+    // Try to recalculate annual economics from monthlyEconomics data
+    Logger.info(`🔄 Annual economics data not available - recalculating from monthlyEconomics data (${solaireDto.monthlyEconomics.length} months)`);
     
-    // Calculate total OPEX over 25 years (with inflation)
-    // Approximate: OPEX increases ~2% per year, so total ≈ annualOpex * 25 * 1.25 (rough average)
-    const totalOpex25Years = annualOpexFromDto * 25 * 1.25; // Rough approximation accounting for inflation
+    try {
+      const monthlyRawConsumptions = solaireDto.monthlyEconomics.map(m => m.rawConsumption);
+      const monthlyBilledConsumptions = solaireDto.monthlyEconomics.map(m => m.billedConsumption);
+      
+      const recalculatedEconomics = analyzeEconomics({
+        monthlyRawConsumptions,
+        monthlyBilledConsumptions,
+        installedPowerKwp: pvPower,
+        projectLifetimeYears: 25,
+      });
+      
+      const year25Recalculated = recalculatedEconomics.annualResults.find(ae => ae.year === 25);
+      if (year25Recalculated) {
+        gainCumulatedFromEconomics = ensureNumber(year25Recalculated.cumulativeNetGain, 0);
+        gainDiscounted = ensureNumber(year25Recalculated.cumulativeNetGainDiscounted, 0);
+        cashflowCumulated = ensureNumber(year25Recalculated.cumulativeCashFlow, 0);
+        cashflowDiscounted = ensureNumber(year25Recalculated.cumulativeCashFlowDiscounted, 0);
     
-    // Gain cumulated (non-discounted) = Total savings - Total OPEX
-    gainCumulatedFromEconomics = totalSavings25Years - totalOpex25Years;
-    
-    // Cashflow cumulated = Total savings - Installation cost - Total OPEX
-    cashflowCumulated = totalSavings25Years - installationCost - totalOpex25Years;
-    
-    // Gain discounted: From NPV formula: NPV = -installationCost + cumulativeNetGainDiscounted
-    // So: cumulativeNetGainDiscounted = NPV + installationCost
-    // This is the sum of all discounted net gains (savings - OPEX) over 25 years
-    gainDiscounted = npv + installationCost;
-    
-    // Cashflow discounted: Similar to gainDiscounted but represents cash flows
-    // We can approximate: cashflowDiscounted ≈ gainDiscounted (they're very similar)
-    // Or calculate: discountedNetCashFlows = NPV + installationCost (same as gainDiscounted)
-    cashflowDiscounted = npv + installationCost;
-    
-    Logger.warn(
-      `Calculated cumulative values from metrics: ` +
+        Logger.info(
+          `✅ Recalculated annual economics: ` +
       `gainCumulated=${gainCumulatedFromEconomics}, ` +
-      `gainDiscounted=${gainDiscounted} (from NPV), ` +
+          `gainDiscounted=${gainDiscounted}, ` +
       `cashflowCumulated=${cashflowCumulated}, ` +
       `cashflowDiscounted=${cashflowDiscounted}`
     );
+      } else {
+        throw new Error('Year 25 data not found in recalculated economics');
+      }
+    } catch (error) {
+      const errorMessage = `Cannot build PV report: Failed to recalculate annual economics from monthlyEconomics data. ` +
+        `Error: ${(error as Error).message}. ` +
+        `The solar audit simulation (ID: ${(solaireDto as any).id || 'unknown'}) is missing annualEconomics data and recalculation failed. ` +
+        `Solution: Please recreate the solar audit simulation to generate proper annual economics data.`;
+      Logger.error(`❌ ${errorMessage}`);
+      throw new Error(errorMessage);
+    }
+  } else {
+    // No annualEconomics and cannot recalculate - throw error
+    const missingData: string[] = [];
+    if (!solaireDto.annualEconomics || solaireDto.annualEconomics.length === 0) {
+      missingData.push('annualEconomics');
+    }
+    if (!solaireDto.monthlyEconomics || solaireDto.monthlyEconomics.length === 0) {
+      missingData.push('monthlyEconomics');
+    }
+    if (solaireDto.monthlyEconomics && solaireDto.monthlyEconomics.length > 0 && solaireDto.monthlyEconomics.length !== 12) {
+      missingData.push(`monthlyEconomics (has ${solaireDto.monthlyEconomics.length} months, need 12)`);
+    }
+    if (pvPower === 0) {
+      missingData.push('pvPower (is 0)');
+    }
+    
+    const errorMessage = 
+      `Cannot build PV report: Required economics data is missing from solar audit simulation (ID: ${(solaireDto as any).id || 'unknown'}). ` +
+      `Missing data: ${missingData.join(', ')}. ` +
+      `The solar audit must include annualEconomics (25 years) or monthlyEconomics (12 months) with valid pvPower to generate a PV report. ` +
+      `Solution: Please recreate the solar audit simulation to generate proper economics data.`;
+    
+    Logger.error(`❌ ${errorMessage}`);
+    throw new Error(errorMessage);
   }
   
   // Validate calculated values are reasonable

@@ -57,24 +57,45 @@ export class PVReportController {
     solaireId?: string,
     energetiqueId?: string
   ): Promise<Buffer> {
+    Logger.info(`🔄 buildPvPdf called: solaireId=${solaireId}, energetiqueId=${energetiqueId}`);
     let solaireDto: AuditSolaireResponseDto | null = null;
     let energetiqueDto: AuditEnergetiqueResponseDto | null = null;
 
     // Fetch Audit Solaire data if provided
     if (solaireId) {
+      Logger.info(`🔍 Fetching Audit Solaire simulation: ${solaireId}`);
       const solaireSimulation = await AuditSolaireSimulationModel.findById(solaireId);
       if (!solaireSimulation) {
         throw new Error(`Audit Solaire simulation not found: ${solaireId}`);
       }
       
       // Validate that required financial metrics are present
+      const missingMetrics: string[] = [];
       if (solaireSimulation.npv === null || solaireSimulation.npv === undefined) {
-        Logger.warn(
-          `⚠️ Audit Solaire simulation ${solaireId} is missing NPV. ` +
+        missingMetrics.push('NPV');
+      }
+      if (solaireSimulation.irr === null || solaireSimulation.irr === undefined) {
+        missingMetrics.push('IRR');
+      }
+      if (solaireSimulation.roi25Years === null || solaireSimulation.roi25Years === undefined) {
+        missingMetrics.push('ROI');
+      }
+      if (solaireSimulation.simplePaybackYears === null || solaireSimulation.simplePaybackYears === undefined) {
+        missingMetrics.push('Simple Payback');
+      }
+      if (solaireSimulation.discountedPaybackYears === null || solaireSimulation.discountedPaybackYears === undefined) {
+        missingMetrics.push('Discounted Payback');
+      }
+      
+      if (missingMetrics.length > 0) {
+        const errorMessage = 
+          `Cannot generate PV report: The solar audit simulation (ID: ${solaireId}) is missing required financial metrics: ${missingMetrics.join(', ')}. ` +
           `This appears to be an old record or the economic analysis was not completed. ` +
           `Record created: ${solaireSimulation.createdAt}, ` +
-          `Has annualEconomics: ${solaireSimulation.annualEconomics?.length ?? 0} years`
-        );
+          `Has annualEconomics: ${solaireSimulation.annualEconomics?.length ?? 0} years. ` +
+          `Solution: Please recreate the solar audit simulation to generate proper financial metrics.`;
+        Logger.error(`❌ ${errorMessage}`);
+        throw new HTTP400Error(errorMessage);
       }
       
       solaireDto = toAuditSolaireResponseDto(solaireSimulation);
@@ -83,6 +104,7 @@ export class PVReportController {
 
     // Fetch Audit Energetique data if provided
     if (energetiqueId) {
+      Logger.info(`🔍 Fetching Audit Energetique simulation: ${energetiqueId}`);
       const energetiqueSimulation = await AuditEnergetiqueSimulation.findById(energetiqueId);
       if (!energetiqueSimulation) {
         throw new Error(`Audit Energetique simulation not found: ${energetiqueId}`);
@@ -100,14 +122,19 @@ export class PVReportController {
     }
 
     // Pass both DTOs explicitly so PDF service can combine them
-    return this.pdfService.generatePDF(dto, 'pv', solaireDto, energetiqueDto);
+    Logger.info(`🔄 Calling PDF service.generatePDF with template='pv'`);
+    const pdfBuffer = await this.pdfService.generatePDF(dto, 'pv', solaireDto, energetiqueDto);
+    Logger.info(`✅ PDF service returned buffer (${pdfBuffer.length} bytes)`);
+    return pdfBuffer;
   }
 
   // 🔹 ASYNC / BACKGROUND
   async sendPVReport(req: Request, res: Response) {
     try {
+      Logger.info(`📋 PV PDF generation request received: solaireId=${req.body.solaireId}, energetiqueId=${req.body.energetiqueId}, simulationId=${req.body.simulationId}`);
       const { solaireId, energetiqueId, simulationId } = req.body;
       const ids = await this.resolveSimulationIds(solaireId, energetiqueId, simulationId);
+      Logger.info(`📋 Resolved IDs: solaireId=${ids.solaireId}, energetiqueId=${ids.energetiqueId}`);
       
       const finalSolaireId = ids.solaireId;
       const finalEnergetiqueId = ids.energetiqueId;
@@ -116,16 +143,25 @@ export class PVReportController {
       let contactInfo: { fullName: string; email: string; company: string } | null = null;
 
       if (finalEnergetiqueId) {
-        const energetiqueSimulation = await AuditEnergetiqueSimulation.findById(finalEnergetiqueId);
-        if (!energetiqueSimulation) {
-          return res.status(404).json({ error: `Audit Energetique simulation not found: ${finalEnergetiqueId}` });
+        Logger.info(`🔍 Fetching Audit Energetique simulation for contact info: ${finalEnergetiqueId}`);
+        try {
+          const energetiqueSimulation = await AuditEnergetiqueSimulation.findById(finalEnergetiqueId);
+          if (!energetiqueSimulation) {
+            Logger.error(`❌ Audit Energetique simulation not found: ${finalEnergetiqueId}`);
+            return res.status(404).json({ error: `Audit Energetique simulation not found: ${finalEnergetiqueId}` });
+          }
+          Logger.info(`✅ Audit Energetique simulation found, extracting contact info...`);
+          const energetiqueDto = toAuditEnergetiqueResponseDto(energetiqueSimulation);
+          contactInfo = {
+            fullName: energetiqueDto.data.contact.fullName ?? '',
+            email: energetiqueDto.data.contact.email ?? '',
+            company: energetiqueDto.data.contact.companyName ?? '',
+          };
+          Logger.info(`✅ Contact info extracted: email=${contactInfo.email}, company=${contactInfo.company}`);
+        } catch (error) {
+          Logger.error(`❌ Error fetching Audit Energetique simulation: ${(error as Error).message}`);
+          throw error;
         }
-        const energetiqueDto = toAuditEnergetiqueResponseDto(energetiqueSimulation);
-        contactInfo = {
-          fullName: energetiqueDto.data.contact.fullName ?? '',
-          email: energetiqueDto.data.contact.email ?? '',
-          company: energetiqueDto.data.contact.companyName ?? '',
-        };
       } else if (finalSolaireId) {
         // If only solaire, try to get contact from somewhere else or use defaults
         // For now, we'll use generic values
@@ -156,7 +192,9 @@ export class PVReportController {
       }
 
       // Generate PDF buffer
+      Logger.info(`🔄 Starting PDF generation...`);
       const pdfBuffer = await this.buildPvPdf(finalSolaireId, finalEnergetiqueId);
+      Logger.info(`✅ PDF generated successfully (${pdfBuffer.length} bytes)`);
 
       // Attachment
       const attachment: MailAttachment = {
@@ -195,11 +233,25 @@ export class PVReportController {
       });
 
     } catch (error) {
-      Logger.error(`❌ PV PDF send error: ${(error as Error).message}`);
+      const errorMessage = (error as Error).message;
+      Logger.error(`❌ PV PDF send error: ${errorMessage}`);
+      
       if (error instanceof HTTP400Error) {
-        return res.status(400).json({ error: error.message });
+        return res.status(400).json({ error: errorMessage });
       }
-      return res.status(500).json({ error: 'Failed to generate or send PV PDF' });
+      
+      // Check if it's a validation error from pv-report.builder
+      if (errorMessage.includes('Cannot build PV report') || errorMessage.includes('Cannot generate PV report')) {
+        return res.status(400).json({ 
+          error: errorMessage,
+          hint: 'The solar audit simulation may be missing required financial metrics (NPV, IRR, ROI, Payback). Please ensure the economic analysis was completed when creating the simulation.'
+        });
+      }
+      
+      return res.status(500).json({ 
+        error: 'Failed to generate or send PV PDF',
+        details: errorMessage 
+      });
     }
   }
 }

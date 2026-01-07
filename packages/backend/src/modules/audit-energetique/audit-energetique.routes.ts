@@ -605,12 +605,17 @@ auditEnergetiqueSimulationRoutes.post(
  *       **IMPORTANT:** PV reports require Audit Solaire data for PV calculations.
  *       
  *       **Data Sources:**
- *       - **solaireId (REQUIRED)**: Audit Solaire simulation ID - provides PV power, production, yield, financial metrics (NPV, IRR, ROI, payback)
+ *       - **solaireId (REQUIRED)**: Audit Solaire simulation ID - provides PV power, production, yield, financial metrics (NPV, IRR, ROI, payback), monthlyEconomics (12 months), and annualEconomics (25 years)
  *       - **energetiqueId (OPTIONAL but recommended)**: Audit Energetique simulation ID - provides CO₂ emissions data and contact information
  *       
  *       **Best Practice:** Provide both IDs for a complete report:
- *       - solaireId → PV calculations, financial metrics
+ *       - solaireId → PV calculations, financial metrics, monthly/annual economics data
  *       - energetiqueId → CO₂ data, contact info, building details
+ *       
+ *       **Requirements:**
+ *       - The solaire simulation must have completed economic analysis (annualEconomics or monthlyEconomics data)
+ *       - If annualEconomics is missing, the system will attempt to recalculate from monthlyEconomics
+ *       - If both are missing, the request will fail with a clear error message
  *       
  *       **Note:** If only energetiqueId is provided, PV values will be 0 (no PV calculations available).
  *       If only solaireId is provided, CO₂ values will be estimated and contact info may be incomplete.
@@ -654,11 +659,16 @@ auditEnergetiqueSimulationRoutes.post(
  *                   type: string
  *                   example: "695268f9f6dcdc59f2c82461"
  *       400:
- *         description: Either solaireId or energetiqueId (or legacy simulationId) is required, or email address is missing
+ *         description: |
+ *           Bad request. Possible reasons:
+ *           - Either solaireId or energetiqueId (or legacy simulationId) is required
+ *           - Email address is missing (provide energetiqueId to get contact info automatically)
+ *           - Solar audit simulation is missing required economics data (annualEconomics or monthlyEconomics)
+ *           - Solar audit simulation is missing required financial metrics (NPV, IRR, ROI, payback periods)
  *       404:
- *         description: Simulation not found
+ *         description: Simulation not found (solaireId or energetiqueId does not exist)
  *       500:
- *         description: PV PDF generation or email sending failed
+ *         description: PV PDF generation or email sending failed (check server logs for details)
  */
 auditEnergetiqueSimulationRoutes.post(
   '/send-pv-pdf',

@@ -47,6 +47,117 @@ import { auditSolaireSimulationController } from './audit-solaire.controller';
  *           type: number
  *           description: Optional longitude (will be geocoded if not provided)
  *
+ *     MonthlyConsumptionData:
+ *       type: object
+ *       properties:
+ *         month:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 12
+ *         rawConsumption:
+ *           type: number
+ *         estimatedConsumption:
+ *           type: number
+ *         climaticCoefficient:
+ *           type: number
+ *         buildingCoefficient:
+ *           type: number
+ *         effectiveCoefficient:
+ *           type: number
+ *
+ *     MonthlyPVProductionData:
+ *       type: object
+ *       properties:
+ *         month:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 12
+ *         rawConsumption:
+ *           type: number
+ *         pvProduction:
+ *           type: number
+ *         netConsumption:
+ *           type: number
+ *         credit:
+ *           type: number
+ *
+ *     MonthlyEconomicData:
+ *       type: object
+ *       description: Monthly economic data for year 1 (12 months of bill calculations)
+ *       properties:
+ *         month:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 12
+ *           description: Month number (1-12)
+ *         rawConsumption:
+ *           type: number
+ *           description: Raw consumption before PV (kWh)
+ *         billedConsumption:
+ *           type: number
+ *           description: Billed consumption after PV credit (kWh)
+ *         appliedTariffRate:
+ *           type: number
+ *           description: Applied tariff rate (DT/kWh)
+ *         billWithoutPV:
+ *           type: number
+ *           description: Bill amount without PV (DT)
+ *         billWithPV:
+ *           type: number
+ *           description: Bill amount with PV (DT)
+ *         monthlySavings:
+ *           type: number
+ *           description: Monthly savings from PV (DT)
+ *
+ *     AnnualEconomicData:
+ *       type: object
+ *       description: Annual economic projection data (25 years of projections with inflation, degradation, discounting)
+ *       properties:
+ *         year:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 25
+ *           description: Year number (1-25)
+ *         annualRawConsumption:
+ *           type: number
+ *           description: Annual raw consumption (kWh)
+ *         annualBilledConsumption:
+ *           type: number
+ *           description: Annual billed consumption after PV (kWh)
+ *         annualBillWithoutPV:
+ *           type: number
+ *           description: Annual bill without PV (DT)
+ *         annualBillWithPV:
+ *           type: number
+ *           description: Annual bill with PV (DT)
+ *         annualSavings:
+ *           type: number
+ *           description: Annual savings from PV (DT)
+ *         averageAvoidedTariff:
+ *           type: number
+ *           description: Average avoided tariff rate (DT/kWh)
+ *         capex:
+ *           type: number
+ *           description: Capital expenditure (investment cost, year 1 only, otherwise 0)
+ *         opex:
+ *           type: number
+ *           description: Operating expenditure (maintenance cost for this year, with inflation)
+ *         netGain:
+ *           type: number
+ *           description: Net gain (savings - OPEX) for this year
+ *         cumulativeCashFlow:
+ *           type: number
+ *           description: Cumulative cash flow (non-discounted, sum of all net gains)
+ *         cumulativeCashFlowDiscounted:
+ *           type: number
+ *           description: Cumulative cash flow (discounted, present value)
+ *         cumulativeNetGain:
+ *           type: number
+ *           description: Cumulative net gain (non-discounted, sum of all net gains)
+ *         cumulativeNetGainDiscounted:
+ *           type: number
+ *           description: Cumulative net gain (discounted, present value) - used for NPV calculation
+ *
  *     AuditSolaireResponse:
  *       type: object
  *       properties:
@@ -140,7 +251,17 @@ export const auditSolaireSimulationRoutes = Router();
  *   post:
  *     summary: Create a new solar audit simulation
  *     tags: [Solar Audit]
- *     description: Creates a comprehensive solar audit simulation with consumption extrapolation, PV production calculation, and economic analysis.
+ *     description: |
+ *       Creates a comprehensive solar audit simulation with:
+ *       - Consumption extrapolation (monthly and annual estimates)
+ *       - PV production calculation (system sizing, yield, coverage)
+ *       - Complete economic analysis including:
+ *         - Monthly economics (12 months of bill calculations)
+ *         - Annual economics (25 years of projections with inflation, degradation, discounting)
+ *         - Financial metrics (NPV, IRR, ROI, payback periods)
+ *       
+ *       The simulation includes detailed monthlyEconomics and annualEconomics arrays that are stored in the database
+ *       and used for PV report generation.
  *     requestBody:
  *       required: true
  *       content:

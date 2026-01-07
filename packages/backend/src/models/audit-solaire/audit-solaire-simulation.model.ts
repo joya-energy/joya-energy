@@ -26,7 +26,43 @@ export const AuditSolaireSimulationModel: Model<AuditSolaireSimulationDocument> 
     roi25Years: { type: Number, required: false },
     simplePaybackYears: { type: Number, required: false },
     discountedPaybackYears: { type: Number, required: false },
-    totalSavings25Years: { type: Number, required: false }
+    totalSavings25Years: { type: Number, required: false },
+    
+    // Monthly and annual economics data from economic analysis
+    // These arrays contain detailed breakdowns for each month/year
+    monthlyEconomics: {
+      type: [{
+        month: Number,
+        rawConsumption: Number,
+        billedConsumption: Number,
+        appliedTariffRate: Number,
+        billWithoutPV: Number,
+        billWithPV: Number,
+        monthlySavings: Number,
+      }],
+      required: false,
+      _id: false,
+    },
+    annualEconomics: {
+      type: [{
+        year: Number,
+        annualRawConsumption: Number,
+        annualBilledConsumption: Number,
+        annualBillWithoutPV: Number,
+        annualBillWithPV: Number,
+        annualSavings: Number,
+        averageAvoidedTariff: Number,
+        capex: Number,
+        opex: Number,
+        netGain: Number,
+        cumulativeCashFlow: Number,
+        cumulativeCashFlowDiscounted: Number,
+        cumulativeNetGain: Number,
+        cumulativeNetGainDiscounted: Number,
+      }],
+      required: false,
+      _id: false,
+    },
   },
   {
     timestamps: true
