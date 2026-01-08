@@ -1,7 +1,7 @@
 @use 'styles/mixins' as *;
 
 .simulators {
-  background: #e8f5f5;
+  background: var(--bg-light-teal);
   padding: 5rem 0 6rem;
   position: relative;
 }
@@ -20,7 +20,7 @@
 .simulators-eyebrow {
   text-transform: uppercase;
   letter-spacing: 0.2em;
-  font-size: 0.85rem;
+  font-size: var(--font-size-xs);
   color: var(--teal-muted);
   margin-bottom: 0.5rem;
 }
@@ -34,7 +34,7 @@
 
 .simulators-subtitle {
   color: var(--text-secondary);
-  font-size: 1.05rem;
+  font-size: var(--font-size-base);
 }
 
 .simulators-grid {
@@ -44,14 +44,14 @@
 }
 
 .simulator-card {
-  background: #ffffff;
+  background: var(--bg-card);
   border-radius: 1.5rem;
   padding: 2rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   min-height: 100%;
-  box-shadow: 0 30px 70px rgba(6, 40, 51, 0.08);
+  box-shadow: 0 30px 70px rgba(10, 61, 70, 0.08);
   border: 1px solid rgba(10, 61, 70, 0.04);
   animation: fade-up 0.6s ease both;
   animation-delay: calc(var(--card-index, 0) * 120ms);
@@ -63,19 +63,19 @@
 
 .simulator-card-label {
   align-self: flex-start;
-  font-size: 0.75rem;
+  font-size: var(--font-size-min);
   text-transform: uppercase;
   letter-spacing: 0.18em;
   color: var(--teal-muted);
   background: rgba(255, 255, 255, 0.9);
   padding: 0.3rem 0.5rem;
   border-radius: 999px;
-  border: 1px solid rgba(10, 61, 70, 0.08);
+  border: 1px solid var(--teal-wash);
 }
 
 .simulator-card-featured {
-  background: #ffffff;
-  box-shadow: 0 35px 70px rgba(6, 40, 51, 0.12);
+  background: var(--bg-card);
+  box-shadow: 0 35px 70px rgba(10, 61, 70, 0.12);
   transform: translateY(-10px);
 
   .simulator-card-label {
@@ -84,7 +84,7 @@
 }
 
 .simulator-card-title {
-  font-size: 1.15rem;
+  font-size: var(--font-size-lg);
   font-weight: 500;
   color: var(--text-primary);
   margin-bottom: 0.5rem;
@@ -95,7 +95,7 @@
   color: var(--text-secondary);
   font-weight: 400;
   line-height: 1.6;
-  font-size: 0.95rem;
+  font-size: var(--font-size-sm);
 }
 
 .simulator-card-link {
@@ -107,7 +107,7 @@
   font-weight: 500;
   text-decoration: none;
   transition: color 0.2s ease, transform 0.2s ease;
-  font-size: 0.95rem;
+  font-size: var(--font-size-sm);
 
   span {
     display: inline-block;

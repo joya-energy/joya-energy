@@ -1,5 +1,6 @@
-import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { RouterModule } from '@angular/router';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import { lucideArrowRight } from '@ng-icons/lucide';
@@ -27,36 +28,44 @@ interface SimulatorCard {
   providers: [provideIcons({ lucideArrowRight })]
 })
 export class SimulatorsSectionComponent {
+  private router = inject(Router);
+
   protected readonly cards = signal<SimulatorCard[]>([
     {
       title: 'Audit énergétique',
       description: 'Analysez votre consommation et identifiez vos économies potentielles.',
       cta: 'Lancer le simulateur',
-      href: '/simulateurs/audit-energetique',
+      href: 'audit-energetique',
       icon: 'chart',
       iconVariant: 'neutral',
       label: 'Diagnostic',
-      route: '/audit-energetique'
+      route: 'audit-energetique'
     },
     {
       title: 'Simulation photovoltaïque',
       description: 'Estimez la production solaire adaptée à votre bâtiment.',
       cta: 'Lancer le simulateur',
-      href: '/simulateurs/photovoltaique',
+      href: 'audit-solaire',
       icon: 'sun',
       iconVariant: 'default',
       label: 'Populaire',
-      featured: true
+      featured: true,
+      route: 'audit-solaire'
     },
     {
       title: 'Comparateur de financement',
       description: 'Comparez le modèle ESCO avec le crédit classique.',
       cta: 'Lancer le simulateur',
-      href: '/simulateurs/financement',
+      href: '/simulaturs/financement',
       icon: 'card',
       iconVariant: 'aqua',
-      label: 'ESCO vs Crédit'
+      label: 'ESCO vs Crédit',
+      route: 'audit-financement'
     }
   ]);
+
+  protected navigateTo(route: string): void {
+    this.router.navigate([route]);
+  }
 }
 

@@ -11,7 +11,7 @@ import { auditSolaireSimulationController } from './audit-solaire.controller';
  *         - address
  *         - buildingType
  *         - climateZone
- *         - measuredConsumption
+ *         - measuredAmount
  *         - referenceMonth
  *       properties:
  *         address:
@@ -30,10 +30,10 @@ import { auditSolaireSimulationController } from './audit-solaire.controller';
  *           type: string
  *           enum: ['Nord', 'Centre', 'Sud']
  *           example: "Nord"
- *         measuredConsumption:
+ *         measuredAmount:
  *           type: number
- *           description: Monthly electricity consumption measured from bill (kWh)
- *           example: 1200
+ *           description: Monthly electricity bill amount (TND)
+ *           example: 234
  *         referenceMonth:
  *           type: integer
  *           description: Month of the measured consumption (1-12)
