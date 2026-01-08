@@ -8,6 +8,17 @@ export interface ProgressiveTariffInput {
   monthlyConsumption: number; // kWh/month
 }
 
+export interface AmountToConsumptionInput {
+  monthlyAmount: number; // DT/month
+}
+
+export interface AmountToConsumptionResult {
+  monthlyConsumption: number; // kWh/month
+  monthlyAmount: number; // DT/month (input)
+  effectiveRate: number; // DT/kWh
+  bracketDetails: BracketDetail[];
+}
+
 export interface BracketDetail {
   min: number;
   max: number;
@@ -34,6 +45,84 @@ const resolveRate = (consumption: number): BracketDetail => {
     TARIFF_TABLE[TARIFF_TABLE.length - 1]
   );
 };
+
+export function convertAmountToConsumption(
+  input: AmountToConsumptionInput
+): AmountToConsumptionResult {
+  const { monthlyAmount } = input;
+
+  if (monthlyAmount <= 0) {
+    return {
+      monthlyConsumption: 0,
+      monthlyAmount: 0,
+      effectiveRate: 0,
+      bracketDetails: []
+    };
+  }
+
+  let remainingAmount = monthlyAmount;
+  let totalConsumption = 0;
+  let effectiveRate = 0;
+  const bracketDetails: BracketDetail[] = [];
+
+  for (let i = 0; i < TARIFF_TABLE.length; i++) {
+    const bracket = TARIFF_TABLE[i];
+    const isLastBracket = i === TARIFF_TABLE.length - 1;
+    const isFirstBracket = i === 0;
+
+    if (isFirstBracket) {
+      // First bracket: 0 to 200 kWh
+      const maxAmountForBracket = bracket.max * bracket.rate;
+      if (remainingAmount <= maxAmountForBracket) {
+        // Amount fits within this bracket
+        const consumption = remainingAmount / bracket.rate;
+        totalConsumption += consumption;
+        effectiveRate = bracket.rate;
+        bracketDetails.push(bracket);
+        break;
+      } else {
+        // Amount exceeds this bracket, take all of this bracket
+        totalConsumption += bracket.max;
+        remainingAmount -= maxAmountForBracket;
+        bracketDetails.push(bracket);
+      }
+    } else if (!isLastBracket) {
+      // Middle brackets
+      const bracketRange = bracket.max - bracket.min;
+      const maxAmountForBracket = bracketRange * bracket.rate;
+
+      if (remainingAmount <= maxAmountForBracket) {
+        // Amount fits within this bracket
+        const consumption = remainingAmount / bracket.rate;
+        totalConsumption += consumption;
+        effectiveRate = bracket.rate;
+        bracketDetails.push(bracket);
+        break;
+      } else {
+        // Amount exceeds this bracket, take all of this bracket
+        totalConsumption += bracketRange;
+        remainingAmount -= maxAmountForBracket;
+        bracketDetails.push(bracket);
+      }
+    } else {
+      // Last bracket (unlimited)
+      const consumption = remainingAmount / bracket.rate;
+      totalConsumption += consumption;
+      effectiveRate = bracket.rate;
+      bracketDetails.push(bracket);
+    }
+  }
+
+  // Calculate effective rate as total amount / total consumption
+  effectiveRate = monthlyAmount / totalConsumption;
+
+  return {
+    monthlyConsumption: Number(totalConsumption.toFixed(2)),
+    monthlyAmount: monthlyAmount,
+    effectiveRate: Number(effectiveRate.toFixed(4)),
+    bracketDetails
+  };
+}
 
 export function computeProgressiveTariff(
   input: ProgressiveTariffInput

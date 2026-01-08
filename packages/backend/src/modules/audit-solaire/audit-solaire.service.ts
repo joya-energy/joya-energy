@@ -13,6 +13,7 @@ import { BuildingTypes, ClimateZones } from '@shared/enums/audit-general.enum';
 import { extrapolateConsumption } from './helpers/consumption-extrapolation.calculator';
 import { calculatePVProduction } from './helpers/pv-production.calculator';
 import { analyzeEconomics } from './helpers/economic-analysis.calculator';
+import { convertAmountToConsumption } from '../audit-energetique/helpers/progressive-tariff.calculator';
 
 
 
@@ -40,11 +41,11 @@ const EXTERNAL_APIS = {
 
 
 export interface CreateSimulationInput {
-  address: string; 
+  address: string;
   buildingType: BuildingTypes;
   climateZone: ClimateZones;
-  measuredConsumptionKwh: number;
-  referenceMonth: number; 
+  measuredAmountTnd: number;
+  referenceMonth: number;
 }
 
 interface GeoCoordinates {
@@ -85,26 +86,23 @@ export class AuditSolaireSimulationService extends CommonService<
   }
 
   public async createSimulation(input: CreateSimulationInput): Promise<IAuditSolaireSimulation> {
-    Logger.info(
-      `Creating solar audit simulation: ${input.buildingType} in ${input.climateZone}, ` +
-      `${input.measuredConsumptionKwh} kWh measured in month ${input.referenceMonth}`
-    );
+
 
     try {
+      const consumptionConversion = convertAmountToConsumption({
+        monthlyAmount: input.measuredAmountTnd
+      });
+      
       const coordinates = await this.resolveGeoCoordinates(input);
-      Logger.info(`Geographic coordinates: lat=${coordinates.latitude}, lon=${coordinates.longitude}`);
 
       const solarData = await this.fetchSolarProductibleFromPVGIS(coordinates.latitude, coordinates.longitude);
-      Logger.info(`Solar data fetched: ${solarData.annualProductibleKwhPerKwp.toFixed(2)} kWh/kWp/year`);
 
       const consumptionData = extrapolateConsumption({
-        measuredConsumption: input.measuredConsumptionKwh,
+        measuredConsumption: consumptionConversion.monthlyConsumption,
         referenceMonth: input.referenceMonth,
         buildingType: input.buildingType,
         climateZone: input.climateZone,
       });
-      Logger.info(`Monthly consumption extrapolated ${JSON.stringify(consumptionData.monthlyConsumptions)}`)
-      Logger.info(`Annual consumption extrapolated: ${consumptionData.annualEstimatedConsumption} kWh/year`);
 
       const monthlyConsumptions = consumptionData.monthlyConsumptions.map(mc => mc.estimatedConsumption);
 
@@ -114,27 +112,35 @@ export class AuditSolaireSimulationService extends CommonService<
         monthlyProductible: solarData.monthlyProductibleKwhPerKwp,
         monthlyConsumptions,
       });
-      Logger.info(
-        `PV system sized: ${pvSystemData.installedPower} kWp, ` +
-        `production: ${pvSystemData.annualPVProduction} kWh/year, ` +
-        `coverage: ${pvSystemData.energyCoverageRate}%`
-      );
 
-      const economicData = analyzeEconomics({
-        monthlyBilledConsumptions: pvSystemData.monthlyProductions.map(mp => mp.netConsumption),
-        monthlyRawConsumptions: monthlyConsumptions,
-        installedPowerKwp: pvSystemData.installedPower,
-      });
-      Logger.info(
-        `Economic analysis: Investment=${economicData.investmentCost} DT, ` +
-        `NPV=${economicData.netPresentValue} DT, IRR=${economicData.internalRateOfReturnPercent}%, ` +
-        `Payback=${economicData.simplePaybackYears} years`
-      );
+      if (!pvSystemData.monthlyProductions || pvSystemData.monthlyProductions.length !== 12) {
+        throw new Error(`Invalid PV system data: monthlyProductions=${pvSystemData.monthlyProductions?.length || 0}`);
+      }
+
+      const monthlyBilledConsumptions = pvSystemData.monthlyProductions.map(mp => mp.netConsumption);
+
+      if (monthlyBilledConsumptions.length !== 12 || monthlyConsumptions.length !== 12) {
+        throw new Error(`Invalid array lengths: billed=${monthlyBilledConsumptions.length}, raw=${monthlyConsumptions.length}`);
+      }
+
+      let economicData;
+      try {
+        economicData = analyzeEconomics({
+          monthlyBilledConsumptions,
+          monthlyRawConsumptions: monthlyConsumptions,
+          installedPowerKwp: pvSystemData.installedPower,
+          annualPVProduction: pvSystemData.annualPVProduction,
+        });
+        Logger.info(`✅ Economic analysis completed successfully`);
+      } catch (error) {
+        Logger.error(`❌ Economic analysis failed:`, error);
+        throw error;
+      }
 
       const simulationData = this.buildSimulationPayload(input, coordinates, solarData, consumptionData, pvSystemData, economicData);
 
       const simulation = await this.create(simulationData);
-      Logger.info(`Simulation created successfully with ID: ${simulation.id}`);
+      Logger.info(`✅ Simulation created successfully with ID: ${simulation.id}`);
 
       return simulation;
 
@@ -349,7 +355,7 @@ export class AuditSolaireSimulationService extends CommonService<
       buildingType: input.buildingType,
       climateZone: input.climateZone,
 
-      measuredConsumption: input.measuredConsumptionKwh,
+      measuredAmount: input.measuredAmountTnd,
       referenceMonth: input.referenceMonth,
 
       baseConsumption: consumptionData.baseConsumption,
@@ -379,11 +385,18 @@ export class AuditSolaireSimulationService extends CommonService<
       roi25Years: economicData.returnOnInvestmentPercent,
       npv: economicData.netPresentValue,
       irr: economicData.internalRateOfReturnPercent,
+      annualCo2Avoided: economicData.annualCo2Avoided,
+      totalCo2Avoided25Years: economicData.totalCo2Avoided25Years,
 
       monthlyEconomics: economicData.monthlyResults,
       annualEconomics: economicData.annualResults,
 
-      paybackYears: economicData.simplePaybackYears,
+      // Extract first year economic summary
+      annualBillWithoutPV: economicData.annualResults[0]?.annualBillWithoutPV || 0,
+      annualBillWithPV: economicData.annualResults[0]?.annualBillWithPV || 0,
+      averageAnnualSavings: economicData.annualResults[0]?.annualSavings || 0,
+
+      paybackMonths: economicData.simplePaybackYears,
     };
   }
 

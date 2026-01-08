@@ -13,7 +13,7 @@ export function toAuditSolaireResponseDto(simulation: IAuditSolaireSimulation): 
     longitude: simulation.longitude,
     buildingType: simulation.buildingType,
     climateZone: simulation.climateZone,
-    measuredConsumption: simulation.measuredConsumption,
+    measuredAmount: simulation.measuredAmount,
     referenceMonth: simulation.referenceMonth,
     baseConsumption: simulation.baseConsumption ,
     monthlyConsumptions: simulation.monthlyConsumptions?.map(mc => ({
@@ -46,6 +46,8 @@ export function toAuditSolaireResponseDto(simulation: IAuditSolaireSimulation): 
     roi25Years: simulation.roi25Years,
     npv: simulation.npv,
     irr: simulation.irr,
+    annualCo2Avoided: simulation.annualCo2Avoided,
+    totalCo2Avoided25Years: simulation.totalCo2Avoided25Years,
     monthlyEconomics: simulation.monthlyEconomics?.map(me => ({
       month: me.month,
       rawConsumption: me.rawConsumption,
@@ -73,7 +75,10 @@ export function toAuditSolaireResponseDto(simulation: IAuditSolaireSimulation): 
     })) || [],
     systemSize_kWp: simulation.systemSize_kWp,
     coverage: simulation.coverage,
-    paybackYears: simulation.paybackYears,
+    annualBillWithoutPV: simulation.annualBillWithoutPV,
+    annualBillWithPV: simulation.annualBillWithPV,
+    averageAnnualSavings: simulation.averageAnnualSavings,
+    paybackMonths: simulation.paybackMonths,
     createdAt: simulation.createdAt,
     updatedAt: simulation.updatedAt,
   };
