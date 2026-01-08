@@ -74,7 +74,7 @@ export class AuditSolaireSimulationController {
       address: requireString(body.address, 'address'),
       buildingType,
       climateZone,
-      measuredConsumptionKwh: requireNumber(body.measuredConsumption, 'measuredConsumption', { min: 0 }),
+      measuredAmountTnd: requireNumber(body.measuredAmountTnd, 'measuredAmountTnd', { min: 0 }),
       referenceMonth,
     };
   }

@@ -39,7 +39,6 @@ export class NavbarComponent {
     {label: menuItems.CONTACT, path: '/contact', id: 'nav-contact' },
   ];
 
-  // Actions
   protected toggleMobileMenu(): void {
     this.isMobileMenuOpen.update(value => !value);
   }

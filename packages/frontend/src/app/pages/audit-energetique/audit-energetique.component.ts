@@ -12,6 +12,7 @@ import {
 } from '../../shared/icons/audit-building-icons';
 import { FieldTooltipComponent } from '../../shared/components/field-tooltip/field-tooltip.component';
 import { UiSelectComponent } from '../../shared/components/ui-select/ui-select.component';
+import { UploadCardComponent, UploadCardConfig } from '../../shared/components/upload-card';
 import { NotificationStore } from '../../core/notifications/notification.store';
 import { AuditEnergetiqueRequest,
   AuditEnergetiqueResponse,
@@ -47,7 +48,8 @@ export enum AuditFormStep {
     ReactiveFormsModule,
     NgIconComponent,
     UiSelectComponent,
-    FieldTooltipComponent
+    FieldTooltipComponent,
+    UploadCardComponent
   ],
   templateUrl: './audit-energetique.component.html',
   styleUrl: './audit-energetique.component.scss',
@@ -119,6 +121,17 @@ export class AuditEnergetiqueComponent {
     return this.auditForm.controls.building.controls;
   }
 
+  protected uploadCardConfig: UploadCardConfig = {
+    title: 'Glissez-déposez votre facture STEG',
+    subtitle: 'ou cliquez pour sélectionner un fichier',
+    acceptedTypes: 'image/*,application/pdf',
+    maxSizeText: 'Formats: PDF, JPG, PNG (max 10MB)',
+    extractButtonText: 'Extraire les données',
+    manualEntryButtonText: 'Je n\'ai pas de facture, remplir manuellement',
+    selectedFileText: 'Fichier sélectionné',
+    changeFileText: 'Changer de fichier'
+  };
+
   protected startManualEntry(): void {
     this.step.set(AuditFormStep.BUILDING);
   }
@@ -183,9 +196,7 @@ export class AuditEnergetiqueComponent {
     return category.id;
   }
 
-  protected onBillSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
+  protected onBillSelected(file: File | null): void {
     if (file) {
       this.billFile.set(file);
       this.notificationStore.addNotification({
@@ -196,6 +207,14 @@ export class AuditEnergetiqueComponent {
     } else {
       this.billFile.set(null);
     }
+  }
+
+  protected onExtractFromBill(): void {
+    this.extractFromBill();
+  }
+
+  protected onManualEntry(): void {
+    this.startManualEntry();
   }
 
   protected toggleSelection(controlName: 'equipmentCategories' | 'existingMeasures', value: string): void {

@@ -6,7 +6,7 @@ import { Logger } from '@backend/middlewares';
  * following the Tunisian STEG tariff structure and financial modeling standards.
  * 
  * Key Calculations:
- * - CAPEX: Investment cost (2000 DT/kWp)
+ * - CAPEX: Investment cost (2000 DT/kWc)
  * - OPEX: Annual maintenance cost (4% of CAPEX)
  * - Tariff-based bill calculations (bracket system)
  * - Inflation modeling (STEG 7%, OPEX 3%)
@@ -19,6 +19,7 @@ export interface EconomicAnalysisInput {
   monthlyBilledConsumptions: number[]; // C_fact(m) - Billed consumption after PV credit [12 elements]
   monthlyRawConsumptions: number[]; // C_brut(m) - Raw consumption before PV [12 elements]
   installedPowerKwp: number; // P_PV (kWc)
+  annualPVProduction: number; // Annual PV production (kWh)
   projectLifetimeYears?: number; // Default 25 years
   stegTariffInflationRate?: number; // Default 7% - i
   opexInflationRate?: number; // Default 3% - i_OPEX
@@ -61,11 +62,13 @@ export interface EconomicAnalysisResult {
   monthlyResults: MonthlyEconomicResult[];
   annualResults: AnnualEconomicResult[];
   totalSavings25Years: number;
-  simplePaybackYears: number;
-  discountedPaybackYears: number;
-  returnOnInvestmentPercent: number; // ROI (%)
+  simplePaybackYears: number; // Now represents months instead of years
+  discountedPaybackYears: number; // Now represents months instead of years
+  returnOnInvestmentPercent: number; // ROI (DT) - absolute value not percentage
   netPresentValue: number; // NPV/VAN (DT)
   internalRateOfReturnPercent: number; // IRR/TRI (%)
+  annualCo2Avoided: number; // Annual CO2 emissions avoided (kg)
+  totalCo2Avoided25Years: number; // Total CO2 avoided over 25 years (kg)
 }
 
 // ============================================================================
@@ -74,8 +77,8 @@ export interface EconomicAnalysisResult {
 
 /**
  * STEG Non-Residential BT Tariff Structure (>100 kWh/month)
- * Uses bracket-based system: each bracket has a fixed rate
- * Consumption in bracket determines the applicable rate
+ * Uses flat-rate system: consumption level determines a single rate applied to ALL consumption
+ * Not progressive (no brackets) - the entire consumption is billed at one rate
  */
 interface TariffBracket {
   minKwh: number;
@@ -214,8 +217,8 @@ export function calculateAverageAvoidedTariff(
  * Calculate CAPEX (Capital Expenditure)
  * CAPEX = Prix_par_kWc × P_PV
  * 
- * @param installedPowerKwp - Installed PV power in kWp
- * @param capexPerKwp - Cost per kWp (default: 2000 DT/kWp)
+ * @param installedPowerKwp - Installed PV power in kWc
+ * @param capexPerKwp - Cost per kWc (default: 2000 DT/kWc)
  * @returns Total investment cost in DT
  */
 export function calculateCapex(installedPowerKwp: number, capexPerKwp: number): number {
@@ -327,11 +330,12 @@ export function calculateDiscountedValue(
 
 
 /**
- * Calculate simple payback period (years)
- * 
+ * Calculate simple payback period (months)
+ *
  * Simple payback is when: Σ Gain_net(n) = CAPEX
- * 
+ *
  * This ignores time value of money.
+ * Returns payback period in months for better granularity.
  */
 export function calculateSimplePayback(
   investmentCost: number,
@@ -342,51 +346,65 @@ export function calculateSimplePayback(
   for (const result of annualResults) {
     cumulativeGain += result.netGain;
     if (cumulativeGain >= investmentCost) {
-      return result.year;
+      // If we reach the investment cost in this year, calculate exact month
+      const remainingCost = investmentCost - (cumulativeGain - result.netGain);
+      const monthlyGain = result.netGain / 12; // Assume uniform monthly distribution
+      const additionalMonths = Math.ceil(remainingCost / monthlyGain);
+
+      return (result.year - 1) * 12 + additionalMonths;
     }
   }
 
-  return 0; 
+  return 0;
 }
 
 /**
- * Calculate discounted payback period (years)
- * 
+ * Calculate discounted payback period (months)
+ *
  * Discounted payback is when: Σ Gain_net(n)/(1+r)^n = CAPEX
- * 
+ *
  * This accounts for time value of money.
+ * Returns payback period in months for better granularity.
  */
 export function calculateDiscountedPayback(
   investmentCost: number,
   annualResults: AnnualEconomicResult[]
 ): number {
-  let cumulativeDiscountedGain = 0;
-
   for (const result of annualResults) {
-    cumulativeDiscountedGain += result.cumulativeNetGainDiscounted;
-    if (cumulativeDiscountedGain >= investmentCost) {
-      return result.year;
+    if (result.cumulativeNetGainDiscounted >= investmentCost) {
+      // Calculate the discounted gain for this specific year
+      const previousYearGain = result.year > 1 
+        ? annualResults[result.year - 2].cumulativeNetGainDiscounted 
+        : 0;
+      const thisYearDiscountedGain = result.cumulativeNetGainDiscounted - previousYearGain;
+      
+      // Calculate how much of this year is needed to reach the payback
+      const remainingCost = investmentCost - previousYearGain;
+      const monthlyGain = thisYearDiscountedGain / 12;
+      const additionalMonths = monthlyGain > 0 ? Math.ceil(remainingCost / monthlyGain) : 12;
+
+      return (result.year - 1) * 12 + additionalMonths;
     }
   }
 
-  return 0; 
+  return 0;
 }
 
 /**
  * Calculate ROI (Return on Investment) over project lifetime
  * 
- * Formula: ROI = [(Σ Gain_net(n)) - CAPEX] / CAPEX × 100
+ * Formula: ROI = (Σ Gain_net(n)) - CAPEX
  * 
- * Returns percentage profit relative to initial investment.
+ * Returns absolute profit value in DT (not percentage).
  */
 export function calculateROI(
   investmentCost: number,
   annualResults: AnnualEconomicResult[]
 ): number {
   const totalNetGain = annualResults.reduce((sum, result) => sum + result.netGain, 0);
-  const roiPercent = ((totalNetGain - investmentCost) / investmentCost) * 100;
+  const roiValue = totalNetGain - investmentCost;
 
-  return Number(roiPercent.toFixed(2));
+  return Number(roiValue.toFixed(2));
 }
 
 /**
@@ -489,7 +507,7 @@ export function analyzeEconomics(input: EconomicAnalysisInput): EconomicAnalysis
   const capexPerKwp = input.capexPerKwp ?? DEFAULT_CAPEX_PER_KWP;
   const opexRatePercentage = input.opexRatePercentage ?? DEFAULT_OPEX_RATE_PERCENTAGE;
 
-  Logger.info(`Starting economic analysis: ${projectLifetimeYears} years, ${input.installedPowerKwp} kWp @ ${capexPerKwp} DT/kWp`);
+  Logger.info(`Starting economic analysis: ${projectLifetimeYears} years, ${input.installedPowerKwp} kWc @ ${capexPerKwp} DT/kWc`);
 
   const monthlyResults: MonthlyEconomicResult[] = [];
 
@@ -514,6 +532,8 @@ export function analyzeEconomics(input: EconomicAnalysisInput): EconomicAnalysis
   const year1BillWithout = monthlyResults.reduce((sum, month) => sum + month.billWithoutPV, 0);
   const year1BillWith = monthlyResults.reduce((sum, month) => sum + month.billWithPV, 0);
   const year1Savings = monthlyResults.reduce((sum, month) => sum + month.monthlySavings, 0);
+
+  Logger.info(`💰 Year 1 economics: Raw=${year1RawConsumption.toFixed(0)} kWh, Billed=${year1BilledConsumption.toFixed(0)} kWh, BillWithout=${year1BillWithout.toFixed(0)} DT, BillWith=${year1BillWith.toFixed(0)} DT, Savings=${year1Savings.toFixed(0)} DT`);
 
   const averageAvoidedTariff = calculateAverageAvoidedTariff(input.monthlyRawConsumptions, input.monthlyBilledConsumptions);
 
@@ -585,12 +605,18 @@ export function analyzeEconomics(input: EconomicAnalysisInput): EconomicAnalysis
   const netPresentValue = calculateNPV(investmentCost, annualResults);
   const internalRateOfReturnPercent = calculateIRR(investmentCost, annualResults);
 
+  // Calculate CO2 avoided emissions
+  const annualRawConsumption = input.monthlyRawConsumptions.reduce((sum, consumption) => sum + consumption, 0);
+  const effectiveEnergyForCo2 = Math.min(annualRawConsumption, input.annualPVProduction);
+  const annualCo2Avoided = (effectiveEnergyForCo2 * 0.463) / 100; // kg CO2/year
+  const totalCo2Avoided25Years = annualCo2Avoided * projectLifetimeYears; // kg CO2 over 25 years
+
   Logger.info(
     `Economic analysis complete: NPV=${netPresentValue} DT, IRR=${internalRateOfReturnPercent}%, ` +
-    `Payback=${simplePaybackYears} years, ROI=${returnOnInvestmentPercent}%`
+    `Payback=${simplePaybackYears} months, ROI=${returnOnInvestmentPercent} DT, ` +
+    `CO2 avoided=${annualCo2Avoided.toFixed(0)} kg/year, ${totalCo2Avoided25Years.toFixed(0)} kg total`
   );
 
-  
   return {
     investmentCost,
     annualMaintenanceCost: year1Opex,
@@ -602,5 +628,7 @@ export function analyzeEconomics(input: EconomicAnalysisInput): EconomicAnalysis
     returnOnInvestmentPercent,
     netPresentValue,
     internalRateOfReturnPercent,
+    annualCo2Avoided: Number(annualCo2Avoided.toFixed(0)),
+    totalCo2Avoided25Years: Number(totalCo2Avoided25Years.toFixed(0)),
   };
 }

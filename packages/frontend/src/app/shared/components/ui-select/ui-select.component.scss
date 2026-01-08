@@ -16,9 +16,9 @@
     width: 100%;
     padding: 0.75rem 1rem;
     background: var(--audit-surface, #ffffff);
-    border: 1px solid #cbd5e1;
+    border: 1px solid var(--neutral-300);
     border-radius: 0.5rem;
-    font-size: 0.875rem;
+    font-size: var(--font-size-xs);
     color: var(--color-text-primary, #0f172a);
     cursor: pointer;
     transition: all 0.2s ease;
@@ -43,7 +43,7 @@
 }
 
 .ui-select-value.placeholder {
-    color: #94a3b8; /* Placeholder color */
+    color: var(--neutral-400); /* Placeholder color */
 }
 
 .ui-select-arrow {
@@ -78,7 +78,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.625rem 0.75rem;
-    font-size: 0.75rem;
+    font-size: var(--font-size-min);
     color: #334155;
     cursor: pointer;
     border-radius: 0.25rem;
@@ -124,7 +124,7 @@
     padding: 0.75rem;
     text-align: center;
     color: #94a3b8;
-    font-size: 0.875rem;
+    font-size: var(--font-size-xs);
 }
 
 .ui-select-container.disabled .ui-select-trigger {

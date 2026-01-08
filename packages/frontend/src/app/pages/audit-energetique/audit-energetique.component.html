@@ -30,42 +30,14 @@
         </section>
 
         <section class="upload-panel" *ngIf="step() === 1">
-            <div class="upload-card" (click)="fileInput.click()">
-                <input #fileInput type="file" (change)="onBillSelected($event)" accept="image/*,application/pdf">
-                <ng-container *ngIf="!billFile(); else fileSelected">
-                    <div class="upload-card-content d-flex items-center justify-center flex-col">
-                    <div class="upload-card-icon d-flex items-center justify-center"></div>
-                        <h2>Glissez-déposez votre facture STEG</h2>
-                        <p>ou cliquez pour sélectionner un fichier</p>
-                        <small>Formats: PDF, JPG, PNG (max 10MB)</small>
-                    </div>
-                </ng-container>
-                <ng-template #fileSelected>
-                    <div class="upload-card-content d-flex items-center justify-center flex-col">
-                    <div class="upload-card-success d-flex items-center justify-center">✔</div>
-                    <h2>Fichier sélectionné</h2>
-                    <p class="upload-card-filename">{{ billFile()?.name }}</p>
-                    <button class="text-link" (click)="billFile.set(null); $event.stopPropagation()">Changer de
-                        fichier</button>
-                    </div>
-                </ng-template>
-            </div>
-
-            <button class="pill-button pill-button--primary" (click)="extractFromBill()"
-                [disabled]="isExtracting() || !billFile()">
-                <ng-container *ngIf="isExtracting(); else extractLabel">
-                    <span class="button-loader"></span>
-                    Analyse en cours...
-                </ng-container>
-                <ng-template #extractLabel>
-                    Extraire les données
-                    <ng-icon name="lucideArrowRight" size="16"></ng-icon>
-                </ng-template>
-            </button>
-
-            <button class="pill-button pill-button--secondary" (click)="startManualEntry()">
-                Je n'ai pas de facture, remplir manuellement
-            </button>
+            <app-upload-card
+                [config]="uploadCardConfig"
+                [isExtracting]="isExtracting()"
+                [selectedFile]="billFile()"
+                (fileSelected)="onBillSelected($event)"
+                (extractClicked)="onExtractFromBill()"
+                (manualEntryClicked)="onManualEntry()">
+            </app-upload-card>
         </section>
 
         <section class="form-sheet" *ngIf="step() === 2 || step() === 3 || step() === 4">

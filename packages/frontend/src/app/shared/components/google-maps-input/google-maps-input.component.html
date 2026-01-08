@@ -1,0 +1,65 @@
+<div class="google-maps-input">
+  <div class="input-wrapper">
+    <ng-icon name="lucideMapPin" class="input-icon"></ng-icon>
+    <input
+      #addressInput
+      type="text"
+      class="address-input"
+      placeholder="Tapez une adresse..."
+      [disabled]="isDisabled"
+      (focus)="onTouched()"
+      autocomplete="off"
+      name="address"
+      id="address-input"
+    />
+  </div>
+
+  <div class="actions">
+    <button type="button" class="btn-location" (click)="useCurrentLocation()" [disabled]="isDisabled || isLoading()">
+      <ng-icon [name]="isLoading() ? 'lucideLoader' : 'lucideMapPin'" [class.spinning]="isLoading()"></ng-icon>
+      Utiliser ma position
+    </button>
+    <button type="button" class="btn-toggle-map" (click)="toggleMap()" [disabled]="!selectedAddress()">
+      {{ showMap() ? 'Masquer la carte' : 'Afficher la carte 3D' }}
+    </button>
+  </div>
+
+
+
+  @if (showMap() && selectedAddress()) {
+    <div class="map-container">
+      <div #mapContainer class="map" style="width: 100%; height: 550px; border-radius: 16px;"></div>
+      @if (isAnalyzingSolar()) {
+        <div class="map-loading-overlay">
+          <ng-icon name="lucideLoader" class="spinning"></ng-icon>
+          <p>Analyse du potentiel solaire...</p>
+        </div>
+      }
+      @if (solarInfo() && !isAnalyzingSolar()) {
+        <div class="solar-info-overlay">
+          <h4>Potentiel solaire détecté</h4>
+          <div class="solar-stats">
+            <div class="solar-stat">
+              <span class="stat-label">Panneaux suggérés</span>
+              <span class="stat-value">{{ solarInfo()!.maxSolarPanelCount }}</span>
+            </div>
+            <div class="solar-stat">
+              <span class="stat-label">Surface disponible</span>
+              <span class="stat-value">{{ solarInfo()!.maxArrayAreaMeters2.toFixed(1) }} m²</span>
+            </div>
+            <div class="solar-stat">
+              <span class="stat-label">Production annuelle</span>
+              <span class="stat-value">{{ solarInfo()!.maxArrayPanelsCount }} kWh</span>
+            </div>
+          </div>
+        </div>
+      }
+      @if (solarAnalysisError() && !isAnalyzingSolar() && !solarInfo()) {
+        <div class="solar-error-overlay">
+          <p class="error-message">{{ solarAnalysisError() }}</p>
+        </div>
+      }
+    </div>
+  }
+</div>
+
