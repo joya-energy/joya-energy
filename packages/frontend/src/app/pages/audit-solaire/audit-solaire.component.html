@@ -228,188 +228,283 @@
                 </div>
               </div>
 
+
               <!-- Executive Summary Cards -->
               <div class="executive-summary">
                 <div class="summary-card primary">
-                  <div class="card-icon">
-                    <ng-icon name="lucideZap"></ng-icon>
+                  <div class="card-header">
+                    <div class="card-icon">
+                      <ng-icon name="lucideZap"></ng-icon>
+                    </div>
+                    <div class="card-category">Système</div>
                   </div>
                   <div class="card-content">
-                    <div class="card-value">{{ simulation.systemSize_kWp.toFixed(1) }} kWp</div>
+                    <div class="card-value">{{ simulation.systemSize_kWp.toFixed(1) }} <span class="unit">kWc</span></div>
                     <div class="card-label">Puissance Installée</div>
+                    <div class="card-description">Capacité solaire optimale</div>
                   </div>
+                  <div class="card-accent"></div>
                 </div>
 
                 <div class="summary-card success">
-                  <div class="card-icon">
-                    <ng-icon name="lucideTrendingUp"></ng-icon>
+                  <div class="card-header">
+                    <div class="card-icon">
+                      <ng-icon name="lucideSun"></ng-icon>
+                    </div>
+                    <div class="card-category">Production</div>
                   </div>
                   <div class="card-content">
-                    <div class="card-value">{{ simulation.expectedProduction.toFixed(0) }} kWh</div>
+                    <div class="card-value">{{ (simulation.expectedProduction / 1000).toFixed(0) }} <span class="unit">MWh</span></div>
                     <div class="card-label">Production Annuelle</div>
+                    <div class="card-description">{{ simulation.expectedProduction.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} kWh/an</div>
                   </div>
+                  <div class="card-accent"></div>
                 </div>
 
                 <div class="summary-card info">
-                  <div class="card-icon">
-                    <ng-icon name="lucideDollarSign"></ng-icon>
+                  <div class="card-header">
+            
+                    <div class="card-category">Économies</div>
                   </div>
                   <div class="card-content">
-                    <div class="card-value">{{ simulation.annualSavings.toFixed(0) }} DT</div>
+                    <div class="card-value">{{ (simulation.annualSavings / 1000).toFixed(0) }} <span class="unit">k DT</span></div>
                     <div class="card-label">Économies Annuelles</div>
+                    <div class="card-description">{{ simulation.annualSavings.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} DT/an</div>
                   </div>
+                  <div class="card-accent"></div>
                 </div>
 
-                <div class="summary-card warning">
-                  <div class="card-icon">
-                    <ng-icon name="lucideClock"></ng-icon>
+                <div class="summary-card warning" [class]="simulation.paybackMonths <= 84 ? 'success' : simulation.paybackMonths <= 120 ? 'warning' : 'danger'">
+                  <div class="card-header">
+                    <div class="card-icon">
+                      <ng-icon name="lucideClock"></ng-icon>
+                    </div>
+                    <div class="card-category">ROI</div>
                   </div>
                   <div class="card-content">
                     <div class="card-value">{{ formatPaybackPeriod(simulation.paybackMonths) }}</div>
                     <div class="card-label">Retour sur Investissement</div>
+                    <div class="card-description">Période de remboursement</div>
                   </div>
+                  <div class="card-accent"></div>
                 </div>
               </div>
 
-              <!-- Economic Analysis Section -->
+              <!-- Cost Comparison Section -->
               <div class="analysis-section">
-                <h3 class="section-title">
-                  <ng-icon name="lucideBarChart3" class="section-icon"></ng-icon>
-                  Analyse Économique Détaillée
-                </h3>
+                <div class="section-header">
+                  <h3 class="section-title">
+                    <ng-icon name="lucideBarChart3" class="section-icon"></ng-icon>
+                    Comparaison des Coûts Annuels
+                  </h3>
+                  <p class="section-description">
+                    Impact sur votre facture d'électricité après installation solaire
+                  </p>
+                </div>
 
-                <div class="economic-comparison">
-                  <div class="comparison-header">
-                    <h4>Comparaison des Coûts Annuels</h4>
-                    <p class="comparison-subtitle">Impact sur votre facture d'électricité</p>
+                <div class="cost-comparison-grid">
+                  <!-- Situation Actuelle -->
+                  <div class="comparison-card current-situation">
+                    <div class="comparison-header">
+                      <div class="comparison-icon current">
+                        <ng-icon name="lucideZap"></ng-icon>
+                      </div>
+                      <div class="comparison-badge">Avant</div>
+                    </div>
+                    <div class="comparison-content">
+                      <div class="comparison-value warning">{{ simulation.annualBillWithoutPV.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} <span class="currency">DT</span></div>
+                      <div class="comparison-label">Situation Actuelle</div>
+                      <div class="comparison-subtitle">Coût annuel d'électricité</div>
+                      <div class="comparison-details">
+                        <div class="detail-item">
+                          <ng-icon name="lucideActivity" class="detail-icon"></ng-icon>
+                          <span>{{ simulation.annualConsumption.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} kWh/an</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="comparison-accent"></div>
                   </div>
 
-                  <div class="bill-comparison">
-                    <div class="bill-card bill-without-pv">
-                      <div class="bill-header">
-                        <div class="bill-icon">
-                          <ng-icon name="lucideAlertTriangle"></ng-icon>
-                        </div>
-                        <span class="bill-label">Situation Actuelle</span>
-                      </div>
-                      <div class="bill-amount">
-                        {{ simulation.annualBillWithoutPV.toFixed(0) }} DT
-                      </div>
-                      <div class="bill-subtitle">Coût annuel d'électricité</div>
-                      <div class="bill-details">
-                        <span>Consommation: {{ simulation.annualConsumption.toFixed(0) }} kWh</span>
-                      </div>
+                  <!-- Flèche animée -->
+                  <div class="comparison-transition">
+                    <div class="transition-arrow">
+                      <ng-icon name="lucideArrowRight" class="transition-icon"></ng-icon>
+                      <div class="transition-label">Installation Solaire</div>
                     </div>
+                    <div class="savings-indicator">
+                      <div class="savings-amount">
+                        -{{ (simulation.annualBillWithoutPV - simulation.annualBillWithPV).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} DT
+                      </div>
+                      <div class="savings-label">Économies annuelles</div>
+                    </div>
+                  </div>
 
-                    <div class="comparison-arrow">
-                      <div class="arrow-container">
-                        <ng-icon name="lucideArrowRight" class="arrow-icon"></ng-icon>
-                        <div class="arrow-label">Installation Solaire</div>
+                  <!-- Avec Panneaux Solaires -->
+                  <div class="comparison-card solar-situation">
+                    <div class="comparison-header">
+                      <div class="comparison-icon solar">
+                        <ng-icon name="lucideSun"></ng-icon>
                       </div>
+                      <div class="comparison-badge">Après</div>
                     </div>
-
-                    <div class="bill-card bill-with-pv">
-                      <div class="bill-header">
-                        <div class="bill-icon success">
-                          <ng-icon name="lucideCheckCircle"></ng-icon>
+                    <div class="comparison-content">
+                      <div class="comparison-value success">{{ simulation.annualBillWithPV.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} <span class="currency">DT</span></div>
+                      <div class="comparison-label">Avec Panneaux Solaires</div>
+                      <div class="comparison-subtitle">Coût annuel restant</div>
+                      <div class="comparison-details">
+                        <div class="detail-item">
+                          <ng-icon name="lucideBattery" class="detail-icon"></ng-icon>
+                          <span>Couverture: {{ simulation.coverage }}%</span>
                         </div>
-                        <span class="bill-label">Avec Panneaux Solaires</span>
-                      </div>
-                      <div class="bill-amount">
-                        {{ simulation.annualBillWithPV.toFixed(0) }} DT
-                      </div>
-                      <div class="bill-subtitle">Coût annuel restant</div>
-                      <div class="bill-details">
-                        <span>Couverture: {{ simulation.coverage }}%</span>
-                        <span>Production: {{ simulation.expectedProduction.toFixed(0) }} kWh</span>
+                        <div class="detail-item">
+                          <ng-icon name="lucideSun" class="detail-icon"></ng-icon>
+                          <span>{{ (simulation.expectedProduction / 1000).toFixed(1) }} MWh/an produits</span>
+                        </div>
                       </div>
                     </div>
+                    <div class="comparison-accent"></div>
                   </div>
                 </div>
               </div>
 
               <!-- Economic Analysis -->
               <div class="analysis-section">
-                <h3 class="section-title">
-                  <ng-icon name="lucideTrendingUp" class="section-icon"></ng-icon>
-                  Analyse Économique
-                </h3>
+                <div class="section-header">
+                  <h3 class="section-title">
+                    <ng-icon name="lucideTrendingUp" class="section-icon"></ng-icon>
+                    Analyse Économique Détaillée
+                  </h3>
+                  <p class="section-description">
+                    Résultats financiers sur 25 ans d'exploitation solaire
+                  </p>
+                </div>
 
                 <div class="economic-metrics-grid">
-                  <div class="metric-item">
-                    <div class="metric-icon">
-                      <ng-icon name="lucideReceipt"></ng-icon>
+                  <!-- CAPEX -->
+                  <div class="metric-item capex-card">
+                    <div class="metric-header">
+                      <div class="metric-icon capex">
+                        <ng-icon name="lucideWallet"></ng-icon>
+                      </div>
+                      <div class="metric-badge">Investissement</div>
                     </div>
                     <div class="metric-content">
-                      <div class="metric-value">{{ simulation.annualBillWithoutPV.toFixed(0) }} DT</div>
-                      <div class="metric-label">Facture annuelle sans PV</div>
+                      <div class="metric-value primary">{{ simulation.installationCost.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}</div>
+                      <div class="metric-label">CAPEX</div>
+                      <div class="metric-subtitle">Coût d'investissement</div>
                     </div>
                   </div>
 
-                  <div class="metric-item">
-                    <div class="metric-icon">
-                      <ng-icon name="lucideReceipt"></ng-icon>
+                  <!-- OPEX -->
+                  <div class="metric-item opex-card">
+                    <div class="metric-header">
+                      <div class="metric-icon opex">
+                        <ng-icon name="lucideSettings"></ng-icon>
+                      </div>
+                      <div class="metric-badge">Maintenance</div>
                     </div>
                     <div class="metric-content">
-                      <div class="metric-value">{{ simulation.annualBillWithPV.toFixed(0) }} DT</div>
-                      <div class="metric-label">Facture annuelle avec PV</div>
+                      <div class="metric-value neutral">{{ simulation.annualOpex.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}</div>
+                      <div class="metric-label">OPEX</div>
+                      <div class="metric-subtitle">Coût de maintenance annuel</div>
+                    </div>
+                  </div>
+
+                  <!-- ROI -->
+                  <div class="metric-item roi-card">
+                    <div class="metric-header">
+                      <div class="metric-icon roi">
+                        <ng-icon name="lucideTrendingUp"></ng-icon>
+                      </div>
+                      <div class="metric-badge">Profit</div>
+                    </div>
+                    <div class="metric-content">
+                      <div class="metric-value success">{{ (simulation.roi25Years || 0).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}</div>
+                      <div class="metric-label">ROI</div>
+                      <div class="metric-subtitle">Retour sur investissement</div>
+                    </div>
+                  </div>
+
+                  <!-- Gain cumulé non actualisé -->
+                  <div class="metric-item gain-cumule-card" *ngIf="simulation.annualEconomics && simulation.annualEconomics.length > 0">
+                    <div class="metric-header">
+                      <div class="metric-icon gain-cumule">
+                        <ng-icon name="lucideBarChart3"></ng-icon>
+                      </div>
+                      <div class="metric-badge">Cumulé</div>
+                    </div>
+                    <div class="metric-content">
+                      <div class="metric-value success">{{ simulation.annualEconomics[simulation.annualEconomics.length - 1]!.cumulativeNetGain.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}</div>
+                      <div class="metric-label">Gain cumulé</div>
+                      <div class="metric-subtitle">Non actualisé (25 ans)</div>
+                    </div>
+                  </div>
+
+                  <!-- TRI (Internal Rate of Return) -->
+                  <div class="metric-item tri-card">
+                    <div class="metric-header">
+                      <div class="metric-icon tri">
+                        <ng-icon name="lucidePercent"></ng-icon>
+                      </div>
+                      <div class="metric-badge">TRI</div>
+                    </div>
+                    <div class="metric-content">
+                      <div class="metric-value success">{{ (simulation.irr * 100).toFixed(1) }}<span class="unit">%</span></div>
+                      <div class="metric-label">Taux de Rendement Interne</div>
+                      <div class="metric-subtitle">Retour sur investissement annuel</div>
                     </div>
                   </div>
 
 
-                  <div class="metric-item" *ngIf="simulation.annualEconomics && simulation.annualEconomics.length > 0">
-                    <div class="metric-icon">
-                      <ng-icon name="lucideBarChart3"></ng-icon>
+                 
+                </div>
+              </div>
+
+              <!-- Environmental Impact -->
+              <div class="analysis-section">
+                <div class="section-header">
+                  <h3 class="section-title">
+                    <ng-icon name="lucideLeaf" class="section-icon"></ng-icon>
+                    Impact Environnemental
+                  </h3>
+                  <p class="section-description">
+                    Réduction des émissions de CO₂ grâce à votre installation solaire
+                  </p>
+                </div>
+
+                <div class="environmental-metrics-grid">
+                  <!-- CO2 annuel évité -->
+                  <div class="environmental-item co2-annual-card">
+                    <div class="environmental-header">
+                      <div class="environmental-icon co2-annual">
+                        <ng-icon name="lucideCloud"></ng-icon>
+                      </div>
+                      <div class="environmental-badge">Annuel</div>
                     </div>
-                    <div class="metric-content">
-                      <div class="metric-value">{{ simulation.annualEconomics[simulation.annualEconomics.length - 1]!.cumulativeNetGain.toFixed(0) }} DT</div>
-                      <div class="metric-label">Gain cumulé non actualisé</div>
+                    <div class="environmental-content">
+                      <div class="environmental-value success">{{ (simulation.annualCo2Avoided / 1000).toFixed(1) }} <span class="unit">tonnes</span></div>
+                      <div class="environmental-label">CO₂ évité</div>
+                      <div class="environmental-subtitle">Émissions de carbone réduites par an</div>
                     </div>
                   </div>
 
-                  <div class="metric-item" *ngIf="simulation.annualEconomics && simulation.annualEconomics.length > 0">
-                    <div class="metric-icon">
-                      <ng-icon name="lucideBarChart3"></ng-icon>
+                  <!-- CO2 total évité sur 25 ans -->
+                  <div class="environmental-item co2-total-card">
+                    <div class="environmental-header">
+                      <div class="environmental-icon co2-total">
+                        <ng-icon name="lucideTreePine"></ng-icon>
+                      </div>
+                      <div class="environmental-badge">25 ans</div>
                     </div>
-                    <div class="metric-content">
-                      <div class="metric-value">{{ simulation.annualEconomics[simulation.annualEconomics.length - 1]!.cumulativeNetGainDiscounted.toFixed(0) }} DT</div>
-                      <div class="metric-label">Gain cumulé actualisé</div>
-                    </div>
-                  </div>
-
-                  <div class="metric-item" *ngIf="simulation.annualEconomics && simulation.annualEconomics.length > 0">
-                    <div class="metric-icon">
-                      <ng-icon name="lucideDollarSign"></ng-icon>
-                    </div>
-                    <div class="metric-content">
-                      <div class="metric-value">{{ simulation.annualEconomics[simulation.annualEconomics.length - 1]!.cumulativeCashFlow.toFixed(0) }} DT</div>
-                      <div class="metric-label">Cash-flow cumulé</div>
-                    </div>
-                  </div>
-
-                  <div class="metric-item" *ngIf="simulation.annualEconomics && simulation.annualEconomics.length > 0">
-                    <div class="metric-icon">
-                      <ng-icon name="lucideDollarSign"></ng-icon>
-                    </div>
-                    <div class="metric-content">
-                      <div class="metric-value">{{ simulation.annualEconomics[simulation.annualEconomics.length - 1]!.cumulativeCashFlowDiscounted.toFixed(0) }} DT</div>
-                      <div class="metric-label">Cash-flow cumulé actualisé</div>
-                    </div>
-                  </div>
-
-                  <div class="metric-item">
-                    <div class="metric-icon">
-                      <ng-icon name="lucideCalculator"></ng-icon>
-                    </div>
-                    <div class="metric-content">
-                      <div class="metric-value">{{ simulation.npv.toFixed(0) }} DT</div>
-                      <div class="metric-label">Valeur Actuelle Nette (VAN)</div>
+                    <div class="environmental-content">
+                      <div class="environmental-value success">{{ (simulation.totalCo2Avoided25Years / 1000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} <span class="unit">tonnes</span></div>
+                      <div class="environmental-label">CO₂ évité total</div>
+                      <div class="environmental-subtitle">Émissions cumulées sur la durée de vie</div>
                     </div>
                   </div>
                 </div>
               </div>
 
-      
               <!-- Recommendations -->
               <div class="analysis-section">
                 <h3 class="section-title">
@@ -474,11 +569,22 @@
                 </div>
                 <h3>Analyse en cours...</h3>
                 <p>Nous calculons votre solution solaire optimale</p>
-                <div class="loading-steps">
-                  <div class="loading-step active">Analyse de consommation</div>
-                  <div class="loading-step">Calcul d'ensoleillement</div>
-                  <div class="loading-step">Dimensionnement système</div>
-                  <div class="loading-step">Analyse économique</div>
+
+                <!-- Simulation Progress Logs -->
+                <div class="simulation-logs" *ngIf="simulationLogs().length > 0">
+                  <h4>Détails de l'analyse :</h4>
+                  <div class="logs-container">
+                    <div
+                      class="log-entry"
+                      *ngFor="let log of simulationLogs(); trackBy: trackByIndex"
+                      [class.current]="log === currentSimulationStep()"
+                    >
+                      <ng-icon name="lucideCheckCircle" class="log-icon" *ngIf="log.includes('✅')"></ng-icon>
+                      <ng-icon name="lucideXCircle" class="log-icon error" *ngIf="log.includes('❌')"></ng-icon>
+                      <ng-icon name="lucideLoader" class="log-icon spinning" *ngIf="!log.includes('✅') && !log.includes('❌') && log === currentSimulationStep()"></ng-icon>
+                      <span class="log-text">{{ log.replace('✅', '').replace('❌', '').trim() }}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

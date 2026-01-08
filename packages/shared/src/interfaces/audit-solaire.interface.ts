@@ -64,21 +64,25 @@ export interface  IAuditSolaireSimulation extends BusinessObject {
   installedPower: number; 
   annualProducible: number; 
   expectedProduction: number; 
-  systemSize_kWp: number; 
+  systemSize_kWp: number; // in kWc (kilowatt-crête) 
   energyCoverageRate: number; 
 
   monthlyPVProductions: MonthlyPVProductionData[];
 
-  installationCost: number; 
+  installationCost: number; // CAPEX in DT
   annualOpex: number;
   annualSavings: number; 
   totalSavings25Years: number;
   coverage: number; 
-  simplePaybackYears: number;
-  discountedPaybackYears: number;
-  roi25Years: number;
-  npv: number; 
-  irr: number;
+  simplePaybackYears?: number; // Payback simple in months
+  discountedPaybackYears?: number; // Payback actualisé in months
+  roi25Years?: number; // ROI in DT (absolute value, not percentage)
+  npv?: number; // VAN in DT
+  irr: number; // Internal Rate of Return (TRI)
+
+  // Environmental Impact
+  annualCo2Avoided: number; // Annual CO2 emissions avoided (kg)
+  totalCo2Avoided25Years: number; // Total CO2 avoided over 25 years (kg)
 
   // First year annual economic summary
   annualBillWithoutPV: number;

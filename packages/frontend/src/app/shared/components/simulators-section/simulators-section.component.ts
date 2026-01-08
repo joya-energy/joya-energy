@@ -39,7 +39,7 @@ export class SimulatorsSectionComponent {
       icon: 'chart',
       iconVariant: 'neutral',
       label: 'Diagnostic',
-      route: '/audit-energetique'
+      route: 'audit-energetique'
     },
     {
       title: 'Simulation photovoltaïque',
@@ -50,7 +50,7 @@ export class SimulatorsSectionComponent {
       iconVariant: 'default',
       label: 'Populaire',
       featured: true,
-      route: '/audit-solaire'
+      route: 'audit-solaire'
     },
     {
       title: 'Comparateur de financement',
@@ -60,32 +60,12 @@ export class SimulatorsSectionComponent {
       icon: 'card',
       iconVariant: 'aqua',
       label: 'ESCO vs Crédit',
-      route: '/audit-financement'
+      route: 'audit-financement'
     }
   ]);
 
   protected navigateTo(route: string): void {
-    console.log('🟢 [SimulatorsSection] navigateTo called with route:', route);
-    console.log('🟢 [SimulatorsSection] Current URL:', this.router.url);
-    console.log('🟢 [SimulatorsSection] Router config:', this.router.config);
-    
-    this.router.navigate([route]).then(
-      (success) => {
-        console.log('🟢 [SimulatorsSection] Navigation success:', success);
-        console.log('🟢 [SimulatorsSection] New URL:', this.router.url);
-      },
-      (error) => {
-        console.error('🔴 [SimulatorsSection] Navigation error:', error);
-      }
-    );
-  }
-
-  protected onLinkClick(event: Event, route: string): void {
-    console.log('🟢 [SimulatorsSection] Link clicked!');
-    console.log('🟢 [SimulatorsSection] Event:', event);
-    console.log('🟢 [SimulatorsSection] Route:', route);
-    console.log('🟢 [SimulatorsSection] Event target:', event.target);
-    console.log('🟢 [SimulatorsSection] Current URL before navigation:', this.router.url);
+    this.router.navigate([route]);
   }
 }
 

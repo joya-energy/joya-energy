@@ -129,6 +129,19 @@ export class AuditSolaireComponent {
   protected simulationResult = signal<IAuditSolaireSimulation | null>(null);
   protected monthSelectControl = new FormControl<string>('');
   protected invoiceChoice = signal<'yes' | 'no' | null>(null);
+  protected simulationLogs = signal<string[]>([]);
+  protected currentSimulationStep = signal<string>('');
+
+  protected readonly simulationSteps = [
+    'Initialisation de la simulation',
+    'Conversion du montant en consommation',
+    'Résolution des coordonnées géographiques',
+    'Récupération des données solaires PVGIS',
+    'Extrapolation du profil de consommation',
+    'Dimensionnement du système PV',
+    'Analyse économique (25 ans)',
+    'Sauvegarde de la simulation'
+  ];
 
   private readonly monthMap: Record<string, number> = {
     'Janvier': 1,
@@ -353,13 +366,37 @@ export class AuditSolaireComponent {
     };
 
     this.isSubmitting.set(true);
+    this.simulationLogs.set([]);
+    this.currentSimulationStep.set('Initialisation de la simulation');
+
+    // Simulate progress through steps
+    let stepIndex = 0;
+    const progressInterval = setInterval(() => {
+      stepIndex++;
+      if (stepIndex < this.simulationSteps.length) {
+        this.currentSimulationStep.set(this.simulationSteps[stepIndex]);
+        this.simulationLogs.update(logs => [...logs, this.simulationSteps[stepIndex]]);
+      }
+    }, 800); // Update every 800ms to simulate progress
+
     this.auditSolaireService
       .createSimulation(payload)
-      .pipe(finalize(() => this.isSubmitting.set(false)))
+      .pipe(finalize(() => {
+        clearInterval(progressInterval);
+        this.isSubmitting.set(false);
+      }))
       .subscribe({
         next: (result: IAuditSolaireSimulation) => {
+          console.log('✅ Simulation completed with economic metrics:', {
+            simplePaybackYears: result.simplePaybackYears,
+            discountedPaybackYears: result.discountedPaybackYears,
+            roi25Years: result.roi25Years,
+            npv: result.npv
+          });
+
           this.simulationResult.set(result);
           this.step.set(AuditSolaireFormStep.REVIEW);
+          this.simulationLogs.update(logs => [...logs, 'Simulation terminée avec succès ✅']);
           this.notificationStore.addNotification({
             type: 'success',
             title: 'Simulation prête',
@@ -367,7 +404,9 @@ export class AuditSolaireComponent {
           });
         },
         error: (error: unknown) => {
+          clearInterval(progressInterval);
           console.error(error);
+          this.simulationLogs.update(logs => [...logs, 'Erreur lors de la simulation ❌']);
           this.notificationStore.addNotification({
             type: 'error',
             title: 'Erreur',
@@ -392,8 +431,9 @@ export class AuditSolaireComponent {
     }
   }
 
-  protected formatPaybackPeriod(months: number): string {
-    if (!months || months <= 0 || !Number.isFinite(months)) return '—';
+  protected formatPaybackPeriod(months: number | undefined): string {
+    if (months === 0 || months === null || months === undefined) return 'Payback non atteint';
+    if (!Number.isFinite(months) || months < 0) return '> 25 ans';
 
     const years = Math.floor(months / 12);
     const remainingMonths = months % 12;
@@ -409,6 +449,10 @@ export class AuditSolaireComponent {
 
   public trackByField(_: number, field: any): string {
     return field.control;
+  }
+
+  public trackByIndex(index: number): number {
+    return index;
   }
 }
 

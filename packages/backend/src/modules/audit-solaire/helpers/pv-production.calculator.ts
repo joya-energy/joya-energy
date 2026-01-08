@@ -61,8 +61,8 @@ export function calculateTheoreticalPVPower(
  * 
  * The installed power equals the theoretical power needed to cover consumption.
  * 
- * @param theoreticalPower - Theoretical PV power (kWp)
- * @returns Installed PV power (kWp)
+ * @param theoreticalPower - Theoretical PV power (kWc)
+ * @returns Installed PV power (kWc)
  */
 export function calculateInstalledPVPower(theoreticalPower: number): number {
   return Number(theoreticalPower.toFixed(2));
@@ -175,7 +175,7 @@ export function calculatePVProduction(input: PVProductionInput): PVProductionRes
   const annualPVProduction = monthlyPVProductions.reduce((sum, prod) => sum + prod, 0);
   const energyCoverageRate = calculateEnergyCoverageRate(annualPVProduction, input.annualConsumption);
 
-  Logger.info(`PV System: ${installedPower} kWp, Annual production: ${annualPVProduction} kWh, Coverage: ${energyCoverageRate}%`);
+  Logger.info(`PV System: ${installedPower} kWc, Annual production: ${annualPVProduction} kWh, Coverage: ${energyCoverageRate}%`);
 
   return {
     installedPower,
