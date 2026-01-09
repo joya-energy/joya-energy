@@ -674,3 +674,63 @@ auditEnergetiqueSimulationRoutes.post(
   '/send-pv-pdf',
   (req, res) => pvReportController.sendPVReport(req, res)
 );
+
+// ------------------------------------------
+// NEW ROUTE: Download PV report PDF directly
+// ------------------------------------------
+/**
+ * @swagger
+ * /audit-energetique-simulations/download-pv-pdf:
+ *   post:
+ *     summary: Generate and download PV (photovoltaic) report PDF
+ *     tags: [Audit Simulation]
+ *     description: |
+ *       Generates a PV report PDF and triggers a browser download. The PDF is also automatically saved to Google Cloud Storage.
+ *       
+ *       **Data Sources:**
+ *       - **solaireId (REQUIRED)**: Audit Solaire simulation ID - provides PV power, production, yield, financial metrics
+ *       - **energetiqueId (OPTIONAL)**: Audit Energetique simulation ID - provides CO₂ emissions data
+ *       
+ *       **Requirements:**
+ *       - The solaire simulation must have completed economic analysis (annualEconomics or monthlyEconomics data)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               solaireId:
+ *                 type: string
+ *                 description: Audit Solaire simulation ID (REQUIRED for PV calculations)
+ *                 example: "69539fae7d92e87c2930f85e"
+ *               energetiqueId:
+ *                 type: string
+ *                 description: Audit Energetique simulation ID (OPTIONAL - provides CO₂ emissions data)
+ *                 example: "695268f9f6dcdc59f2c82461"
+ *               simulationId:
+ *                 type: string
+ *                 description: Legacy support - will try to find in Audit Solaire first, then Energetique
+ *     responses:
+ *       200:
+ *         description: PDF generated and returned as download
+ *         content:
+ *           application/pdf:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       400:
+ *         description: |
+ *           Bad request. Possible reasons:
+ *           - Either solaireId or energetiqueId (or legacy simulationId) is required
+ *           - Solar audit simulation is missing required economics data
+ *           - Solar audit simulation is missing required financial metrics (NPV, IRR, ROI, Payback periods)
+ *       404:
+ *         description: Simulation not found (solaireId or energetiqueId does not exist)
+ *       500:
+ *         description: PV PDF generation failed (check server logs for details)
+ */
+auditEnergetiqueSimulationRoutes.post(
+  '/download-pv-pdf',
+  (req, res) => pvReportController.downloadPVReportPDF(req, res)
+);

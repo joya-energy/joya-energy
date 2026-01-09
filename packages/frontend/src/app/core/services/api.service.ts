@@ -43,4 +43,13 @@ export class ApiService {
   delete<T>(path: string): Observable<T> {
     return this.http.delete<T>(`${this.apiUrl}${path}`).pipe(catchError(this.formatErrors));
   }
+
+  downloadFile(path: string, body: Object = {}): Observable<Blob> {
+    return this.http
+      .post(`${this.apiUrl}${path}`, JSON.stringify(body), {
+        headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+        responseType: 'blob',
+      })
+      .pipe(catchError(this.formatErrors));
+  }
 }

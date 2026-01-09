@@ -332,6 +332,7 @@ export function buildPvReportDataFromSolaire(
         monthlyRawConsumptions,
         monthlyBilledConsumptions,
         installedPowerKwp: pvPower,
+        annualPVProduction: pvProductionYear1,
         projectLifetimeYears: 25,
       });
       

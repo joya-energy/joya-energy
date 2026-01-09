@@ -551,9 +551,19 @@
                   <ng-icon name="lucideArrowLeft"></ng-icon>
                   Nouvelle Simulation
                 </button>
-                <button type="button" class="btn-primary">
-                  <ng-icon name="lucideDownload"></ng-icon>
-                  Télécharger le Rapport
+                <button 
+                  type="button" 
+                  class="btn-primary"
+                  (click)="downloadPVReport()"
+                  [disabled]="isGeneratingPDF() || !simulationResult()?.id">
+                  <ng-container *ngIf="!isGeneratingPDF(); else generatingLabel">
+                    <ng-icon name="lucideDownload"></ng-icon>
+                    Télécharger le Rapport
+                  </ng-container>
+                  <ng-template #generatingLabel>
+                    <ng-icon name="lucideLoader" class="spinning"></ng-icon>
+                    Génération en cours...
+                  </ng-template>
                 </button>
                 <button type="button" class="btn-primary">
                   <ng-icon name="lucidePhone"></ng-icon>
