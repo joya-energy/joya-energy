@@ -1,0 +1,42 @@
+<div 
+  class="solution-card" 
+  [class.highlighted]="highlighted()"
+  [style.border-color]="getSolutionColor(solution().type)">
+  
+  <div class="card-header" [style.background-color]="getSolutionColor(solution().type)">
+    <h3>{{ getSolutionTitle(solution().type) }}</h3>
+  </div>
+
+  <div class="card-body">
+    <div class="metric">
+      <span class="label">Investissement initial</span>
+      <span class="value">{{ solution().initialInvestment | number:'1.0-0' }} DT</span>
+    </div>
+
+    <div class="metric">
+      <span class="label">Mensualité</span>
+      <span class="value">{{ solution().monthlyPayment | number:'1.2-2' }} DT</span>
+    </div>
+
+    <div class="metric">
+      <span class="label">OPEX mensuel</span>
+      <span class="value">{{ solution().monthlyOpex | number:'1.2-2' }} DT</span>
+    </div>
+
+    <div class="metric highlight">
+      <span class="label">Coût mensuel total</span>
+      <span class="value">{{ solution().totalMonthlyCost | number:'1.2-2' }} DT</span>
+    </div>
+
+    <div class="metric cashflow" [class.positive]="solution().monthlyCashflow > 0">
+      <span class="label">Cashflow mensuel</span>
+      <span class="value">{{ solution().monthlyCashflow | number:'1.2-2' }} DT</span>
+    </div>
+
+    <div class="metric">
+      <span class="label">Durée</span>
+      <span class="value">{{ solution().durationYears }} ans</span>
+    </div>
+  </div>
+</div>
+

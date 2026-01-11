@@ -1,0 +1,63 @@
+@if (result(); as comparison) {
+  <div class="comparison-results">
+    <div class="project-summary">
+      <h2>Résumé du projet</h2>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <span class="label">Localisation</span>
+          <span class="value">{{ comparison.input.location }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Taille</span>
+          <span class="value">{{ comparison.projectCalculation.sizeKwp | number:'1.2-2' }} kWp</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">CAPEX</span>
+          <span class="value">{{ comparison.projectCalculation.capexDt | number:'1.0-0' }} DT</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Production annuelle</span>
+          <span class="value">{{ comparison.projectCalculation.annualProductionKwh | number:'1.0-0' }} kWh</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Économies mensuelles</span>
+          <span class="value">{{ comparison.projectCalculation.monthlyGrossSavingsDt | number:'1.2-2' }} DT</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">OPEX mensuel</span>
+          <span class="value">{{ comparison.projectCalculation.monthlyOpexDt | number:'1.2-2' }} DT</span>
+        </div>
+      </div>
+    </div>
+
+    <h2>Comparaison des solutions de financement</h2>
+    <p class="subtitle">Toutes les solutions sont comparées sur 7 ans</p>
+
+    <div class="solutions-grid">
+      @for (solution of solutions(); track solution.type) {
+        <app-solution-card 
+          [solution]="solution"
+          [highlighted]="isBestCashflow(solution.type)" />
+      }
+    </div>
+
+    <div class="insights">
+      <h3>Points clés</h3>
+      @if (bestCashflow(); as best) {
+        <div class="insight">
+          <strong>Meilleur cashflow mensuel:</strong> 
+          {{ best.type === 'cash' ? 'Comptant' : best.type === 'credit' ? 'Crédit' : best.type === 'leasing' ? 'Leasing' : 'ESCO JOYA' }}
+          ({{ best.monthlyCashflow | number:'1.2-2' }} DT/mois)
+        </div>
+      }
+      @if (lowestInitialInvestment(); as lowest) {
+        <div class="insight">
+          <strong>Investissement initial le plus faible:</strong> 
+          {{ lowest.type === 'cash' ? 'Comptant' : lowest.type === 'credit' ? 'Crédit' : lowest.type === 'leasing' ? 'Leasing' : 'ESCO JOYA' }}
+          ({{ lowest.initialInvestment | number:'1.0-0' }} DT)
+        </div>
+      }
+    </div>
+  </div>
+}
+
