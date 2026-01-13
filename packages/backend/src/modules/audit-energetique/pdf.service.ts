@@ -11,6 +11,7 @@ import { FileService } from '../file/file.service';
 import { FileType, type IFile } from '@shared/interfaces/file.interface';
 import { Logger } from '@backend/middlewares/logger.midddleware';
 import { getFileService } from '../file/file.service.factory';
+import { AuditSimulationTypes } from '@backend/enums';
 
 type PDFInputDto =
   | AuditEnergetiqueResponseDto
@@ -86,31 +87,31 @@ export class AuditPDFService {
         'utf8'
       ));
 
-      // Cache images
-      const imageDir = path.resolve(__dirname, './image');
-      const imageFiles = [
-        'cover.png',
-        'logo.png',
-        'building.png',
-        'cold.png',
-        'heat.png',
-        'light.png',
-        'equipment.png',
-        'ecs.png',
-        'energy.png',
-        'building2.png',
-        'panneau.png',
-        'bank.png',
-        'invest.png',
-        'pv-cover.png',
+      // Cache images from organized uploads folders
+      const uploadsDir = path.resolve(__dirname, './uploads');
+      const imageMapping = [
+        { file: 'cover.png', category: 'covers' },
+        { file: 'logo.png', category: 'branding' },
+        { file: 'building.png', category: 'buildings' },
+        { file: 'building2.png', category: 'buildings' },
+        { file: 'cold.png', category: 'icons' },
+        { file: 'heat.png', category: 'icons' },
+        { file: 'light.png', category: 'icons' },
+        { file: 'equipment.png', category: 'icons' },
+        { file: 'ecs.png', category: 'icons' },
+        { file: 'energy.png', category: 'icons' },
+        { file: 'panneau.png', category: 'solar' },
+        { file: 'pv-cover.png', category: 'solar' },
+        { file: 'bank.png', category: 'financial' },
+        { file: 'invest.png', category: 'financial' },
       ];
 
-      for (const imageFile of imageFiles) {
-        const imagePath = path.join(imageDir, imageFile);
+      for (const { file, category } of imageMapping) {
+        const imagePath = path.join(uploadsDir, category, file);
         if (fs.existsSync(imagePath)) {
-          this.assetsCache.images.set(imageFile, fs.readFileSync(imagePath).toString('base64'));
+          this.assetsCache.images.set(file, fs.readFileSync(imagePath).toString('base64'));
         } else {
-          Logger.warn(`⚠️ Image file not found: ${imageFile}`);
+          Logger.warn(`⚠️ Image file not found: ${category}/${file}`);
         }
       }
 
@@ -378,6 +379,11 @@ export class AuditPDFService {
           ? null  // Only Solaire, no Energetique data
           : (dto as AuditEnergetiqueResponseDto).data;
 
+    // Helper to format numbers or return "N/A" for null values
+    const formatNumberOrNA = (value: number | null | undefined): string | number => {
+      return value === null || value === undefined ? 'N/A' : value;
+    };
+
     const flattened: Record<string, string | number | boolean> = {
      studyDuration: 25,
      pvDegradation: 0.4,
@@ -386,25 +392,25 @@ export class AuditPDFService {
 
      
      // ---- END USES (FLAT KEYS FOR TEMPLATE) ----
-'endUses.cooling.consumptionKwh': endUses?.cooling.consumptionKwh ?? 0,
-'endUses.cooling.costTnd': endUses?.cooling.costTnd ?? 0,
-'endUses.cooling.sharePercent': endUses?.cooling.sharePercent ?? 0,
+'endUses.cooling.consumptionKwh': formatNumberOrNA(endUses?.cooling.consumptionKwh),
+'endUses.cooling.costTunisianDinar': formatNumberOrNA(endUses?.cooling.costTunisianDinar),
+'endUses.cooling.sharePercent': formatNumberOrNA(endUses?.cooling.sharePercent),
 
-'endUses.heating.consumptionKwh': endUses?.heating.consumptionKwh ?? 0,
-'endUses.heating.costTnd': endUses?.heating.costTnd ?? 0,
-'endUses.heating.sharePercent': endUses?.heating.sharePercent ?? 0,
+'endUses.heating.consumptionKwh': formatNumberOrNA(endUses?.heating.consumptionKwh),
+'endUses.heating.costTunisianDinar': formatNumberOrNA(endUses?.heating.costTunisianDinar),
+'endUses.heating.sharePercent': formatNumberOrNA(endUses?.heating.sharePercent),
 
-'endUses.lighting.consumptionKwh': endUses?.lighting.consumptionKwh ?? 0,
-'endUses.lighting.costTnd': endUses?.lighting.costTnd ?? 0,
-'endUses.lighting.sharePercent': endUses?.lighting.sharePercent ?? 0,
+'endUses.lighting.consumptionKwh': formatNumberOrNA(endUses?.lighting.consumptionKwh),
+'endUses.lighting.costTunisianDinar': formatNumberOrNA(endUses?.lighting.costTunisianDinar),
+'endUses.lighting.sharePercent': formatNumberOrNA(endUses?.lighting.sharePercent),
 
-'endUses.equipment.consumptionKwh': endUses?.equipment.consumptionKwh ?? 0,
-'endUses.equipment.costTnd': endUses?.equipment.costTnd ?? 0,
-'endUses.equipment.sharePercent': endUses?.equipment.sharePercent ?? 0,
+'endUses.equipment.consumptionKwh': formatNumberOrNA(endUses?.equipment.consumptionKwh),
+'endUses.equipment.costTunisianDinar': formatNumberOrNA(endUses?.equipment.costTunisianDinar),
+'endUses.equipment.sharePercent': formatNumberOrNA(endUses?.equipment.sharePercent),
 
-'endUses.ecs.consumptionKwh': endUses?.ecs.consumptionKwh ?? 0,
-'endUses.ecs.costTnd': endUses?.ecs.costTnd ?? 0,
-'endUses.ecs.sharePercent': endUses?.ecs.sharePercent ?? 0,
+'endUses.domesticHotWater.consumptionKwh': formatNumberOrNA(endUses?.domesticHotWater.consumptionKwh),
+'endUses.domesticHotWater.costTunisianDinar': formatNumberOrNA(endUses?.domesticHotWater.costTunisianDinar),
+'endUses.domesticHotWater.sharePercent': formatNumberOrNA(endUses?.domesticHotWater.sharePercent),
 
 
 
@@ -470,13 +476,24 @@ export class AuditPDFService {
     // ===============================
     if (template === 'pv') {
       // Format numbers for display (without locale formatting to avoid space issues)
-      const formatNumber = (n: number | string | undefined, decimals = 2): string => {
-        const num = typeof n === 'string' ? parseFloat(n) : (n ?? 0);
-        if (!Number.isFinite(num) || num === 0) {
-          // Return "0" for zero values, but keep decimals for display
+      // Returns "N/A" for null/undefined values (missing data)
+      const formatNumber = (n: number | string | null | undefined, decimals = 2): string => {
+        // Return "N/A" for missing data (null or undefined)
+        if (n === null || n === undefined) {
+          return 'N/A';
+        }
+        
+        const num = typeof n === 'string' ? parseFloat(n) : n;
+        if (!Number.isFinite(num)) {
+          return 'N/A';
+        }
+        
+        // Handle zero values (real zeros, not missing data)
+        if (num === 0) {
           if (decimals === 0) return '0';
           return '0' + (decimals > 0 ? '.' + '0'.repeat(decimals) : '');
         }
+        
         // Format with French number style (space as thousand separator, comma as decimal)
         const fixed = num.toFixed(decimals);
         const parts = fixed.split('.');
@@ -490,38 +507,43 @@ export class AuditPDFService {
       Object.assign(flattened, reportData as Record<string, number | string>);
       
       // Add missing financial metrics that template expects
-      flattened.gainDiscounted = formatNumber(pvData.gainDiscounted ?? 0, 0);
-      flattened.cashflowCumulated = formatNumber(pvData.cashflowCumulated ?? 0, 0);
-      flattened.cashflowDiscounted = formatNumber(pvData.cashflowDiscounted ?? 0, 0);
+      // Pass null values directly - formatNumber will return "N/A" for missing data
+      flattened.gainDiscounted = formatNumber(pvData.gainDiscounted, 0);
+      flattened.cashflowCumulated = formatNumber(pvData.cashflowCumulated, 0);
+      flattened.cashflowDiscounted = formatNumber(pvData.cashflowDiscounted, 0);
       
       // Ensure all PV fields are properly formatted and override with formatted values
-      flattened.pvPower = formatNumber(pvData.pvPower ?? 0, 2);
-      flattened.pvYield = formatNumber(pvData.pvYield ?? 0, 0);
-      flattened.pvProductionYear1 = formatNumber(pvData.pvProductionYear1 ?? 0, 0);
-      flattened.coverageRate = formatNumber(pvData.coverageRate ?? 0, 1);
+      flattened.pvPower = formatNumber(pvData.pvPower, 2);
+      flattened.pvYield = formatNumber(pvData.pvYield, 0);
+      flattened.pvProductionYear1 = formatNumber(pvData.pvProductionYear1, 0);
+      flattened.coverageRate = formatNumber(pvData.coverageRate, 1);
       
       // Use actual values from PV data (these should be calculated correctly)
-      flattened.consumptionWithoutPV = formatNumber(pvData.consumptionWithoutPV ?? 0, 0);
-      flattened.consumptionWithPV = formatNumber(pvData.consumptionWithPV ?? 0, 0);
-      flattened.avgPriceWithoutPV = formatNumber(pvData.avgPriceWithoutPV ?? 0, 3);
-      flattened.avgPriceWithoutPV_mDt = formatNumber(pvData.avgPriceWithoutPV_mDt ?? 0, 0);
-      flattened.avgPriceWithPV = formatNumber(pvData.avgPriceWithPV ?? 0, 3);
-      flattened.avgPriceWithPV_mDt = formatNumber(pvData.avgPriceWithPV_mDt ?? 0, 0);
-      flattened.annualSavings = formatNumber(pvData.annualSavings ?? 0, 0);
-      flattened.gainCumulated = formatNumber(pvData.gainCumulated ?? 0, 0);
-      flattened.npv = formatNumber(pvData.npv ?? 0, 0);
-      flattened.paybackSimple = formatNumber(pvData.paybackSimple ?? 0, 2);
-      flattened.paybackDiscounted = formatNumber(pvData.paybackDiscounted ?? 0, 2);
-      flattened.irr = formatNumber(pvData.irr ?? 0, 2);
-      flattened.roi = formatNumber(pvData.roi ?? 0, 2);
-      flattened.co2PerYear = formatNumber(pvData.co2PerYear ?? 0, 2);
-      flattened.co2Total = formatNumber(pvData.co2Total ?? 0, 0);
+      flattened.consumptionWithoutPV = formatNumber(pvData.consumptionWithoutPV, 0);
+      flattened.consumptionWithPV = formatNumber(pvData.consumptionWithPV, 0);
+      flattened.avgPriceWithoutPV = formatNumber(pvData.avgPriceWithoutPV, 3);
+      flattened.avgPriceWithoutPV_mDt = pvData.avgPriceWithoutPV !== null 
+        ? formatNumber(pvData.avgPriceWithoutPV * 1000, 0)
+        : 'N/A';
+      flattened.avgPriceWithPV = formatNumber(pvData.avgPriceWithPV, 3);
+      flattened.avgPriceWithPV_mDt = pvData.avgPriceWithPV !== null
+        ? formatNumber(pvData.avgPriceWithPV * 1000, 0)
+        : 'N/A';
+      flattened.annualSavings = formatNumber(pvData.annualSavings, 0);
+      flattened.gainCumulated = formatNumber(pvData.gainCumulated, 0);
+      flattened.npv = formatNumber(pvData.npv, 0);
+      flattened.paybackSimple = formatNumber(pvData.paybackSimple, 2);
+      flattened.paybackDiscounted = formatNumber(pvData.paybackDiscounted, 2);
+      flattened.irr = formatNumber(pvData.irr, 2);
+      flattened.roi = formatNumber(pvData.roi, 2);
+      flattened.co2PerYear = formatNumber(pvData.co2PerYear, 2);
+      flattened.co2Total = formatNumber(pvData.co2Total, 0);
       
-      // Investment information
-      flattened.capexPerKwp = formatNumber(pvData.capexPerKwp ?? 2000, 0);
-      flattened.annualOpexRate = formatNumber(pvData.annualOpexRate ?? 4, 0);
-      flattened.capexTotal = formatNumber(pvData.capexTotal ?? 0, 0);
-      flattened.opexAnnual = formatNumber(pvData.opexAnnual ?? 0, 0);
+      // Investment information (capexPerKwp and annualOpexRate are constants, not nullable)
+      flattened.capexPerKwp = formatNumber(pvData.capexPerKwp, 0);
+      flattened.annualOpexRate = formatNumber(pvData.annualOpexRate, 0);
+      flattened.capexTotal = formatNumber(pvData.capexTotal, 0);
+      flattened.opexAnnual = formatNumber(pvData.opexAnnual, 0);
       
       // Format annual consumption for PV template
       // Use Solaire annualConsumption if available, otherwise Energetique
@@ -529,14 +551,18 @@ export class AuditPDFService {
         (data?.results?.energyConsumption?.annual?.value ?? 0);
       flattened.annualConsumption = formatNumber(annualConsumptionValue, 0);
       
-      // Use actual CO2 data from audit if PV data doesn't have it or is zero
-      const co2TonsFromAudit = data?.results?.co2Emissions?.annual?.tons ?? 0;
-      if (!pvData.co2PerYear || pvData.co2PerYear === 0) {
+      // Use actual CO2 data from audit if PV data doesn't have it
+      // Pass null if audit data is also missing (formatNumber will return "N/A")
+      if (pvData.co2PerYear === null || pvData.co2PerYear === undefined) {
+        const co2TonsFromAudit = data?.results?.co2Emissions?.annual?.tons;
         flattened.co2PerYear = formatNumber(co2TonsFromAudit, 2);
       }
-      if (!pvData.co2Total || pvData.co2Total === 0) {
+      if (pvData.co2Total === null || pvData.co2Total === undefined) {
+        const co2TonsFromAudit = data?.results?.co2Emissions?.annual?.tons;
         const studyDuration = typeof flattened.studyDuration === 'number' ? flattened.studyDuration : 25;
-        flattened.co2Total = formatNumber(co2TonsFromAudit * studyDuration, 0);
+        flattened.co2Total = co2TonsFromAudit !== null && co2TonsFromAudit !== undefined
+          ? formatNumber(co2TonsFromAudit * studyDuration, 0)
+          : formatNumber(null, 0);
       }
     }
 
@@ -572,7 +598,9 @@ export class AuditPDFService {
       
       const metadata: IFile['metadata'] = {
         simulationId,
-        simulationType: template === 'pv' ? (finalSolaireDto ? 'solaire' : 'energetique') : 'energetique',
+        simulationType: template === 'pv' 
+          ? (finalSolaireDto ? AuditSimulationTypes.AUDIT_SOLAIRE : AuditSimulationTypes.AUDIT_ENERGETIQUE) 
+          : AuditSimulationTypes.AUDIT_ENERGETIQUE,
         companyName: data?.contact?.companyName || data?.contact?.fullName || undefined,
       };
 

@@ -415,22 +415,22 @@ export function calculateROI(
  * NPV > 0 → Project is profitable
  * NPV < 0 → Project loses money
  * NPV = 0 → Break-even
- * 
- * Note: We use the last year's cumulativeNetGainDiscounted which already contains
- * the sum of all discounted net gains over the project lifetime.
  */
 export function calculateNPV(
   investmentCost: number,
-  annualResults: AnnualEconomicResult[]
+  annualResults: AnnualEconomicResult[],
+  discountRate: number = 0.08
 ): number {
   if (annualResults.length === 0) {
     return -investmentCost;
   }
 
-  // Use the last year's cumulative discounted net gain
-  // This already contains the sum of all discounted net gains (Σ [Gain_net(n) / (1+r)^n])
-  const lastYear = annualResults[annualResults.length - 1];
-  const totalDiscountedGain = lastYear.cumulativeNetGainDiscounted;
+  // Sum individual discounted net gains for each year
+  // Formula: Σ [Gain_net(n) / (1+r)^n]
+  const totalDiscountedGain = annualResults.reduce((sum, result) => {
+    const discountedValue = calculateDiscountedValue(result.netGain, result.year, discountRate);
+    return sum + discountedValue;
+  }, 0);
 
   const npv = -investmentCost + totalDiscountedGain;
   return Number(npv.toFixed(2));
@@ -602,7 +602,7 @@ export function analyzeEconomics(input: EconomicAnalysisInput): EconomicAnalysis
   const simplePaybackYears = calculateSimplePayback(investmentCost, annualResults);
   const discountedPaybackYears = calculateDiscountedPayback(investmentCost, annualResults);
   const returnOnInvestmentPercent = calculateROI(investmentCost, annualResults);
-  const netPresentValue = calculateNPV(investmentCost, annualResults);
+  const netPresentValue = calculateNPV(investmentCost, annualResults, discountRate);
   const internalRateOfReturnPercent = calculateIRR(investmentCost, annualResults);
 
   // Calculate CO2 avoided emissions

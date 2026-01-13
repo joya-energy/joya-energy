@@ -3,10 +3,9 @@
 ========================== */
 
 :root {
-  
-  --joya-orange-light: #F6B8A6;   
-  --joya-orange-soft:  #FCE6DE;   
-  --joya-orange-main:  #E67E5F;  
+  --joya-orange-light: #F6B8A6;
+  --joya-orange-soft: #FCE6DE;
+  --joya-orange-main: #E67E5F;
   --joya-orange: #D8694A;
   --joya-blue: #234A63;
   --joya-blue-dark: #1E3A5F;
@@ -89,21 +88,19 @@ h3 {
 .cover-center p,
 .dpe-methodology {
   font-size: 13px;
-  color: #6b7280;        
+  color: #6b7280;
   line-height: 1.6;
   max-width: 760px;
-  margin-left: auto;
-  margin-right: auto;
-   text-align: center;
-   margin: 10px auto 0; 
+  text-align: center;
+  margin: 10px auto 0;
 }
 
 .cover-center h1 {
   font-size: 24px;
   font-weight: 700;
-color: var(--joya-blue);
+  color: var(--joya-blue);
   margin: 0;
-  white-space: nowrap;          
+  white-space: nowrap;
 }
 
 .cover-center {
@@ -113,7 +110,7 @@ color: var(--joya-blue);
 
 
 .cover-image-big {
-  margin-top:  80px; ;             
+  margin-top: 80px;
   display: flex;
   justify-content: center;
 }
@@ -151,7 +148,7 @@ color: var(--joya-blue);
 .dpe-page h1 {
   font-size: 22px;
   font-weight: 700;
-color: var(--joya-blue);
+  color: var(--joya-blue);
   margin-bottom: 6px;
 }
 
@@ -208,7 +205,7 @@ color: var(--joya-blue);
 .dpe-scale h3 {
   font-size: 15px;
   font-weight: 600;
-color: var(--joya-blue);
+  color: var(--joya-blue);
   margin-bottom: 10px;
 }
 
@@ -262,8 +259,7 @@ color: var(--joya-blue);
   box-shadow:
     inset 0 0 0 2px black,
     0 3px 8px rgba(0,0,0,0.15);
-      font-weight: 800;
-
+  font-weight: 800;
 }
 
 
@@ -317,7 +313,7 @@ color: var(--joya-blue);
 .dpe-card h4 {
   font-size: 15px;
   font-weight: 600;
-color: var(--joya-blue);
+  color: var(--joya-blue);
   margin-bottom: 10px;
 }
 
@@ -389,7 +385,7 @@ color: var(--joya-blue);
 .header-title {
   font-size: 14px;
   font-weight: 600;
-color: var(--joya-blue);
+  color: var(--joya-blue);
 }
 
 .header-sub {
@@ -450,7 +446,7 @@ color: var(--joya-blue);
 .energy-card h3 {
   font-size: 16px;
   font-weight: 600;
-color: var(--joya-blue);
+  color: var(--joya-blue);
   margin-bottom: 8px;
   text-align: center;
 }
@@ -662,69 +658,15 @@ color: var(--joya-blue);
   text-align: left;
 }
 
-
-.usage-table tfoot td {
-  padding: 14px 12px;
-  font-weight: 700;
-  color: #243b53;
-  background: #ffffff;
-  border-top: 2px solid #e6bfb2;
-  text-align: center;
-}
-
-.usage-table tfoot td:first-child {
-  text-align: left;
-}
-
 .cost-split {
   display: flex;
   align-items: center;
-  justify-content: center;       
+  justify-content: center;
   gap: 8px;
 }
 
 .usage-table td {
   border-right: 1px solid var(--joya-border);
-
-}
-
-/* ==========================
-   RECOMMENDATION — PAGE 4
-========================== */
-
-
-.reco-block {
-  background: transparent;
-  border: none;
-  padding: 0;
-}
-
-.reco-block-table {
-  margin-bottom: 14px;
-  border: 1px solid #e5e7eb;
-}
-
-.reco-block-text {
-  border: 1px solid #e5e7eb;
-background: var(--joya-bg-soft);
-}
-
-.reco-intro {
-  font-size: 13px;
-  color: #374151;
-  line-height: 1.5;
-  margin-bottom: 10px;
-}
-
-.reco-benefits {
-  padding-left: 18px;
-  margin: 0;
-}
-
-.reco-benefits li {
-  font-size: 13px;
-  color: #374151;
-  margin-bottom: 6px;
 }
 
 .cost-bar {
@@ -737,7 +679,7 @@ background: var(--joya-bg-soft);
 
 .cost-bar-fill {
   height: 100%;
-    background: var(--joya-orange-main);
+  background: var(--joya-orange-main);
   border-radius: 6px;
 }
 
@@ -747,6 +689,7 @@ background: var(--joya-bg-soft);
   color: var(--joya-orange-main);
   white-space: nowrap;
 }
+
 /* ==========================
    RECOMMENDATION — PAGE 4
 ========================== */

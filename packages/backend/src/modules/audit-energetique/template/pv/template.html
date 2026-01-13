@@ -236,26 +236,28 @@
         <p>Consommation d’électricité :<br /> </p>
         <p> <strong>{{consumptionWithoutPV}} kWh/an</strong></p>
 
-        <div class="old-arrow">⬇</div>
+        <div class="old-arrow">↓</div>
 
 
 
         <p class="old-price">
           <strong>{{avgPriceWithoutPV}}</strong> Dt HT/kWh<br />
-          Prix Moyen d’achat d’électricité
+          Prix Moyen d'achat d'électricité
         </p>
 
 
       </div>
 
-      <!-- CENTER ICON -->
+      <!-- CENTER: ECONOMY CARD -->
       <div class="old-center">
-        <img
-          class="old-pv-icon"
-          src="data:image/png;base64,{{panneauIconBase64}}"
+        <div class="bill-savings-card">
 
-          
-        />
+          <div class="bill-savings-text">
+            💡 Économie annuelle moyenne estimée :
+            <strong>≈ {{annualSavings}} DT / an</strong>
+          </div>
+
+        </div>
       </div>
 
       <!-- RIGHT BLOCK -->
@@ -266,36 +268,17 @@
 
         <p>Consommation d’électricité :<br /> </p>
         <p> <strong>{{consumptionWithPV}} kWh/an</strong></p>
-        <div class="old-arrow">⬇</div>
+        <div class="old-arrow">↓</div>
 
 
         <p class="old-price">
           <strong>{{avgPriceWithPV}}</strong> Dt HT/kWh<br />
-          Prix Moyen d’achat d’électricité
+          Prix Moyen d'achat d'électricité
         </p>
 
       </div>
 
     </div>
-
-
-    <!-- ECONOMY MESSAGE -->
-<div class="bill-savings-wrapper">
-  <div class="bill-savings-card">
-
-    <div class="bill-savings-text">
-      💡 Économie annuelle moyenne estimée :
-      <strong>≈ {{annualSavings}} DT / an</strong>
-    </div>
-
-    <img
-      class="bill-savings-icon"
-      src="data:image/png;base64,{{bankIconBase64}}"
-      alt="Économie"
-    />
-
-  </div>
-</div>
 
 
   </div>
@@ -407,7 +390,7 @@
   </tr>
   <tr class="highlight">
     <td>ROI global</td>
-    <td>{{roi}} <span>%</span></td>
+    <td>{{roi}} <span>DT</span></td>
   </tr>
 </table>
 

@@ -11,9 +11,7 @@ import {
   EmissionUnit
 } from '@shared/enums/classification.enum';
 
-/* ============================================================
- * BASIC INFORMATION DTOs
- * ============================================================ */
+
 
 export interface ContactInfo {
   fullName: string;
@@ -57,10 +55,6 @@ export interface BillingInfo {
   recentBillConsumption?: number;
   billAttachmentUrl?: string;
 }
-
-/* ============================================================
- * ENERGY RESULTS DTOs
- * ============================================================ */
 
 export interface EnergyConsumption {
   annual: {
@@ -109,6 +103,7 @@ export interface EnergyClassification {
   class: ClassificationGrade;
   description: string;
   isApplicable: boolean;
+  note?: string;
 }
 
 export interface CarbonClassification {
@@ -122,31 +117,27 @@ export interface CarbonClassification {
   isApplicable: boolean;
 }
 
-/* ============================================================
- * 🔥 END-USE BREAKDOWN DTOs (IMPORTANT)
- * ============================================================ */
+
 
 export interface EnergyEndUseItemDto {
   consumptionKwh: number;
-  costTnd: number;
+  costTunisianDinar: number;
   sharePercent: number;
 }
 
 export interface EnergyEndUseBreakdownDto {
   totalConsumptionKwh: number;
-  totalCostTnd: number;
+  totalCostTunisianDinar: number;
   breakdown: {
     cooling: EnergyEndUseItemDto;
     heating: EnergyEndUseItemDto;
     lighting: EnergyEndUseItemDto;
     equipment: EnergyEndUseItemDto;
-    dhw: EnergyEndUseItemDto;
+    domesticHotWater: EnergyEndUseItemDto;
   };
 }
 
-/* ============================================================
- * MAIN RESPONSE DTO
- * ============================================================ */
+
 
 export interface AuditEnergetiqueResponseDto {
   success: boolean;
@@ -177,10 +168,6 @@ export interface AuditEnergetiqueResponseDto {
     calculationDate: string;
   };
 }
-
-/* ============================================================
- * ENTITY → DTO MAPPER
- * ============================================================ */
 
 export function toAuditEnergetiqueResponseDto(
   simulation: IAuditEnergetiqueSimulation
@@ -295,26 +282,30 @@ export function toAuditEnergetiqueResponseDto(
   }
 
   /* -------- ENERGY CLASSIFICATION -------- */
-  if (simulation.energyClass && simulation.totalAnnualEnergy != null) {
+  if (
+    simulation.energyClass &&
+    simulation.totalAnnualEnergy != null &&
+    simulation.siteIntensity != null
+  ) {
     response.data.results.energyClassification = {
       totalAnnualEnergy: simulation.totalAnnualEnergy,
-      siteIntensity: simulation.siteIntensity ?? energyConsumptionPerM2,
+      siteIntensity: simulation.siteIntensity,
       referenceIntensity: simulation.referenceIntensity ?? 0,
       joyaIndex: simulation.joyaIndex ?? 0,
-      becth: simulation.becth ?? energyConsumptionPerM2,
+      becth: simulation.becth ?? simulation.siteIntensity ?? 0,
       class: simulation.energyClass as ClassificationGrade,
       description: simulation.energyClassDescription ?? '',
       isApplicable: true
     };
   } else {
     response.data.results.energyClassification = {
-      totalAnnualEnergy: simulation.annualConsumption,
-      siteIntensity: energyConsumptionPerM2,
+      totalAnnualEnergy: Number(energyConsumptionPerM2.toFixed(2)),
+      siteIntensity: Number(energyConsumptionPerM2.toFixed(2)),
       referenceIntensity: 0,
       joyaIndex: 0,
-      becth: energyConsumptionPerM2,
+      becth: Number(energyConsumptionPerM2.toFixed(2)),
       class: ClassificationGrade.NOT_APPLICABLE,
-      description: 'Classement énergétique non applicable',
+      description: 'Classement énergétique non disponible pour ce type de bâtiment',
       isApplicable: false
     };
   }
@@ -325,9 +316,9 @@ export function toAuditEnergetiqueResponseDto(
       class: simulation.carbonClass as ClassificationGrade,
       intensity: Number(simulation.carbonIntensity.toFixed(2)),
       unit: EmissionUnit.KG_CO2_PER_M2_YEAR,
-      totalElecKg: simulation.co2EmissionsElecKg ?? simulation.co2EmissionsKg,
-      totalGasKg: simulation.co2EmissionsGasKg ?? 0,
-      totalKg: simulation.co2EmissionsKg,
+      totalElecKg: Number((simulation.co2EmissionsElecKg ?? simulation.co2EmissionsKg).toFixed(2)),
+      totalGasKg: Number((simulation.co2EmissionsGasKg ?? 0).toFixed(2)),
+      totalKg: Number(simulation.co2EmissionsKg.toFixed(2)),
       description: simulation.carbonClassDescription ?? '',
       isApplicable: true
     };
@@ -336,10 +327,10 @@ export function toAuditEnergetiqueResponseDto(
       class: ClassificationGrade.NOT_APPLICABLE,
       intensity: Number(co2PerM2.toFixed(2)),
       unit: EmissionUnit.KG_CO2_PER_M2_YEAR,
-      totalElecKg: simulation.co2EmissionsElecKg ?? simulation.co2EmissionsKg,
-      totalGasKg: simulation.co2EmissionsGasKg ?? 0,
-      totalKg: simulation.co2EmissionsKg,
-      description: 'Classement carbone non applicable',
+      totalElecKg: Number((simulation.co2EmissionsElecKg ?? simulation.co2EmissionsKg).toFixed(2)),
+      totalGasKg: Number((simulation.co2EmissionsGasKg ?? 0).toFixed(2)),
+      totalKg: Number(simulation.co2EmissionsKg.toFixed(2)),
+      description: 'Classement carbone non disponible',
       isApplicable: false
     };
   }

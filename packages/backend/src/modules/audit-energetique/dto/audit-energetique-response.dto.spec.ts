@@ -123,13 +123,13 @@ describe('toAuditEnergetiqueResponseDto', () => {
       ...mockSimulation,
       energyEndUseBreakdown: {
         totalConsumptionKwh: 12500.5,
-        totalCostTnd: 4375.18,
+        totalCostTunisianDinar: 4375.18,
         breakdown: {
-          cooling: { consumptionKwh: 2000, costTnd: 700, sharePercent: 16 },
-          heating: { consumptionKwh: 3000, costTnd: 1050, sharePercent: 24 },
-          lighting: { consumptionKwh: 1500, costTnd: 525, sharePercent: 12 },
-          equipment: { consumptionKwh: 5000, costTnd: 1750, sharePercent: 40 },
-          dhw: { consumptionKwh: 1000, costTnd: 350, sharePercent: 8 }
+          cooling: { consumptionKwh: 2000, costTunisianDinar: 700, sharePercent: 16 },
+          heating: { consumptionKwh: 3000, costTunisianDinar: 1050, sharePercent: 24 },
+          lighting: { consumptionKwh: 1500, costTunisianDinar: 525, sharePercent: 12 },
+          equipment: { consumptionKwh: 5000, costTunisianDinar: 1750, sharePercent: 40 },
+          domesticHotWater: { consumptionKwh: 1000, costTunisianDinar: 350, sharePercent: 8 }
         }
       }
     };

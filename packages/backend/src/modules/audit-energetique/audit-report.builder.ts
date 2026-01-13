@@ -7,12 +7,13 @@ import {
 } from '@shared/enums/audit-batiment.enum';
 
 /**
- * Helper function to safely extract numbers from DTO
- * Returns defaultValue if value is null, undefined, or not a finite number
+ * Validate and normalize a number value
+ * Returns null if value is missing or invalid (instead of defaulting to 0)
+ * Used for non-critical values that should not have artificial defaults
  */
-const ensureNumber = (value: number | null | undefined, defaultValue: number = 0): number => {
+const validateNumber = (value: number | null | undefined): number | null => {
   if (value === null || value === undefined || !Number.isFinite(value)) {
-    return defaultValue;
+    return null;
   }
   return value;
 };
@@ -42,19 +43,16 @@ export class AuditReportBuilder {
      * TOTALS
      * ------------------------------------------------------------------ */
 
-    const annualConsumption = ensureNumber(
-      data.results.energyConsumption?.annual?.value,
-      0
+    const annualConsumption = validateNumber(
+      data.results.energyConsumption?.annual?.value
     );
 
-    const totalAnnualCost = ensureNumber(
-      data.results.energyCost?.annual?.value,
-      0
+    const totalAnnualCost = validateNumber(
+      data.results.energyCost?.annual?.value
     );
 
-    const annualCo2Kg = ensureNumber(
-      data.results.co2Emissions?.annual?.kilograms,
-      0
+    const annualCo2Kg = validateNumber(
+      data.results.co2Emissions?.annual?.kilograms
     );
 
     /* ------------------------------------------------------------------
@@ -63,14 +61,12 @@ export class AuditReportBuilder {
 
     // Extract intensities from DTO (already calculated)
     // Do NOT calculate here - builder must not perform calculations
-    const energyIntensity = ensureNumber(
-      data.results.energyConsumption?.perSquareMeter?.value,
-      0
+    const energyIntensity = validateNumber(
+      data.results.energyConsumption?.perSquareMeter?.value
     );
 
-    const carbonIntensity = ensureNumber(
-      data.results.co2Emissions?.perSquareMeter?.value,
-      0
+    const carbonIntensity = validateNumber(
+      data.results.co2Emissions?.perSquareMeter?.value
     );
 
     /* ------------------------------------------------------------------
@@ -82,7 +78,7 @@ export class AuditReportBuilder {
     const energyIsApplicable = !!energyClassification?.isApplicable;
     
     // Extract becth from classification (do not calculate/fallback)
-    const becth = ensureNumber(energyClassification?.becth, 0);
+    const becth = validateNumber(energyClassification?.becth);
 
     const carbonClassification = data.results.carbonClassification;
     const carbonClass = carbonClassification?.class ?? 'N/A';
@@ -97,10 +93,10 @@ export class AuditReportBuilder {
       ? (HeatingSystemTypes as Record<string, string>)[heatingSystemRaw]
       : heatingSystemRaw;
 
-    const ecsTypeRaw = data.systems?.domesticHotWater ?? '';
-    const ecsType = ecsTypeRaw in DomesticHotWaterTypes
-      ? (DomesticHotWaterTypes as Record<string, string>)[ecsTypeRaw]
-      : ecsTypeRaw;
+    const domesticHotWaterTypeRaw = data.systems?.domesticHotWater ?? '';
+    const domesticHotWaterType = domesticHotWaterTypeRaw in DomesticHotWaterTypes
+      ? (DomesticHotWaterTypes as Record<string, string>)[domesticHotWaterTypeRaw]
+      : domesticHotWaterTypeRaw;
 
     /* ------------------------------------------------------------------
      * END-USE ENERGY BREAKDOWN (PDF READY)
@@ -109,58 +105,63 @@ export class AuditReportBuilder {
     const breakdown = data.results.energyEndUseBreakdown;
     
     if (!breakdown) {
-      Logger.warn('Energy end-use breakdown is missing from audit data');
+      Logger.warn('Energy end-use breakdown is missing from audit data - endUses will be null (shown as N/A in PDF)');
     }
 
-    const totalCost = ensureNumber(breakdown?.totalCostTnd, 0);
+    const totalCost = validateNumber(breakdown?.totalCostTunisianDinar);
 
-    const percent = (cost: number): number => {
-      if (totalCost <= 0) {
+    const percent = (cost: number | null, total: number | null): number => {
+      if (cost === null || total === null || total <= 0) {
         return 0;
       }
-      return Math.round((cost / totalCost) * 100);
+      return Math.round((cost / total) * 100);
     };
 
     const endUses = breakdown
       ? {
           cooling: {
-            consumptionKwh: ensureNumber(breakdown.breakdown?.cooling?.consumptionKwh, 0),
-            costTnd: ensureNumber(breakdown.breakdown?.cooling?.costTnd, 0),
+            consumptionKwh: validateNumber(breakdown.breakdown?.cooling?.consumptionKwh),
+            costTunisianDinar: validateNumber(breakdown.breakdown?.cooling?.costTunisianDinar),
             sharePercent: percent(
-              ensureNumber(breakdown.breakdown?.cooling?.costTnd, 0)
+              validateNumber(breakdown.breakdown?.cooling?.costTunisianDinar),
+              totalCost
             ),
           },
           heating: {
-            consumptionKwh: ensureNumber(breakdown.breakdown?.heating?.consumptionKwh, 0),
-            costTnd: ensureNumber(breakdown.breakdown?.heating?.costTnd, 0),
+            consumptionKwh: validateNumber(breakdown.breakdown?.heating?.consumptionKwh),
+            costTunisianDinar: validateNumber(breakdown.breakdown?.heating?.costTunisianDinar),
             sharePercent: percent(
-              ensureNumber(breakdown.breakdown?.heating?.costTnd, 0)
+              validateNumber(breakdown.breakdown?.heating?.costTunisianDinar),
+              totalCost
             ),
           },
           lighting: {
-            consumptionKwh: ensureNumber(breakdown.breakdown?.lighting?.consumptionKwh, 0),
-            costTnd: ensureNumber(breakdown.breakdown?.lighting?.costTnd, 0),
+            consumptionKwh: validateNumber(breakdown.breakdown?.lighting?.consumptionKwh),
+            costTunisianDinar: validateNumber(breakdown.breakdown?.lighting?.costTunisianDinar),
             sharePercent: percent(
-              ensureNumber(breakdown.breakdown?.lighting?.costTnd, 0)
+              validateNumber(breakdown.breakdown?.lighting?.costTunisianDinar),
+              totalCost
             ),
           },
           equipment: {
-            consumptionKwh: ensureNumber(breakdown.breakdown?.equipment?.consumptionKwh, 0),
-            costTnd: ensureNumber(breakdown.breakdown?.equipment?.costTnd, 0),
+            consumptionKwh: validateNumber(breakdown.breakdown?.equipment?.consumptionKwh),
+            costTunisianDinar: validateNumber(breakdown.breakdown?.equipment?.costTunisianDinar),
             sharePercent: percent(
-              ensureNumber(breakdown.breakdown?.equipment?.costTnd, 0)
+              validateNumber(breakdown.breakdown?.equipment?.costTunisianDinar),
+              totalCost
             ),
           },
-          ecs: {
-            consumptionKwh: ensureNumber(breakdown.breakdown?.dhw?.consumptionKwh, 0),
-            costTnd: ensureNumber(breakdown.breakdown?.dhw?.costTnd, 0),
+          domesticHotWater: {
+            consumptionKwh: validateNumber(breakdown.breakdown?.domesticHotWater?.consumptionKwh),
+            costTunisianDinar: validateNumber(breakdown.breakdown?.domesticHotWater?.costTunisianDinar),
             sharePercent: percent(
-              ensureNumber(breakdown.breakdown?.dhw?.costTnd, 0)
+              validateNumber(breakdown.breakdown?.domesticHotWater?.costTunisianDinar),
+              totalCost
             ),
           },
           total: {
-            consumptionKwh: ensureNumber(breakdown.totalConsumptionKwh, 0),
-            costTnd: totalCost,
+            consumptionKwh: validateNumber(breakdown.totalConsumptionKwh),
+            costTunisianDinar: totalCost,
           },
         }
       : null;
@@ -173,6 +174,7 @@ export class AuditReportBuilder {
 
     /* ------------------------------------------------------------------
      * FINAL VIEW MODEL
+     * Return null values as-is - missing data should remain null
      * ------------------------------------------------------------------ */
 
     return {
@@ -194,7 +196,7 @@ export class AuditReportBuilder {
 
       // Systems
       heatingSystem,
-      ecsType,
+      domesticHotWaterType,
 
       // End-use breakdown (PDF table + bars)
       endUses,

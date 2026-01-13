@@ -28,7 +28,6 @@ import {
   computeEnergySplit,
   computeProgressiveTariff
 } from './helpers';
-
 import { Logger } from '@backend/middlewares';
 
 export type AuditEnergetiqueCreateInput = Omit<
@@ -83,15 +82,15 @@ export class AuditSimulationService extends CommonService<
 
     const processFactor = PROCESS_FACTORS[payload.buildingType] ?? 1;
     const climate = CLIMATE_FACTORS[payload.climateZone];
-    const coeffs = BUILDING_COEFFICIENTS[payload.buildingType];
+    const buildingCoefficients = BUILDING_COEFFICIENTS[payload.buildingType];
 
     /* -----------------------------------------
      * LOADS (kWh/m²)
      * ----------------------------------------- */
 
-    const lightingLoad = coeffs.light * usageFactor;
-    const itLoad = coeffs.it * usageFactor * processFactor;
-    const baseLoad = coeffs.base;
+    const lightingLoad = buildingCoefficients.light * usageFactor;
+    const itLoad = buildingCoefficients.it * usageFactor * processFactor;
+    const baseLoad = buildingCoefficients.base;
 
     const equipmentLoad = computeEquipmentLoads({
       buildingType: payload.buildingType,
@@ -102,7 +101,7 @@ export class AuditSimulationService extends CommonService<
     });
 
     const hvacLoads = computeHvacLoads({
-      hvacBase: coeffs.hvac * envelopeFactor * compactnessFactor,
+      hvacBase: buildingCoefficients.hvac * envelopeFactor * compactnessFactor,
       climate,
       usageFactor,
       heatingSystem: payload.heatingSystem,
@@ -115,7 +114,7 @@ export class AuditSimulationService extends CommonService<
     const ecsLoad = computeDomesticHotWaterLoad({
       ecsType: payload.domesticHotWater,
       ecsUsageFactor: ECS_USAGE_FACTORS[payload.buildingType] ?? 1,
-      reference: coeffs.ecs,
+      reference: buildingCoefficients.ecs,
       gasEfficiency: Number(process.env.ENERGY_AUDIT_ECS_GAS_EFF),
       electricEfficiency: Number(process.env.ENERGY_AUDIT_ECS_ELEC_EFF)
     });
@@ -186,10 +185,6 @@ export class AuditSimulationService extends CommonService<
     const tariff = computeProgressiveTariff({ monthlyConsumption });
     const avgPrice = tariff.annualCost / annualConsumption;
 
-    /* -----------------------------------------
-     * END-USE BREAKDOWN (🔥 FIX)
-     * ----------------------------------------- */
-
     const coolingKwh =
       (hvacLoads.coolingLoad ?? 0) * payload.surfaceArea;
     const heatingKwh = annualHeatingKwh;
@@ -218,39 +213,35 @@ const endUses = {
   breakdown: {
     cooling: {
       consumptionKwh: Number((coolingKwh * scale).toFixed(2)),
-      costTnd: Number((coolingKwh * scale * avgPrice).toFixed(2)),
+      costTunisianDinar: Number((coolingKwh * scale * avgPrice).toFixed(2)),
       sharePercent: percent(coolingKwh * scale * avgPrice),
     },
     heating: {
       consumptionKwh: Number((heatingKwh * scale).toFixed(2)),
-      costTnd: Number((heatingKwh * scale * avgPrice).toFixed(2)),
+      costTunisianDinar: Number((heatingKwh * scale * avgPrice).toFixed(2)),
       sharePercent: percent(heatingKwh * scale * avgPrice),
     },
     lighting: {
       consumptionKwh: Number((lightingKwh * scale).toFixed(2)),
-      costTnd: Number((lightingKwh * scale * avgPrice).toFixed(2)),
+      costTunisianDinar: Number((lightingKwh * scale * avgPrice).toFixed(2)),
       sharePercent: percent(lightingKwh * scale * avgPrice),
     },
     equipment: {
       consumptionKwh: Number((equipmentKwh * scale).toFixed(2)),
-      costTnd: Number((equipmentKwh * scale * avgPrice).toFixed(2)),
+      costTunisianDinar: Number((equipmentKwh * scale * avgPrice).toFixed(2)),
       sharePercent: percent(equipmentKwh * scale * avgPrice),
     },
-    dhw: {
+    domesticHotWater: {
       consumptionKwh: Number((ecsKwh * scale).toFixed(2)),
-      costTnd: Number((ecsKwh * scale * avgPrice).toFixed(2)),
+      costTunisianDinar: Number((ecsKwh * scale * avgPrice).toFixed(2)),
       sharePercent: percent(ecsKwh * scale * avgPrice),
     },
   },
   totalConsumptionKwh: Number(annualConsumption.toFixed(2)),
-  totalCostTnd: Number(tariff.annualCost.toFixed(2)),
+  totalCostTunisianDinar: Number(tariff.annualCost.toFixed(2)),
 };
 
     Logger.info('Energy end-use breakdown computed');
-
-    /* -----------------------------------------
-     * SAVE
-     * ----------------------------------------- */
 
     return await this.create({
       ...payload,
@@ -272,7 +263,7 @@ const endUses = {
     });
   }
 
-  public async getSimulationById(id: string) {
+  public async getSimulationById(id: string): Promise<IAuditEnergetiqueSimulation> {
     const simulation = await this.findById(id);
     if (!simulation) throw new HTTP404Error('Audit simulation not found');
     return simulation;

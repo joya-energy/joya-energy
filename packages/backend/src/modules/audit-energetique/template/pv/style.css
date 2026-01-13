@@ -132,10 +132,10 @@ h3 {
   justify-content: space-between;
   align-items: flex-start;
 
-  padding: 30px 60px 20px;   /* ⬅ replaces old page padding */
+  padding: 30px 60px 20px;  
   position: relative;
-  z-index: 3;               /* ⬅ stays above the image */
-  background: transparent;  /* keep clean */
+  z-index: 3;              
+  background: transparent; 
 }
 
 
@@ -177,25 +177,22 @@ h3 {
   position: relative;
   width: 100%;
 
-  /* 🔥 CONTROL IMAGE HEIGHT HERE */
-  height: 65%;            /* try 60% → 75% */
 
-  margin-top: auto;       /* push image to bottom */
+  height: 65%;           
+
+  margin-top: auto;       
   overflow: hidden;
 }
 
 
 .cover-image-big img {
   width: 100%;
-  height: 100%;           /* ⬅️ THIS makes it tall */
-  object-fit: cover;     /* ⬅️ Crop like hero image */
-  object-position: center bottom; /* keep PV panels visible */
+  height: 100%;          
+  object-fit: cover;   
+  object-position: center bottom; 
   display: block;
 }
 
-
-
-/* 🔥 FADE INTO PAGE (this is what you want) */
 .cover-image-big::after {
   content: "";
   position: absolute;
@@ -358,26 +355,32 @@ h3 {
 
 .old-compare-grid {
   display: grid;
-  grid-template-columns: 1fr 220px 1fr;
+  grid-template-columns: 1fr auto 1fr;
   gap: 20px;
+  align-items: center;
 }
 
 .old-block {
   font-size: 14px;
   line-height: 1.6;
+  text-align: center;
 }
 
 .old-block-title {
   font-size: 16px;
   margin-bottom: 12px;
   color: var(--joya-orange-main);
+  text-align: center;
 }
 
 .old-arrow {
   text-align: center;
-  font-size: 28px;
+  font-size: 24px;
   margin: 12px 0;
   color: var(--joya-orange-main);
+  background: none;
+  padding: 0;
+  border: none;
 }
 
 .old-price {
@@ -387,45 +390,29 @@ h3 {
 .old-center {
   display: flex;
   justify-content: center;
-  margin-top: 72px;
-}
-
-.old-pv-icon {
-  width: 200px;
-}
-
-
-.bill-savings-wrapper {
-  display: flex;
-  justify-content: center;
-  margin-top: 18px;
+  align-items: center;
 }
 
 .bill-savings-card {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 16px;
   background: white;
-  border-radius: 16px;
-  padding: 18px 28px;
+  border-radius: 12px;
+  padding: 12px 18px;
   border: 2px solid var(--joya-orange-main);
+  max-width: 280px;
 }
 
 .bill-savings-text {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
 }
 
 .bill-savings-text strong {
   display: block;
-  font-size: 18px;
+  font-size: 16px;
 }
-
-.bill-savings-icon {
-  width: 100px;
-}
-
-
 
 .impact-kpi-row {
   display: grid;

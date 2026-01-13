@@ -1,4 +1,4 @@
-import { BusinessObject, CreateBusinessObject, UpdateBusinessObject } from './buisness.interface';
+import { BusinessObject, UpdateBusinessObject, CreateBusinessObject } from './buisness.interface';
 
 export enum FileType {
   PDF_PV_REPORT = 'pdf-pv-report',
@@ -16,7 +16,7 @@ export interface IFile extends BusinessObject {
   size: number;
   metadata?: {
     simulationId?: string;
-    simulationType?: 'solaire' | 'energetique';
+    simulationType?: 'audit-solaire' | 'audit-energetique' | 'audit-financier';
     companyName?: string;
     [key: string]: string | undefined;
   };

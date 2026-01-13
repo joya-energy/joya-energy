@@ -1,5 +1,5 @@
 import CommonRepository from '@backend/modules/common/common.repository';
-import { FileModel, type FileDocument } from '@backend/models/file';
+import { File, type FileDocument } from '@backend/models/file';
 import {
   type IFile,
   type ICreateFile,
@@ -8,7 +8,7 @@ import {
 
 export class FileRepository extends CommonRepository<IFile, FileDocument, ICreateFile, IUpdateFile> {
   constructor() {
-    super(FileModel);
+    super(File);
   }
 }
 

@@ -84,32 +84,32 @@ co2EmissionsGasKg: { type: Number, required: false, min: 0 },
       breakdown: {
         cooling: {
           consumptionKwh: { type: Number, required: true, min: 0 },
-          costTnd: { type: Number, required: true, min: 0 },
+          costTunisianDinar: { type: Number, required: true, min: 0 },
           sharePercent: { type: Number, required: true, min: 0 },
         },
         heating: {
           consumptionKwh: { type: Number, required: true, min: 0 },
-          costTnd: { type: Number, required: true, min: 0 },
+          costTunisianDinar: { type: Number, required: true, min: 0 },
           sharePercent: { type: Number, required: true, min: 0 },
         },
         lighting: {
           consumptionKwh: { type: Number, required: true, min: 0 },
-          costTnd: { type: Number, required: true, min: 0 },
+          costTunisianDinar: { type: Number, required: true, min: 0 },
           sharePercent: { type: Number, required: true, min: 0 },
         },
         equipment: {
           consumptionKwh: { type: Number, required: true, min: 0 },
-          costTnd: { type: Number, required: true, min: 0 },
+          costTunisianDinar: { type: Number, required: true, min: 0 },
           sharePercent: { type: Number, required: true, min: 0 },
         },
-        dhw: {
+        domesticHotWater: {
           consumptionKwh: { type: Number, required: true, min: 0 },
-          costTnd: { type: Number, required: true, min: 0 },
+          costTunisianDinar: { type: Number, required: true, min: 0 },
           sharePercent: { type: Number, required: true, min: 0 },
         },
       },
       totalConsumptionKwh: { type: Number, required: true, min: 0 },
-      totalCostTnd: { type: Number, required: true, min: 0 },
+      totalCostTunisianDinar: { type: Number, required: true, min: 0 },
     },
 
   },

@@ -32,6 +32,15 @@ export const AuditSolaireSimulationModel: Model<AuditSolaireSimulationDocument> 
     irr: { type: Number, required: true },
     annualCo2Avoided: { type: Number, required: true, min: 0 },
     totalCo2Avoided25Years: { type: Number, required: true, min: 0 },
+    monthlyEconomics: [{
+      month: { type: Number, required: true, min: 1, max: 12 },
+      rawConsumption: { type: Number, required: true, min: 0 },
+      billedConsumption: { type: Number, required: true, min: 0 },
+      appliedTariffRate: { type: Number, required: true, min: 0 },
+      billWithoutPV: { type: Number, required: true, min: 0 },
+      billWithPV: { type: Number, required: true, min: 0 },
+      monthlySavings: { type: Number, required: true }
+    }],
     annualEconomics: [{
       year: { type: Number, required: true },
       annualRawConsumption: { type: Number, required: true },

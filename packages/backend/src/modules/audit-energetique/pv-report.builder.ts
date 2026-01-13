@@ -4,39 +4,39 @@ import { Logger } from '@backend/middlewares/logger.midddleware';
 import { analyzeEconomics } from '../audit-solaire/helpers/economic-analysis.calculator';
 
 export type PvReportData = {
-  pvPower: number;
-  pvYield: number;
-  pvProductionYear1: number;
-  coverageRate: number;
+  pvPower: number | null;
+  pvYield: number | null;
+  pvProductionYear1: number | null;
+  coverageRate: number | null;
 
-  consumptionWithoutPV: number;
-  consumptionWithPV: number;
+  consumptionWithoutPV: number | null;
+  consumptionWithPV: number | null;
 
-  avgPriceWithoutPV: number;
-  avgPriceWithoutPV_mDt: number;
-  avgPriceWithPV: number;
-  avgPriceWithPV_mDt: number;
+  avgPriceWithoutPV: number | null;
+  avgPriceWithoutPV_mDt: number | null;
+  avgPriceWithPV: number | null;
+  avgPriceWithPV_mDt: number | null;
 
-  annualSavings: number;
+  annualSavings: number | null;
 
-  gainCumulated: number;
-  gainDiscounted: number;
-  cashflowCumulated: number;
-  cashflowDiscounted: number;
+  gainCumulated: number | null;
+  gainDiscounted: number | null;
+  cashflowCumulated: number | null;
+  cashflowDiscounted: number | null;
   npv: number;
   paybackSimple: number;
   paybackDiscounted: number;
   irr: number;
   roi: number;
 
-  co2PerYear: number;
-  co2Total: number;
+  co2PerYear: number | null;
+  co2Total: number | null;
 
   // Investment information
   capexPerKwp: number;
   annualOpexRate: number;
-  capexTotal: number; // Total investment cost (pvPower * capexPerKwp)
-  opexAnnual: number; // Annual maintenance cost (capexTotal * annualOpexRate / 100)
+  capexTotal: number | null; // Total investment cost (pvPower * capexPerKwp)
+  opexAnnual: number | null; // Annual maintenance cost (capexTotal * annualOpexRate / 100)
 };
 
 // Constants
@@ -46,13 +46,42 @@ const DEFAULT_ANNUAL_OPEX_RATE = 4;
 const round = (n: number, d = 2) =>
   Number.isFinite(n) ? Number(n.toFixed(d)) : 0;
 
-// Shared helper to ensure value is never null/undefined
-const ensureNumber = (value: number | null | undefined, defaultValue: number = 0): number => {
+/**
+ * Validate and normalize a number value
+ * Returns null if value is missing or invalid (instead of defaulting to 0)
+ * Used for non-critical values that should not have artificial defaults
+ */
+const validateNumber = (value: number | null | undefined): number | null => {
   if (value === null || value === undefined || !Number.isFinite(value)) {
-    return defaultValue;
+    return null;
   }
   return value;
 };
+
+/**
+ * Require a number value - throws error if missing or invalid
+ * Used for critical financial metrics that must exist
+ */
+function requireNumber(
+  value: number | null | undefined,
+  fieldName: string,
+  recordId?: string
+): number {
+  if (value === null || value === undefined) {
+    const idPart = recordId ? ` (ID: ${recordId})` : '';
+    throw new Error(
+      `Cannot build PV report: ${fieldName} is missing from solar audit data${idPart}. ` +
+      'The solar audit must include proper economic analysis with calculated financial metrics. ' +
+      'Solution: Please recreate the solar audit simulation to generate proper financial metrics.'
+    );
+  }
+  if (!Number.isFinite(value)) {
+    throw new Error(
+      `Cannot build PV report: ${fieldName} is invalid (NaN or Infinity)`
+    );
+  }
+  return value;
+}
 
 /**
  * Build PV report data from Audit Energetique DTO
@@ -95,44 +124,44 @@ export function buildPvReportDataFromSolaire(
   
   // PV Power: installedPower or systemSize_kWp (kWc)
   // Direct access - these should be populated from calculatePVProduction
-  const pvPower = ensureNumber(
-    solaireDto.installedPower ?? solaireDto.systemSize_kWp,
-    0
+  const pvPower = validateNumber(
+    solaireDto.installedPower ?? solaireDto.systemSize_kWp
   );
   
   // PV Production Year 1: expectedProduction (annualPVProduction from calculator)
   // This is stored as: expectedProduction: pvSystemData.annualPVProduction
-  const pvProductionYear1 = ensureNumber(solaireDto.expectedProduction, 0);
+  const pvProductionYear1 = validateNumber(solaireDto.expectedProduction);
   
   // PV Yield: kWh/kWc/an (specific yield from PVGIS)
   // annualProductible = specific yield from PVGIS (kWh/kWp/year) - stored from solarData.annualProductibleKwhPerKwp
   // This is the yield PER kWp, not the total production
-  const annualProductible = ensureNumber(solaireDto.annualProductible, 0);
+  const annualProductible = validateNumber(solaireDto.annualProductible);
   
   // Calculate yield: if annualProductible exists, use it directly (it's already kWh/kWp/year)
   // Otherwise, calculate from production/power
-  const pvYield = annualProductible > 0 
+  const pvYield = annualProductible !== null
     ? annualProductible  // Direct from PVGIS
-    : (pvPower > 0 && pvProductionYear1 > 0 ? pvProductionYear1 / pvPower : 0);
+    : (pvPower !== null && pvProductionYear1 !== null && pvPower > 0 
+      ? pvProductionYear1 / pvPower 
+      : null);
   
   // Coverage Rate: percentage of consumption covered by PV
-  const coverageRate = ensureNumber(
-    solaireDto.energyCoverageRate ?? solaireDto.coverage,
-    0
+  const coverageRate = validateNumber(
+    solaireDto.energyCoverageRate ?? solaireDto.coverage
   );
   
   // Validation and warnings
-  if (pvPower === 0) {
-    Logger.warn('PV Power is 0 - check installedPower or systemSize_kWp in database');
+  if (pvPower === null) {
+    Logger.warn('PV Power is missing - check installedPower or systemSize_kWp in database');
   }
-  if (pvProductionYear1 === 0) {
-    Logger.warn('PV Production is 0 - check expectedProduction in database');
+  if (pvProductionYear1 === null) {
+    Logger.warn('PV Production is missing - check expectedProduction in database');
   }
-  if (annualProductible === 0) {
-    Logger.warn('Annual Productible is 0 - check annualProductible (PVGIS data) in database');
+  if (annualProductible === null) {
+    Logger.warn('Annual Productible is missing - check annualProductible (PVGIS data) in database');
   }
-  if (coverageRate === 0) {
-    Logger.warn('Coverage Rate is 0 - check energyCoverageRate or coverage in database');
+  if (coverageRate === null) {
+    Logger.warn('Coverage Rate is missing - check energyCoverageRate or coverage in database');
   }
 
   /* ===============================
@@ -140,38 +169,43 @@ export function buildPvReportDataFromSolaire(
   =============================== */
   
   // Use solaire annual consumption, fallback to energetique if available
-  const annualConsumption = ensureNumber(
+  const annualConsumption = validateNumber(
     solaireDto.annualConsumption ?? 
-    (energetiqueDto?.data?.results?.energyConsumption?.annual?.value),
-    0
+    (energetiqueDto?.data?.results?.energyConsumption?.annual?.value)
   );
   
   const consumptionWithoutPV = annualConsumption;
   
-  // Calculate consumption with PV (net consumption after PV production)
-  const consumptionWithPV = Math.max(0, annualConsumption - pvProductionYear1);
-
   /* ===============================
      PRICING DATA
-  =============================== */
+     =============================== */
   
-  // Calculate average price from monthly economics if available
+  // Calculate average price and consumption with PV from monthly economics only
   let avgPriceWithoutPV = 0;
   let avgPriceWithPV = 0;
+  let consumptionWithPV = 0;
+  
+  Logger.info(`🔍 Checking monthlyEconomics: exists=${!!solaireDto.monthlyEconomics}, length=${solaireDto.monthlyEconomics?.length ?? 0}`);
   
   if (solaireDto.monthlyEconomics && solaireDto.monthlyEconomics.length > 0) {
+    Logger.info(`📊 Calculating avg prices from monthlyEconomics (${solaireDto.monthlyEconomics.length} months)`);
     const totalBillWithout = solaireDto.monthlyEconomics.reduce(
-      (sum, m) => sum + ensureNumber(m.billWithoutPV, 0), 0
+      (sum, m) => sum + (validateNumber(m.billWithoutPV) ?? 0), 0
     );
     const totalBillWith = solaireDto.monthlyEconomics.reduce(
-      (sum, m) => sum + ensureNumber(m.billWithPV, 0), 0
+      (sum, m) => sum + (validateNumber(m.billWithPV) ?? 0), 0
     );
     const totalConsumptionWithout = solaireDto.monthlyEconomics.reduce(
-      (sum, m) => sum + ensureNumber(m.rawConsumption, 0), 0
+      (sum, m) => sum + (validateNumber(m.rawConsumption) ?? 0), 0
     );
     const totalConsumptionWith = solaireDto.monthlyEconomics.reduce(
-      (sum, m) => sum + ensureNumber(m.billedConsumption, 0), 0
+      (sum, m) => sum + (validateNumber(m.billedConsumption) ?? 0), 0
     );
+    
+    Logger.info(`💰 MonthlyEconomics totals: billWithout=${totalBillWithout}, billWith=${totalBillWith}, consWithout=${totalConsumptionWithout}, consWith=${totalConsumptionWith}`);
+    
+    // Use billed consumption from monthlyEconomics for display (matches price calculation)
+    consumptionWithPV = totalConsumptionWith;
     
     avgPriceWithoutPV = totalConsumptionWithout > 0 
       ? totalBillWithout / totalConsumptionWithout 
@@ -181,11 +215,10 @@ export function buildPvReportDataFromSolaire(
     avgPriceWithPV = totalConsumptionWith > 0 
       ? totalBillWith / totalConsumptionWith 
       : 0;
-  } else if (energetiqueDto?.data?.results?.energyCost?.annual?.value) {
-    // Fallback to energetique data
-    const annualCost = ensureNumber(energetiqueDto.data.results.energyCost.annual.value, 0);
-    avgPriceWithoutPV = annualConsumption > 0 ? annualCost / annualConsumption : 0;
-    avgPriceWithPV = avgPriceWithoutPV;
+    
+    Logger.info(`📈 Calculated avg prices: avgPriceWithoutPV=${avgPriceWithoutPV}, avgPriceWithPV=${avgPriceWithPV}`);
+  } else {
+    Logger.warn('⚠️ No monthlyEconomics data - consumptionWithPV and avg prices will be null (shown as N/A in PDF)');
   }
 
   /* ===============================
@@ -193,104 +226,38 @@ export function buildPvReportDataFromSolaire(
   =============================== */
   
   // Calculate annualSavings from monthlyEconomics if not directly available
-  let annualSavings = ensureNumber(solaireDto.annualSavings, 0);
-  if (annualSavings === 0 && solaireDto.monthlyEconomics && solaireDto.monthlyEconomics.length > 0) {
-    annualSavings = solaireDto.monthlyEconomics.reduce(
-      (sum, month) => sum + ensureNumber(month.monthlySavings, 0),
+  let annualSavings = validateNumber(solaireDto.annualSavings);
+  if (annualSavings === null && solaireDto.monthlyEconomics && solaireDto.monthlyEconomics.length > 0) {
+    const calculatedSavings = solaireDto.monthlyEconomics.reduce(
+      (sum, month) => sum + (validateNumber(month.monthlySavings) ?? 0),
       0
     );
+    annualSavings = calculatedSavings > 0 ? calculatedSavings : null;
   }
   // Validate required financial metrics are present
   // These must come from proper economic analysis, not fallback calculations
-  const installationCost = ensureNumber(solaireDto.installationCost, 0);
-  const annualOpexFromDto = ensureNumber(solaireDto.annualOpex, 0);
-  const totalSavings25Years = ensureNumber(solaireDto.totalSavings25Years, 0);
+  const recordId = (solaireDto as any).id || 'unknown';
+  const installationCost = validateNumber(solaireDto.installationCost);
+  const annualOpexFromDto = validateNumber(solaireDto.annualOpex);
+  const totalSavings25Years = validateNumber(solaireDto.totalSavings25Years);
   
-  // Check if NPV is null/undefined (not just 0, as NPV can legitimately be 0 for break-even)
-  if (solaireDto.npv === null || solaireDto.npv === undefined) {
-    const recordId = (solaireDto as any).id || 'unknown';
-    throw new Error(
-      `Cannot build PV report: NPV (Net Present Value) is missing from solar audit data (ID: ${recordId}). ` +
-      'This record appears to be missing economic analysis data. ' +
-      'Possible causes: ' +
-      '1. This is an old record created before economic analysis was implemented, ' +
-      '2. The economic analysis failed during creation, or ' +
-      '3. The data was not saved properly. ' +
-      'Solution: Please recreate the solar audit simulation to generate proper financial metrics.'
-    );
-  }
-  const npv = ensureNumber(solaireDto.npv, 0);
-  
-  // Check if IRR is null/undefined
-  if (solaireDto.irr === null || solaireDto.irr === undefined) {
-    throw new Error(
-      'Cannot build PV report: IRR (Internal Rate of Return) is missing from solar audit data. ' +
-      'The solar audit must include proper economic analysis with calculated IRR.'
-    );
-  }
-  const irr = ensureNumber(solaireDto.irr, 0);
-  
-  // Check if ROI is null/undefined
-  if (solaireDto.roi25Years === null || solaireDto.roi25Years === undefined) {
-    throw new Error(
-      'Cannot build PV report: ROI (Return on Investment) is missing from solar audit data. ' +
-      'The solar audit must include proper economic analysis with calculated ROI.'
-    );
-  }
-  const roi = ensureNumber(solaireDto.roi25Years, 0);
-  
-  // Check if payback periods are null/undefined
-  if (solaireDto.simplePaybackYears === null || solaireDto.simplePaybackYears === undefined) {
-    throw new Error(
-      'Cannot build PV report: Simple payback period is missing from solar audit data. ' +
-      'The solar audit must include proper economic analysis with calculated payback period.'
-    );
-  }
-  const paybackSimple = ensureNumber(solaireDto.simplePaybackYears, 0);
-  
-  if (solaireDto.discountedPaybackYears === null || solaireDto.discountedPaybackYears === undefined) {
-    throw new Error(
-      'Cannot build PV report: Discounted payback period is missing from solar audit data. ' +
-      'The solar audit must include proper economic analysis with calculated discounted payback period.'
-    );
-  }
-  const paybackDiscounted = ensureNumber(solaireDto.discountedPaybackYears, 0);
+  // Require critical financial metrics (throws error if missing/invalid)
+  // Note: These values can legitimately be 0 (e.g., NPV = 0 means break-even)
+  const npv = requireNumber(solaireDto.npv, 'NPV (Net Present Value)', recordId);
+  const irr = requireNumber(solaireDto.irr, 'IRR (Internal Rate of Return)', recordId);
+  const roi = requireNumber(solaireDto.roi25Years, 'ROI (Return on Investment)', recordId);
+  const paybackSimple = requireNumber(solaireDto.simplePaybackYears, 'Simple Payback Period', recordId);
+  const paybackDiscounted = requireNumber(solaireDto.discountedPaybackYears, 'Discounted Payback Period', recordId);
   
   // Validate that values are calculated (not just defaulted to 0)
   // If we have installation cost and savings but all metrics are 0, something is wrong
-  if (installationCost > 0 && totalSavings25Years > 0 && npv === 0 && irr === 0 && roi === 0 && paybackSimple === 0) {
+  if (installationCost !== null && installationCost > 0 && 
+      totalSavings25Years !== null && totalSavings25Years > 0 && 
+      npv === 0 && irr === 0 && roi === 0 && paybackSimple === 0) {
     throw new Error(
       'Cannot build PV report: Financial metrics appear to be missing or not calculated. ' +
       'The solar audit has installation cost and savings, but all financial metrics (NPV, IRR, ROI, Payback) are zero. ' +
       'This indicates the economic analysis was not properly executed.'
-    );
-  }
-  
-  if (irr === 0) {
-    throw new Error(
-      'Cannot build PV report: IRR (Internal Rate of Return) is missing. ' +
-      'The solar audit must include proper economic analysis with calculated IRR.'
-    );
-  }
-  
-  if (roi === 0) {
-    throw new Error(
-      'Cannot build PV report: ROI (Return on Investment) is missing. ' +
-      'The solar audit must include proper economic analysis with calculated ROI.'
-    );
-  }
-  
-  if (paybackSimple === 0) {
-    throw new Error(
-      'Cannot build PV report: Simple payback period is missing. ' +
-      'The solar audit must include proper economic analysis with calculated payback period.'
-    );
-  }
-  
-  if (paybackDiscounted === 0) {
-    throw new Error(
-      'Cannot build PV report: Discounted payback period is missing. ' +
-      'The solar audit must include proper economic analysis with calculated discounted payback period.'
     );
   }
   
@@ -309,24 +276,28 @@ export function buildPvReportDataFromSolaire(
     `pvPower=${pvPower}`
   );
   
-  let gainCumulatedFromEconomics: number;
-  let gainDiscounted: number;
-  let cashflowCumulated: number;
-  let cashflowDiscounted: number;
+  let gainCumulatedFromEconomics: number | null;
+  let gainDiscounted: number | null;
+  let cashflowCumulated: number | null;
+  let cashflowDiscounted: number | null;
   
   if (lastYearData && annualEconomicsLength > 0) {
     // Use values from annualEconomics if available (most accurate)
-    gainCumulatedFromEconomics = ensureNumber(lastYearData.cumulativeNetGain, 0);
-    gainDiscounted = ensureNumber(lastYearData.cumulativeNetGainDiscounted, 0);
-    cashflowCumulated = ensureNumber(lastYearData.cumulativeCashFlow, 0);
-    cashflowDiscounted = ensureNumber(lastYearData.cumulativeCashFlowDiscounted, 0);
-  } else if (solaireDto.monthlyEconomics && solaireDto.monthlyEconomics.length === 12 && pvPower > 0) {
+    gainCumulatedFromEconomics = validateNumber(lastYearData.cumulativeNetGain);
+    gainDiscounted = validateNumber(lastYearData.cumulativeNetGainDiscounted);
+    cashflowCumulated = validateNumber(lastYearData.cumulativeCashFlow);
+    cashflowDiscounted = validateNumber(lastYearData.cumulativeCashFlowDiscounted);
+  } else if (solaireDto.monthlyEconomics && solaireDto.monthlyEconomics.length === 12 && pvPower !== null && pvPower > 0) {
     // Try to recalculate annual economics from monthlyEconomics data
     Logger.info(`🔄 Annual economics data not available - recalculating from monthlyEconomics data (${solaireDto.monthlyEconomics.length} months)`);
     
     try {
       const monthlyRawConsumptions = solaireDto.monthlyEconomics.map(m => m.rawConsumption);
       const monthlyBilledConsumptions = solaireDto.monthlyEconomics.map(m => m.billedConsumption);
+      
+      if (pvProductionYear1 === null) {
+        throw new Error('Cannot recalculate: pvProductionYear1 is missing');
+      }
       
       const recalculatedEconomics = analyzeEconomics({
         monthlyRawConsumptions,
@@ -338,10 +309,10 @@ export function buildPvReportDataFromSolaire(
       
       const year25Recalculated = recalculatedEconomics.annualResults.find(ae => ae.year === 25);
       if (year25Recalculated) {
-        gainCumulatedFromEconomics = ensureNumber(year25Recalculated.cumulativeNetGain, 0);
-        gainDiscounted = ensureNumber(year25Recalculated.cumulativeNetGainDiscounted, 0);
-        cashflowCumulated = ensureNumber(year25Recalculated.cumulativeCashFlow, 0);
-        cashflowDiscounted = ensureNumber(year25Recalculated.cumulativeCashFlowDiscounted, 0);
+        gainCumulatedFromEconomics = validateNumber(year25Recalculated.cumulativeNetGain);
+        gainDiscounted = validateNumber(year25Recalculated.cumulativeNetGainDiscounted);
+        cashflowCumulated = validateNumber(year25Recalculated.cumulativeCashFlow);
+        cashflowDiscounted = validateNumber(year25Recalculated.cumulativeCashFlowDiscounted);
     
         Logger.info(
           `✅ Recalculated annual economics: ` +
@@ -388,7 +359,8 @@ export function buildPvReportDataFromSolaire(
   }
   
   // Validate calculated values are reasonable
-  if (gainCumulatedFromEconomics <= 0 && totalSavings25Years > 0) {
+  if (gainCumulatedFromEconomics !== null && gainCumulatedFromEconomics <= 0 && 
+      totalSavings25Years !== null && totalSavings25Years > 0) {
     Logger.warn('Calculated gainCumulated is <= 0 - this may indicate an issue with the calculation');
   }
   
@@ -396,63 +368,72 @@ export function buildPvReportDataFromSolaire(
   // Prefer values from DTO if available, otherwise calculate from pvPower
   const capexPerKwp = DEFAULT_CAPEX_PER_KWP;
   const annualOpexRate = DEFAULT_ANNUAL_OPEX_RATE;
-  const capexTotal = installationCost > 0 ? installationCost : round(pvPower * capexPerKwp, 0);
-  const opexAnnual = annualOpexFromDto > 0 ? annualOpexFromDto : round(capexTotal * annualOpexRate / 100, 0);
+  const capexTotal = installationCost !== null && installationCost > 0 
+    ? installationCost 
+    : (pvPower !== null ? round(pvPower * capexPerKwp, 0) : null);
+  const opexAnnual = annualOpexFromDto !== null && annualOpexFromDto > 0 
+    ? annualOpexFromDto
+    : (capexTotal !== null ? round(capexTotal * annualOpexRate / 100, 0) : null);
 
   /* ===============================
      CO2 DATA
   =============================== */
   
   // Use energetique CO2 data if available, otherwise estimate from consumption
-  let co2PerYear = 0;
+  let co2PerYear: number | null = null;
   if (energetiqueDto?.data?.results?.co2Emissions?.annual?.tons) {
-    co2PerYear = ensureNumber(energetiqueDto.data.results.co2Emissions.annual.tons, 0);
-  } else {
+    co2PerYear = validateNumber(energetiqueDto.data.results.co2Emissions.annual.tons);
+  } else if (annualConsumption !== null) {
     // Estimate: ~0.5 kg CO2 per kWh (Tunisian grid average)
     co2PerYear = (annualConsumption * 0.5) / 1000; // Convert to tons
   }
   
-  const co2Total = ensureNumber(co2PerYear * 25, 0);
+  const co2Total = co2PerYear !== null ? co2PerYear * 25 : null;
 
   /* ===============================
-     RETURN — PDF SAFE
+     RETURN
+     Return null values as-is - missing data should remain null
   =============================== */
-  
+
+  const safeRound = (value: number | null, decimals: number): number | null => {
+    return value !== null ? round(value, decimals) : null;
+  };
 
   return {
-    pvPower: round(pvPower, 2),
-    pvYield: round(pvYield, 0),
-    pvProductionYear1: round(pvProductionYear1, 0),
-    coverageRate: round(coverageRate, 1),
+    pvPower: safeRound(pvPower, 2),
+    pvYield: safeRound(pvYield, 0),
+    pvProductionYear1: safeRound(pvProductionYear1, 0),
+    coverageRate: safeRound(coverageRate, 1),
 
-    consumptionWithoutPV: round(consumptionWithoutPV, 0),
-    consumptionWithPV: round(consumptionWithPV, 0),
+    consumptionWithoutPV: safeRound(consumptionWithoutPV, 0),
+    consumptionWithPV: safeRound(consumptionWithPV, 0),
 
-    avgPriceWithoutPV: round(avgPriceWithoutPV, 3),
-    avgPriceWithoutPV_mDt: round(avgPriceWithoutPV * 1000, 0),
+    avgPriceWithoutPV: safeRound(avgPriceWithoutPV, 3),
+    avgPriceWithoutPV_mDt: avgPriceWithoutPV !== null ? round(avgPriceWithoutPV * 1000, 0) : null,
 
-    avgPriceWithPV: round(avgPriceWithPV, 3),
-    avgPriceWithPV_mDt: round(avgPriceWithPV * 1000, 0),
+    avgPriceWithPV: safeRound(avgPriceWithPV, 3),
+    avgPriceWithPV_mDt: avgPriceWithPV !== null ? round(avgPriceWithPV * 1000, 0) : null,
 
-    annualSavings: round(annualSavings, 0),
+    annualSavings: safeRound(annualSavings, 0),
 
-    gainCumulated: round(gainCumulatedFromEconomics, 0),
-    gainDiscounted: round(gainDiscounted, 0),
-    cashflowCumulated: round(cashflowCumulated, 0),
-    cashflowDiscounted: round(cashflowDiscounted, 0),
+    gainCumulated: safeRound(gainCumulatedFromEconomics, 0),
+    gainDiscounted: safeRound(gainDiscounted, 0),
+    cashflowCumulated: safeRound(cashflowCumulated, 0),
+    cashflowDiscounted: safeRound(cashflowDiscounted, 0),
     npv: round(npv, 0),
-    paybackSimple: round(paybackSimple, 2),
-    paybackDiscounted: round(paybackDiscounted, 2),
+    paybackSimple: round(paybackSimple / 12, 2), // Convert months to years
+    paybackDiscounted: round(paybackDiscounted / 12, 2), // Convert months to years
     irr: round(irr, 2),
     roi: round(roi, 2),
 
-    co2PerYear: round(co2PerYear, 2),
-    co2Total: round(co2Total, 0),
+    co2PerYear: safeRound(co2PerYear, 2),
+    co2Total: safeRound(co2Total, 0),
 
     // Investment information
     capexPerKwp: capexPerKwp,
     annualOpexRate: annualOpexRate,
-    capexTotal: round(capexTotal, 0),
-    opexAnnual: round(opexAnnual, 0),
+    capexTotal: safeRound(capexTotal, 0),
+    opexAnnual: safeRound(opexAnnual, 0),
   };
 }
+
