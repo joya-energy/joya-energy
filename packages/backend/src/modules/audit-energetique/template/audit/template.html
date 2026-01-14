@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Rapport d'audit énergétique</title>
+
+  <style>
+    {{INLINE_CSS}}
+  </style>
+</head>
+<body>
+
+
+<!-- ================= PAGE 1 — COVER ================= -->
+<div class="page cover-page">
+
+  <!-- HEADER / LOGO -->
+  <div class="cover-header">
+    <img
+      class="cover-logo"
+      src="data:image/png;base64,{{joyaLogoBase64}}"
+      alt="Joya"
+    />
+    <div class="cover-meta">
+      <strong>Rapport d’audit énergétique</strong><br />
+        {{companyName}}<br />
+         {{fullName}}
+    </div>
+  </div>
+
+  <!-- CENTER TITLE -->
+  <div class="cover-center">
+    <h1>Simulation de votre Diagnostic de Performance Énergétique</h1>
+    <p>Rapport généré par JOYA Energy</p>
+    <p></p>
+  </div>
+
+      <!-- METHODOLOGY -->
+      <div class="dpe-methodology">
+        Cette estimation repose sur un diagnostic préliminaire basé sur les
+        caractéristiques du bâtiment, son usage et les systèmes énergétiques
+        déclarés. Elle fournit une estimation fiable du niveau de performance
+        énergétique à partir des données recueillies.
+      </div>
+
+  <!-- BIG IMAGE -->
+  <div class="cover-image-big">
+    <img
+      src="data:image/jpeg;base64,{{heroImageBase64}}"
+      alt="Installation solaire"
+    />
+  </div>
+
+  <!-- FOOTER DATE -->
+  <div class="cover-footer">
+    Rapport généré le {{auditDate}}
+  </div>
+
+</div>
+<!-- ================= PAGE 2 ================= -->
+<div class="page dpe-page">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="header-left">
+      <img src="data:image/png;base64,{{joyaLogoBase64}}" alt="Joya" />
+      <div>
+        <div class="header-title">Rapport d’audit énergétique</div>
+        <div class="header-sub">{{companyName}}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="page-content">
+
+    <h1>Votre étiquette énergétique estimée</h1>
+
+    <div class="dpe-subtitle">
+      La note estimée de votre bâtiment est :
+      <span class="energy-badge">{{energyClass}}</span>
+    </div>
+
+
+
+    <!-- GRID -->
+<!-- SCALES ROW -->
+<div class="dpe-scales-row">
+
+  <div class="dpe-scale">
+    <h3>Performance énergétique</h3>
+
+    <div class="scale-kpi">
+      {{consumptionPerM2}} <span>kWh/m²/an</span>
+    </div>
+<div class="co2-scale">
+    {{classes}} 
+    </div>
+  </div>
+
+<div class="dpe-scale">
+  <h3>Émissions de CO₂</h3>
+
+  <div class="scale-kpi scale-kpi-co2">
+    {{co2Emissions}} <span>kgCO₂/m²/an</span>
+  </div>
+
+  <div class="co2-scale">
+    {{co2Classes}}
+  </div>
+</div>
+
+
+</div>
+
+<!-- INFO BELOW -->
+<div class="dpe-info-full dpe-info-below">
+  <div class="dpe-card">
+    <h4>Informations générales</h4>
+
+      <div class="dpe-info-layout">
+
+    <ul class="dpe-info-list">
+      <li><strong>Surface auditée :</strong> {{surfaceArea}} m²</li>
+      <li><strong>Gouvernorat :</strong> {{governorate}}</li>
+      <li><strong>Type tarifaire STEG :</strong> {{tariffType}}</li>
+      <li><strong>Type de chauffage :</strong> {{heating}}</li>
+      <li><strong>Type de climatisation :</strong> {{cooling}}</li>
+      <li><strong>Type de VMC :</strong> {{ventilation}}</li>
+      <li><strong>Type d’ECS :</strong> {{domesticHotWater}}</li>
+      <li><strong>Type de vitrage :</strong> {{glazingType}}</li>
+    </ul>
+
+        <img
+      src="data:image/png;base64,{{building2IconBase64}}"
+      alt="Bâtiment2"
+      class="building"
+    />
+
+      </div>
+
+  </div>
+</div>
+
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="page-footer">
+    <div class="footer-line"></div>
+    <div class="footer-content">
+      <span>Simulation de Diagnostic de Performance Énergétique</span>
+      <span>Page 2</span>
+    </div>
+  </div>
+
+</div>
+<!-- ================= PAGE 3 ================= -->
+<!-- ================= PAGE 3 ================= -->
+<div class="page energy-page">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="header-left">
+      <img src="data:image/png;base64,{{joyaLogoBase64}}" alt="Joya" />
+      <div>
+        <div class="header-title">Rapport d’audit énergétique</div>
+        <div class="header-sub">{{companyName}}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="page-content">
+
+    <!-- ================= GLOBAL CONSUMPTION ================= -->
+    <h1>Analyse de votre consommation énergétique</h1>
+    <p class="energy-subtitle">
+      Estimation annuelle basée sur les caractéristiques déclarées de votre bâtiment
+    </p>
+
+    <div class="energy-cards-row">
+
+      <!-- CARD : CONSOMMATION -->
+      <div class="energy-card">
+
+        <h3>Ma consommation énergétique annuelle</h3>
+
+        <p class="energy-highlight">
+          Votre bâtiment présente une consommation énergétique totale estimée à :
+        </p>
+
+        <div class="energy-value-row">
+          <img
+            src="data:image/png;base64,{{energyIconBase64}}"
+            alt="Énergie"
+            class="energy-value-icon"
+          />
+
+          <div class="energy-value">
+            {{annualConsumption}}
+            <span>kWh / an</span>
+          </div>
+        </div>
+
+        <ul class="energy-list">
+          <li>Surface du bâtiment</li>
+          <li>Systèmes énergétiques installés</li>
+          <li>Horaires et usages déclarés</li>
+          <li>Caractéristiques générales du site</li>
+        </ul>
+
+      </div>
+
+      <!-- CARD : FACTURE -->
+      <div class="energy-card">
+
+        <h3>Ma facture d’énergie annuelle</h3>
+
+        <p class="energy-highlight">
+          La facture énergétique annuelle est estimée à :
+        </p>
+
+        <div class="bill-visual-vertical">
+          <img
+            src="data:image/png;base64,{{buildingImageBase64}}"
+            alt="Bâtiment"
+            class="bill-building"
+          />
+
+          <div class="bill-bubble">
+            {{annualCost}}
+            <span>TND / an</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ================= USAGE BREAKDOWN ================= -->
+    <h1>Ma consommation d’énergie annuelle par usages</h1>
+    <p class="usage-subtitle">
+      Répartition estimative de la consommation énergétique par poste
+    </p>
+
+    <table class="usage-table">
+      <thead>
+        <tr>
+          <th>Poste énergétique</th>
+          <th>Consommation (kWh/an)</th>
+          <th>Coût estimé (TND/an)</th>
+          <th>Répartition des frais</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        <!-- CLIMATISATION -->
+        <tr>
+          <td class="usage-label">
+            <img
+  class="usage-icon"
+  src="data:image/png;base64,{{iconACBase64}}"
+  alt="Climatisation"
+/>
+
+
+            <span class="usage-text">Climatisation</span>
+          </td>
+          <td>{{endUses.cooling.consumptionKwh}}</td>
+          <td>{{endUses.cooling.costTunisianDinar}}</td>
+          <td>
+            <div class="cost-split">
+              <div class="cost-bar">
+                <div
+                  class="cost-bar-fill"
+                  style="width: {{endUses.cooling.sharePercent}}%;"
+                ></div>
+              </div>
+              <span class="cost-pct">
+                {{endUses.cooling.sharePercent}} %
+              </span>
+            </div>
+          </td>
+        </tr>
+
+        <!-- CHAUFFAGE -->
+        <tr>
+          <td class="usage-label">
+            <img
+  class="usage-icon"
+  src="data:image/png;base64,{{iconHeatingBase64}}"
+  alt="Chauffage"
+/>
+            <span class="usage-text">Chauffage</span>
+          </td>
+          <td>{{endUses.heating.consumptionKwh}}</td>
+          <td>{{endUses.heating.costTunisianDinar}}</td>
+          <td>
+            <div class="cost-split">
+              <div class="cost-bar">
+                <div
+                  class="cost-bar-fill"
+                  style="width: {{endUses.heating.sharePercent}}%;"
+                ></div>
+              </div>
+              <span class="cost-pct">
+                {{endUses.heating.sharePercent}} %
+              </span>
+            </div>
+          </td>
+        </tr>
+
+        <!-- ÉCLAIRAGE -->
+        <tr>
+          <td class="usage-label">
+
+            <img
+  class="usage-icon"
+  src="data:image/png;base64,{{iconLightBase64}}"
+  alt="Éclairage"
+/>
+
+            <span class="usage-text">Éclairage</span>
+          </td>
+          <td>{{endUses.lighting.consumptionKwh}}</td>
+          <td>{{endUses.lighting.costTunisianDinar}}</td>
+          <td>
+            <div class="cost-split">
+              <div class="cost-bar">
+                <div
+                  class="cost-bar-fill"
+                  style="width: {{endUses.lighting.sharePercent}}%;"
+                ></div>
+              </div>
+              <span class="cost-pct">
+                {{endUses.lighting.sharePercent}} %
+              </span>
+            </div>
+          </td>
+        </tr>
+
+        <!-- ÉQUIPEMENTS -->
+        <tr>
+          <td class="usage-label">
+            <img
+  class="usage-icon"
+  src="data:image/png;base64,{{iconEquipmentBase64}}"
+  alt="Équipements"
+/>
+            <span class="usage-text">Équipements</span>
+          </td>
+          <td>{{endUses.equipment.consumptionKwh}}</td>
+          <td>{{endUses.equipment.costTunisianDinar}}</td>
+          <td>
+            <div class="cost-split">
+              <div class="cost-bar">
+                <div
+                  class="cost-bar-fill"
+                  style="width: {{endUses.equipment.sharePercent}}%;"
+                ></div>
+              </div>
+              <span class="cost-pct">
+                {{endUses.equipment.sharePercent}} %
+              </span>
+            </div>
+          </td>
+        </tr>
+
+        <!-- ECS -->
+        <tr>
+          <td class="usage-label">
+            <img
+  class="usage-icon"
+  src="data:image/png;base64,{{iconECSBase64}}"
+  alt="Eau chaude sanitaire"
+/>
+
+
+            
+            <span class="usage-text">Eau chaude sanitaire (ECS)</span>
+          </td>
+          <td>{{endUses.domesticHotWater.consumptionKwh}}</td>
+          <td>{{endUses.domesticHotWater.costTunisianDinar}}</td>
+          <td>
+            <div class="cost-split">
+              <div class="cost-bar">
+                <div
+                  class="cost-bar-fill"
+                  style="width: {{endUses.domesticHotWater.sharePercent}}%;"
+                ></div>
+              </div>
+              <span class="cost-pct">
+                {{endUses.domesticHotWater.sharePercent}} %
+              </span>
+            </div>
+          </td>
+        </tr>
+
+      </tbody>
+
+      <tfoot>
+        <tr>
+          <td><strong>Total</strong></td>
+          <td><strong>{{annualConsumption}}</strong></td>
+          <td><strong>{{annualCost}}</strong></td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="page-footer">
+    <div class="footer-line"></div>
+    <div class="footer-content">
+      <span>Simulation de Diagnostic de Performance Énergétique</span>
+      <span>Page 3</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ================= PAGE 4 — CONSOMMATION PAR USAGES ================= -->
+
+<div class="page usage-page">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="header-left">
+      <img src="data:image/png;base64,{{joyaLogoBase64}}" class="header-logo" />
+      <div>
+        <div class="header-title">Rapport d’audit énergétique</div>
+        <div class="header-sub">{{companyName}}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="page-content">
+
+    <!-- TITLE -->
+    <h2>Recommandations énergétiques</h2>
+
+    <!-- BLOCK 1 : TABLE -->
+    <div class="reco-block reco-block-table">
+      {{recommendationsHTML}}
+    </div>
+
+    <!-- BLOCK 2 : EXPLANATION -->
+    <div class="reco-block reco-block-text">
+
+      <p class="reco-intro">
+        <span class="pv-highlight">
+          L’installation d’un système photovoltaïque est recommandée
+        </span>
+        puisqu’elle permet de réduire durablement vos achats
+        d’électricité et d’améliorer la performance énergétique globale du bâtiment.
+      </p>
+
+      <ul class="reco-benefits">
+        <li>Baisse immédiate de la facture d’énergie</li>
+        <li>Diminution de la consommation réseau</li>
+        <li>Réduction des émissions de CO₂</li>
+        <li>Amélioration de la classe énergétique</li>
+      </ul>
+
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="page-footer">
+    <div class="footer-line"></div>
+    <div class="footer-content">
+      <span>Simulation de Diagnostic de Performance Énergétique</span>
+      <span>Page 4</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

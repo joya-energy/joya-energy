@@ -1,7 +1,8 @@
 export enum ModelsCollection {
   CONTACT = 'contacts',
   AUDIT_ENERGETIQUE_SIMULATION = 'audit-energetique-simulations',
-  AUDIT_SOLAIRE_SIMULATION = 'audit-solaire-simulation'
+  AUDIT_SOLAIRE_SIMULATION = 'audit-solaire-simulation',
+  FILE = 'files'
 }
 
 export enum AuditSimulationTypes {

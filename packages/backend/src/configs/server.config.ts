@@ -27,6 +27,11 @@ export interface IServerConfig {
         community: string;
         parameter: string;
     };
+    googleCloudStorage: {
+        bucketName: string;
+        keyFilename?: string;
+        impersonateServiceAccount?: string;
+    };
 
 }
 export class ServerConfig {
@@ -85,6 +90,11 @@ export class ServerConfig {
                 apiUrl: isNotNullish(process.env.NASA_POWER_API_URL) ? process.env.NASA_POWER_API_URL : '',
                 community: isNotNullish(process.env.NASA_POWER_COMMUNITY) ? process.env.NASA_POWER_COMMUNITY : '',
                 parameter: isNotNullish(process.env.NASA_POWER_PARAMETER) ? process.env.NASA_POWER_PARAMETER : '',
+            },
+            googleCloudStorage: {
+                bucketName: process.env.GCS_BUCKET_NAME ?? '',
+                keyFilename: process.env.GCS_KEY_FILENAME,
+                impersonateServiceAccount: process.env.GCS_IMPERSONATE_SERVICE_ACCOUNT,
             },
         };
     }

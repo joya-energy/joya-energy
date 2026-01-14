@@ -419,7 +419,7 @@
                       <div class="metric-badge">Profit</div>
                     </div>
                     <div class="metric-content">
-                      <div class="metric-value success">{{ (simulation.roi25Years || 0).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}</div>
+                      <div class="metric-value success">{{ ((simulation.roi25Years || 0) * 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}%</div>
                       <div class="metric-label">ROI</div>
                       <div class="metric-subtitle">Retour sur investissement</div>
                     </div>
@@ -551,9 +551,19 @@
                   <ng-icon name="lucideArrowLeft"></ng-icon>
                   Nouvelle Simulation
                 </button>
-                <button type="button" class="btn-primary">
-                  <ng-icon name="lucideDownload"></ng-icon>
-                  Télécharger le Rapport
+                <button 
+                  type="button" 
+                  class="btn-primary"
+                  (click)="downloadPVReport()"
+                  [disabled]="isGeneratingPDF() || !simulationResult()?.id">
+                  <ng-container *ngIf="!isGeneratingPDF(); else generatingLabel">
+                    <ng-icon name="lucideDownload"></ng-icon>
+                    Télécharger le Rapport
+                  </ng-container>
+                  <ng-template #generatingLabel>
+                    <ng-icon name="lucideLoader" class="spinning"></ng-icon>
+                    Génération en cours...
+                  </ng-template>
                 </button>
                 <button type="button" class="btn-primary">
                   <ng-icon name="lucidePhone"></ng-icon>

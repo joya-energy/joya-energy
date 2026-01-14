@@ -126,6 +126,7 @@ export class AuditSolaireComponent {
   protected auditForm: AuditSolaireFormGroup = this.formService.buildForm();
   protected step = signal(AuditSolaireFormStep.INVOICE);
   protected isSubmitting = signal(false);
+  protected isGeneratingPDF = signal(false);
   protected simulationResult = signal<IAuditSolaireSimulation | null>(null);
   protected monthSelectControl = new FormControl<string>('');
   protected invoiceChoice = signal<'yes' | 'no' | null>(null);
@@ -453,6 +454,73 @@ export class AuditSolaireComponent {
 
   public trackByIndex(index: number): number {
     return index;
+  }
+
+  protected downloadPVReport(): void {
+    const result = this.simulationResult();
+    if (!result?.id) {
+      this.notificationStore.addNotification({
+        type: 'error',
+        title: 'Erreur',
+        message: 'Aucune simulation trouvée. Veuillez d\'abord compléter l\'audit solaire.'
+      });
+      return;
+    }
+
+    this.isGeneratingPDF.set(true);
+    this.auditSolaireService
+      .downloadPVReport(result.id)
+      .pipe(finalize(() => this.isGeneratingPDF.set(false)))
+      .subscribe({
+        next: (blob: Blob) => {
+          // Create download link
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `rapport-pv-joya-${result.id.substring(0, 8)}.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+
+          this.notificationStore.addNotification({
+            type: 'success',
+            title: 'PDF téléchargé',
+            message: 'Le rapport PV a été téléchargé et sauvegardé dans le cloud.'
+          });
+        },
+        error: (error) => {
+          console.error('Error generating PV PDF:', error);
+          
+          // Try to parse error message from blob if it's a JSON error response
+          if (error.error instanceof Blob) {
+            error.error.text().then((text: string) => {
+              try {
+                const errorJson = JSON.parse(text);
+                const errorMessage = errorJson.error || errorJson.message || 'Impossible de générer le PDF. Veuillez réessayer.';
+                this.notificationStore.addNotification({
+                  type: 'error',
+                  title: 'Erreur',
+                  message: errorMessage
+                });
+              } catch {
+                this.notificationStore.addNotification({
+                  type: 'error',
+                  title: 'Erreur',
+                  message: 'Impossible de générer le PDF. Veuillez réessayer.'
+                });
+              }
+            });
+          } else {
+            const errorMessage = error?.error?.error || error?.error?.message || 'Impossible de générer le PDF. Veuillez réessayer.';
+            this.notificationStore.addNotification({
+              type: 'error',
+              title: 'Erreur',
+              message: errorMessage
+            });
+          }
+        }
+      });
   }
 }
 

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Rapport d’étude photovoltaïque – BT</title>
+  <style>{{INLINE_CSS}}</style>
+</head>
+<body>
+
+
+
+
+<!-- ================= PAGE 1 — COVER ================= -->
+<div class="page cover-page">
+
+  <!-- HEADER / LOGO -->
+  <div class="cover-header">
+    <img
+      class="cover-logo"
+      src="data:image/png;base64,{{joyaLogoBase64}}"
+      alt="Joya"
+    />
+    <div class="cover-meta">
+      <strong>Rapport photovoltaïque</strong><br />
+        {{companyName}}<br />
+         {{fullName}}
+    </div>
+  </div>
+
+  <!-- CENTER TITLE -->
+  <div class="cover-center">
+    <h1>Rapport d’étude technico-financière d’une installation photovoltaïque</h1>
+    <p>Rapport généré par JOYA Energy</p>
+    <p></p>
+  </div>
+
+
+
+  <!-- BIG IMAGE -->
+  <div class="cover-image-big">
+    <img
+      src="data:image/jpeg;base64,{{pvcoverBase64}}"
+      alt="cover"
+    />
+  </div>
+
+  <!-- FOOTER DATE -->
+  <div class="cover-footer">
+    Rapport généré le {{auditDate}}
+  </div>
+
+</div>
+
+<!-- ================= PAGE 2 ================= -->
+<div class="page dpe-page">
+
+  <div class="page-header">
+    <div class="header-left">
+      <img src="data:image/png;base64,{{joyaLogoBase64}}" />
+      <div>
+        <div class="header-title">Rapport photovoltaïque – BT</div>
+        <div class="header-sub">{{companyName}}</div>
+      </div>
+    </div>
+  </div>
+
+<div class="page-content">
+
+  <!-- ===============================
+       HYPOTHÈSES DE CALCUL
+  ================================ -->
+
+  <h1>Hypothèses de calcul</h1>
+
+  <div class="hypothesis-kpi-row">
+    <div class="hypothesis-kpi">
+      <div class="kpi-label">Durée d’étude</div>
+      <div class="kpi-value">25 <span>ans</span></div>
+    </div>
+
+    <div class="hypothesis-kpi">
+      <div class="kpi-label">Dégradation PV</div>
+      <div class="kpi-value">0,4 <span>% / an</span></div>
+    </div>
+
+    <div class="hypothesis-kpi">
+      <div class="kpi-label">Inflation tarif STEG</div>
+      <div class="kpi-value">7 <span>% / an</span></div>
+    </div>
+
+    <div class="hypothesis-kpi">
+      <div class="kpi-label">Taux d’actualisation</div>
+      <div class="kpi-value">8 <span>%</span></div>
+    </div>
+  </div>
+
+  <!-- ===============================
+       INVESTISSEMENT & MAINTENANCE
+  ================================ -->
+
+  <div class="investment-card split">
+
+    <!-- LEFT : INVESTISSEMENT -->
+    <div class="investment-col">
+
+      <div class="investment-header">
+        <h3>Investissement</h3>
+
+        <img
+          class="investment-icon"
+          src="data:image/png;base64,{{investIconBase64}}"
+          alt="Investissement"
+        />
+      </div>
+      <span style="font-size: 1.2em; font-weight: bold; color: #021022;">{{capexTotal}} DT</span>
+
+      <p class="investment-price">
+        <strong>Prix par kWc installé :</strong><br />
+        <span>2 000 DT / kWc</span><br />
+      </p>
+
+      <p class="investment-includes">Ce prix inclut :</p>
+      <ul class="investment-list">
+        <li>Panneaux photovoltaïques</li>
+        <li>Onduleurs</li>
+        <li>Coffrets de protection et distribution AC / DC</li>
+        <li>Câblage DC et AC</li>
+        <li>Installation et mise en service</li>
+      </ul>
+    </div>
+
+    <!-- RIGHT : MAINTENANCE -->
+    <div class="investment-col maintenance">
+            <div class="investment-header">
+
+      <h3>Frais de maintenance</h3>
+              <img
+          class="investment-icon"
+          src="data:image/png;base64,{{iconEquipmentBase64}}"
+          alt="Investissement"
+        />
+        
+ </div>
+
+      <div class="maintenance-box">
+        <div style="font-size: 1.2em; font-weight: bold; color: #021022; margin-top: 10px;">{{opexAnnual}} DT / an</div>
+
+        <div class="maintenance-value">4 % </div>
+        <div class="maintenance-label">
+          OPEX annuel du coût d'investissement
+        </div>
+
+        <div class="maintenance-includes">
+          Ce prix inclut :
+          <ul>
+            <li>2 nettoyages par an</li>
+            <li>2 tests de thermographie par an</li>
+            <li>Entretien préventif & correctif</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===============================
+       SYNTHESE ÉNERGÉTIQUE
+  ================================ -->
+
+  <h1 class="section-title">Synthèse énergétique</h1>
+
+  <table class="summary-table">
+    <tbody>
+      <tr>
+        <td>Consommation annuelle</td>
+        <td>{{annualConsumption}} kWh/an</td>
+      </tr>
+      <tr>
+        <td>Puissance PV installée</td>
+        <td>{{pvPower}} kWc</td>
+      </tr>
+      <tr>
+        <td>Productible annuel spécifique</td>
+        <td>{{pvYield}} kWh/kWc/an</td>
+      </tr>
+      <tr>
+        <td>Production PV annuelle (année 1)</td>
+        <td>{{pvProductionYear1}} kWh/an</td>
+      </tr>
+      <tr>
+        <td>Taux de couverture</td>
+        <td>≈ {{coverageRate}} %</td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>
+
+
+  <div class="page-footer">
+    <div class="footer-line"></div>
+    <div class="footer-content">
+      <span>Étude photovoltaïque </span>
+      <span>Page 2</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================= PAGE 3 ================= -->
+
+<div class="page energy-page">
+
+  <div class="page-header">
+    <div class="header-left">
+      <img src="data:image/png;base64,{{joyaLogoBase64}}" />
+      <div>
+        <div class="header-title">Rapport photovoltaïque – BT</div>
+        <div class="header-sub">{{companyName}}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <h1 class="section-title">Impact sur la facture</h1>
+
+
+    <div class="old-compare-grid">
+
+      <!-- LEFT BLOCK -->
+      <div class="old-block">
+        <h3 class="old-block-title red">
+          Facture Achat Électricité sans IPV
+        </h3>
+
+        <p>Consommation d’électricité :<br /> </p>
+        <p> <strong>{{consumptionWithoutPV}} kWh/an</strong></p>
+
+        <div class="old-arrow">↓</div>
+
+
+
+        <p class="old-price">
+          <strong>{{avgPriceWithoutPV}}</strong> Dt HT/kWh<br />
+          Prix Moyen d'achat d'électricité
+        </p>
+
+
+      </div>
+
+      <!-- CENTER: ECONOMY CARD -->
+      <div class="old-center">
+        <div class="bill-savings-card">
+
+          <div class="bill-savings-text">
+            💡 Économie annuelle moyenne estimée :
+            <strong>≈ {{annualSavings}} DT / an</strong>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- RIGHT BLOCK -->
+      <div class="old-block">
+        <h3 class="old-block-title red">
+          Facture Achat Électricité avec IPV
+        </h3>
+
+        <p>Consommation d’électricité :<br /> </p>
+        <p> <strong>{{consumptionWithPV}} kWh/an</strong></p>
+        <div class="old-arrow">↓</div>
+
+
+        <p class="old-price">
+          <strong>{{avgPriceWithPV}}</strong> Dt HT/kWh<br />
+          Prix Moyen d'achat d'électricité
+        </p>
+
+      </div>
+
+    </div>
+
+
+  </div>
+
+  <div class="page-footer">
+    <div class="footer-line"></div>
+    <div class="footer-content">
+      <span>Étude photovoltaïque </span>
+      <span>Page 3</span>
+    </div>
+  </div>
+
+</div>
+
+
+
+
+
+<!-- ================= PAGE 4 ================= -->
+<div class="page usage-page">
+
+  <div class="page-header">
+    <div class="header-left">
+      <img src="data:image/png;base64,{{joyaLogoBase64}}" />
+      <div>
+        <div class="header-title">Rapport photovoltaïque – BT</div>
+        <div class="header-sub">{{companyName}}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-content">
+
+    <!-- ===============================
+     RESULTATS FINANCIERS
+================================ -->
+
+<h1 class="section-title">
+  Résultats financiers cumulés ({{studyDuration}} ans)
+</h1>
+
+<table class="summary-table financial-table">
+  <tbody>
+    <tr>
+      <td>Gain cumulé non actualisé</td>
+      <td>{{gainCumulated}} DT</td>
+    </tr>
+    <tr>
+      <td>Gain cumulé actualisé</td>
+      <td>{{gainDiscounted}} DT</td>
+    </tr>
+    <tr>
+      <td>Cash-flow cumulé</td>
+      <td>{{cashflowCumulated}} DT</td>
+    </tr>
+    <tr>
+      <td>Cash-flow cumulé actualisé</td>
+      <td>{{cashflowDiscounted}} DT</td>
+    </tr>
+    <tr class="highlight-row van-row">
+      <td>Valeur Actuelle Nette (VAN)</td>
+      <td>{{npv}} DT</td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+  </div>
+
+  <div class="page-footer">
+    <div class="footer-line"></div>
+    <div class="footer-content">
+      <span>Étude photovoltaïque </span>
+      <span>Page 4</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================= PAGE 5 ================= -->
+<div class="page usage-page">
+
+  <div class="page-header">
+    <div class="header-left">
+      <img src="data:image/png;base64,{{joyaLogoBase64}}" />
+      <div>
+        <div class="header-title">Rapport photovoltaïque – BT</div>
+        <div class="header-sub">{{companyName}}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-content">
+<h1 class="section-title">Indicateurs de rentabilité</h1>
+
+<table class="kpi-table">
+  <tr>
+    <td>Retour simple</td>
+    <td>{{paybackSimple}} <span>ans</span></td>
+  </tr>
+  <tr>
+    <td>Retour actualisé</td>
+    <td>{{paybackDiscounted}} <span>ans</span></td>
+  </tr>
+  <tr class="highlight">
+    <td>TRI</td>
+    <td>{{irr}} <span>%</span></td>
+  </tr>
+  <tr class="highlight">
+    <td>ROI global</td>
+    <td>{{roi}} <span>%</span></td>
+  </tr>
+</table>
+
+
+
+
+
+<!-- ===============================
+     IMPACT ENVIRONNEMENTAL
+================================ -->
+
+<h2 class="section-title">Impact environnemental</h2>
+
+<div class="impact-kpi-row">
+  <div class="impact-kpi">
+    <div class="impact-value">{{co2PerYear}}</div>
+    <div class="impact-label">tonnes de CO₂ évitées / an</div>
+  </div>
+
+  <div class="impact-kpi highlight">
+    <div class="impact-value">{{co2Total}}</div>
+    <div class="impact-label">
+      tonnes de CO₂ évitées sur {{studyDuration}} ans
+    </div>
+  </div>
+</div>
+
+
+
+  </div>
+
+  <div class="page-footer">
+    <div class="footer-line"></div>
+    <div class="footer-content">
+      <span>Étude photovoltaïque </span>
+      <span>Page 4</span>
+    </div>
+  </div>
+</div>
+
+
+</body>
+</html>

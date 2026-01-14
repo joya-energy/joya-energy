@@ -1,17 +1,18 @@
 /**
  * Response DTOs for Audit Énergétique API
- * 
- * @description
+ *
  * Structured JSON responses for energy audit simulations
- * Separates data into logical sections for better client consumption
  */
 
 import { type IAuditEnergetiqueSimulation } from '@shared/interfaces/audit-energetique.interface';
-import { ClassificationGrade, EnergyUnit, EmissionUnit } from '@shared/enums/classification.enum';
+import {
+  ClassificationGrade,
+  EnergyUnit,
+  EmissionUnit
+} from '@shared/enums/classification.enum';
 
-/**
- * Contact & Building Information
- */
+
+
 export interface ContactInfo {
   fullName: string;
   companyName: string;
@@ -55,9 +56,6 @@ export interface BillingInfo {
   billAttachmentUrl?: string;
 }
 
-/**
- * Energy Calculation Results
- */
 export interface EnergyConsumption {
   annual: {
     value: number;
@@ -119,28 +117,48 @@ export interface CarbonClassification {
   isApplicable: boolean;
 }
 
-/**
- * Main Response DTO
- */
+
+
+export interface EnergyEndUseItemDto {
+  consumptionKwh: number;
+  costTunisianDinar: number;
+  sharePercent: number;
+}
+
+export interface EnergyEndUseBreakdownDto {
+  totalConsumptionKwh: number;
+  totalCostTunisianDinar: number;
+  breakdown: {
+    cooling: EnergyEndUseItemDto;
+    heating: EnergyEndUseItemDto;
+    lighting: EnergyEndUseItemDto;
+    equipment: EnergyEndUseItemDto;
+    domesticHotWater: EnergyEndUseItemDto;
+  };
+}
+
+
+
 export interface AuditEnergetiqueResponseDto {
   success: boolean;
   data: {
     simulationId: string;
     createdAt: string;
-    
-    // Section 1: Informations
+
     contact: ContactInfo;
     building: BuildingCharacteristics;
     envelope: BuildingEnvelope;
     systems: EnergySystems;
     billing: BillingInfo;
     existingMeasures: string[];
-    
-    // Section 2: Résultats énergétiques
+
     results: {
       energyConsumption: EnergyConsumption;
       co2Emissions: CO2Emissions;
       energyCost: EnergyCost;
+
+      energyEndUseBreakdown?: EnergyEndUseBreakdownDto;
+
       energyClassification?: EnergyClassification;
       carbonClassification?: CarbonClassification;
     };
@@ -151,21 +169,21 @@ export interface AuditEnergetiqueResponseDto {
   };
 }
 
-/**
- * Transforms database entity to structured response DTO
- */
 export function toAuditEnergetiqueResponseDto(
   simulation: IAuditEnergetiqueSimulation
 ): AuditEnergetiqueResponseDto {
-  const energyConsumptionPerM2 = simulation.annualConsumption / simulation.surfaceArea;
-  const co2PerM2 = simulation.co2EmissionsKg / simulation.surfaceArea;
+  const energyConsumptionPerM2 =
+    simulation.annualConsumption / simulation.surfaceArea;
+
+  const co2PerM2 =
+    simulation.co2EmissionsKg / simulation.surfaceArea;
 
   const response: AuditEnergetiqueResponseDto = {
     success: true,
     data: {
       simulationId: simulation.id,
       createdAt: simulation.createdAt.toISOString(),
-      
+
       contact: {
         fullName: simulation.fullName,
         companyName: simulation.companyName,
@@ -174,7 +192,7 @@ export function toAuditEnergetiqueResponseDto(
         address: simulation.address,
         governorate: simulation.governorate
       },
-      
+
       building: {
         type: simulation.buildingType,
         surfaceArea: simulation.surfaceArea,
@@ -183,14 +201,14 @@ export function toAuditEnergetiqueResponseDto(
         openingHoursPerDay: simulation.openingHoursPerDay,
         openingDaysPerWeek: simulation.openingDaysPerWeek
       },
-      
+
       envelope: {
         insulation: simulation.insulation,
         glazingType: simulation.glazingType,
         ventilation: simulation.ventilation,
         climateZone: simulation.climateZone
       },
-      
+
       systems: {
         heating: simulation.heatingSystem,
         cooling: simulation.coolingSystem,
@@ -199,7 +217,7 @@ export function toAuditEnergetiqueResponseDto(
         equipmentCategories: simulation.equipmentCategories,
         lightingType: simulation.lightingType
       },
-      
+
       billing: {
         tariffType: simulation.tariffType,
         contractedPower: simulation.contractedPower,
@@ -208,9 +226,9 @@ export function toAuditEnergetiqueResponseDto(
         recentBillConsumption: simulation.recentBillConsumption,
         billAttachmentUrl: simulation.billAttachmentUrl
       },
-      
+
       existingMeasures: simulation.existingMeasures,
-      
+
       results: {
         energyConsumption: {
           annual: {
@@ -226,7 +244,7 @@ export function toAuditEnergetiqueResponseDto(
             unit: EnergyUnit.KWH_PER_M2_YEAR
           }
         },
-        
+
         co2Emissions: {
           annual: {
             kilograms: simulation.co2EmissionsKg,
@@ -238,7 +256,7 @@ export function toAuditEnergetiqueResponseDto(
             unit: EmissionUnit.KG_CO2_PER_M2_YEAR
           }
         },
-        
+
         energyCost: {
           annual: {
             value: simulation.energyCostPerYear,
@@ -257,7 +275,13 @@ export function toAuditEnergetiqueResponseDto(
     }
   };
 
-  // Add energy classification if computed
+  /* -------- END-USE BREAKDOWN -------- */
+  if (simulation.energyEndUseBreakdown) {
+    response.data.results.energyEndUseBreakdown =
+      simulation.energyEndUseBreakdown as EnergyEndUseBreakdownDto;
+  }
+
+  /* -------- ENERGY CLASSIFICATION -------- */
   if (
     simulation.energyClass &&
     simulation.totalAnnualEnergy != null &&
@@ -286,7 +310,7 @@ export function toAuditEnergetiqueResponseDto(
     };
   }
 
-  // Add carbon classification if computed
+  /* -------- CARBON CLASSIFICATION -------- */
   if (simulation.carbonClass && simulation.carbonIntensity != null) {
     response.data.results.carbonClassification = {
       class: simulation.carbonClass as ClassificationGrade,
@@ -313,4 +337,3 @@ export function toAuditEnergetiqueResponseDto(
 
   return response;
 }
-
