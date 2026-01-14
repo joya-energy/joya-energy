@@ -535,7 +535,8 @@ export class AuditPDFService {
       flattened.paybackSimple = formatNumber(pvData.paybackSimple, 2);
       flattened.paybackDiscounted = formatNumber(pvData.paybackDiscounted, 2);
       flattened.irr = formatNumber(pvData.irr, 2);
-      flattened.roi = formatNumber(pvData.roi, 2);
+      // ROI is stored as a ratio, convert to percentage for display
+      flattened.roi = formatNumber(pvData.roi !== null && pvData.roi !== undefined ? pvData.roi * 100 : null, 2);
       flattened.co2PerYear = formatNumber(pvData.co2PerYear, 2);
       flattened.co2Total = formatNumber(pvData.co2Total, 0);
       

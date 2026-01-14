@@ -419,7 +419,7 @@
                       <div class="metric-badge">Profit</div>
                     </div>
                     <div class="metric-content">
-                      <div class="metric-value success">{{ (simulation.roi25Years || 0).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}</div>
+                      <div class="metric-value success">{{ ((simulation.roi25Years || 0) * 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}%</div>
                       <div class="metric-label">ROI</div>
                       <div class="metric-subtitle">Retour sur investissement</div>
                     </div>
