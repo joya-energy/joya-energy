@@ -22,12 +22,14 @@ export class EscoSolutionService {
   ): EscoSolution {
     const capexDt = projectCalculation.capexDt;
     const monthlyGrossSavingsDt = projectCalculation.monthlyGrossSavingsDt;
+    const monthlyOpexDt = projectCalculation.monthlyOpexDt;
 
     const escoTargetIrrMonthly =
       Math.pow(1 + parameters.escoTargetIrrAnnual, 1 / FINANCING_CONSTANTS.MONTHS_PER_YEAR) - 1;
 
     const escoMonthlyPayment = this.calculateEscoMonthlyPayment(
       capexDt,
+      monthlyOpexDt,
       escoTargetIrrMonthly
     );
 
@@ -58,18 +60,27 @@ export class EscoSolutionService {
 
   /**
    * Calculates ESCO monthly payment to achieve target IRR
-   * JOYA invests CAPEX and pays OPEX monthly
-   * JOYA receives monthly payment from client
+   * JOYA invests CAPEX upfront and includes OPEX in the service
+   * JOYA receives monthly payment from client covering both CAPEX + OPEX costs
    */
   private calculateEscoMonthlyPayment(
     capexDt: number,
+    monthlyOpexDt: number,
     targetIrrMonthly: number
   ): number {
-    const annuityFactor =
-      (targetIrrMonthly * Math.pow(1 + targetIrrMonthly, FINANCING_CONSTANTS.DURATION_MONTHS)) /
-      (Math.pow(1 + targetIrrMonthly, FINANCING_CONSTANTS.DURATION_MONTHS) - 1);
+    // ESCO invests CAPEX upfront and pays OPEX monthly
+    // ESCO receives monthly payment from client
+    // The payment should cover both CAPEX financing and OPEX costs
 
-    const escoMonthlyPayment = capexDt * annuityFactor;
+    // Calculate present value of OPEX annuity stream
+    const opexPresentValue = monthlyOpexDt * (1 - Math.pow(1 + targetIrrMonthly, -FINANCING_CONSTANTS.DURATION_MONTHS)) / targetIrrMonthly;
+
+    // Total present value that ESCO needs to recover (CAPEX + PV of OPEX)
+    const totalPresentValue = capexDt + opexPresentValue;
+
+    // Monthly payment to achieve target IRR (annuity formula)
+    const escoMonthlyPayment = totalPresentValue * (targetIrrMonthly * Math.pow(1 + targetIrrMonthly, FINANCING_CONSTANTS.DURATION_MONTHS)) /
+      (Math.pow(1 + targetIrrMonthly, FINANCING_CONSTANTS.DURATION_MONTHS) - 1);
 
     return escoMonthlyPayment;
   }
