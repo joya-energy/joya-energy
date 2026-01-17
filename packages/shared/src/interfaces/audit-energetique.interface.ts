@@ -46,6 +46,17 @@ export interface IAuditEnergetiqueSimulation extends BusinessObject {
   energyCostPerYear: number;
   co2EmissionsKg: number;
   co2EmissionsTons: number;
+  energyEndUseBreakdown?: {
+    totalConsumptionKwh: number;
+    totalCostTunisianDinar: number;
+    breakdown: {
+      cooling: { consumptionKwh: number; costTunisianDinar: number; sharePercent: number };
+      heating: { consumptionKwh: number; costTunisianDinar: number; sharePercent: number };
+      lighting: { consumptionKwh: number; costTunisianDinar: number; sharePercent: number };
+      equipment: { consumptionKwh: number; costTunisianDinar: number; sharePercent: number };
+      domesticHotWater: { consumptionKwh: number; costTunisianDinar: number; sharePercent: number };
+    };
+  };
   co2EmissionsElecKg?: number;
   co2EmissionsGasKg?: number;
   carbonClass?: string;

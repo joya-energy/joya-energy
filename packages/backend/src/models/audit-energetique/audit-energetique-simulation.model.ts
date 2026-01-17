@@ -63,7 +63,55 @@ export const AuditEnergetiqueSimulation: Model<AuditEnergetiqueSimulationDocumen
     siteIntensity: { type: Number, required: false, min: 0 },
     referenceIntensity: { type: Number, required: false, min: 0 },
     joyaIndex: { type: Number, required: false, min: 0 },
-    becth: { type: Number, required: false, min: 0 }
+    becth: { type: Number, required: false, min: 0 },
+
+
+    carbonClass: { type: String, required: false },
+carbonIntensity: { type: Number, required: false, min: 0 },
+carbonClassDescription: { type: String, required: false },
+
+co2EmissionsElecKg: { type: Number, required: false, min: 0 },
+co2EmissionsGasKg: { type: Number, required: false, min: 0 },
+
+
+
+
+
+
+
+
+    energyEndUseBreakdown: {
+      breakdown: {
+        cooling: {
+          consumptionKwh: { type: Number, required: true, min: 0 },
+          costTunisianDinar: { type: Number, required: true, min: 0 },
+          sharePercent: { type: Number, required: true, min: 0 },
+        },
+        heating: {
+          consumptionKwh: { type: Number, required: true, min: 0 },
+          costTunisianDinar: { type: Number, required: true, min: 0 },
+          sharePercent: { type: Number, required: true, min: 0 },
+        },
+        lighting: {
+          consumptionKwh: { type: Number, required: true, min: 0 },
+          costTunisianDinar: { type: Number, required: true, min: 0 },
+          sharePercent: { type: Number, required: true, min: 0 },
+        },
+        equipment: {
+          consumptionKwh: { type: Number, required: true, min: 0 },
+          costTunisianDinar: { type: Number, required: true, min: 0 },
+          sharePercent: { type: Number, required: true, min: 0 },
+        },
+        domesticHotWater: {
+          consumptionKwh: { type: Number, required: true, min: 0 },
+          costTunisianDinar: { type: Number, required: true, min: 0 },
+          sharePercent: { type: Number, required: true, min: 0 },
+        },
+      },
+      totalConsumptionKwh: { type: Number, required: true, min: 0 },
+      totalCostTunisianDinar: { type: Number, required: true, min: 0 },
+    },
+
   },
   {
     timestamps: true

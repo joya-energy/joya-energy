@@ -76,7 +76,7 @@ export interface  IAuditSolaireSimulation extends BusinessObject {
   coverage: number; 
   simplePaybackYears?: number; // Payback simple in months
   discountedPaybackYears?: number; // Payback actualisé in months
-  roi25Years?: number; // ROI in DT (absolute value, not percentage)
+  roi25Years?: number; // ROI as a ratio (multiply by 100 for percentage)
   npv?: number; // VAN in DT
   irr: number; // Internal Rate of Return (TRI)
 

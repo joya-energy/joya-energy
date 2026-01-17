@@ -6,6 +6,10 @@
 /out-tsc
 /bazel-out
 
+# Generated CSS files (compiled from SCSS) - don't commit generated/minified code
+src/**/*.css
+src/**/*.css.map
+
 # Node
 /node_modules
 npm-debug.log

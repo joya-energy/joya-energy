@@ -42,5 +42,12 @@ export class AuditSolaireService {
   deleteSimulation(id: string): Observable<void> {
     return this.api.delete<void>(`/audit-solaire-simulations/${id}`);
   }
+
+  downloadPVReport(solaireId: string, energetiqueId?: string): Observable<Blob> {
+    return this.api.downloadFile('/audit-energetique-simulations/download-pv-pdf', {
+      solaireId,
+      energetiqueId
+    });
+  }
 }
 

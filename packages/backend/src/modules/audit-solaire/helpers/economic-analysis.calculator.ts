@@ -64,7 +64,7 @@ export interface EconomicAnalysisResult {
   totalSavings25Years: number;
   simplePaybackYears: number; // Now represents months instead of years
   discountedPaybackYears: number; // Now represents months instead of years
-  returnOnInvestmentPercent: number; // ROI (DT) - absolute value not percentage
+  returnOnInvestmentPercent: number; // ROI as a ratio (multiply by 100 for percentage)
   netPresentValue: number; // NPV/VAN (DT)
   internalRateOfReturnPercent: number; // IRR/TRI (%)
   annualCo2Avoided: number; // Annual CO2 emissions avoided (kg)
@@ -393,18 +393,22 @@ export function calculateDiscountedPayback(
 /**
  * Calculate ROI (Return on Investment) over project lifetime
  * 
- * Formula: ROI = (Σ Gain_net(n)) - CAPEX
+ * Formula: ROI = (Σ from n=1 to 25 of Gain_net(n) - CAPEX) / CAPEX
  * 
- * Returns absolute profit value in DT (not percentage).
+ * Returns ROI as a ratio (multiply by 100 for percentage).
  */
 export function calculateROI(
   investmentCost: number,
   annualResults: AnnualEconomicResult[]
 ): number {
-  const totalNetGain = annualResults.reduce((sum, result) => sum + result.netGain, 0);
-  const roiValue = totalNetGain - investmentCost;
+  if (investmentCost === 0) {
+    return 0;
+  }
 
-  return Number(roiValue.toFixed(2));
+  const totalNetGain = annualResults.reduce((sum, result) => sum + result.netGain, 0);
+  const roiValue = (totalNetGain - investmentCost) / investmentCost;
+
+  return Number(roiValue.toFixed(4));
 }
 
 /**
@@ -418,12 +422,19 @@ export function calculateROI(
  */
 export function calculateNPV(
   investmentCost: number,
-  annualResults: AnnualEconomicResult[]
+  annualResults: AnnualEconomicResult[],
+  discountRate: number = 0.08
 ): number {
-  const totalDiscountedGain = annualResults.reduce(
-    (sum, result) => sum + result.cumulativeNetGainDiscounted,
-    0
-  );
+  if (annualResults.length === 0) {
+    return -investmentCost;
+  }
+
+  // Sum individual discounted net gains for each year
+  // Formula: Σ [Gain_net(n) / (1+r)^n]
+  const totalDiscountedGain = annualResults.reduce((sum, result) => {
+    const discountedValue = calculateDiscountedValue(result.netGain, result.year, discountRate);
+    return sum + discountedValue;
+  }, 0);
 
   const npv = -investmentCost + totalDiscountedGain;
   return Number(npv.toFixed(2));
@@ -595,7 +606,7 @@ export function analyzeEconomics(input: EconomicAnalysisInput): EconomicAnalysis
   const simplePaybackYears = calculateSimplePayback(investmentCost, annualResults);
   const discountedPaybackYears = calculateDiscountedPayback(investmentCost, annualResults);
   const returnOnInvestmentPercent = calculateROI(investmentCost, annualResults);
-  const netPresentValue = calculateNPV(investmentCost, annualResults);
+  const netPresentValue = calculateNPV(investmentCost, annualResults, discountRate);
   const internalRateOfReturnPercent = calculateIRR(investmentCost, annualResults);
 
   // Calculate CO2 avoided emissions
@@ -606,7 +617,7 @@ export function analyzeEconomics(input: EconomicAnalysisInput): EconomicAnalysis
 
   Logger.info(
     `Economic analysis complete: NPV=${netPresentValue} DT, IRR=${internalRateOfReturnPercent}%, ` +
-    `Payback=${simplePaybackYears} months, ROI=${returnOnInvestmentPercent} DT, ` +
+    `Payback=${simplePaybackYears} months, ROI=${(returnOnInvestmentPercent * 100).toFixed(2)}%, ` +
     `CO2 avoided=${annualCo2Avoided.toFixed(0)} kg/year, ${totalCo2Avoided25Years.toFixed(0)} kg total`
   );
 

@@ -118,6 +118,27 @@ describe('toAuditEnergetiqueResponseDto', () => {
     });
   });
 
+  it('should include energy end-use breakdown when provided', () => {
+    const simWithBreakdown: IAuditEnergetiqueSimulation = {
+      ...mockSimulation,
+      energyEndUseBreakdown: {
+        totalConsumptionKwh: 12500.5,
+        totalCostTunisianDinar: 4375.18,
+        breakdown: {
+          cooling: { consumptionKwh: 2000, costTunisianDinar: 700, sharePercent: 16 },
+          heating: { consumptionKwh: 3000, costTunisianDinar: 1050, sharePercent: 24 },
+          lighting: { consumptionKwh: 1500, costTunisianDinar: 525, sharePercent: 12 },
+          equipment: { consumptionKwh: 5000, costTunisianDinar: 1750, sharePercent: 40 },
+          domesticHotWater: { consumptionKwh: 1000, costTunisianDinar: 350, sharePercent: 8 }
+        }
+      }
+    };
+
+    const result = toAuditEnergetiqueResponseDto(simWithBreakdown);
+
+    expect(result.data.results.energyEndUseBreakdown).toEqual(simWithBreakdown.energyEndUseBreakdown);
+  });
+
   it('should calculate energy consumption per m²', () => {
     const result = toAuditEnergetiqueResponseDto(mockSimulation);
 
@@ -149,12 +170,14 @@ describe('toAuditEnergetiqueResponseDto', () => {
       buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
       energyClass: 'Classe 3',
       energyClassDescription: 'Bonne performance',
-      becth: 95.5
+      becth: 95.5,
+      totalAnnualEnergy: 125,
+      siteIntensity: 125
     };
 
     const result = toAuditEnergetiqueResponseDto(officeSimulation);
 
-    expect(result.data.results.energyClassification).toEqual({
+    expect(result.data.results.energyClassification).toMatchObject({
       becth: 95.5,
       class: 'Classe 3',
       description: 'Bonne performance',

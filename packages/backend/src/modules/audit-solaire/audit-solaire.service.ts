@@ -262,8 +262,19 @@ export class AuditSolaireSimulationService extends CommonService<
       };
 
     } catch (error) {
-      Logger.error('PVGIS API request failed', error);
-      throw new HTTP400Error('Failed to fetch solar irradiation data from PVGIS', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      Logger.error(`PVGIS API request failed: ${errorMessage}`, error);
+      
+      // Provide more helpful error message
+      if (errorMessage.includes('Invalid URL') || errorMessage.includes('ENOTFOUND')) {
+        throw new HTTP400Error(
+          `PVGIS API URL is invalid or unreachable ` +
+          `Please check your PVGIS_API_URL environment variable.`,
+          error
+        );
+      }
+      
+      throw new HTTP400Error(`Failed to fetch solar irradiation data from PVGIS: ${errorMessage}`, error);
     }
   }
 
