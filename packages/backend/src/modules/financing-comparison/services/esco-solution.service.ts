@@ -9,7 +9,7 @@ import {
   ProjectCalculation,
   EscoParameters,
   FinancingSolutionType,
-  FINANCING_CONSTANTS,
+  FINANCING_CONSTANTS
 } from '@backend/domain/financing';
 
 export class EscoSolutionService {
