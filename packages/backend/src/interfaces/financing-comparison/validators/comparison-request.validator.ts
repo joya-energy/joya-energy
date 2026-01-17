@@ -1,48 +1,136 @@
 /**
- * Validation schemas for financing comparison requests
+ * Validation functions for financing comparison requests
  */
 
-import Joi from 'joi';
+import { Governorates } from '@shared/enums/audit-general.enum';
+import { HTTP400Error } from '@backend/errors/http.error';
+import {
+  requireEnum,
+  optionalNumber
+} from '@backend/modules/common/validation.utils';
 
 /**
- * Validation schema for comparison request
+ * Validate comparison request data
  */
-export const comparisonRequestSchema = Joi.object({
-  location: Joi.string().required().min(2).max(100).messages({
-    'string.empty': 'Location is required',
-    'string.min': 'Location must be at least 2 characters',
-    'string.max': 'Location must not exceed 100 characters',
-  }),
+export function validateComparisonRequest(data: unknown): {
+  location: Governorates;
+  installationSizeKwp?: number;
+  investmentAmountDt?: number;
+  creditParams?: {
+    creditAnnualRate?: number;
+    selfFinancingRate?: number;
+  };
+  leasingParams?: {
+    leasingAnnualRate?: number;
+    leasingResidualValueRate?: number;
+    leasingOpexMultiplier?: number;
+    selfFinancingRate?: number;
+  };
+  escoParams?: {
+    escoTargetIrrAnnual?: number;
+    escoOpexIncluded?: boolean;
+  };
+} {
+  if (!data || typeof data !== 'object') {
+    throw new HTTP400Error('Request body must be an object');
+  }
 
-  installationSizeKwp: Joi.number().positive().optional().messages({
-    'number.positive': 'Installation size must be positive',
-  }),
+  const body = data as Record<string, unknown>;
 
-  investmentAmountDt: Joi.number().positive().optional().messages({
-    'number.positive': 'Investment amount must be positive',
-  }),
+  // Validate location
+  const location = requireEnum(Governorates, body.location, 'location');
 
-  creditParams: Joi.object({
-    creditAnnualRate: Joi.number().min(0).max(1).optional(),
-    selfFinancingRate: Joi.number().min(0).max(1).optional(),
-  }).optional(),
+  // Validate installation size and investment amount (XOR logic)
+  const installationSizeKwp = optionalNumber(body.installationSizeKwp, 'installationSizeKwp');
+  const investmentAmountDt = optionalNumber(body.investmentAmountDt, 'investmentAmountDt');
 
-  leasingParams: Joi.object({
-    leasingAnnualRate: Joi.number().min(0).max(1).optional(),
-    leasingResidualValueRate: Joi.number().min(0).max(1).optional(),
-    leasingOpexMultiplier: Joi.number().min(1).max(3).optional(),
-    selfFinancingRate: Joi.number().min(0).max(1).optional(),
-  }).optional(),
+  if (!installationSizeKwp && !investmentAmountDt) {
+    throw new HTTP400Error('Either installationSizeKwp or investmentAmountDt must be provided');
+  }
 
-  escoParams: Joi.object({
-    escoTargetIrrAnnual: Joi.number().min(0).max(1).optional(),
-    escoOpexIncluded: Joi.boolean().optional(),
-  }).optional(),
-})
-  .xor('installationSizeKwp', 'investmentAmountDt')
-  .messages({
-    'object.xor': 'Provide either installationSizeKwp or investmentAmountDt, not both',
-    'object.missing':
-      'Either installationSizeKwp or investmentAmountDt must be provided',
-  });
+  if (installationSizeKwp && investmentAmountDt) {
+    throw new HTTP400Error('Provide either installationSizeKwp or investmentAmountDt, not both');
+  }
+
+  if (installationSizeKwp !== undefined && installationSizeKwp <= 0) {
+    throw new HTTP400Error('Installation size must be positive');
+  }
+
+  if (investmentAmountDt !== undefined && investmentAmountDt <= 0) {
+    throw new HTTP400Error('Investment amount must be positive');
+  }
+
+  // Validate optional parameters
+  const result: any = {
+    location,
+    installationSizeKwp,
+    investmentAmountDt,
+  };
+
+  // Validate credit params
+  if (body.creditParams) {
+    const creditParams = body.creditParams as Record<string, unknown>;
+    result.creditParams = {
+      creditAnnualRate: optionalNumber(creditParams.creditAnnualRate, 'creditAnnualRate'),
+      selfFinancingRate: optionalNumber(creditParams.selfFinancingRate, 'selfFinancingRate'),
+    };
+
+    if (result.creditParams.creditAnnualRate !== undefined &&
+        (result.creditParams.creditAnnualRate < 0 || result.creditParams.creditAnnualRate > 1)) {
+      throw new HTTP400Error('Credit annual rate must be between 0 and 1');
+    }
+
+    if (result.creditParams.selfFinancingRate !== undefined &&
+        (result.creditParams.selfFinancingRate < 0 || result.creditParams.selfFinancingRate > 1)) {
+      throw new HTTP400Error('Credit self-financing rate must be between 0 and 1');
+    }
+  }
+
+  // Validate leasing params
+  if (body.leasingParams) {
+    const leasingParams = body.leasingParams as Record<string, unknown>;
+    result.leasingParams = {
+      leasingAnnualRate: optionalNumber(leasingParams.leasingAnnualRate, 'leasingAnnualRate'),
+      leasingResidualValueRate: optionalNumber(leasingParams.leasingResidualValueRate, 'leasingResidualValueRate'),
+      leasingOpexMultiplier: optionalNumber(leasingParams.leasingOpexMultiplier, 'leasingOpexMultiplier'),
+      selfFinancingRate: optionalNumber(leasingParams.selfFinancingRate, 'selfFinancingRate'),
+    };
+
+    if (result.leasingParams.leasingAnnualRate !== undefined &&
+        (result.leasingParams.leasingAnnualRate < 0 || result.leasingParams.leasingAnnualRate > 1)) {
+      throw new HTTP400Error('Leasing annual rate must be between 0 and 1');
+    }
+
+    if (result.leasingParams.leasingResidualValueRate !== undefined &&
+        (result.leasingParams.leasingResidualValueRate < 0 || result.leasingParams.leasingResidualValueRate > 1)) {
+      throw new HTTP400Error('Leasing residual value rate must be between 0 and 1');
+    }
+
+    if (result.leasingParams.leasingOpexMultiplier !== undefined &&
+        (result.leasingParams.leasingOpexMultiplier < 1 || result.leasingParams.leasingOpexMultiplier > 3)) {
+      throw new HTTP400Error('Leasing OPEX multiplier must be between 1 and 3');
+    }
+
+    if (result.leasingParams.selfFinancingRate !== undefined &&
+        (result.leasingParams.selfFinancingRate < 0 || result.leasingParams.selfFinancingRate > 1)) {
+      throw new HTTP400Error('Leasing self-financing rate must be between 0 and 1');
+    }
+  }
+
+  // Validate ESCO params
+  if (body.escoParams) {
+    const escoParams = body.escoParams as Record<string, unknown>;
+    result.escoParams = {
+      escoTargetIrrAnnual: optionalNumber(escoParams.escoTargetIrrAnnual, 'escoTargetIrrAnnual'),
+      escoOpexIncluded: typeof escoParams.escoOpexIncluded === 'boolean' ? escoParams.escoOpexIncluded : undefined,
+    };
+
+    if (result.escoParams.escoTargetIrrAnnual !== undefined &&
+        (result.escoParams.escoTargetIrrAnnual < 0 || result.escoParams.escoTargetIrrAnnual > 1)) {
+      throw new HTTP400Error('ESCO target IRR must be between 0 and 1');
+    }
+  }
+
+  return result;
+}
 

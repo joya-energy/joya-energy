@@ -5,15 +5,16 @@ import {
   type IUpdateAuditSolaireSimulation
 } from '@shared/interfaces';
 import { auditSolaireSimulationRepository } from './audit-solaire.repository';
-import axios, { type AxiosResponse } from 'axios';
 import { HTTP400Error, HTTP404Error } from '@backend/errors/http.error';
 import { PaginationOptions, PaginatedResult } from '@shared/interfaces/pagination.interface';
 import { Logger } from '@backend/middlewares';
 import { BuildingTypes, ClimateZones } from '@shared/enums/audit-general.enum';
 import { extrapolateConsumption } from './helpers/consumption-extrapolation.calculator';
+import axios, { type AxiosResponse } from 'axios';
 import { calculatePVProduction } from './helpers/pv-production.calculator';
 import { analyzeEconomics } from './helpers/economic-analysis.calculator';
 import { convertAmountToConsumption } from '../audit-energetique/helpers/progressive-tariff.calculator';
+import { PVGISService } from '@shared/services/pvgis.service';
 
 
 
@@ -25,17 +26,9 @@ const PAGINATION_DEFAULTS = {
 
 const EXTERNAL_APIS = {
   GOOGLE_MAPS: {
-    URL: process.env.GOOGLE_MAPS_API_URL ?? '',
-    API_KEY: process.env.GOOGLE_MAPS_API_KEY ?? '',
-    TIMEOUT: Number(process.env.EXTERNAL_APIS_TIMEOUT),
-  },
-  PVGIS: {
-    URL: process.env.PVGIS_API_URL ?? '',
-    DEFAULT_PEAK_POWER: 1,
-    DEFAULT_SYSTEM_LOSS: 14,
-    DEFAULT_PANEL_ANGLE: 30,
-    USE_HORIZON: 1,
-    TIMEOUT: Number(process.env.EXTERNAL_APIS_TIMEOUT),
+    URL: process.env['GOOGLE_MAPS_API_URL'] ?? '',
+    API_KEY: process.env['GOOGLE_MAPS_API_KEY'] ?? '',
+    TIMEOUT: Number(process.env['EXTERNAL_APIS_TIMEOUT']),
   },
 } as const;
 
@@ -53,22 +46,6 @@ interface GeoCoordinates {
   longitude: number;
 }
 
-interface PVGISMonthlyData {
-  month: number;
-  'E_d': number; // Daily energy output (kWh/day)
-  'E_m': number; // Monthly energy output (kWh/month)
-  'H(i)_d': number; // Daily irradiation (kWh/m²/day)
-  'H(i)_m': number; // Monthly irradiation (kWh/m²/month)
-  'SD_m': number; // Standard deviation
-}
-
-interface PVGISResponse {
-  outputs: {
-    monthly: {
-      fixed: PVGISMonthlyData[];
-    };
-  };
-}
 
 
 interface SolarProductibleData {
@@ -272,25 +249,17 @@ export class AuditSolaireSimulationService extends CommonService<
   ): Promise<SolarProductibleData> {
     Logger.info(`Fetching solar data from PVGIS: lat=${latitude}, lon=${longitude}`);
 
-    const apiUrl = process.env.PVGIS_API_URL ?? EXTERNAL_APIS.PVGIS.URL;
-
-    const requestParams = {
-      lat: latitude,
-      lon: longitude,
-      peakpower: EXTERNAL_APIS.PVGIS.DEFAULT_PEAK_POWER,
-      loss: EXTERNAL_APIS.PVGIS.DEFAULT_SYSTEM_LOSS,
-      angle: EXTERNAL_APIS.PVGIS.DEFAULT_PANEL_ANGLE,
-      usehorizon: EXTERNAL_APIS.PVGIS.USE_HORIZON,
-      outputformat: 'json',
-    };
-
     try {
-      const response = await axios.get<PVGISResponse>(apiUrl, {
-        params: requestParams,
-        timeout: EXTERNAL_APIS.PVGIS.TIMEOUT,
-      });
+      // Validate coordinates
+      PVGISService.validateCoordinates(latitude, longitude);
 
-      return this.parsePVGISResponse(response);
+      const irradianceData = await PVGISService.fetchSolarIrradiance(latitude, longitude);
+
+      // Convert to expected format
+      return {
+        monthlyProductibleKwhPerKwp: irradianceData.monthlyData.map(month => month['E_m']),
+        annualProductibleKwhPerKwp: irradianceData.annualYieldKwhPerKwp,
+      };
 
     } catch (error) {
       Logger.error('PVGIS API request failed', error);
@@ -298,47 +267,6 @@ export class AuditSolaireSimulationService extends CommonService<
     }
   }
 
-  /**
-   * Parse and validate PVGIS API response
-   */
-  private parsePVGISResponse(response: AxiosResponse<PVGISResponse>): SolarProductibleData {
-    const { data } = response;
-
-    if (!data?.outputs?.monthly?.fixed) {
-      throw new HTTP400Error('Invalid response structure from PVGIS API');
-    }
-
-    const monthlyData = data.outputs.monthly.fixed as PVGISMonthlyData[];
-
-    if (!Array.isArray(monthlyData) || monthlyData.length !== 12) {
-      throw new HTTP400Error(
-        `PVGIS returned ${monthlyData?.length ?? 0} months, expected 12`
-      );
-    }
-
-    const monthlyProductibleKwhPerKwp = monthlyData.map(item => {
-      const value = item['E_m'];
-      if (typeof value !== 'number' || isNaN(value)) {
-        throw new HTTP400Error('Invalid monthly energy value from PVGIS');
-      }
-      return value;
-    });
-
-    const annualProductibleKwhPerKwp = monthlyProductibleKwhPerKwp.reduce(
-      (sum, value) => sum + value,
-      0
-    );
-
-    Logger.info(
-      `PVGIS data parsed: ${annualProductibleKwhPerKwp.toFixed(2)} kWh/kWp/year ` +
-      `(monthly: ${monthlyProductibleKwhPerKwp.map(v => v.toFixed(1)).join(', ')})`
-    );
-
-    return {
-      monthlyProductibleKwhPerKwp,
-      annualProductibleKwhPerKwp,
-    };
-  }
 
 
   private buildSimulationPayload(

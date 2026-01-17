@@ -5,11 +5,13 @@
 
 import CommonRepository from '@backend/modules/common/common.repository';
 import { FinancingComparison, type FinancingComparisonDocument } from '@backend/models/financing-comparison';
-import { ComparisonResult } from '@backend/domain/financing';
+import { ComparisonResult, CalculatedComparisonResult } from '@backend/domain/financing';
+import { Governorates } from '@shared/enums/audit-general.enum';
 
 class FinancingComparisonRepository extends CommonRepository<
   ComparisonResult,
-  FinancingComparisonDocument
+  FinancingComparisonDocument,
+  CalculatedComparisonResult
 > {
   constructor() {
     super(FinancingComparison);
@@ -18,9 +20,8 @@ class FinancingComparisonRepository extends CommonRepository<
   /**
    * Find comparisons by location
    */
-  public async findByLocation(location: string): Promise<ComparisonResult[]> {
-    const normalizedLocation = location.toLowerCase().replace(/\s+/g, '_');
-    return this.getAll({ 'input.location': normalizedLocation });
+  public async findByLocation(location: Governorates): Promise<ComparisonResult[]> {
+    return this.getAll({ 'input.location': location });
   }
 
   /**

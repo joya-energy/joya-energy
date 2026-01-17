@@ -5,10 +5,11 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { ComparisonService } from '@backend/modules/financing-comparison/services';
-import { ComparisonRequestDto } from '../dto';
+import { validateComparisonRequest } from '../validators';
 import { Logger } from '@backend/middlewares/logger.midddleware';
-import { HTTP400Error, HTTP404Error, HTTP500Error } from '@backend/errors/http.error';
+import { HTTP400Error, HTTP500Error } from '@backend/errors/http.error';
 import { InvalidInputError, CalculationError, InvalidLocationError } from '@backend/domain/financing';
+import { Governorates } from '@shared/enums/audit-general.enum';
 
 export class ComparisonController {
   private comparisonService: ComparisonService;
@@ -27,23 +28,23 @@ export class ComparisonController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const requestDto: ComparisonRequestDto = req.body;
+      const validatedData = validateComparisonRequest(req.body);
 
       Logger.info('Creating financing comparison', {
-        location: requestDto.location,
-        hasSize: !!requestDto.installationSizeKwp,
-        hasAmount: !!requestDto.investmentAmountDt,
+        location: validatedData.location,
+        hasSize: !!validatedData.installationSizeKwp,
+        hasAmount: !!validatedData.investmentAmountDt,
       });
 
-      const result = this.comparisonService.compareAllSolutions(
+      const result = await this.comparisonService.compareAllSolutions(
         {
-          location: requestDto.location,
-          installationSizeKwp: requestDto.installationSizeKwp,
-          investmentAmountDt: requestDto.investmentAmountDt,
+          location: validatedData.location,
+          installationSizeKwp: validatedData.installationSizeKwp,
+          investmentAmountDt: validatedData.investmentAmountDt,
         },
-        requestDto.creditParams,
-        requestDto.leasingParams,
-        requestDto.escoParams
+        validatedData.creditParams,
+        validatedData.leasingParams,
+        validatedData.escoParams
       );
 
       Logger.info('Financing comparison created successfully', {
@@ -65,7 +66,7 @@ export class ComparisonController {
    * Returns advantages/disadvantages for all solutions
    */
   public getAdvantages = async (
-    req: Request,
+    _req: Request,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
@@ -86,18 +87,18 @@ export class ComparisonController {
    * Returns available locations with their yields
    */
   public getLocations = async (
-    req: Request,
+    _req: Request,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { LOCATION_YIELDS } = await import('@backend/domain/financing');
+      const { getLocationYields } = await import('@backend/domain/financing');
+      const locationYields = await getLocationYields();
 
-      const locations = Object.entries(LOCATION_YIELDS)
-        .filter(([key]) => key !== 'default')
-        .map(([location, yield_kwh]) => ({
-          location,
-          yieldKwhPerKwpYear: yield_kwh,
+      const locations = Object.entries(locationYields)
+        .map(([location, yieldKwhPerKwpYear]) => ({
+          location: location as Governorates,
+          yieldKwhPerKwpYear,
         }));
 
       res.status(200).json({

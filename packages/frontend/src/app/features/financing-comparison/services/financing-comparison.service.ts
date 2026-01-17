@@ -8,9 +8,10 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, throwError, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
+import { Governorates } from '@shared/enums/audit-general.enum';
 
 export interface ProjectInput {
-  location: string;
+  location: Governorates;
   installationSizeKwp?: number;
   investmentAmountDt?: number;
 }
@@ -62,6 +63,8 @@ export interface EscoSolution extends FinancingSolution {
   escoTargetIrrMonthly: number;
   escoTargetIrrAnnual: number;
   escoOpexIncluded: boolean;
+  isViable?: boolean;
+  viabilityError?: string;
 }
 
 export interface ComparisonResult {
@@ -74,7 +77,7 @@ export interface ComparisonResult {
 }
 
 export interface Location {
-  location: string;
+  location: Governorates;
   yieldKwhPerKwpYear: number;
 }
 

@@ -10,7 +10,6 @@ import {
   EscoParameters,
   FinancingSolutionType,
   FINANCING_CONSTANTS,
-  CalculationError,
 } from '@backend/domain/financing';
 
 export class EscoSolutionService {
@@ -23,30 +22,27 @@ export class EscoSolutionService {
   ): EscoSolution {
     const capexDt = projectCalculation.capexDt;
     const monthlyGrossSavingsDt = projectCalculation.monthlyGrossSavingsDt;
-    const monthlyOpexDt = projectCalculation.monthlyOpexDt;
 
     const escoTargetIrrMonthly =
       Math.pow(1 + parameters.escoTargetIrrAnnual, 1 / FINANCING_CONSTANTS.MONTHS_PER_YEAR) - 1;
 
     const escoMonthlyPayment = this.calculateEscoMonthlyPayment(
       capexDt,
-      monthlyOpexDt,
       escoTargetIrrMonthly
     );
 
-    if (escoMonthlyPayment > monthlyGrossSavingsDt) {
-      throw new CalculationError(
-        `ESCO payment (${escoMonthlyPayment.toFixed(2)} DT) exceeds monthly savings (${monthlyGrossSavingsDt.toFixed(2)} DT). Project not viable for ESCO.`
-      );
-    }
+    const isViable = escoMonthlyPayment <= monthlyGrossSavingsDt;
+    const viabilityError = isViable
+      ? undefined
+      : `ESCO payment (${escoMonthlyPayment.toFixed(2)} DT) exceeds monthly savings (${monthlyGrossSavingsDt.toFixed(2)} DT). Project not viable for ESCO.`;
 
-    const totalMonthlyCost = escoMonthlyPayment;
-    const monthlyCashflow = monthlyGrossSavingsDt - totalMonthlyCost;
+    const totalMonthlyCost = isViable ? escoMonthlyPayment : 0;
+    const monthlyCashflow = isViable ? monthlyGrossSavingsDt - totalMonthlyCost : 0;
 
     return {
       type: FinancingSolutionType.ESCO,
       initialInvestment: 0,
-      monthlyPayment: escoMonthlyPayment,
+      monthlyPayment: isViable ? escoMonthlyPayment : 0,
       monthlyOpex: 0,
       totalMonthlyCost,
       monthlyCashflow,
@@ -55,6 +51,8 @@ export class EscoSolutionService {
       escoTargetIrrMonthly,
       escoTargetIrrAnnual: parameters.escoTargetIrrAnnual,
       escoOpexIncluded: parameters.escoOpexIncluded,
+      isViable,
+      viabilityError,
     };
   }
 
@@ -65,14 +63,13 @@ export class EscoSolutionService {
    */
   private calculateEscoMonthlyPayment(
     capexDt: number,
-    monthlyOpexDt: number,
     targetIrrMonthly: number
   ): number {
     const annuityFactor =
       (targetIrrMonthly * Math.pow(1 + targetIrrMonthly, FINANCING_CONSTANTS.DURATION_MONTHS)) /
       (Math.pow(1 + targetIrrMonthly, FINANCING_CONSTANTS.DURATION_MONTHS) - 1);
 
-    const escoMonthlyPayment = capexDt * annuityFactor + monthlyOpexDt;
+    const escoMonthlyPayment = capexDt * annuityFactor;
 
     return escoMonthlyPayment;
   }

@@ -7,6 +7,7 @@ import { Component, output, signal, inject, ChangeDetectionStrategy } from '@ang
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FinancingComparisonService, ProjectInput } from '../../services/financing-comparison.service';
+import { Governorates } from '@shared/enums/audit-general.enum';
 
 @Component({
   selector: 'app-financing-input-form',
@@ -21,7 +22,7 @@ export class FinancingInputFormComponent {
 
   public compareClicked = output<ProjectInput>();
 
-  public location = signal<string>('');
+  public location = signal<Governorates | ''>('');
   public inputType = signal<'size' | 'amount'>('size');
   public installationSize = signal<number | null>(null);
   public investmentAmount = signal<number | null>(null);
@@ -44,7 +45,7 @@ export class FinancingInputFormComponent {
   }
 
   public onLocationChange(location: string): void {
-    this.location.set(location);
+    this.location.set(location as Governorates);
     this.validateForm();
   }
 
@@ -62,7 +63,7 @@ export class FinancingInputFormComponent {
     if (!this.isValid()) return;
 
     const input: ProjectInput = {
-      location: this.location(),
+      location: this.location() as Governorates,
     };
 
     if (this.inputType() === 'size' && this.installationSize()) {

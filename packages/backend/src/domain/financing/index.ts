@@ -7,4 +7,5 @@ export * from './types';
 export * from './constants';
 export * from './errors';
 export * from './advantages';
+export * from './governorate-coordinates';
 

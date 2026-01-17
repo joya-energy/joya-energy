@@ -10,14 +10,15 @@ import {
   CreditParameters,
   LeasingParameters,
   EscoParameters,
-  ComparisonResult,
-  LOCATION_YIELDS,
+  CalculatedComparisonResult,
+  getLocationYields,
   DEFAULT_PROJECT_PARAMETERS,
   DEFAULT_CREDIT_PARAMETERS,
   DEFAULT_LEASING_PARAMETERS,
   DEFAULT_ESCO_PARAMETERS,
   InvalidLocationError,
 } from '@backend/domain/financing';
+import { Governorates } from '@shared/enums/audit-general.enum';
 import { ProjectCalculatorService } from './project-calculator.service';
 import { CashSolutionService } from './cash-solution.service';
 import { CreditSolutionService } from './credit-solution.service';
@@ -42,13 +43,13 @@ export class ComparisonService {
   /**
    * Compares all financing solutions for a project
    */
-  public compareAllSolutions(
+  public async compareAllSolutions(
     input: ProjectInput,
     creditParams?: Partial<CreditParameters>,
     leasingParams?: Partial<LeasingParameters>,
     escoParams?: Partial<EscoParameters>
-  ): ComparisonResult {
-    const projectParams = this.getProjectParameters(input.location);
+  ): Promise<CalculatedComparisonResult> {
+    const projectParams = await this.getProjectParameters(input.location);
 
     const creditParameters: CreditParameters = {
       ...DEFAULT_CREDIT_PARAMETERS,
@@ -88,14 +89,16 @@ export class ComparisonService {
   /**
    * Gets project parameters based on location
    */
-  private getProjectParameters(location: string): ProjectParameters {
-    const normalizedLocation = location.toLowerCase().replace(/\s+/g, '_');
-    const yieldKwhPerKwpYear =
-      LOCATION_YIELDS[normalizedLocation] || LOCATION_YIELDS.default;
+  private async getProjectParameters(location: Governorates): Promise<ProjectParameters> {
+    // Get dynamic location yields from PVGIS
+    const locationYields = await getLocationYields();
 
-    if (!LOCATION_YIELDS[normalizedLocation] && normalizedLocation !== 'default') {
+    // Governorates enum values are already the correct keys
+    if (!(location in locationYields)) {
       throw new InvalidLocationError(location);
     }
+
+    const yieldKwhPerKwpYear = locationYields[location];
 
     return {
       costPerKwpDt: DEFAULT_PROJECT_PARAMETERS.costPerKwpDt,

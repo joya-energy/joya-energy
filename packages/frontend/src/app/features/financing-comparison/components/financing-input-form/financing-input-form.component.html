@@ -16,7 +16,7 @@
         <option value="">Sélectionnez une ville</option>
         @for (loc of locations(); track loc.location) {
           <option [value]="loc.location">
-            {{ loc.location }} ({{ loc.yieldKwhPerKwpYear }} kWh/kWp/an)
+            {{ loc.location }}
           </option>
         }
       </select>

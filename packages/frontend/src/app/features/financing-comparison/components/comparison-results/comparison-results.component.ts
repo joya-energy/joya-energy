@@ -3,10 +3,11 @@
  * Displays all financing solutions in a comparison view
  */
 
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FinancingComparisonService } from '../../services/financing-comparison.service';
+import { FinancingComparisonService, EscoSolution } from '../../services/financing-comparison.service';
 import { SolutionCardComponent } from '../solution-card/solution-card.component';
+import { NotificationStore } from '../../../../core/notifications/notification.store';
 
 @Component({
   selector: 'app-comparison-results',
@@ -18,11 +19,26 @@ import { SolutionCardComponent } from '../solution-card/solution-card.component'
 })
 export class ComparisonResultsComponent {
   private financingService = inject(FinancingComparisonService);
+  private notificationStore = inject(NotificationStore);
 
   public result = this.financingService.comparisonResult;
   public solutions = this.financingService.solutions;
   public bestCashflow = this.financingService.bestCashflow;
   public lowestInitialInvestment = this.financingService.lowestInitialInvestment;
+
+  constructor() {
+    effect(() => {
+      const result = this.result();
+      if (result?.esco && !result.esco.isViable && result.esco.viabilityError) {
+        this.notificationStore.addNotification({
+          type: 'warning',
+          title: 'Solution ESCO non viable',
+          message: result.esco.viabilityError,
+          duration: 8000
+        });
+      }
+    });
+  }
 
   public isBestCashflow(type: string): boolean {
     const best = this.bestCashflow();

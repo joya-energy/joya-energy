@@ -4,8 +4,6 @@
 
 import { Router } from 'express';
 import { comparisonController } from '../controllers';
-import { validateRequest } from '@backend/middlewares/validation.middleware';
-import { comparisonRequestSchema } from '../validators';
 
 const router = Router();
 
@@ -14,11 +12,7 @@ const router = Router();
  * @desc    Create a new financing comparison
  * @access  Public
  */
-router.post(
-  '/',
-  validateRequest(comparisonRequestSchema),
-  comparisonController.createComparison
-);
+router.post('/', comparisonController.createComparison);
 
 /**
  * @route   GET /api/financing-comparisons/advantages

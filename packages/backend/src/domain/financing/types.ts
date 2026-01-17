@@ -2,9 +2,11 @@
  * Domain types for financing comparison module
  * All monetary values in DT (Tunisian Dinar)
  * All rates as decimals (0.16 = 16%)
- * 
+ *
  * These types represent the core business domain of JOYA's financing comparison engine.
  */
+
+import { Governorates } from '@shared/enums/audit-general.enum';
 
 export enum FinancingSolutionType {
   CASH = 'cash',
@@ -18,7 +20,7 @@ export enum FinancingSolutionType {
  * RULE: User provides EITHER installationSizeKwp OR investmentAmountDt, never both
  */
 export interface ProjectInput {
-  location: string;
+  location: Governorates;
   installationSizeKwp?: number;
   investmentAmountDt?: number;
 }
@@ -124,12 +126,33 @@ export interface EscoSolution extends FinancingSolution {
   escoTargetIrrMonthly: number;
   escoTargetIrrAnnual: number;
   escoOpexIncluded: boolean;
+  isViable?: boolean;
+  viabilityError?: string;
 }
 
 /**
- * Complete comparison result
+ * Calculated comparison result (before saving to database)
  */
-export interface ComparisonResult {
+export interface CalculatedComparisonResult {
+  input: ProjectInput;
+  projectCalculation: ProjectCalculation;
+  cash: CashSolution;
+  credit: CreditSolution;
+  leasing: LeasingSolution;
+  esco: EscoSolution;
+}
+
+/**
+ * Complete comparison result (after saving to database)
+ */
+export interface ComparisonResult extends CalculatedComparisonResult {
+  id: string;
+}
+
+/**
+ * Comparison result creation data (without id)
+ */
+export interface CreateComparisonResult {
   input: ProjectInput;
   projectCalculation: ProjectCalculation;
   cash: CashSolution;
