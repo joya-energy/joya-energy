@@ -1,0 +1,79 @@
+.solution-card {
+  background: white;
+  border-radius: 8px;
+  border: 3px solid #ddd;
+  overflow: hidden;
+  transition: all 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.solution-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.solution-card.highlighted {
+  border-width: 4px;
+  box-shadow: 0 4px 16px rgba(76, 175, 80, 0.3);
+}
+
+.card-header {
+  padding: 1.5rem;
+  color: white;
+  text-align: center;
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.metric:last-child {
+  border-bottom: none;
+}
+
+.metric.highlight {
+  background: #f5f5f5;
+  padding: 1rem;
+  margin: 0.5rem -1.5rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.metric.cashflow {
+  background: #e8f5e9;
+  padding: 1rem;
+  margin: 0.5rem -1.5rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  font-weight: 600;
+}
+
+.metric.cashflow.positive .value {
+  color: #2e7d32;
+}
+
+.label {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.value {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #333;
+}
+

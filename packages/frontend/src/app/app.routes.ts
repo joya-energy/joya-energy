@@ -22,6 +22,11 @@ export const routes: Routes = [
     title: 'Simulation audit solaire | JOYA Energy'
   },
   {
+    path: 'comparaison-financements',
+    loadComponent: () => import('./features/financing-comparison/financing-comparison.component').then(m => m.FinancingComparisonComponent),
+    title: 'Comparateur de Financements | JOYA Energy'
+  },
+  {
     path: '**',
     redirectTo: ''
   }
