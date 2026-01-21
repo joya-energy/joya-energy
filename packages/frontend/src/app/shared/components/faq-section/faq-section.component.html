@@ -1,0 +1,51 @@
+<section class="faq-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="text-heading-h1 color-text-primary section-title">
+        {{ title }}
+      </h2>
+      <p class="section-subtitle color-text-secondary">
+        {{ subtitle }}
+      </p>
+    </div>
+    
+    <div class="faq-list">
+      @for (faq of faqs(); track faq.question; let i = $index) {
+        <div class="faq-item" [class.faq-item-open]="faq.isOpen">
+          <button
+            type="button"
+            class="faq-question"
+            (click)="toggleFaq(i)"
+            [attr.aria-expanded]="faq.isOpen"
+          >
+            <span class="faq-question-text">{{ faq.question }}</span>
+            <ng-icon 
+              name="lucideChevronDown" 
+              size="20" 
+              class="faq-icon"
+              aria-hidden="true"
+            ></ng-icon>
+          </button>
+          
+          @if (faq.isOpen) {
+            <div class="faq-answer">
+              <p>{{ faq.answer }}</p>
+            </div>
+          }
+        </div>
+      }
+    </div>
+    
+    <div class="faq-cta">
+      <p class="faq-cta-text color-text-primary">
+        {{ ctaText }}
+      </p>
+      <a [href]="ctaLink" class="btn btn-primary">
+        {{ ctaButton }}
+        <ng-icon name="lucideArrowRight" size="18" aria-hidden="true"></ng-icon>
+      </a>
+    </div>
+  </div>
+</section>
+
+

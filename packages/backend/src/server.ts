@@ -13,6 +13,7 @@ import middlewares from './middlewares';
 import { contactRoutes } from './modules/contact/contact.routes';
 import { auditEnergetiqueSimulationRoutes } from './modules/audit-energetique/audit-energetique.routes';
 import { auditSolaireSimulationRoutes } from './modules/audit-solaire/audit-solaire.routes';
+import { comparisonRoutes } from './interfaces/financing-comparison';
 import { fileRoutes } from './modules/file/file.routes';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './configs/swagger.config';
@@ -48,14 +49,7 @@ const createApp = (): http.Server => {
 
   // 1. CORS - Simplest permissive config for debugging
   app.use(cors());
-  
-  // 2. Helmet - Temporarily disabled to rule out security header issues
-  // app.use(
-  //   helmet({
-  //     contentSecurityPolicy: false,
-  //     crossOriginEmbedderPolicy: false,
-  //   })
-  // );
+
 
   // 3. Swagger Documentation
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -67,6 +61,7 @@ const createApp = (): http.Server => {
   router.use('/api/contacts', contactRoutes);
   router.use('/api/audit-energetique-simulations', auditEnergetiqueSimulationRoutes);
   router.use('/api/audit-solaire-simulations', auditSolaireSimulationRoutes);
+  router.use('/api/financing-comparisons', comparisonRoutes);
   router.use('/api/files', fileRoutes);
 
   // Apply middleware (database checks etc) LAST if they are global

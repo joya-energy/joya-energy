@@ -54,13 +54,13 @@ export class SimulatorsSectionComponent {
     },
     {
       title: 'Comparateur de financement',
-      description: 'Comparez le modèle ESCO avec le crédit classique.',
+      description: 'Comparez toutes les solutions de financement sur 7 ans et identifiez l\'impact sur votre trésorerie.',
       cta: 'Lancer le simulateur',
-      href: '/simulaturs/financement',
+      href: '/comparaison-financements',
       icon: 'card',
       iconVariant: 'aqua',
-      label: 'ESCO vs Crédit',
-      route: 'audit-financement'
+      label: 'Nouveau',
+      route: 'comparaison-financements'
     }
   ]);
 
