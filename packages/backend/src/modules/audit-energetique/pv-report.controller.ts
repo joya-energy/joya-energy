@@ -133,56 +133,42 @@ export class PVReportController {
     try {
       const { solaireId, energetiqueId, simulationId } = req.body;
       const ids = await this.resolveSimulationIds(solaireId, energetiqueId, simulationId);
-      
+
       const finalSolaireId = ids.solaireId;
       const finalEnergetiqueId = ids.energetiqueId;
 
       if (!finalSolaireId && !finalEnergetiqueId) {
-        return res.status(400).json({ error: 'Either solaireId or energetiqueId (or legacy simulationId) is required' });
+        return res.status(400).json({
+          error: 'Either solaireId or energetiqueId (or legacy simulationId) is required',
+        });
       }
 
-      // Generate PDF buffer (automatically saved to GCS by PDF service)
-      Logger.info(`🔄 Starting PV PDF generation for download...`);
+      Logger.info('🔄 Starting PV PDF generation for download...');
       const pdfBuffer = await this.buildPvPdf(finalSolaireId, finalEnergetiqueId);
       Logger.info(`✅ PV PDF generated successfully (${pdfBuffer.length} bytes)`);
 
       // Generate filename
       let filename = 'rapport-pv-joya.pdf';
       if (finalSolaireId) {
-        try {
-          const solaireSim = await AuditSolaireSimulationModel.findById(finalSolaireId);
-          if (solaireSim) {
-            filename = `rapport-pv-${finalSolaireId.substring(0, 8)}.pdf`;
-          }
-        } catch (error) {
-          Logger.warn(`Could not generate custom filename: ${(error as Error).message}`);
-        }
+        filename = `rapport-pv-${finalSolaireId.substring(0, 8)}.pdf`;
+      } else if (finalEnergetiqueId) {
+        filename = `rapport-pv-${finalEnergetiqueId.substring(0, 8)}.pdf`;
       }
 
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-
       return res.send(pdfBuffer);
-
     } catch (error) {
       const errorMessage = (error as Error).message;
       Logger.error(`❌ PV PDF download error: ${errorMessage}`);
-      
+
       if (error instanceof HTTP400Error) {
         return res.status(400).json({ error: errorMessage });
       }
-      
-      // Check if it's a validation error
-      if (errorMessage.includes('Cannot build PV report') || errorMessage.includes('Cannot generate PV report')) {
-        return res.status(400).json({ 
-          error: errorMessage,
-          hint: 'The solar audit simulation may be missing required financial metrics (NPV, IRR, ROI, Payback). Please ensure the economic analysis was completed when creating the simulation.'
-        });
-      }
-      
-      return res.status(500).json({ 
+
+      return res.status(500).json({
         error: 'Failed to generate PV PDF',
-        details: errorMessage 
+        details: errorMessage,
       });
     }
   }
@@ -198,8 +184,9 @@ export class PVReportController {
       const finalSolaireId = ids.solaireId;
       const finalEnergetiqueId = ids.energetiqueId;
 
-      // Load simulations to extract contact info (prefer energetique for contact data)
-      let contactInfo: { fullName: string; email: string; company: string } | null = null;
+      // Load simulations to extract contact info (prefer energetique for contact data, fallback to solaire)
+      type ContactInfo = { fullName: string; email: string; company: string };
+      let contactInfo: ContactInfo | null = null;
 
       if (finalEnergetiqueId) {
         Logger.info(`🔍 Fetching Audit Energetique simulation for contact info: ${finalEnergetiqueId}`);
@@ -222,80 +209,79 @@ export class PVReportController {
           throw error;
         }
       } else if (finalSolaireId) {
-        // If only solaire, try to get contact from somewhere else or use defaults
-        // For now, we'll use generic values
+        Logger.info(`🔍 Fetching Audit Solaire simulation for contact info: ${finalSolaireId}`);
+        const solaireSimulation = await AuditSolaireSimulationModel.findById(finalSolaireId);
+        if (!solaireSimulation) {
+          Logger.error(`❌ Audit Solaire simulation not found: ${finalSolaireId}`);
+          return res.status(404).json({ error: `Audit Solaire simulation not found: ${finalSolaireId}` });
+        }
+        const solaireDto = toAuditSolaireResponseDto(solaireSimulation);
         contactInfo = {
-          fullName: 'Client',
-          email: '', // Will need to be provided separately
-          company: 'Client',
+          fullName: solaireDto.fullName ?? '',
+          email: solaireDto.email ?? '',
+          company: solaireDto.companyName ?? 'Client',
         };
-        Logger.warn(`⚠️ No energetiqueId provided - contact info may be incomplete`);
+        Logger.info(`✅ Contact info extracted from solaire: email=${contactInfo.email}, company=${contactInfo.company}`);
       }
 
-      // Generate PDF buffer (always generate and save, even if no email)
+      if (!contactInfo || !contactInfo.email) {
+        return res.status(400).json({ 
+          error: 'Email address is required. Please provide an email in the PV simulation (Audit Solaire) or provide energetiqueId.' 
+        });
+      }
+
+      // Ensure Postmark is configured (PV reports require Postmark as requested)
+      if (!mailService.isPostmarkConfigured()) {
+        Logger.warn(`Postmark not configured — cannot send PV report`);
+        return res.status(500).json({ error: 'Postmark is not configured. Set POSTMARK_SERVER_TOKEN to enable sending PV reports.' });
+      }
+
+      // Also ensure some transport is available
+      if (!mailService.isTransportAvailable()) {
+        Logger.warn(`Email transport is not available — cannot send PV report`);
+        return res.status(500).json({ error: 'Email transport is not available or misconfigured.' });
+      }
+
+      // Generate PDF buffer
       Logger.info(`🔄 Starting PDF generation...`);
       const pdfBuffer = await this.buildPvPdf(finalSolaireId, finalEnergetiqueId);
       Logger.info(`✅ PDF generated successfully (${pdfBuffer.length} bytes)`);
 
-      // PDF is automatically saved to GCS by the PDF service
-      // Now try to send email if contact info is available
-      let emailSent = false;
-      let emailAddress = '';
+      // Attachment
+      const attachment: MailAttachment = {
+        Name: `PVReport-${contactInfo.company.replace(/\s+/g, '_')}.pdf`,
+        Content: pdfBuffer.toString('base64'),
+        ContentType: 'application/pdf',
+        ContentID: '',
+      };
 
-      if (contactInfo && contactInfo.email) {
-        emailAddress = contactInfo.email;
+      // Template id can be configured through env; fallback to audit template if missing
+      const templateId = Number(process.env.POSTMARK_PV_TEMPLATE_ID);
 
-        // Ensure Postmark is configured (PV reports require Postmark as requested)
-        if (!mailService.isPostmarkConfigured()) {
-          Logger.warn(`Postmark not configured — cannot send PV report via email`);
-        } else if (!mailService.isTransportAvailable()) {
-          Logger.warn(`Email transport is not available — cannot send PV report via email`);
-        } else {
-          // Attachment
-          const attachment: MailAttachment = {
-            Name: `PVReport-${contactInfo.company.replace(/\s+/g, '_')}.pdf`,
-            Content: pdfBuffer.toString('base64'),
-            ContentType: 'application/pdf',
-            ContentID: '',
-          };
+      // Send email
+      Logger.info(`📧 Sending PV report to ${contactInfo.email}...`);
+      // Do not block the HTTP response on email delivery.
+      // Postmark calls can be slow and make the UI feel like "PDF generation" is taking ~1 minute.
+      void mailService.sendMail({
+        to: contactInfo.email,
+        subject: 'Votre rapport photovoltaïque JOYA',
+        text: 'Veuillez trouver votre rapport photovoltaïque en pièce jointe.',
+        html: '<p>Veuillez trouver votre rapport photovoltaïque en pièce jointe.</p>',
+        templateId,
+        templateModel: {
+          fullName: contactInfo.fullName,
+          company: contactInfo.company,
+        },
+        attachments: [attachment],
+      }).then(() => {
+        Logger.info(`✅ PV PDF sent to ${contactInfo.email}`);
+      }).catch((err: Error) => {
+        Logger.error(`❌ Failed to send PV PDF to ${contactInfo.email}: ${err.message}`);
+      });
 
-          // Template id can be configured through env; fallback to audit template if missing
-          const templateId = Number(process.env.POSTMARK_PV_TEMPLATE_ID);
-
-          // Send email
-          Logger.info(`📧 Sending PV report to ${contactInfo.email}...`);
-
-          try {
-            await mailService.sendMail({
-              to: contactInfo.email,
-              subject: 'Votre rapport photovoltaïque JOYA',
-              text: 'Veuillez trouver votre rapport photovoltaïque en pièce jointe.',
-              html: '<p>Veuillez trouver votre rapport photovoltaïque en pièce jointe.</p>',
-              templateId,
-              templateModel: {
-                fullName: contactInfo.fullName,
-                company: contactInfo.company,
-              },
-              attachments: [attachment],
-            });
-
-            emailSent = true;
-            Logger.info(`✅ PV PDF sent to ${contactInfo.email}`);
-          } catch (emailError) {
-            Logger.error(`❌ Failed to send email: ${(emailError as Error).message}`);
-            // Continue - PDF is already saved to GCS
-          }
-        }
-      } else {
-        Logger.info(`ℹ️ No email address available - PDF generated and saved to GCS, but not sent via email`);
-      }
-
-      return res.status(200).json({
-        message: emailSent 
-          ? 'PV PDF generated, saved to cloud storage, and sent successfully' 
-          : 'PV PDF generated and saved to cloud storage',
-        email: emailAddress || null,
-        emailSent,
+      return res.status(202).json({
+        message: 'PV PDF generated. Email is being sent in the background.',
+        email: contactInfo.email,
         solaireId: finalSolaireId,
         energetiqueId: finalEnergetiqueId,
       });

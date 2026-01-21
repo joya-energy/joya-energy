@@ -2,16 +2,18 @@ import { Logger } from '@backend/middlewares/logger.midddleware';
 import { type IFileStorageService, type UploadFileResult } from './file-storage.interface';
 
 /**
- * Local fallback storage service that implements IFileStorageService
- * but doesn't actually store files (no-op implementation).
- * Used when GCS is not configured.
+ * No-op storage service that implements IFileStorageService
+ * but doesn't actually store files (no persistence).
+ *
+ * Used when storage isn't configured, or as a graceful fallback when the
+ * primary provider fails.
  */
-export class LocalFallbackStorageService implements IFileStorageService {
+export class NoopStorageService implements IFileStorageService {
   async uploadFile(buffer: Buffer, fileName: string, folder?: string): Promise<UploadFileResult> {
     const filePath = folder ? `${folder}/${fileName}` : fileName;
     Logger.warn(`⚠️ File storage not configured. File ${filePath} would have been uploaded (${buffer.length} bytes).`);
     
-    // Return a placeholder URL (gs:// format for consistency)
+    // Return a placeholder URL for consistency with consumers.
     return {
       filePath,
       publicUrl: `local://${filePath}`,

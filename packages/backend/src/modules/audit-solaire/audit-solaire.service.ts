@@ -13,7 +13,7 @@ import { BuildingTypes, ClimateZones } from '@shared/enums/audit-general.enum';
 import { extrapolateConsumption } from './helpers/consumption-extrapolation.calculator';
 import { calculatePVProduction } from './helpers/pv-production.calculator';
 import { analyzeEconomics } from './helpers/economic-analysis.calculator';
-import { convertAmountToConsumption } from '../audit-energetique/helpers/progressive-tariff.calculator';
+import { convertAmountToConsumptionFlatRate } from '../audit-energetique/helpers/progressive-tariff.calculator';
 
 
 
@@ -43,6 +43,10 @@ const EXTERNAL_APIS = {
 
 export interface CreateSimulationInput {
   address: string;
+  fullName: string;
+  companyName: string;
+  email: string;
+  phoneNumber: string;
   buildingType: BuildingTypes;
   climateZone: ClimateZones;
   measuredAmountTnd: number;
@@ -90,7 +94,7 @@ export class AuditSolaireSimulationService extends CommonService<
 
 
     try {
-      const consumptionConversion = convertAmountToConsumption({
+      const consumptionConversion = convertAmountToConsumptionFlatRate({
         monthlyAmount: input.measuredAmountTnd
       });
       
@@ -374,6 +378,11 @@ export class AuditSolaireSimulationService extends CommonService<
     economicData: ReturnType<typeof analyzeEconomics>
   ): ICreateAuditSolaireSimulation {
     return {
+      address: input.address,
+      fullName: input.fullName,
+      companyName: input.companyName,
+      email: input.email,
+      phoneNumber: input.phoneNumber,
       latitude: coordinates.latitude,
       longitude: coordinates.longitude,
       buildingType: input.buildingType,

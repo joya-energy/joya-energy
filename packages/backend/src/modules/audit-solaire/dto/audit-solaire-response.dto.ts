@@ -9,6 +9,11 @@ export interface AuditSolaireResponseDto extends Omit<IAuditSolaireSimulation, '
 export function toAuditSolaireResponseDto(simulation: IAuditSolaireSimulation): AuditSolaireResponseDto {
   return {
     id: simulation.id,
+    address: simulation.address ,
+    fullName: simulation.fullName ,
+    companyName: simulation.companyName ,
+    email: simulation.email ,
+    phoneNumber: simulation.phoneNumber ,
     latitude: simulation.latitude,
     longitude: simulation.longitude,
     buildingType: simulation.buildingType,

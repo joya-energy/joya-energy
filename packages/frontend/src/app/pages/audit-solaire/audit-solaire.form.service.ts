@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { FormBuilder, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ClimateZones, BuildingTypes } from '@shared';
 import {
   AuditSolaireFormControls,
@@ -8,13 +8,26 @@ import {
   LocationFieldName,
   ConsumptionFieldName,
   BuildingFieldName,
-  ConsumptionForm
+  ConsumptionForm,
+  BuildingForm
 } from './audit-solaire.types';
 
 const DEFAULT_PLACEHOLDER_OPTION = 'Sélectionnez...';
 const MIN_NUMERIC = 0;
 const MIN_MONTH = 1;
 const MAX_MONTH = 12;
+
+// Custom validator to ensure buildingType/climateZone is a valid enum value (not an empty object)
+function enumValidator(enumObject: Record<string, string>): (control: AbstractControl) => ValidationErrors | null {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const value = control.value;
+    // Check if value is a valid enum string (not an object or empty)
+    if (typeof value !== 'string' || !Object.values(enumObject).includes(value)) {
+      return { invalidEnum: { value } };
+    }
+    return null;
+  };
+}
 
 function extractEnumValues<T extends Record<string, string | number>>(enumObject: T): ReadonlyArray<T[keyof T]> {
   return Object.values(enumObject).filter(
@@ -30,6 +43,30 @@ export class AuditSolaireFormService {
   readonly climateZones = extractEnumValues(ClimateZones);
 
   readonly locationFields: FieldConfig<LocationFieldName>[] = [
+    {
+      control: 'fullName',
+      label: 'Nom complet',
+      type: 'text',
+      tooltip: { title: 'Contact', description: 'Nom et prénom du contact.' }
+    },
+    {
+      control: 'companyName',
+      label: 'Nom de l’entreprise',
+      type: 'text',
+      tooltip: { title: 'Entreprise', description: 'Nom de l’entreprise (optionnel si particulier).' }
+    },
+    {
+      control: 'email',
+      label: 'Email',
+      type: 'text',
+      tooltip: { title: 'Email', description: 'Adresse email pour l’envoi du rapport PV.' }
+    },
+    {
+      control: 'phoneNumber',
+      label: 'Téléphone',
+      type: 'text',
+      tooltip: { title: 'Téléphone', description: 'Numéro de téléphone du contact.' }
+    },
     {
       control: 'address',
       label: 'Adresse complète du bâtiment',
@@ -84,6 +121,10 @@ export class AuditSolaireFormService {
   buildForm(): AuditSolaireFormGroup {
     return this.fb.group<AuditSolaireFormControls>({
       location: this.fb.group({
+        fullName: this.fb.nonNullable.control('', [Validators.required]),
+        companyName: this.fb.nonNullable.control('', [Validators.required]),
+        email: this.fb.nonNullable.control('', [Validators.required, Validators.email]),
+        phoneNumber: this.fb.nonNullable.control('', [Validators.required]),
         address: this.fb.nonNullable.control('', [Validators.required])
       }),
       consumption: this.fb.group<ConsumptionForm>({
@@ -97,9 +138,15 @@ export class AuditSolaireFormService {
         billAttachment: this.fb.control<File | null>(null)
       }),
       building: this.fb.group({
-        buildingType: this.fb.nonNullable.control<BuildingTypes>({} as BuildingTypes, [Validators.required]),
-        climateZone: this.fb.nonNullable.control<ClimateZones>({} as ClimateZones, [Validators.required])
-      })
+        buildingType: this.fb.nonNullable.control<BuildingTypes>({} as BuildingTypes, [
+          Validators.required,
+          enumValidator(BuildingTypes)
+        ]) as FormControl<BuildingTypes>,
+        climateZone: this.fb.nonNullable.control<ClimateZones>({} as ClimateZones, [
+          Validators.required,
+          enumValidator(ClimateZones)
+        ]) as FormControl<ClimateZones>
+      }) as FormGroup<BuildingForm>
     });
   }
 }

@@ -2,39 +2,31 @@ import { Storage } from '@google-cloud/storage';
 import { Logger } from '@backend/middlewares/logger.midddleware';
 import { HTTP400Error } from '@backend/errors/http.error';
 import { type IFileStorageService, type UploadFileResult } from './file-storage.interface';
-import path from 'path';
 
 export class GoogleCloudStorageService implements IFileStorageService {
   private readonly storage: Storage;
   private readonly bucketName: string;
 
-  constructor(bucketName: string, keyFilename?: string, impersonateServiceAccount?: string) {
+  constructor(
+    bucketName: string,
+    // @ts-ignore - kept for backward compatibility
+    keyFilename?: string,
+    impersonateServiceAccount?: string
+  ) {
     this.bucketName = bucketName;
     
-    // If keyFilename is provided, use service account key file
-    if (keyFilename) {
-      const resolvedPath = path.isAbsolute(keyFilename) 
-        ? keyFilename 
-        : path.resolve(process.cwd(), keyFilename);
-      this.storage = new Storage({ keyFilename: resolvedPath });
-    } else {
-      // Use Application Default Credentials (ADC)
-      // For signed URLs without JSON keys, use service account impersonation:
-      // 1. Set GOOGLE_IMPERSONATE_SERVICE_ACCOUNT environment variable, OR
-      // 2. Run: gcloud auth application-default login --impersonate-service-account=SERVICE_ACCOUNT_EMAIL
-      this.storage = new Storage();
-      
-      if (impersonateServiceAccount) {
-        // Set environment variable for impersonation (if not already set via gcloud command)
-        if (!process.env.GOOGLE_IMPERSONATE_SERVICE_ACCOUNT) {
-          process.env.GOOGLE_IMPERSONATE_SERVICE_ACCOUNT = impersonateServiceAccount;
-        }
-        Logger.info(`🔐 Service account impersonation configured: ${impersonateServiceAccount}`);
-        Logger.info(`📝 To use signed URLs, run: gcloud auth application-default login --impersonate-service-account=${impersonateServiceAccount}`);
-      } else {
-        Logger.warn(`⚠️ No service account impersonation configured. Signed URLs may not work with user credentials.`);
-      }
+    // Set environment variable for impersonation if provided
+    // This allows the GoogleAuth library to automatically handle impersonation
+    if (impersonateServiceAccount && !process.env.GOOGLE_IMPERSONATE_SERVICE_ACCOUNT) {
+      process.env.GOOGLE_IMPERSONATE_SERVICE_ACCOUNT = impersonateServiceAccount;
     }
+    
+    // Create Storage client
+    // The @google-cloud/storage library automatically handles:
+    // - GCP metadata server authentication (in production on GCP)
+    // - Application Default Credentials (local development)
+    // - Service account impersonation (via GOOGLE_IMPERSONATE_SERVICE_ACCOUNT env var)
+    this.storage = new Storage();
   }
 
   async uploadFile(buffer: Buffer, fileName: string, folder?: string): Promise<UploadFileResult> {
@@ -62,8 +54,18 @@ export class GoogleCloudStorageService implements IFileStorageService {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      Logger.error(`❌ Failed to upload file to GCS: ${errorMessage}`, error);
-      throw new HTTP400Error(`Failed to upload file to Google Cloud Storage: ${errorMessage}`, error);
+      const errorDetails = this.extractErrorDetails(error);
+      
+      Logger.error(
+        `❌ Failed to upload file to GCS: ${errorMessage}${errorDetails ? ` (${errorDetails})` : ''}`,
+        error
+      );
+      
+      // Preserve the original error for better error handling upstream
+      throw new HTTP400Error(
+        `Failed to upload file to Google Cloud Storage: ${errorMessage}${errorDetails ? ` (${errorDetails})` : ''}`,
+        error
+      );
     }
   }
 
@@ -141,5 +143,43 @@ export class GoogleCloudStorageService implements IFileStorageService {
     };
     return contentTypes[extension ?? ''] ?? 'application/octet-stream';
   }
-}
 
+  /**
+   * Extract meaningful error details from GCS errors.
+   * Helps identify authentication issues, permission problems, etc.
+   */
+  private extractErrorDetails(error: unknown): string | null {
+    if (!error) {
+      return null;
+    }
+
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const lowerMessage = errorMessage.toLowerCase();
+
+    // Authentication errors
+    if (lowerMessage.includes('invalid_rapt') || lowerMessage.includes('invalid_grant')) {
+      return 'Authentication token expired or invalid. Re-authenticate with: gcloud auth application-default login --impersonate-service-account=SERVICE_ACCOUNT';
+    }
+
+    if (lowerMessage.includes('unable to impersonate')) {
+      return 'Service account impersonation failed. Check GCS_IMPERSONATE_SERVICE_ACCOUNT configuration';
+    }
+
+    // Permission errors
+    if (lowerMessage.includes('permission denied') || lowerMessage.includes('access denied')) {
+      return 'Insufficient permissions. Check service account IAM roles';
+    }
+
+    // Network/connectivity errors
+    if (lowerMessage.includes('network') || lowerMessage.includes('timeout') || lowerMessage.includes('connection')) {
+      return 'Network connectivity issue. Check internet connection';
+    }
+
+    // Bucket errors
+    if (lowerMessage.includes('bucket') && (lowerMessage.includes('not found') || lowerMessage.includes('does not exist'))) {
+      return `Bucket '${this.bucketName}' not found. Check GCS_BUCKET_NAME configuration`;
+    }
+
+    return null;
+  }
+}

@@ -204,14 +204,17 @@ export function buildPvReportDataFromSolaire(
     
     Logger.info(`💰 MonthlyEconomics totals: billWithout=${totalBillWithout}, billWith=${totalBillWith}, consWithout=${totalConsumptionWithout}, consWith=${totalConsumptionWith}`);
     
-    // Use billed consumption from monthlyEconomics for display (matches price calculation)
+    // Use billed consumption from monthlyEconomics for display
     consumptionWithPV = totalConsumptionWith;
     
+    // Prix moyen sans PV = Facture totale / Consommation brute totale
     avgPriceWithoutPV = totalConsumptionWithout > 0 
       ? totalBillWithout / totalConsumptionWithout 
       : 0;
-    // When consumption with PV is 0, average price should be 0 (not fallback to without PV)
-    // This happens when PV production fully covers consumption
+    
+    // Prix moyen avec PV = Facture totale / Consommation facturée totale
+    // Le prix moyen représente le prix moyen de l'électricité achetée du réseau
+    // Si la consommation facturée est 0 (PV couvre 100%), alors le prix moyen est 0
     avgPriceWithPV = totalConsumptionWith > 0 
       ? totalBillWith / totalConsumptionWith 
       : 0;
@@ -379,16 +382,10 @@ export function buildPvReportDataFromSolaire(
      CO2 DATA
   =============================== */
   
-  // Use energetique CO2 data if available, otherwise estimate from consumption
-  let co2PerYear: number | null = null;
-  if (energetiqueDto?.data?.results?.co2Emissions?.annual?.tons) {
-    co2PerYear = validateNumber(energetiqueDto.data.results.co2Emissions.annual.tons);
-  } else if (annualConsumption !== null) {
-    // Estimate: ~0.5 kg CO2 per kWh (Tunisian grid average)
-    co2PerYear = (annualConsumption * 0.5) / 1000; // Convert to tons
-  }
-  
-  const co2Total = co2PerYear !== null ? co2PerYear * 25 : null;
+  // Use CO2 values directly from PV economic analysis (Audit Solaire simulation)
+  // These are already calculated with degradation and correct emission factor (0.463 kg CO2/kWh)
+  const co2PerYear = validateNumber(solaireDto.annualCo2Avoided);
+  const co2Total = validateNumber(solaireDto.totalCo2Avoided25Years);
 
   /* ===============================
      RETURN

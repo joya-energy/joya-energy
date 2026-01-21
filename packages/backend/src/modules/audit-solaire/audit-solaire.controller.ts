@@ -58,22 +58,45 @@ export class AuditSolaireSimulationController {
   };
 
   private static sanitizePayload(body: Record<string, string | number | boolean>): CreateSimulationInput {
-    const buildingType = body.buildingType as BuildingTypes;
-    if (!Object.values(BuildingTypes).includes(buildingType)) {
+    // Handle case where buildingType might be an object instead of a string
+    const buildingTypeRaw = body.buildingType;
+    const buildingType = typeof buildingTypeRaw === 'string' 
+      ? buildingTypeRaw 
+      : (typeof buildingTypeRaw === 'object' && buildingTypeRaw !== null && 'id' in buildingTypeRaw
+        ? (buildingTypeRaw as { id: string }).id
+        : String(buildingTypeRaw));
+    
+    if (!Object.values(BuildingTypes).includes(buildingType as BuildingTypes)) {
       throw new HTTP400Error(`Invalid building type: ${buildingType}`);
     }
 
-    const climateZone = body.climateZone as ClimateZones;
-    if (!Object.values(ClimateZones).includes(climateZone)) {
+    // Handle case where climateZone might be an object instead of a string
+    const climateZoneRaw = body.climateZone;
+    const climateZone = typeof climateZoneRaw === 'string'
+      ? climateZoneRaw
+      : (typeof climateZoneRaw === 'object' && climateZoneRaw !== null && 'id' in climateZoneRaw
+        ? (climateZoneRaw as { id: string }).id
+        : String(climateZoneRaw));
+    
+    if (!Object.values(ClimateZones).includes(climateZone as ClimateZones)) {
       throw new HTTP400Error(`Invalid climate zone: ${climateZone}`);
     }
 
     const referenceMonth = requireNumber(body.referenceMonth, 'referenceMonth', { min: 1, max: 12 });
+    const email = requireString(body.email, 'email');
+    // Basic email validation (kept simple and explicit)
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new HTTP400Error('Invalid email format');
+    }
 
     return {
       address: requireString(body.address, 'address'),
-      buildingType,
-      climateZone,
+      fullName: requireString(body.fullName, 'fullName'),
+      companyName: requireString(body.companyName, 'companyName'),
+      email,
+      phoneNumber: requireString(body.phoneNumber, 'phoneNumber'),
+      buildingType: buildingType as BuildingTypes,
+      climateZone: climateZone as ClimateZones,
       measuredAmountTnd: requireNumber(body.measuredAmountTnd, 'measuredAmountTnd', { min: 0 }),
       referenceMonth,
     };

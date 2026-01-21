@@ -6,6 +6,10 @@ import { IAuditSolaireSimulation } from '@shared/interfaces';
 
 export interface CreateSimulationPayload {
   address: string;
+  fullName: string;
+  companyName: string;
+  email: string;
+  phoneNumber: string;
   measuredAmountTnd: number;
   referenceMonth: number;
   buildingType: string;
@@ -48,6 +52,16 @@ export class AuditSolaireService {
       solaireId,
       energetiqueId
     });
+  }
+
+  sendPVReportByEmail(
+    solaireId: string,
+    energetiqueId?: string
+  ): Observable<{ message: string; email: string; solaireId?: string; energetiqueId?: string }> {
+    return this.api.post<{ message: string; email: string; solaireId?: string; energetiqueId?: string }>(
+      '/audit-energetique-simulations/send-pv-pdf',
+      { solaireId, energetiqueId }
+    );
   }
 }
 

@@ -360,6 +360,10 @@ export class AuditSolaireComponent {
 
     const payload: CreateSimulationPayload = {
       address: this.auditForm.controls.location.value.address ?? '',
+      fullName: this.auditForm.controls.location.value.fullName ?? '',
+      companyName: this.auditForm.controls.location.value.companyName ?? '',
+      email: this.auditForm.controls.location.value.email ?? '',
+      phoneNumber: this.auditForm.controls.location.value.phoneNumber ?? '',
       measuredAmountTnd: this.auditForm.controls.consumption.value.measuredAmountTnd ?? 0,
       referenceMonth,
       buildingType: this.auditForm.controls.building.value.buildingType ?? '',
@@ -456,6 +460,335 @@ export class AuditSolaireComponent {
     return index;
   }
 
+  protected getChartMaxValue(): number {
+    const simulation = this.simulationResult();
+    if (!simulation?.monthlyEconomics || simulation.monthlyEconomics.length === 0) {
+      return 2000;
+    }
+    const maxBill = simulation.monthlyEconomics.reduce((max, m) => {
+      return Math.max(max, m.billWithoutPV || 0, m.billWithPV || 0);
+    }, 0);
+    const { topTick } = this.getMonthlyBillsYAxisTicks(maxBill);
+    return topTick;
+  }
+
+  /**
+   * Build "nice" Y-axis ticks for the monthly bills chart.
+   * Returns ticks from top to bottom, without showing 0 (as requested).
+   */
+  protected getChartYAxisTicks(): number[] {
+    const simulation = this.simulationResult();
+    const maxBill = simulation?.monthlyEconomics?.reduce((max, m) => {
+      return Math.max(max, m.billWithoutPV || 0, m.billWithPV || 0);
+    }, 0) ?? 0;
+
+    const { ticks } = this.getMonthlyBillsYAxisTicks(maxBill);
+    return ticks;
+  }
+
+  private getMonthlyBillsYAxisTicks(maxValue: number): { topTick: number; ticks: number[] } {
+    const tickCount = 5;
+    const safeMax = Number.isFinite(maxValue) && maxValue > 0 ? maxValue : 1;
+    const rawStep = safeMax / tickCount;
+
+    const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+    const normalized = rawStep / magnitude;
+    const stepBase = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
+    const step = stepBase * magnitude;
+
+    const topTick = step * tickCount;
+    const ticks = Array.from({ length: tickCount }, (_, i) => topTick - i * step);
+    return { topTick, ticks };
+  }
+
+  protected getBarHeight(value: number): number {
+    const maxValue = this.getChartMaxValue();
+    if (maxValue === 0) return 0;
+    // Calculate height as percentage of maxValue (topTick)
+    // The bars are in chart-bars-pair which has height: 24rem (full height to match grid lines)
+    // So we calculate percentage directly based on the full 24rem container
+    return Math.min((value / maxValue) * 100, 100);
+  }
+
+  protected getMonthLabel(index: number): string {
+    const months = ['Janv', 'Févr', 'Mars', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
+    return months[index] || '';
+  }
+
+  protected getLineChartMaxValue(): number {
+    const simulation = this.simulationResult();
+    if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) {
+      return 500000;
+    }
+    const maxGain = Math.max(...simulation.annualEconomics.map(e => e.cumulativeNetGain || 0));
+    const capex = simulation.installationCost || 0;
+    const maxValue = Math.max(maxGain, capex);
+    const minGain = Math.min(...simulation.annualEconomics.map(e => e.cumulativeNetGain || 0));
+    const minValue = Math.min(minGain, capex);
+    // Use nice tick calculation for consistent Y-axis
+    const { topTick } = this.calculateLineChartYAxisTicks(minValue, maxValue);
+    return topTick;
+  }
+
+  protected getLineChartMinValue(): number {
+    const simulation = this.simulationResult();
+    if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) {
+      return -50000;
+    }
+    const minGain = Math.min(...simulation.annualEconomics.map(e => e.cumulativeNetGain || 0));
+    const capex = simulation.installationCost || 0;
+    const minValue = Math.min(minGain, capex);
+    const maxGain = Math.max(...simulation.annualEconomics.map(e => e.cumulativeNetGain || 0));
+    const maxValue = Math.max(maxGain, capex);
+    // Use nice tick calculation for consistent Y-axis
+    const { bottomTick } = this.calculateLineChartYAxisTicks(minValue, maxValue);
+    return bottomTick;
+  }
+
+  protected getLineChartYAxisTicks(): number[] {
+    const simulation = this.simulationResult();
+    if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) {
+      return [500000, 400000, 300000, 200000, 100000, 0];
+    }
+    const maxGain = Math.max(...simulation.annualEconomics.map(e => e.cumulativeNetGain || 0));
+    const capex = simulation.installationCost || 0;
+    const maxValue = Math.max(maxGain, capex);
+    const minGain = Math.min(...simulation.annualEconomics.map(e => e.cumulativeNetGain || 0));
+    const minValue = Math.min(minGain, capex);
+    
+    const { ticks } = this.calculateLineChartYAxisTicks(minValue, maxValue);
+    return ticks;
+  }
+
+  private calculateLineChartYAxisTicks(minValue: number, maxValue: number): { topTick: number; bottomTick: number; ticks: number[] } {
+    const tickCount = 5; // 0%, 20%, 40%, 60%, 80%, 100% (6 positions = 5 intervals)
+    const range = maxValue - minValue;
+    const safeRange = Number.isFinite(range) && range > 0 ? range : 1;
+    
+    // Calculate a "nice" step size
+    const rawStep = safeRange / tickCount;
+    const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+    const normalized = rawStep / magnitude;
+    let stepBase;
+    if (normalized <= 1) stepBase = 1;
+    else if (normalized <= 2) stepBase = 2;
+    else if (normalized <= 5) stepBase = 5;
+    else stepBase = 10;
+    const step = stepBase * magnitude;
+    
+    // Round min and max to nice values
+    const bottomTick = Math.floor(minValue / step) * step;
+    const topTick = Math.ceil(maxValue / step) * step;
+    const actualRange = topTick - bottomTick;
+    const actualStep = actualRange / tickCount;
+    
+    // Generate ticks from bottom to top (ascending: min to max)
+    const ticksAscending = Array.from({ length: tickCount + 1 }, (_, i) => bottomTick + i * actualStep);
+    
+    // Reverse to get descending order (max to min) for display (top to bottom in chart)
+    const ticks = ticksAscending.reverse();
+    
+    return { topTick, bottomTick, ticks };
+  }
+
+  protected getChartYears(): number[] {
+    const simulation = this.simulationResult();
+    if (!simulation?.annualEconomics) {
+      return [];
+    }
+    return simulation.annualEconomics.map(e => e.year).slice(0, 25); // All 25 years
+  }
+
+  // Get sparse X-axis labels (only years 1, 5, 10, 15, 20, 25) like in PDF
+  protected getSparseChartYears(): number[] {
+    return [1, 5, 10, 15, 20, 25];
+  }
+
+  protected getGainsLinePoints(): string {
+    const simulation = this.simulationResult();
+    if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) {
+      return '';
+    }
+    const maxValue = this.getLineChartMaxValue();
+    const minValue = this.getLineChartMinValue();
+    const range = maxValue - minValue;
+    if (range === 0) return '';
+    const years = this.getChartYears();
+    if (years.length === 0) return '';
+    const points = years.map((year, index) => {
+      const data = simulation.annualEconomics[index];
+      if (!data) return '';
+      const value = data.cumulativeNetGain || 0;
+      const x = years.length > 1 ? ((index / (years.length - 1)) * 1000).toFixed(2) : '500';
+      const y = (400 - ((value - minValue) / range) * 400).toFixed(2);
+      return `${x},${y}`;
+    }).filter(p => p !== '').join(' ');
+    return points;
+  }
+
+  protected getGainsLinePointsArray(): Array<{x: number, y: number}> {
+    const simulation = this.simulationResult();
+    if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) {
+      return [];
+    }
+    const maxValue = this.getLineChartMaxValue();
+    const minValue = this.getLineChartMinValue();
+    const range = maxValue - minValue;
+    if (range === 0) return [];
+    const years = this.getChartYears();
+    if (years.length === 0) return [];
+    return years.map((year, index) => {
+      const data = simulation.annualEconomics[index];
+      if (!data) return { x: 0, y: 200 };
+      const value = data.cumulativeNetGain || 0;
+      const x = years.length > 1 ? (index / (years.length - 1)) * 1000 : 500;
+      const y = 400 - ((value - minValue) / range) * 400;
+      return { x, y };
+    });
+  }
+
+  protected getCapexLinePoints(): string {
+    const simulation = this.simulationResult();
+    if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) {
+      return '';
+    }
+    const capex = simulation.installationCost || 0;
+    const maxValue = this.getLineChartMaxValue();
+    const minValue = this.getLineChartMinValue();
+    const range = maxValue - minValue;
+    if (range === 0) return '';
+    const years = this.getChartYears();
+    if (years.length === 0) return '';
+    const points = years.map((year, index) => {
+      const x = years.length > 1 ? ((index / (years.length - 1)) * 1000).toFixed(2) : '500';
+      const y = (400 - ((capex - minValue) / range) * 400).toFixed(2);
+      return `${x},${y}`;
+    }).join(' ');
+    return points;
+  }
+
+  protected getCapexLinePointsArray(): Array<{x: number, y: number}> {
+    const simulation = this.simulationResult();
+    if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) {
+      return [];
+    }
+    const capex = simulation.installationCost || 0;
+    const maxValue = this.getLineChartMaxValue();
+    const minValue = this.getLineChartMinValue();
+    const range = maxValue - minValue;
+    if (range === 0) return [];
+    const years = this.getChartYears();
+    if (years.length === 0) return [];
+    return years.map((year, index) => {
+      const x = years.length > 1 ? (index / (years.length - 1)) * 1000 : 500;
+      const y = 400 - ((capex - minValue) / range) * 400;
+      return { x, y };
+    });
+  }
+
+  // Calculate intersection point (where cumulative gains = CAPEX)
+  protected getIntersectionPoint(): {x: number, y: number, year: number, capex: number} | null {
+    const simulation = this.simulationResult();
+    if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) {
+      return null;
+    }
+    const capex = simulation.installationCost || 0;
+    const years = this.getChartYears();
+    const maxValue = this.getLineChartMaxValue();
+    const minValue = this.getLineChartMinValue();
+    const range = maxValue - minValue;
+    if (range === 0) return null;
+
+    // Find the year where cumulative gains crosses CAPEX
+    for (let i = 0; i < simulation.annualEconomics.length && i < years.length; i++) {
+      const currentGain = simulation.annualEconomics[i].cumulativeNetGain || 0;
+      const nextGain = i + 1 < simulation.annualEconomics.length 
+        ? (simulation.annualEconomics[i + 1].cumulativeNetGain || 0)
+        : currentGain;
+      
+      // Check if CAPEX is between current and next year
+      if (currentGain <= capex && nextGain >= capex) {
+        // Linear interpolation to find exact intersection
+        const year1 = years[i];
+        const year2 = i + 1 < years.length ? years[i + 1] : year1;
+        const ratio = (capex - currentGain) / (nextGain - currentGain);
+        const exactYear = year1 + (year2 - year1) * ratio;
+        
+        const x = years.length > 1 ? ((i + ratio) / (years.length - 1)) * 1000 : 500;
+        const y = 400 - ((capex - minValue) / range) * 400;
+        
+        return { x, y, year: exactYear, capex };
+      }
+    }
+    return null;
+  }
+
+  // Get final cumulative gains value (at year 25)
+  protected getFinalGainsValue(): number | null {
+    const simulation = this.simulationResult();
+    if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) {
+      return null;
+    }
+    // Get the 25th year (index 24) or the last available year
+    const year25Index = Math.min(24, simulation.annualEconomics.length - 1);
+    return simulation.annualEconomics[year25Index]?.cumulativeNetGain || null;
+  }
+
+  // Get final point position for annotation
+  protected getFinalGainsPoint(): {x: number, y: number} | null {
+    const simulation = this.simulationResult();
+    if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) {
+      return null;
+    }
+    const years = this.getChartYears();
+    if (years.length === 0) return null;
+    
+    const maxValue = this.getLineChartMaxValue();
+    const minValue = this.getLineChartMinValue();
+    const range = maxValue - minValue;
+    if (range === 0) return null;
+
+    const year25Index = Math.min(24, years.length - 1);
+    const finalGain = this.getFinalGainsValue();
+    if (finalGain === null) return null;
+
+    const x = years.length > 1 ? (year25Index / (years.length - 1)) * 1000 : 500;
+    const y = 400 - ((finalGain - minValue) / range) * 400;
+    
+    return { x, y };
+  }
+
+  // Get final CAPEX value (constant, same as initial)
+  protected getFinalCapexValue(): number | null {
+    const simulation = this.simulationResult();
+    if (!simulation) return null;
+    return simulation.installationCost || null;
+  }
+
+  // Get final CAPEX point position for annotation (at year 25)
+  protected getFinalCapexPoint(): {x: number, y: number} | null {
+    const simulation = this.simulationResult();
+    if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) {
+      return null;
+    }
+    const years = this.getChartYears();
+    if (years.length === 0) return null;
+    
+    const maxValue = this.getLineChartMaxValue();
+    const minValue = this.getLineChartMinValue();
+    const range = maxValue - minValue;
+    if (range === 0) return null;
+
+    const capex = this.getFinalCapexValue();
+    if (capex === null || capex === 0) return null;
+
+    const year25Index = Math.min(24, years.length - 1);
+    const x = years.length > 1 ? (year25Index / (years.length - 1)) * 1000 : 500;
+    const y = 400 - ((capex - minValue) / range) * 400;
+    
+    return { x, y };
+  }
+
   protected downloadPVReport(): void {
     const result = this.simulationResult();
     if (!result?.id) {
@@ -469,56 +802,25 @@ export class AuditSolaireComponent {
 
     this.isGeneratingPDF.set(true);
     this.auditSolaireService
-      .downloadPVReport(result.id)
+      // Same behavior as audit énergétique: generate PV PDF, save it to GCS, and send it by email
+      .sendPVReportByEmail(result.id)
       .pipe(finalize(() => this.isGeneratingPDF.set(false)))
       .subscribe({
-        next: (blob: Blob) => {
-          // Create download link
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `rapport-pv-joya-${result.id.substring(0, 8)}.pdf`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(url);
-
+        next: (response) => {
           this.notificationStore.addNotification({
             type: 'success',
-            title: 'PDF téléchargé',
-            message: 'Le rapport PV a été téléchargé et sauvegardé dans le cloud.'
+            title: 'Rapport envoyé',
+            message: `Le rapport PV a été généré, sauvegardé dans le cloud et envoyé à ${response.email}.`
           });
         },
         error: (error) => {
-          console.error('Error generating PV PDF:', error);
-          
-          // Try to parse error message from blob if it's a JSON error response
-          if (error.error instanceof Blob) {
-            error.error.text().then((text: string) => {
-              try {
-                const errorJson = JSON.parse(text);
-                const errorMessage = errorJson.error || errorJson.message || 'Impossible de générer le PDF. Veuillez réessayer.';
-                this.notificationStore.addNotification({
-                  type: 'error',
-                  title: 'Erreur',
-                  message: errorMessage
-                });
-              } catch {
-                this.notificationStore.addNotification({
-                  type: 'error',
-                  title: 'Erreur',
-                  message: 'Impossible de générer le PDF. Veuillez réessayer.'
-                });
-              }
-            });
-          } else {
-            const errorMessage = error?.error?.error || error?.error?.message || 'Impossible de générer le PDF. Veuillez réessayer.';
-            this.notificationStore.addNotification({
-              type: 'error',
-              title: 'Erreur',
-              message: errorMessage
-            });
-          }
+          console.error('Error sending PV PDF:', error);
+          const errorMessage = error?.error?.error || error?.error?.message || 'Impossible d\'envoyer le rapport PV. Veuillez réessayer.';
+          this.notificationStore.addNotification({
+            type: 'error',
+            title: 'Erreur',
+            message: errorMessage
+          });
         }
       });
   }

@@ -185,6 +185,48 @@
 
           <!-- Step 3: Location -->
           <div *ngSwitchCase="AuditSolaireFormStep.LOCATION" class="step-block">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Nom complet</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  placeholder="Nom et prénom"
+                  [formControl]="auditForm.controls.location.controls.fullName"
+                />
+              </div>
+              <div class="form-group">
+                <label>Nom de l’entreprise</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  placeholder="Entreprise"
+                  [formControl]="auditForm.controls.location.controls.companyName"
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Email</label>
+                <input
+                  type="email"
+                  class="form-input"
+                  placeholder="email@exemple.com"
+                  [formControl]="auditForm.controls.location.controls.email"
+                />
+              </div>
+              <div class="form-group">
+                <label>Téléphone</label>
+                <input
+                  type="tel"
+                  class="form-input"
+                  placeholder="+216 ..."
+                  [formControl]="auditForm.controls.location.controls.phoneNumber"
+                />
+              </div>
+            </div>
+
             <div class="form-group">
               <label>Adresse complète du bâtiment</label>
               <app-google-maps-input
@@ -279,7 +321,7 @@
                     <div class="card-icon">
                       <ng-icon name="lucideClock"></ng-icon>
                     </div>
-                    <div class="card-category">ROI</div>
+                    <div class="card-category">Temps</div>
                   </div>
                   <div class="card-content">
                     <div class="card-value">{{ formatPaybackPeriod(simulation.paybackMonths) }}</div>
@@ -365,6 +407,57 @@
                     <div class="comparison-accent"></div>
                   </div>
                 </div>
+
+                <!-- Monthly Bills Chart -->
+                <div class="monthly-bills-chart" *ngIf="simulation.monthlyEconomics && simulation.monthlyEconomics.length > 0">
+                  <div class="chart-header">
+                    <h4 class="chart-title">Factures mensuelles – Avec / Sans solaire</h4>
+                    <div class="chart-unit">DT/MOIS</div>
+                  </div>
+                  <div class="chart-container">
+                    <div class="chart-y-axis">
+                      <div class="y-axis-label" *ngFor="let tick of getChartYAxisTicks()">
+                        {{ tick | number:'1.0-0' }}
+                      </div>
+                    </div>
+                    <div class="chart-bars-container">
+                      <div class="chart-bars-wrapper">
+                        <div class="chart-bars">
+                          <div class="chart-month" *ngFor="let month of simulation.monthlyEconomics; let i = index">
+                            <div class="chart-bars-pair">
+                              <div class="chart-bar chart-bar-without" 
+                                   [style.height.%]="getBarHeight(month.billWithoutPV)"
+                                   [class.chart-bar-zero]="month.billWithoutPV === 0">
+                                <span class="chart-bar-value">{{ month.billWithoutPV | number:'1.0-0' }}</span>
+                              </div>
+                              <div class="chart-bar chart-bar-with" 
+                                   [style.height.%]="getBarHeight(month.billWithPV)"
+                                   [class.chart-bar-zero]="month.billWithPV === 0">
+                                <span class="chart-bar-value">{{ month.billWithPV | number:'1.0-0' }}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <!-- Month labels row below the bars -->
+                        <div class="chart-labels-row">
+                          <div class="chart-month-label" *ngFor="let month of simulation.monthlyEconomics; let i = index">
+                            {{ getMonthLabel(i) }}
+                          </div>
+                        </div>
+                      </div>
+                      <div class="chart-legend">
+                        <div class="chart-legend-item">
+                          <span class="chart-swatch chart-swatch-without"></span>
+                          <span>Facture sans solaire</span>
+                        </div>
+                        <div class="chart-legend-item">
+                          <span class="chart-swatch chart-swatch-with"></span>
+                          <span>Facture avec solaire</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <!-- Economic Analysis -->
@@ -416,12 +509,12 @@
                       <div class="metric-icon roi">
                         <ng-icon name="lucideTrendingUp"></ng-icon>
                       </div>
-                      <div class="metric-badge">Profit</div>
+                      <div class="metric-badge">ROI</div>
                     </div>
                     <div class="metric-content">
                       <div class="metric-value success">{{ ((simulation.roi25Years || 0) * 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}%</div>
                       <div class="metric-label">ROI</div>
-                      <div class="metric-subtitle">Retour sur investissement</div>
+                      <div class="metric-subtitle">Rentabilité globale</div>
                     </div>
                   </div>
 
@@ -449,7 +542,7 @@
                       <div class="metric-badge">TRI</div>
                     </div>
                     <div class="metric-content">
-                      <div class="metric-value success">{{ (simulation.irr * 100).toFixed(1) }}<span class="unit">%</span></div>
+                      <div class="metric-value success">{{ simulation.irr.toFixed(1) }}<span class="unit">%</span></div>
                       <div class="metric-label">Taux de Rendement Interne</div>
                       <div class="metric-subtitle">Retour sur investissement annuel</div>
                     </div>
@@ -457,6 +550,202 @@
 
 
                  
+                </div>
+              </div>
+
+              <!-- Cumulative Gains vs CAPEX Chart -->
+              <div class="analysis-section" *ngIf="simulation.annualEconomics && simulation.annualEconomics.length > 0">
+                <div class="cumulative-gains-chart">
+                  <div class="chart-header">
+                    <div class="chart-title">Gains nets cumulés vs CAPEX</div>
+                    <div class="chart-unit">DT</div>
+                  </div>
+                  <div class="line-chart-container">
+                    <div class="line-chart-y-axis">
+                      <div class="y-axis-label" *ngFor="let tick of getLineChartYAxisTicks(); let i = index">
+                        {{ tick | number:'1.0-0' }}
+                      </div>
+                    </div>
+                    <div class="line-chart-content">
+                      <div class="line-chart-svg-container">
+                        <svg class="line-chart-svg" viewBox="0 0 1000 400" preserveAspectRatio="none">
+                          <!-- Grid lines are now created by CSS gradient background -->
+                          
+                          <!-- CAPEX line (dashed pink) -->
+                          <polyline 
+                            class="line-capex"
+                            [attr.points]="getCapexLinePoints()"
+                            fill="none"
+                            stroke="rgba(236, 72, 153, 0.8)"
+                            stroke-width="3"
+                            stroke-dasharray="8,4"/>
+                          <circle *ngFor="let point of getCapexLinePointsArray(); trackBy: trackByIndex" 
+                                  [attr.cx]="point.x" 
+                                  [attr.cy]="point.y" 
+                                  r="4" 
+                                  fill="rgba(236, 72, 153, 0.8)"/>
+
+                          <!-- Cumulative Net Gains line (solid blue) -->
+                          <polyline 
+                            class="line-gains"
+                            [attr.points]="getGainsLinePoints()"
+                            fill="none"
+                            stroke="rgba(59, 130, 246, 0.8)"
+                            stroke-width="3"/>
+                          <circle *ngFor="let point of getGainsLinePointsArray(); trackBy: trackByIndex" 
+                                  [attr.cx]="point.x" 
+                                  [attr.cy]="point.y" 
+                                  r="4" 
+                                  fill="rgba(59, 130, 246, 0.8)"/>
+
+                          <!-- Intersection annotation -->
+                          <g *ngIf="getIntersectionPoint()">
+                            <circle 
+                              [attr.cx]="getIntersectionPoint()!.x" 
+                              [attr.cy]="getIntersectionPoint()!.y" 
+                              r="8" 
+                              fill="#ef4444"
+                              stroke="white"
+                              stroke-width="3"/>
+                            <rect 
+                              [attr.x]="getIntersectionPoint()!.x - 50" 
+                              [attr.y]="getIntersectionPoint()!.y - 45" 
+                              width="100" 
+                              height="35" 
+                              rx="10" 
+                              fill="#ffffff" 
+                              stroke="#ef4444" 
+                              stroke-width="3"
+                              opacity="0.95"
+                              filter="url(#shadow)"/>
+                            <text 
+                              [attr.x]="getIntersectionPoint()!.x" 
+                              [attr.y]="getIntersectionPoint()!.y - 25" 
+                              text-anchor="middle" 
+                              font-size="14" 
+                              font-weight="bold" 
+                              fill="#dc2626">
+                              {{ getIntersectionPoint()!.year | number:'1.1-1' }} ans
+                            </text>
+                          </g>
+
+                          <!-- Final value annotation (blue bubble at end of blue curve) -->
+                          <g *ngIf="getFinalGainsPoint() && getFinalGainsValue() !== null && getFinalGainsValue()! > 0">
+                            <circle
+                              [attr.cx]="getFinalGainsPoint()!.x"
+                              [attr.cy]="getFinalGainsPoint()!.y"
+                              r="8"
+                              fill="#3b82f6"
+                              stroke="white"
+                              stroke-width="3"/>
+
+                            <!-- Leader line (from last point to bubble) -->
+                            <line
+                              [attr.x1]="getFinalGainsPoint()!.x"
+                              [attr.y1]="getFinalGainsPoint()!.y"
+                              [attr.x2]="getFinalGainsPoint()!.x - 95"
+                              [attr.y2]="getFinalGainsPoint()!.y + 50"
+                              stroke="rgba(59, 130, 246, 0.9)"
+                              stroke-width="3"
+                              stroke-linecap="round"/>
+
+                            <rect
+                              [attr.x]="getFinalGainsPoint()!.x - 210"
+                              [attr.y]="getFinalGainsPoint()!.y + 20"
+                              width="180"
+                              height="40"
+                              rx="12"
+                              fill="#ffffff"
+                              stroke="#3b82f6"
+                              stroke-width="3"
+                              opacity="0.97"
+                              filter="url(#shadow)"/>
+                            <text
+                              [attr.x]="getFinalGainsPoint()!.x - 120"
+                              [attr.y]="getFinalGainsPoint()!.y + 46"
+                              text-anchor="middle"
+                              font-size="14"
+                              font-weight="bold"
+                              fill="#1e40af">
+                              {{ getFinalGainsValue() | number:'1.0-0' }} DT
+                            </text>
+                          </g>
+
+                          <!-- Final CAPEX value annotation (red bubble at end of red curve) -->
+                          <g *ngIf="getFinalCapexPoint() && getFinalCapexValue() !== null && getFinalCapexValue()! > 0">
+                            <circle
+                              [attr.cx]="getFinalCapexPoint()!.x"
+                              [attr.cy]="getFinalCapexPoint()!.y"
+                              r="8"
+                              fill="#ec4899"
+                              stroke="white"
+                              stroke-width="3"/>
+
+                            <!-- Leader line (from last point to bubble) -->
+                            <line
+                              [attr.x1]="getFinalCapexPoint()!.x"
+                              [attr.y1]="getFinalCapexPoint()!.y"
+                              [attr.x2]="getFinalCapexPoint()!.x - 95"
+                              [attr.y2]="getFinalCapexPoint()!.y - 28"
+                              stroke="rgba(236, 72, 153, 0.9)"
+                              stroke-width="3"
+                              stroke-linecap="round"/>
+
+                            <rect
+                              [attr.x]="getFinalCapexPoint()!.x - 210"
+                              [attr.y]="getFinalCapexPoint()!.y - 50"
+                              width="180"
+                              height="40"
+                              rx="12"
+                              fill="#ffffff"
+                              stroke="#ec4899"
+                              stroke-width="3"
+                              opacity="0.97"
+                              filter="url(#shadow)"/>
+                            <text
+                              [attr.x]="getFinalCapexPoint()!.x - 120"
+                              [attr.y]="getFinalCapexPoint()!.y - 24"
+                              text-anchor="middle"
+                              font-size="14"
+                              font-weight="bold"
+                              fill="#be185d">
+                              {{ getFinalCapexValue() | number:'1.0-0' }} DT
+                            </text>
+                          </g>
+                          
+                          <!-- Shadow filter for bubbles -->
+                          <defs>
+                            <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                              <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+                              <feOffset dx="2" dy="2" result="offsetblur"/>
+                              <feComponentTransfer>
+                                <feFuncA type="linear" slope="0.3"/>
+                              </feComponentTransfer>
+                              <feMerge>
+                                <feMergeNode/>
+                                <feMergeNode in="SourceGraphic"/>
+                              </feMerge>
+                            </filter>
+                          </defs>
+                        </svg>
+                      </div>
+                      <div class="line-chart-x-axis line-chart-x-axis-sparse">
+                        <div class="x-axis-label" *ngFor="let year of getSparseChartYears(); trackBy: trackByIndex">
+                          Année {{ year }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="line-chart-legend">
+                    <div class="legend-item">
+                      <div class="legend-line legend-line-gains"></div>
+                      <span>Gains nets cumulés</span>
+                    </div>
+                    <div class="legend-item">
+                      <div class="legend-line legend-line-capex"></div>
+                      <span>CAPEX</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -482,7 +771,7 @@
                       <div class="environmental-badge">Annuel</div>
                     </div>
                     <div class="environmental-content">
-                      <div class="environmental-value success">{{ (simulation.annualCo2Avoided / 1000).toFixed(1) }} <span class="unit">tonnes</span></div>
+                      <div class="environmental-value success">{{ simulation.annualCo2Avoided.toFixed(1) }} <span class="unit">tonnes</span></div>
                       <div class="environmental-label">CO₂ évité</div>
                       <div class="environmental-subtitle">Émissions de carbone réduites par an</div>
                     </div>
@@ -497,7 +786,7 @@
                       <div class="environmental-badge">25 ans</div>
                     </div>
                     <div class="environmental-content">
-                      <div class="environmental-value success">{{ (simulation.totalCo2Avoided25Years / 1000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} <span class="unit">tonnes</span></div>
+                      <div class="environmental-value success">{{ simulation.totalCo2Avoided25Years.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} <span class="unit">tonnes</span></div>
                       <div class="environmental-label">CO₂ évité total</div>
                       <div class="environmental-subtitle">Émissions cumulées sur la durée de vie</div>
                     </div>
