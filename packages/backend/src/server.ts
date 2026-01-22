@@ -19,18 +19,18 @@ import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './configs/swagger.config';
 
 const createServer = async (): Promise<http.Server> => {
-  const server = createApp();
+  const server = await createApp();
   const { PORT = 3000 } = process.env;
   return server.listen(PORT, () => {
     Logger.info(`Server is running on port ${PORT}`);
   });
 };
 
-export const useMiddleware = (router: Router): void => {
-  applyMiddleware(middlewares, router);
+export const useMiddleware = async (router: Router): Promise<void> => {
+  await applyMiddleware(middlewares, router);
 };
 
-const createApp = (): http.Server => {
+const createApp = async (): Promise<http.Server> => {
   const app = express();
 
   // DEBUG: Global Request Logger
@@ -65,7 +65,8 @@ const createApp = (): http.Server => {
   router.use('/api/files', fileRoutes);
 
   // Apply middleware (database checks etc) LAST if they are global
-  useMiddleware(router);
+  // This will establish database connection before server starts accepting requests
+  await useMiddleware(router);
 
   // Global Error Handler for debugging
   app.use((err: any, _req: any, res: any, _next: any) => {

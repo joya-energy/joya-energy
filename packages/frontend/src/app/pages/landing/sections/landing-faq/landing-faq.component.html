@@ -1,0 +1,51 @@
+<section id="faq" class="faq-section">
+  <!-- Decorative elements -->
+  <div class="faq-section__deco-1"></div>
+  <div class="faq-section__deco-2"></div>
+
+  <div class="faq-section__container">
+    <div class="faq-section__header">
+      <app-landing-badge text="QUESTIONS FRÉQUENTES" variant="secondary" />
+      <h2 class="faq-section__title">Nous répondons à vos questions</h2>
+      <p class="faq-section__subtitle">
+        Tout ce que vous devez savoir sur notre solution de financement solaire
+      </p>
+      <div class="faq-section__bar"></div>
+    </div>
+
+    <div class="faq-section__content">
+      @for (item of faqData; track $index) {
+        <div class="faq-item">
+          <button
+            type="button"
+            class="faq-item__button"
+            [class.faq-item__button--open]="isOpen($index)"
+            [attr.aria-expanded]="isOpen($index)"
+            (click)="toggleItem($index)"
+          >
+            <h3 class="faq-item__question">{{ item.question }}</h3>
+            <div class="faq-item__icon-wrapper" [class.faq-item__icon-wrapper--open]="isOpen($index)">
+              <ng-icon name="lucideChevronDown" class="faq-item__icon" />
+            </div>
+          </button>
+
+          @if (isOpen($index)) {
+            <div class="faq-item__answer-wrapper">
+              <div class="faq-item__answer">
+                <p class="faq-item__answer-text">{{ item.answer }}</p>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="faq-section__cta">
+      <p class="faq-section__cta-text">Vous ne trouvez pas la réponse à votre question ?</p>
+      <a routerLink="/contact" class="faq-section__cta-btn">
+        Contactez-nous
+        <ng-icon name="lucideMail" class="faq-section__cta-icon" />
+      </a>
+    </div>
+  </div>
+</section>

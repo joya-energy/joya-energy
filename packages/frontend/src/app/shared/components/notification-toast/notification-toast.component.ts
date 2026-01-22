@@ -44,15 +44,22 @@ import { animate, style, transition, trigger } from '@angular/animations';
   styles: [`
     .toast-container {
       position: fixed;
-      bottom: 2rem;
-      right: 2rem;
+      bottom: 1rem;
+      right: 1rem;
+      left: 1rem;
       z-index: 9999;
       display: flex;
       flex-direction: column-reverse;
       gap: 1rem;
       max-width: 400px;
-      width: 100%;
+      width: auto;
       pointer-events: none;
+
+      @media (min-width: 640px) {
+        bottom: 2rem;
+        right: 2rem;
+        left: auto;
+      }
     }
 
     .toast {
@@ -66,6 +73,13 @@ import { animate, style, transition, trigger } from '@angular/animations';
       gap: 0.75rem;
       border-left: 4px solid transparent;
       overflow: hidden;
+      width: 100%;
+      max-width: 100%;
+
+      @media (min-width: 640px) {
+        width: auto;
+        max-width: 400px;
+      }
 
       &.success { border-left-color: var(--success-500, #10b981); }
       &.error { border-left-color: var(--danger-500, #ef4444); }
@@ -88,6 +102,7 @@ import { animate, style, transition, trigger } from '@angular/animations';
 
     .toast-content {
       flex: 1;
+      min-width: 0; // Allow text to wrap
     }
 
     .toast-title {
@@ -95,6 +110,7 @@ import { animate, style, transition, trigger } from '@angular/animations';
       font-size: var(--font-size-sm);
       color: var(--text-primary, #1f2937);
       margin: 0 0 0.25rem;
+      word-wrap: break-word;
     }
 
     .toast-message {
@@ -102,6 +118,7 @@ import { animate, style, transition, trigger } from '@angular/animations';
       color: var(--text-secondary, #6b7280);
       margin: 0;
       line-height: 1.4;
+      word-wrap: break-word;
     }
 
     .toast-close {
@@ -109,13 +126,29 @@ import { animate, style, transition, trigger } from '@angular/animations';
       border: none;
       color: var(--text-muted, #9ca3af);
       cursor: pointer;
-      padding: 0.25rem;
+      padding: 0.5rem;
       display: flex;
+      align-items: center;
+      justify-content: center;
       transition: color 0.2s;
-      margin-top: 2px;
+      flex-shrink: 0;
+      min-width: 32px;
+      min-height: 32px;
+      border-radius: 0.25rem;
+
+      @media (min-width: 640px) {
+        padding: 0.25rem;
+        min-width: auto;
+        min-height: auto;
+      }
 
       &:hover {
         color: var(--text-primary, #1f2937);
+        background: var(--neutral-100, #f3f4f6);
+      }
+
+      &:active {
+        background: var(--neutral-200, #e5e7eb);
       }
     }
   `],

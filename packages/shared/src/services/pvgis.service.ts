@@ -30,12 +30,16 @@ export interface SolarIrradianceData {
 
 export class PVGISService {
   private static readonly API_CONFIG = {
-    URL: process.env['PVGIS_API_URL'] ?? 'https://re.jrc.ec.europa.eu/api/PVcalc',
+    URL: (typeof process !== 'undefined' && process.env?.['PVGIS_API_URL']) 
+      ? process.env['PVGIS_API_URL'] 
+      : 'https://re.jrc.ec.europa.eu/api/PVcalc',
     DEFAULT_PEAK_POWER: 1, // 1 kWp
     DEFAULT_SYSTEM_LOSS: 14, // 14% system losses
     DEFAULT_PANEL_ANGLE: 30, // 30° tilt angle
     USE_HORIZON: 1, // Use horizon data
-    TIMEOUT: Number(process.env['EXTERNAL_APIS_TIMEOUT']) || 30000, // 30 seconds
+    TIMEOUT: (typeof process !== 'undefined' && process.env?.['EXTERNAL_APIS_TIMEOUT']) 
+      ? Number(process.env['EXTERNAL_APIS_TIMEOUT']) 
+      : 30000, // 30 seconds
   } as const;
 
   /**
