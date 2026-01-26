@@ -45,6 +45,12 @@ export const routes: Routes = [
     title: 'Comparateur de Financements | JOYA Energy'
   },
   {
+    path: 'energy-audit',
+    loadComponent: () => import('./pages/energy-audit/energy-audit.component').then(m => m.EnergyAuditComponent),
+    title: 'Audit Énergétique | JOYA Energy',
+    data: { hideFooter: true }
+  },
+  {
     path: '**',
     redirectTo: ''
   }

@@ -19,7 +19,8 @@
   --teal-muted: #83928c;
   --teal-light: #e7f5f4;
   --teal-wash: #0a3d460d;
-  
+  --ocean-blue: #E7F5F4;
+  --ocean-blue-outliner: #0d575757;
   --orange-solar: #f3a31c;
   --orange-wash: #f3a31c1a;
 
@@ -53,5 +54,32 @@
   --danger-50: #fef2f2;
   --danger-500: #ef4444;
   --danger-700: #b91c1c;
+
+  // --------------- UI Select Component Colors ---------------
+  --select-bg: #ffffff;
+  --select-bg-hover: #f1f5f9;
+  --select-bg-selected: var(--ocean-blue);
+  --select-bg-disabled: #f1f5f9;
+  --select-border: var(--neutral-300);
+  --select-border-hover: #94a3b8;
+  --select-border-focus: var(--orange-solar);
+  --select-border-focus-shadow: #f0a58a00;
+  --select-text: #334155;
+  --select-text-hover: #0f172a;
+  --select-text-selected: var(--landing-secondary);
+  --select-text-placeholder: var(--neutral-400);
+  --select-icon: #64748b;
+  --select-check: var(--orange-solar);
+  --select-box-bg: var(--neutral-100);
+  --select-box-bg-hover: var(--neutral-200);
+  --select-box-bg-selected: var(--ocean-blue);
+  --select-box-border: var(--neutral-300);
+  --select-box-border-selected: var(--ocean-blue-outliner);
+  --select-box-text: var(--text-primary);
+  --select-box-text-selected: var(--teal-deep);
+
+
+
+
 }
 

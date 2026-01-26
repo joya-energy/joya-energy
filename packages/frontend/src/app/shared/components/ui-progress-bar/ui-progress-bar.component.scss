@@ -1,0 +1,146 @@
+:host {
+  display: block;
+  width: 100%;
+  font-family: var(--font-family-primary, sans-serif);
+}
+
+.ui-progress-bar-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  width: 100%;
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease, outline 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--neutral-100);
+  }
+
+  &:focus-within {
+    outline: 2px solid var(--landing-primary);
+    outline-offset: 2px;
+  }
+}
+
+.ui-progress-bar-left {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 1rem;
+}
+
+.ui-progress-bar-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+  margin-right: 1rem;
+}
+
+.ui-progress-bar-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  margin-left: 0.5rem;
+  transition: color 0.3s ease;
+  line-height: 1.4;
+
+  &.focused {
+    color: var(--landing-primary-dark);
+    font-weight: var(--font-weight-semibold);
+  }
+}
+
+.ui-progress-bar-bottom {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.ui-progress-bar-step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem !important;
+  height: 3.5rem !important;
+  border-radius: 50%;
+  background: var(--neutral-200);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+
+  &.active {
+    background: var(--landing-primary);
+    color: white;
+  }
+
+  &.completed {
+    background: var(--landing-primary);
+    color: white;
+  }
+
+  &.focused {
+    background: var(--landing-primary);
+    color: white;
+  }
+}
+
+.step-number {
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-check-icon {
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.ui-progress-bar-track {
+  flex: 1;
+  height: 0.5rem;
+  background: var(--neutral-200);
+  border-radius: 0.25rem;
+  overflow: hidden;
+  position: relative;
+  min-width: 0;
+}
+
+.ui-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(to right, var(--landing-primary-light), var(--landing-primary-dark));
+  border-radius: 0.25rem;
+  transition: width 0.3s ease;
+  min-width: 0;
+}
+
+.ui-progress-bar-percentage {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  min-width: 3rem;
+  text-align: right;
+  flex-shrink: 0;
+  transition: color 0.3s ease;
+
+  &.completed {
+    color: var(--landing-primary);
+  }
+
+  &.focused {
+    color: var(--landing-primary-dark);
+  }
+}

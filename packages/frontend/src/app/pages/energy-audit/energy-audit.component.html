@@ -1,0 +1,181 @@
+<div class="energy-audit-page">
+  <div class="energy-audit-container">
+    <!-- Sidebar with Step Progress -->
+    <aside class="simulator-sidebar">
+      <div class="sidebar-steps">
+        @for (step of steps; track step.number) {
+          <div class="sidebar-step-item" [class.active]="currentStep() === step.number">
+            @if (!step.isResult) {
+              <app-ui-progress-bar
+                [step]="step.number"
+                [title]="step.title"
+                [progress]="stepProgress()[step.number]"
+                [completed]="stepProgress()[step.number] === 100"
+                [isFocused]="currentStep() === step.number"
+                class="sidebar-progress-bar">
+              </app-ui-progress-bar>
+            } @else {
+              <!-- Result step - matches progress bar layout but without progress bar -->
+              <div class="sidebar-result-step" [class.active]="currentStep() === step.number">
+                <div class="sidebar-result-step-left">
+                  <div 
+                    class="sidebar-step-circle result"
+                    [class.active]="currentStep() === step.number">
+                    <span class="step-number">{{ step.number }}</span>
+                  </div>
+                </div>
+                <div class="sidebar-result-step-right">
+                  <h3 class="sidebar-step-title">{{ step.title }}</h3>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="simulator-main">
+      <!-- Form Content -->
+      <div class="form-content">
+        <!-- Step Timeline and Progress -->
+        <div class="step-timeline-container">
+          <div class="step-progress-header">
+            <span class="step-indicator">Étape {{ currentStep() }} sur {{ steps.length }}</span>
+            <span class="step-completion">Step completion: {{ overallProgress() }}%</span>
+          </div>
+          <app-ui-step-timeline
+            [currentStep]="currentStep()"
+            [totalSteps]="steps.length">
+          </app-ui-step-timeline>
+        </div>
+
+        @if (currentStepData().isResult) {
+          <!-- Results View -->
+          <div class="results-view">
+            <h1>Résultats de votre audit</h1>
+            <p>Les calculs sont en cours. L'API sera intégrée prochainement.</p>
+            <div class="form-actions">
+              <button 
+                type="button" 
+                class="btn btn--landing-secondary"
+                (click)="previousStep()">
+                <ng-icon name="lucideArrowLeft" size="16"></ng-icon>
+                Retour
+              </button>
+              <button 
+                type="button" 
+                class="btn btn--landing-primary"
+                (click)="currentStep.set(1); form.reset()">
+                Nouvelle simulation
+              </button>
+            </div>
+          </div>
+        } @else {
+          <!-- Form Fields -->
+          <form [formGroup]="form" class="simulator-form">
+            <div class="simulator-form-header">
+              <h3 class="simulator-form-title">Calculateur Audit Énergétique</h3>
+              <h2 class="step-title">{{ currentStepData().title }}</h2>
+              @if (currentStepData().description) {
+                <p class="step-description">{{ currentStepData().description }}</p>
+              }
+            </div>
+            
+            <div class="form-fields">
+              @for (field of currentStepData().fields; track field.name) {
+                @if (isFieldVisible(field)) {
+                  <div class="form-field">
+                    @if (field.type === 'text' || field.type === 'number') {
+                      <app-ui-input
+                        [formControlName]="field.name"
+                        [type]="field.type"
+                        [label]="field.label"
+                        [placeholder]="field.placeholder || ''"
+                        [required]="field.required || false"
+                        [tooltipTitle]="field.tooltipTitle || ''"
+                        [tooltipDescription]="field.tooltipDescription || ''"
+                        [tooltipOptions]="field.tooltipOptions || []"
+                        [icon]="field.icon || ''"
+                        [iconPosition]="field.icon ? 'left' : 'left'"
+                        size="md"
+                        [min]="field.min !== undefined ? field.min : (field.type === 'number' ? 0 : null)"
+                        [max]="field.max !== undefined ? field.max : null">
+                      </app-ui-input>
+                    } @else if (field.type === 'select') {
+                      <app-ui-select
+                        [formControlName]="field.name"
+                        [options]="getFieldOptions(field)"
+                        [placeholder]="field.placeholder || 'Sélectionnez...'"
+                        variant="dropdown"
+                        [multiple]="false">
+                      </app-ui-select>
+                    } @else if (field.type === 'select-icon') {
+                      <app-ui-select
+                        [formControlName]="field.name"
+                        [options]="getFieldOptionsForIcon(field)"
+                        [placeholder]="field.placeholder || 'Sélectionnez...'"
+                        variant="dropdown-icon"
+                        [iconPosition]="field.iconPosition || 'left'"
+                        [multiple]="false">
+                      </app-ui-select>
+                    } @else if (field.type === 'box') {
+                      <app-ui-select
+                        [formControlName]="field.name"
+                        [options]="getFieldOptions(field)"
+                        [placeholder]="field.placeholder || 'Sélectionnez...'"
+                        variant="box"
+                        [multiple]="false">
+                      </app-ui-select>
+                    } @else if (field.type === 'box-icon') {
+                      <app-ui-select
+                        [formControlName]="field.name"
+                        [options]="getFieldOptionsForIcon(field)"
+                        [placeholder]="field.placeholder || 'Sélectionnez...'"
+                        variant="box-icon"
+                        [iconPosition]="field.iconPosition || 'top'"
+                        [multiple]="false">
+                      </app-ui-select>
+                    }
+                  </div>
+                }
+              }
+            </div>
+
+         
+
+          </form>
+        }
+      </div>
+    </main>
+
+    <!-- Fixed Navigation Buttons - Always visible in bottom right -->
+    <div class="form-actions">
+      <button 
+        type="button" 
+        class="hero__btn hero__btn--outline"
+        (click)="previousStep()">
+        <ng-icon name="lucideArrowLeft" size="16"></ng-icon>
+        Précédent
+      </button>
+      
+      @if (currentStep() < steps.length - 1) {
+        <button 
+          type="button" 
+          class="hero__btn hero__btn--primary"
+          (click)="nextStep()">
+          Suivant
+          <ng-icon name="lucideArrowRight" size="16"></ng-icon>
+        </button>
+      } @else {
+        <button 
+          type="button" 
+          class="hero__btn hero__btn--primary"
+          (click)="submitForm()">
+          Voir les résultats
+          <ng-icon name="lucideArrowRight" size="16"></ng-icon>
+        </button>
+      }
+    </div>
+  </div>
+</div>

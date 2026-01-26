@@ -1,0 +1,477 @@
+.energy-audit-page {
+  background-color: var(--bg-page);
+  height: calc(100vh - 7rem); // Full viewport minus navbar
+  width: 100%;
+  max-width: 100vw;
+  overflow: hidden;
+  box-sizing: border-box;
+  margin-top: 8rem; // Navbar height
+  padding: 0 2rem 2rem 2rem; // Left, right, bottom padding
+  font-family: var(--font-family-primary);
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0px -1px 3px rgba(0,0,0,0.2);
+
+  @media (max-width: 768px) {
+    padding: 0 1rem 1rem 1rem;
+    margin-top: 5rem;
+    height: calc(100vh - 5rem);
+  }
+}
+
+.energy-audit-container {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  margin-top: 2rem;
+  gap: 0;
+  align-items: stretch;
+  overflow: hidden;
+  min-height: 0; // Important for flex children to allow scrolling
+
+  @media (max-width: 1023px) {
+    flex-direction: column;
+  }
+}
+
+// Sidebar Styles
+.simulator-sidebar {
+  width: 350px;
+  flex-shrink: 0;
+  background: transparent;
+  border-right: 1px solid var(--neutral-200);
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+
+  // Custom scrollbar styling
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--neutral-300);
+    border-radius: 3px;
+
+    &:hover {
+      background-color: var(--neutral-400);
+    }
+  }
+
+  @media (max-width: 1023px) {
+    display: none; // Hide sidebar on mobile
+  }
+}
+
+.sidebar-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sidebar-step-item {
+  width: 100%;
+
+  &.active {
+    ::ng-deep .ui-progress-bar-container {
+      border-color: var(--success-500);
+    }
+  }
+}
+
+.sidebar-progress-bar {
+  width: 100%;
+
+  ::ng-deep .ui-progress-bar-wrapper {
+    padding: 0.75rem 0;
+    gap: 0.75rem;
+  }
+
+  ::ng-deep .ui-progress-bar-left {
+    align-items: flex-start;
+  }
+
+  ::ng-deep .ui-progress-bar-step-indicator {
+    width: 2rem;
+    height: 2rem;
+    font-size: var(--font-size-sm);
+  }
+
+  ::ng-deep .ui-progress-bar-right {
+    gap: 0.5rem;
+  }
+
+  ::ng-deep .ui-progress-bar-title {
+    font-size: var(--font-size-sm);
+    line-height: 1.4;
+  }
+
+  ::ng-deep .ui-progress-bar-bottom {
+    gap: 0.75rem;
+  }
+
+  ::ng-deep .ui-progress-bar-track {
+    flex: 1;
+    height: 0.5rem;
+  }
+
+  ::ng-deep .ui-progress-bar-percentage {
+    min-width: 3rem;
+    font-size: var(--font-size-sm);
+  }
+}
+
+// Result step styling - matches progress bar layout but without progress bar
+.sidebar-result-step {
+  display: flex;
+  align-items: center; // Center align to match circle and title vertically
+  gap: 1rem;
+  width: 100%;
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease, outline 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--neutral-100);
+  }
+
+  &:focus-within {
+    outline: 2px solid var(--landing-primary);
+    outline-offset: 2px;
+  }
+
+  &.active {
+    background: var(--neutral-100);
+  }
+}
+
+.sidebar-result-step-left {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 1rem;
+  height: 3.5rem; // Match circle height for perfect alignment
+}
+
+.sidebar-result-step-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  margin-right: 1rem;
+  height: 3.5rem; // Match circle height for perfect alignment
+}
+
+.sidebar-step-circle {
+  width: 3.5rem !important;
+  height: 3.5rem !important;
+  border-radius: 50%;
+  background: var(--neutral-200);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+
+  &.active {
+    background: var(--landing-primary);
+    color: white;
+  }
+
+  &.result {
+    background: var(--neutral-200);
+    color: var(--text-secondary);
+  }
+
+  .step-number {
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.sidebar-step-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  margin: 0;
+  margin-left: 0.5rem;
+  transition: color 0.3s ease;
+  line-height: 1.4;
+  flex: 1;
+  display: flex;
+  align-items: center; // Ensure vertical centering
+
+  .sidebar-result-step.active & {
+    color: var(--landing-primary-dark);
+    font-weight: var(--font-weight-semibold);
+  }
+}
+
+// Main Content Styles
+.simulator-main {
+  flex: 1;
+  min-width: 0; // Allow flex shrinking
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0; // Remove padding since page has padding now
+  overflow: hidden;
+  position: relative;
+  align-items: center;
+}
+
+.step-timeline-container {
+  width: 70%;
+  margin-bottom: 1.5rem;
+  align-self: center;
+  justify-self: center;
+}
+
+.step-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.step-indicator {
+  font-weight: var(--font-weight-medium);
+}
+
+.step-completion {
+  font-weight: var(--font-weight-medium);
+}
+
+.form-content {
+ 
+  padding: 2.5rem;
+  padding-bottom: 6rem; // Space for fixed buttons
+  max-width: 70%;
+ 
+  flex: 1;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0; // Important for flex scrolling
+
+  // Custom scrollbar styling
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--neutral-100);
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--neutral-400);
+    border-radius: 4px;
+
+    &:hover {
+      background-color: var(--neutral-500);
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+    padding-bottom: 6rem;
+    border-radius: 0.5rem;
+  }
+}
+
+.simulator-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.simulator-form-header {
+  margin-bottom: 2rem;
+}
+
+.simulator-form-title {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  margin: 0 0 0.5rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.step-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0 0 1.5rem 0;
+
+  @media (max-width: 768px) {
+    font-size: var(--font-size-xl);
+  }
+}
+
+.step-description {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+
+
+.form-field {
+  width: 100%;
+}
+
+// Results View
+.results-view {
+  text-align: center;
+  padding: 3rem 2rem;
+
+  h1 {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+  }
+
+  p {
+    font-size: var(--font-size-base);
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+  }
+}
+
+// Form Actions - Fixed in bottom, aligned with main content
+.form-actions {
+  position: fixed;
+  bottom: 3.3rem;
+  left: calc(2rem + 350px + 10rem); // Page padding + sidebar width + form-content left padding
+  right: calc(2rem + 10rem); // Page padding + form-content right padding
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  z-index: 10;
+
+  @media (max-width: 1023px) {
+    // On tablet and below, sidebar is hidden, so align with form-content padding
+    left: calc(2rem + 10rem);
+  }
+
+  @media (max-width: 768px) {
+    bottom: 1rem;
+    left: 1rem;
+    right: 1rem;
+    justify-content: space-between;
+    
+    .hero__btn {
+      flex: 1;
+      min-width: auto;
+    }
+  }
+}
+
+// Ensure no global scrolling
+:host {
+  display: block;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+// Hero button styles from landing page
+.hero__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 14px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+
+  @media (min-width: 768px) {
+    padding: 12px 24px;
+    font-size: 16px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+.hero__btn--primary {
+  color: #fff;
+  background: linear-gradient(to right, var(--landing-primary), var(--landing-primary-dark));
+  box-shadow: 0 10px 22px rgba(227, 112, 81, 0.22);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
+}
+
+.hero__btn--outline {
+  color: var(--landing-primary);
+  border: 1px solid color-mix(in srgb, var(--landing-primary) 70%, #fff);
+  background: #fff;
+
+  &:hover:not(:disabled) {
+    color: var(--landing-primary-dark);
+    background: var(--landing-primary-lightest);
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 1023px) {
+  .energy-audit-container {
+    flex-direction: column;
+  }
+
+  .simulator-sidebar {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .form-content {
+    padding: 1.5rem 1rem;
+    padding-bottom: 6rem;
+  }
+
+  .step-title {
+    font-size: var(--font-size-lg);
+  }
+}
