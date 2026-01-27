@@ -57,7 +57,9 @@
       <div class="form-content-scrollable">
         <div class="form-content">
           <!-- Dynamic Step Content - Unique div that changes per step -->
-          <div class="step-content" [attr.data-step]="currentStep()">
+          <div 
+            class="step-content" 
+            [attr.data-step]="currentStep()">
           @if (currentStepData().isResult) {
             <!-- Results View -->
             <div class="results-view">
@@ -66,7 +68,7 @@
                 <div class="results-container">
                   <div class="results-grid">
                     <!-- Energy Consumption -->
-                    <div class="result-card consumption">
+                    <div class="result-card consumption" [@resultCards]>
                       <div class="result-icon">⚡</div>
                       <h3>Consommation Énergétique</h3>
                       <div class="result-value">
@@ -86,7 +88,7 @@
                     </div>
 
                     <!-- Energy Cost -->
-                    <div class="result-card cost">
+                    <div class="result-card cost" [@resultCards]>
                       <div class="result-icon">💰</div>
                       <h3>Coût Estimé</h3>
                       <div class="result-value">
@@ -102,7 +104,7 @@
                     </div>
 
                     <!-- CO2 Emissions -->
-                    <div class="result-card co2">
+                    <div class="result-card co2" [@resultCards]>
                       <div class="result-icon">🌱</div>
                       <h3>Impact Carbone</h3>
                       <div class="result-value">
@@ -121,7 +123,7 @@
                   <div class="recommendation-banners-container">
                     <!-- Energy Classification -->
                   @if (result.results.energyClassification && result.results.energyClassification.isApplicable) {
-                    <div class="recommendation-banner">
+                    <div class="recommendation-banner" [@resultCards]>
                       <div class="classification-badge" [class]="'class-' + result.results.energyClassification.class">
                         {{ result.results.energyClassification.class }}
                       </div>
@@ -135,7 +137,7 @@
 
                   <!-- Carbon Classification -->
                   @if (result.results.carbonClassification && result.results.carbonClassification.isApplicable) {
-                    <div class="recommendation-banner carbon-banner">
+                    <div class="recommendation-banner carbon-banner" [@resultCards]>
                       <div class="classification-badge" [class]="'class-' + result.results.carbonClassification.class">
                         {{ result.results.carbonClassification.class }}
                       </div>
@@ -165,19 +167,27 @@
               
               <!-- Step Components (Modular) -->
               @if (currentStep() === 1) {
-                <app-step-building
-                  [form]="form"
-                  [buildingCategories]="buildingCategories"
-                  [buildingTypes]="buildingTypes"
-                  [activityTypes]="formServiceInstance.activityTypes"
-                  [climateZones]="formServiceInstance.climateZones">
-                </app-step-building>
+                <div [@stepTransition]="currentStep()">
+                  <app-step-building
+                    [form]="form"
+                    [buildingCategories]="buildingCategories"
+                    [buildingTypes]="buildingTypes"
+                    [activityTypes]="formServiceInstance.activityTypes"
+                    [climateZones]="formServiceInstance.climateZones">
+                  </app-step-building>
+                </div>
               } @else if (currentStep() === 2) {
-                <app-step-technical [form]="form"></app-step-technical>
+                <div [@stepTransition]="currentStep()">
+                  <app-step-technical [form]="form"></app-step-technical>
+                </div>
               } @else if (currentStep() === 3) {
-                <app-step-equipment [form]="form"></app-step-equipment>
+                <div [@stepTransition]="currentStep()">
+                  <app-step-equipment [form]="form"></app-step-equipment>
+                </div>
               } @else if (currentStep() === 4) {
-                <app-step-personal [form]="form"></app-step-personal>
+                <div [@stepTransition]="currentStep()">
+                  <app-step-personal [form]="form"></app-step-personal>
+                </div>
               }
             </form>
           }

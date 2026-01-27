@@ -2,6 +2,7 @@ import { Component, signal, computed, ChangeDetectionStrategy, OnInit, OnDestroy
 import { CommonModule, isPlatformBrowser, DatePipe } from '@angular/common';
 import { ReactiveFormsModule, FormGroup } from '@angular/forms';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
+import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
 import { finalize } from 'rxjs/operators';
 import { 
   lucideArrowRight, 
@@ -62,6 +63,25 @@ import { AuditEnergetiqueResponse } from '../../core/services/audit-energetique.
   templateUrl: './energy-audit.component.html',
   styleUrls: ['./energy-audit.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [
+    // Step transition animation - simple fade and slide
+    trigger('stepTransition', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateX(20px)' }),
+        animate('300ms ease-out', style({ opacity: 1, transform: 'translateX(0)' }))
+      ]),
+      transition(':leave', [
+        animate('200ms ease-in', style({ opacity: 0, transform: 'translateX(-20px)' }))
+      ])
+    ]),
+    // Result cards fade in - simple fade and slide up
+    trigger('resultCards', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(20px)' }),
+        animate('400ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ])
+    ])
+  ],
   providers: [
     provideIcons({
       lucideArrowRight,
