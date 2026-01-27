@@ -59,10 +59,9 @@ export interface EnergyAuditFormValue {
   phoneNumber?: string;
   address?: string;
   governorate?: string;
-  recentBillConsumption?: number;
   monthlyBillAmount?: number;
-  contractedPower?: number;
   tariffType?: string;
+  referenceMonth?: string; // Month number as string (1-12)
 }
 
 export interface EnergyAuditRequest {

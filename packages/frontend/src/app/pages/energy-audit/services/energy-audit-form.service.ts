@@ -151,7 +151,7 @@ export class EnergyAuditFormService {
         );
       }
       // Consumption amounts: min 0
-      else if (field.name === 'monthlyBillAmount' || field.name === 'recentBillConsumption' || field.name === 'contractedPower') {
+      else if (field.name === 'monthlyBillAmount') {
         validators.push(Validators.min(EnergyAuditFormService.MINIMUM_NUMERIC_VALUE));
       }
       // Default min for other numbers
@@ -432,15 +432,6 @@ export class EnergyAuditFormService {
             tooltipDescription: 'Région administrative du site.'
           },
           {
-            name: 'recentBillConsumption',
-            label: 'Consommation (kWh)',
-            type: 'number',
-            required: true,
-            placeholder: '0',
-            tooltipTitle: 'Consommation facture',
-            tooltipDescription: 'kWh figurant sur la dernière facture.'
-          },
-          {
             name: 'monthlyBillAmount',
             label: 'Montant (TND)',
             type: 'number',
@@ -450,15 +441,6 @@ export class EnergyAuditFormService {
             tooltipDescription: 'Total TTC payé sur la facture.'
           },
           {
-            name: 'contractedPower',
-            label: 'Puissance (kVA)',
-            type: 'number',
-            required: true,
-            placeholder: '0',
-            tooltipTitle: 'Puissance souscrite',
-            tooltipDescription: 'Valeur indiquée sur l\'abonnement.'
-          },
-          {
             name: 'tariffType',
             label: 'Type tarifaire',
             type: 'box',
@@ -466,6 +448,16 @@ export class EnergyAuditFormService {
             options: this.tariffOptions.map(opt => opt.toString()),
             tooltipTitle: 'Type tarifaire',
             tooltipDescription: 'Barème appliqué (ex. BT, MT, pointe).'
+          },
+          {
+            name: 'referenceMonth',
+            label: 'Mois de référence',
+            type: 'select',
+            required: true,
+            options: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'],
+            useDropdown: true,
+            tooltipTitle: 'Mois de référence',
+            tooltipDescription: 'Mois de référence pour la facture utilisée.'
           }
         ]
       },

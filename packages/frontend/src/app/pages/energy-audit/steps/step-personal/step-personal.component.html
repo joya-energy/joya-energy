@@ -70,17 +70,6 @@
     <div class="form-section-header">Consommation</div>
     <div class="form-grid">
       <app-ui-input
-        formControlName="recentBillConsumption"
-        type="number"
-        label="Consommation (kWh)"
-        placeholder="0"
-        [required]="true"
-        tooltipTitle="Consommation facture"
-        tooltipDescription="kWh figurant sur la dernière facture."
-        size="md">
-      </app-ui-input>
-
-      <app-ui-input
         formControlName="monthlyBillAmount"
         type="number"
         label="Montant (TND)"
@@ -91,25 +80,26 @@
         size="md">
       </app-ui-input>
 
-      <app-ui-input
-        formControlName="contractedPower"
-        type="number"
-        label="Puissance (kVA)"
-        placeholder="0"
-        [required]="true"
-        tooltipTitle="Puissance souscrite"
-        tooltipDescription="Valeur indiquée sur l'abonnement."
-        size="md">
-      </app-ui-input>
+     
 
       <app-ui-select
-        formControlName="tariffType"
-        label="Type tarifaire"
-        [options]="getTariffOptions()"
+        formControlName="referenceMonth"
+        label="Mois de référence"
+        [options]="getMonthOptions()"
         placeholder="Sélectionnez..."
         [required]="true"
-        variant="dropdown">
+        variant="dropdown"
+        tooltipTitle="Mois de référence"
+        tooltipDescription="Mois de référence pour la facture utilisée.">
       </app-ui-select>
+      <app-ui-select
+      formControlName="tariffType"
+      label="Type tarifaire"
+      [options]="getTariffOptions()"
+      placeholder="Sélectionnez..."
+      [required]="true"
+      variant="box">
+    </app-ui-select>
     </div>
   </div>
 </div>

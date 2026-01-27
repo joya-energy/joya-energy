@@ -107,6 +107,7 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
   
   protected readonly currentStep = signal<number>(1);
   protected readonly isSubmitting = signal(false);
+  protected readonly isGeneratingPDF = signal(false);
   protected readonly simulationResult = signal<AuditEnergetiqueResponse['data'] | null>(null);
   
   // Force recomputation signal - updates when form changes
@@ -335,13 +336,59 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
       });
   }
 
+  protected downloadPDF(): void {
+    const result = this.simulationResult();
+    if (!result?.simulationId) {
+      this.notificationStore.addNotification({
+        type: 'error',
+        title: 'Erreur',
+        message: 'Aucune simulation trouvée. Veuillez d\'abord compléter l\'audit.'
+      });
+      return;
+    }
+
+    this.isGeneratingPDF.set(true);
+    this.auditService
+      .generateAndSendPDF(result.simulationId)
+      .pipe(finalize(() => this.isGeneratingPDF.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.notificationStore.addNotification({
+            type: 'success',
+            title: 'PDF généré',
+            message: `Le rapport PDF a été généré et envoyé à ${response.email}. Il a également été sauvegardé dans le cloud.`
+          });
+        },
+        error: (error) => {
+          console.error('Error generating PDF:', error);
+          this.notificationStore.addNotification({
+            type: 'error',
+            title: 'Erreur',
+            message: 'Impossible de générer le PDF. Veuillez réessayer.'
+          });
+        }
+      });
+  }
+
+  protected resetForm(): void {
+    this.form.reset();
+    this.simulationResult.set(null);
+    this.currentStep.set(1);
+    this.notificationStore.addNotification({
+      type: 'info',
+      title: 'Formulaire réinitialisé',
+      message: 'Vous pouvez commencer une nouvelle simulation.'
+    });
+  }
+
   private buildPayload(): EnergyAuditRequest {
     const formValue = this.form.getRawValue();
     
-    // Determine if user has recent bill (if recentBillConsumption is provided, assume yes)
-    const hasRecentBill = formValue.recentBillConsumption !== null && 
-                         formValue.recentBillConsumption !== undefined && 
-                         formValue.recentBillConsumption > 0;
+    // Since we removed recentBillConsumption, assume hasRecentBill is true if monthlyBillAmount is provided
+    // This avoids backend errors while we prepare for future integration
+    const hasRecentBill = formValue.monthlyBillAmount !== null && 
+                         formValue.monthlyBillAmount !== undefined && 
+                         formValue.monthlyBillAmount > 0;
     
     return {
       // Personal
@@ -377,11 +424,14 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
       
       // Consumption
       tariffType: formValue.tariffType || '',
-      contractedPower: formValue.contractedPower && formValue.contractedPower > 0 ? formValue.contractedPower : undefined,
+      // Send undefined for removed fields to avoid backend errors
+      contractedPower: undefined,
       monthlyBillAmount: formValue.monthlyBillAmount || 0,
       hasRecentBill: hasRecentBill,
-      recentBillConsumption: hasRecentBill && formValue.recentBillConsumption ? formValue.recentBillConsumption : undefined,
+      // Send undefined for removed field to avoid backend errors
+      recentBillConsumption: undefined,
       billAttachmentUrl: undefined
+      // Note: referenceMonth is not sent to backend yet - will be integrated in future
     };
   }
 

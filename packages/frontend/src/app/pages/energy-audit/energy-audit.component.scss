@@ -563,21 +563,225 @@
 
 // Results View
 .results-view {
-  text-align: center;
-  padding: 3rem 2rem;
+  width: 100%;
+  padding: 2rem 0;
+}
 
-  h1 {
-    font-size: var(--font-size-xl);
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-    margin-bottom: 1rem;
-  }
+.results-title {
+  color: var(--text-primary);
+  margin-bottom: 4rem;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+}
 
-  p {
-    font-size: var(--font-size-base);
-    color: var(--text-secondary);
-    margin-bottom: 2rem;
+.results-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 1.5rem;
+}
+
+.result-card {
+  background: #fff;
+  border: 1px solid var(--neutral-200);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -8px rgba(15, 23, 42, 0.08);
+    border-color: var(--neutral-300);
   }
+}
+
+.result-icon {
+  font-size: var(--font-size-xl);
+  margin-bottom: 1rem;
+  background: var(--neutral-100);
+  width: 3.5rem;
+  height: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.result-card h3 {
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  font-size: var(--font-size-base);
+}
+
+.result-value {
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.result-value .amount {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.result-value .unit {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.result-subvalues {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.subvalue {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-size-xs);
+}
+
+.subvalue span {
+  color: #94a3b8;
+}
+
+.subvalue strong {
+  color: #475569;
+  font-weight: 600;
+}
+
+/* Card specific accents */
+.result-card.consumption .result-icon {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.result-card.cost .result-icon {
+  background: #ffedd5;
+  color: #ea580c;
+}
+
+.result-card.co2 .result-icon {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.recommendation-banner {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+ 
+  align-items: center;
+  gap: 1.5rem;
+}
+.recommendation-banners-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+.classification-badge {
+  width: 4rem;
+  height: 4rem;
+  margin-left: 2rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xl);
+  font-weight: 800;
+  color: #fff;
+  background: #94a3b8; /* Default gray */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+/* Energy & Carbon Classification Colors */
+.classification-badge.class-A {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.classification-badge.class-B {
+  background: linear-gradient(135deg, #84cc16 0%, #65a30d 100%);
+}
+
+.classification-badge.class-C {
+  background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
+}
+
+.classification-badge.class-D {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+}
+
+.classification-badge.class-E {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.classification-badge.class-N\/A {
+  background: #94a3b8;
+  color: #fff;
+}
+
+.recommendation-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.recommendation-text h4 {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0;
+}
+
+.recommendation-text p {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  margin-bottom: 0;
+}
+
+.recommendation-text small {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: var(--font-size-sm);
+  color: var(--landing-primary-dark);
+  font-weight: 500;
+}
+
+.becth-value,
+.carbon-intensity {
+  background: #f1f5f9;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  align-self: flex-start;
+}
+
+.carbon-banner {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.result-actions {
+  margin-top: 1rem;
 }
 
 // Form Actions - Fixed footer at bottom
