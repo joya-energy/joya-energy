@@ -24,4 +24,8 @@ export class EnergyAuditService {
       { simulationId }
     );
   }
+
+  downloadPDF(simulationId: string): Observable<Blob> {
+    return this.api.downloadFile('/audit-energetique-simulations/download-pdf', { simulationId });
+  }
 }

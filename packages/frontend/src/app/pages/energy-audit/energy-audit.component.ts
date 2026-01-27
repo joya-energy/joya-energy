@@ -348,23 +348,69 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
     }
 
     this.isGeneratingPDF.set(true);
+    
+    // First, download the PDF directly
     this.auditService
-      .generateAndSendPDF(result.simulationId)
-      .pipe(finalize(() => this.isGeneratingPDF.set(false)))
+      .downloadPDF(result.simulationId)
       .subscribe({
-        next: (response) => {
-          this.notificationStore.addNotification({
-            type: 'success',
-            title: 'PDF généré',
-            message: `Le rapport PDF a été généré et envoyé à ${response.email}. Il a également été sauvegardé dans le cloud.`
-          });
+        next: (blob: Blob) => {
+          // Create download link and trigger download
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `rapport-audit-energetique-${result.simulationId.substring(0, 8)}.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+
+          // Then send via email (don't wait for it to complete)
+          this.auditService
+            .generateAndSendPDF(result.simulationId)
+            .pipe(finalize(() => this.isGeneratingPDF.set(false)))
+            .subscribe({
+              next: (emailResponse) => {
+                if (emailResponse?.email) {
+                  this.notificationStore.addNotification({
+                    type: 'success',
+                    title: 'PDF téléchargé et envoyé',
+                    message: `Le rapport PDF a été téléchargé et envoyé à ${emailResponse.email}. Veuillez vérifier votre boîte de réception (et vos spams).`
+                  });
+                } else {
+                  this.notificationStore.addNotification({
+                    type: 'success',
+                    title: 'PDF téléchargé',
+                    message: 'Le rapport PDF a été téléchargé. L\'envoi par email est en cours...'
+                  });
+                }
+              },
+              error: (emailError) => {
+                // Email sending failed, but download succeeded
+                console.error('Error sending PDF via email:', emailError);
+                this.notificationStore.addNotification({
+                  type: 'warning',
+                  title: 'PDF téléchargé',
+                  message: 'Le PDF a été téléchargé avec succès. L\'envoi par email a échoué, mais vous avez déjà le fichier.'
+                });
+              }
+            });
         },
         error: (error) => {
-          console.error('Error generating PDF:', error);
+          this.isGeneratingPDF.set(false);
+          console.error('Error downloading PDF:', error);
+          
+          // Extract error message from response if available
+          let errorMessage = 'Impossible de générer le PDF. Veuillez réessayer.';
+          if (error?.error?.error) {
+            errorMessage = error.error.error;
+          } else if (error?.message) {
+            errorMessage = error.message;
+          }
+          
           this.notificationStore.addNotification({
             type: 'error',
             title: 'Erreur',
-            message: 'Impossible de générer le PDF. Veuillez réessayer.'
+            message: errorMessage
           });
         }
       });
@@ -384,11 +430,12 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
   private buildPayload(): EnergyAuditRequest {
     const formValue = this.form.getRawValue();
     
-    // Since we removed recentBillConsumption, assume hasRecentBill is true if monthlyBillAmount is provided
-    // This avoids backend errors while we prepare for future integration
-    const hasRecentBill = formValue.monthlyBillAmount !== null && 
-                         formValue.monthlyBillAmount !== undefined && 
-                         formValue.monthlyBillAmount > 0;
+    // COMMENTED OUT: Since we removed recentBillConsumption field, set hasRecentBill to false
+    // to avoid backend validation errors. Backend requires recentBillConsumption when hasRecentBill is true.
+    // const hasRecentBill = formValue.monthlyBillAmount !== null && 
+    //                      formValue.monthlyBillAmount !== undefined && 
+    //                      formValue.monthlyBillAmount > 0;
+    const hasRecentBill = false; // Set to false since we removed recentBillConsumption field
     
     return {
       // Personal
@@ -424,14 +471,17 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
       
       // Consumption
       tariffType: formValue.tariffType || '',
-      // Send undefined for removed fields to avoid backend errors
-      contractedPower: undefined,
+      // COMMENTED OUT: contractedPower field removed from UI
+      // contractedPower: formValue.contractedPower && formValue.contractedPower > 0 ? formValue.contractedPower : undefined,
+      contractedPower: undefined, // Field removed - send undefined
       monthlyBillAmount: formValue.monthlyBillAmount || 0,
-      hasRecentBill: hasRecentBill,
-      // Send undefined for removed field to avoid backend errors
-      recentBillConsumption: undefined,
+      hasRecentBill: hasRecentBill, // Set to false since recentBillConsumption field was removed
+      // COMMENTED OUT: recentBillConsumption field removed from UI
+      // recentBillConsumption: hasRecentBill && formValue.recentBillConsumption ? formValue.recentBillConsumption : undefined,
+      recentBillConsumption: undefined, // Field removed - send undefined (backend will accept this when hasRecentBill is false)
       billAttachmentUrl: undefined
-      // Note: referenceMonth is not sent to backend yet - will be integrated in future
+      // COMMENTED OUT: referenceMonth is not sent to backend yet - will be integrated in future
+      // referenceMonth: formValue.referenceMonth
     };
   }
 

@@ -96,11 +96,17 @@ export interface EnergyAuditRequest {
   
   // Consumption
   tariffType: string;
-  contractedPower?: number;
+  // COMMENTED OUT: contractedPower field removed from UI
+  // contractedPower?: number;
+  contractedPower?: number; // Keep in interface for API compatibility, but always send undefined
   monthlyBillAmount: number;
   hasRecentBill: boolean;
-  recentBillConsumption?: number;
+  // COMMENTED OUT: recentBillConsumption field removed from UI
+  // recentBillConsumption?: number;
+  recentBillConsumption?: number; // Keep in interface for API compatibility, but always send undefined
   billAttachmentUrl?: string;
+  // COMMENTED OUT: referenceMonth not sent to backend yet
+  // referenceMonth?: string;
 }
 
 // Use the same response type as audit-energetique for consistency
