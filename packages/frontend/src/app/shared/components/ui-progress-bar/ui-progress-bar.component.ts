@@ -3,7 +3,9 @@ import {
   ChangeDetectionStrategy,
   Component,
   Input,
-  computed
+  computed,
+  signal,
+  effect
 } from '@angular/core';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import { lucideCheck } from '@ng-icons/lucide';
@@ -20,14 +22,36 @@ import { lucideCheck } from '@ng-icons/lucide';
   ]
 })
 export class UiProgressBarComponent {
+  private _progress = signal(0);
+  private _completed = signal(false);
+  private _isFocused = signal(false);
+
+  @Input() set progress(value: number) {
+    this._progress.set(value);
+  }
+  get progress(): number {
+    return this._progress();
+  }
+
+  @Input() set completed(value: boolean) {
+    this._completed.set(value);
+  }
+  get completed(): boolean {
+    return this._completed();
+  }
+
+  @Input() set isFocused(value: boolean) {
+    this._isFocused.set(value);
+  }
+  get isFocused(): boolean {
+    return this._isFocused();
+  }
+
   @Input() step: number = 1;
   @Input() title: string = '';
-  @Input() progress: number = 0; // 0-100
-  @Input() completed: boolean = false;
-  @Input() isFocused: boolean = false; // When this step is the current/active step
 
   protected readonly displayProgress = computed(() => {
-    return Math.min(Math.max(this.progress, 0), 100);
+    return Math.min(Math.max(this._progress(), 0), 100);
   });
 
   protected readonly displayPercentage = computed(() => {
@@ -35,6 +59,6 @@ export class UiProgressBarComponent {
   });
 
   protected readonly isActive = computed(() => {
-    return this.progress > 0 || this.completed;
+    return this._progress() > 0 || this._completed();
   });
 }

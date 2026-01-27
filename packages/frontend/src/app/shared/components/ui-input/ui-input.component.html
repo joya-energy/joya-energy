@@ -14,7 +14,15 @@
     </div>
   }
 
-  <div class="ui-input-container" [class.has-icon]="icon" [class.icon-left]="icon && iconPosition === 'left'" [class.icon-right]="icon && iconPosition === 'right'" [class.size-sm]="size === 'sm'" [class.size-md]="size === 'md'" [class.size-lg]="size === 'lg'" [class.type-number]="type === 'number'">
+  <div class="ui-input-container" 
+       [class.has-icon]="icon" 
+       [class.icon-left]="icon && iconPosition === 'left'" 
+       [class.icon-right]="icon && iconPosition === 'right'" 
+       [class.size-sm]="size === 'sm'" 
+       [class.size-md]="size === 'md'" 
+       [class.size-lg]="size === 'lg'" 
+       [class.type-number]="type === 'number'"
+       [class.has-error]="showErrors()">
     @if (icon && iconPosition === 'left') {
       <ng-icon [name]="icon" class="input-icon input-icon-left"></ng-icon>
     }
@@ -42,4 +50,10 @@
       <ng-icon [name]="icon" class="input-icon input-icon-right"></ng-icon>
     }
   </div>
+  
+  @if (showErrors() && errorMessage()) {
+    <div class="ui-input-error">
+      {{ errorMessage() }}
+    </div>
+  }
 </div>

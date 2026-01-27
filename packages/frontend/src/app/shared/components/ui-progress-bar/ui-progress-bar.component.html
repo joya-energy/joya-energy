@@ -16,7 +16,7 @@
   <!-- Right: Title + Progress Bar + Percentage -->
   <div class="ui-progress-bar-right">
     @if (title) {
-      <div class="ui-progress-bar-title" [class.focused]="isFocused">{{ title }}</div>
+      <div class="ui-progress-bar-title" [class.focused]="isFocused" [class.completed]="completed">{{ title }}</div>
     }
     
     <div class="ui-progress-bar-bottom">
@@ -24,12 +24,13 @@
       <div class="ui-progress-bar-track">
         <div 
           class="ui-progress-bar-fill" 
+          [class.completed]="completed"
           [style.width.%]="displayProgress()"
         ></div>
       </div>
 
       <!-- Percentage Display -->
-      <div class="ui-progress-bar-percentage" [class.focused]="isFocused">
+      <div class="ui-progress-bar-percentage" [class.focused]="isFocused" [class.completed]="completed">
         {{ displayPercentage() }}
       </div>
     </div>

@@ -1,0 +1,88 @@
+<div class="step-equipment" [formGroup]="form">
+  <!-- Selection fields -->
+  <div class="form-field">
+    <app-ui-select
+      formControlName="domesticHotWater"
+      label="Eau chaude sanitaire"
+      [options]="getHotWaterOptions()"
+      placeholder="Sélectionnez..."
+      [required]="true"
+      variant="box">
+    </app-ui-select>
+  </div>
+
+  <div class="form-field">
+    <app-ui-select
+      formControlName="ventilation"
+      label="Ventilation"
+      [options]="getVentilationOptions()"
+      placeholder="Sélectionnez..."
+      [required]="true"
+      variant="box">
+    </app-ui-select>
+  </div>
+
+  <div class="form-field">
+    <app-ui-select
+      formControlName="lightingType"
+      label="Éclairage"
+      [options]="getLightingOptions()"
+      placeholder="Sélectionnez..."
+      [required]="true"
+      variant="box">
+    </app-ui-select>
+  </div>
+
+  <div class="form-field">
+    <app-ui-select
+      formControlName="conditionedCoverage"
+      label="Couverture climatique"
+      [options]="getCoverageOptions()"
+      placeholder="Sélectionnez..."
+      [required]="true"
+      variant="box">
+    </app-ui-select>
+  </div>
+
+  <div class="form-field">
+    <app-ui-select
+      formControlName="equipmentCategories"
+      label="Catégories d'équipements"
+      [options]="getEquipmentOptions()"
+      placeholder="Sélectionnez..."
+      [required]="true"
+      variant="dropdown"
+      [multiple]="true">
+    </app-ui-select>
+  </div>
+
+  <!-- Has Existing Measures - Yes/No Question -->
+  <div class="form-field">
+    <app-ui-select
+      [ngModel]="hasExistingMeasuresStringValue()"
+      (ngModelChange)="onHasExistingMeasuresChange($event)"
+      [ngModelOptions]="{standalone: true}"
+      [options]="getHasExistingMeasuresOptions()"
+      label="Mesures existantes"
+      placeholder="Sélectionnez..."
+      [required]="true"
+      variant="box"
+      [columns]="2">
+    </app-ui-select>
+  </div>
+
+  <!-- Show existing measures dropdown only when "Oui" is selected -->
+  @if (hasExistingMeasures()) {
+    <div class="form-field">
+      <app-ui-select
+        formControlName="existingMeasures"
+        label="Sélectionnez les mesures existantes"
+        [options]="getExistingMeasuresOptions()"
+        placeholder="Sélectionnez..."
+        [required]="true"
+        variant="dropdown"
+        [multiple]="true">
+      </app-ui-select>
+    </div>
+  }
+</div>

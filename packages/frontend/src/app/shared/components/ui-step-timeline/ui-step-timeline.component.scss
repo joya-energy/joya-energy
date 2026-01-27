@@ -40,13 +40,13 @@
 
   .timeline-step.completed & {
     background: var(--landing-primary);
-    color: white;
+    color: var(--ui-timeline-text-white);
   }
 
   .timeline-step.active & {
     background: var(--landing-primary);
-    color: white;
-    box-shadow: 0 0 0 4px var(--landing-primary-lightest);
+    color: var(--ui-timeline-text-white);
+    box-shadow: 0 0 0 4px var(--landing-primary-light);
   }
 
   .timeline-step.future & {
@@ -63,7 +63,7 @@
 }
 
 .check-icon {
-  color: white;
+  color: var(--ui-timeline-text-white);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -85,19 +85,16 @@
 .timeline-connector {
   position: absolute;
   top: 1.25rem;
-  left: calc(50% + 1.25rem);
-  right: calc(-50% + 1.25rem);
-  height: 2px;
+  left: calc(50% + 1.75rem); // Start from right edge of circle
+  right: calc(-50% + 1.75rem); // End at left edge of next circle
+  height: 4px;
   background: var(--neutral-200);
   z-index: 0;
   transition: background-color 0.3s ease;
 
-  .timeline-step.completed + .timeline-step & {
+  // Connector is filled if the current step (before the connector) is completed
+  &.completed {
     background: var(--landing-primary);
-  }
-
-  .timeline-step.active ~ .timeline-step & {
-    background: var(--neutral-200);
   }
 }
 

@@ -49,11 +49,16 @@
   margin-left: 0.5rem;
   transition: color 0.3s ease;
   line-height: 1.4;
-
+  
+  &.completed {
+    color: var(--landing-primary-light);
+  }
   &.focused {
     color: var(--landing-primary-dark);
     font-weight: var(--font-weight-semibold);
   }
+
+  
 }
 
 .ui-progress-bar-bottom {
@@ -79,17 +84,17 @@
 
   &.active {
     background: var(--landing-primary);
-    color: white;
+    color: var(--ui-progress-text-white);
   }
 
   &.completed {
-    background: var(--landing-primary);
-    color: white;
+    background: var(--landing-primary-light);
+    color: var(--ui-progress-text-white);
   }
 
   &.focused {
     background: var(--landing-primary);
-    color: white;
+    color: var(--ui-progress-text-white);
   }
 }
 
@@ -101,7 +106,7 @@
 }
 
 .step-check-icon {
-  color: white;
+  color: var(--ui-progress-text-white);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -111,9 +116,9 @@
 
 .ui-progress-bar-track {
   flex: 1;
-  height: 0.5rem;
+  height: 0.8rem !important;
   background: var(--neutral-200);
-  border-radius: 0.25rem;
+  border-radius: 0.5rem;
   overflow: hidden;
   position: relative;
   min-width: 0;
@@ -121,10 +126,13 @@
 
 .ui-progress-bar-fill {
   height: 100%;
-  background: linear-gradient(to right, var(--landing-primary-light), var(--landing-primary-dark));
+  background: linear-gradient(to right, var(--landing-primary-light), var(--landing-primary));
   border-radius: 0.25rem;
-  transition: width 0.3s ease;
+  transition: width 0.3s ease, background 0.3s ease;
   min-width: 0;
+
+
+  
 }
 
 .ui-progress-bar-percentage {
@@ -137,7 +145,7 @@
   transition: color 0.3s ease;
 
   &.completed {
-    color: var(--landing-primary);
+    color: var(--landing-primary-light);
   }
 
   &.focused {

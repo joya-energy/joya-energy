@@ -1,0 +1,115 @@
+<div class="step-personal" [formGroup]="form">
+  <div class="form-grid">
+    <app-ui-input
+      formControlName="fullName"
+      type="text"
+      label="Nom complet"
+      placeholder="Entrez votre nom complet"
+      [required]="true"
+      tooltipTitle="Nom complet"
+      tooltipDescription="Personne référente pour l'audit."
+      size="md">
+    </app-ui-input>
+
+    <app-ui-input
+      formControlName="companyName"
+      type="text"
+      label="Entreprise"
+      placeholder="Entrez le nom de l'entreprise"
+      [required]="true"
+      tooltipTitle="Raison sociale"
+      tooltipDescription="Nom légal ou enseigne du site."
+      size="md">
+    </app-ui-input>
+
+    <app-ui-input
+      formControlName="email"
+      type="text"
+      label="Email"
+      placeholder="email@example.com"
+      [required]="true"
+      tooltipTitle="Email de contact"
+      tooltipDescription="Adresse utilisée pour l'envoi des résultats."
+      size="md">
+    </app-ui-input>
+
+    <app-ui-input
+      formControlName="phoneNumber"
+      type="text"
+      label="Téléphone"
+      placeholder="Entrez votre numéro de téléphone"
+      [required]="true"
+      tooltipTitle="Téléphone"
+      tooltipDescription="Numéro pour les échanges techniques."
+      size="md">
+    </app-ui-input>
+
+    <app-ui-input
+      formControlName="address"
+      type="text"
+      label="Adresse"
+      placeholder="Entrez l'adresse du site"
+      icon="lucideMapPin"
+      [required]="true"
+      tooltipTitle="Adresse du site"
+      tooltipDescription="Localisation du bâtiment audité."
+      size="md">
+    </app-ui-input>
+
+    <app-ui-select
+      formControlName="governorate"
+      label="Gouvernorat"
+      [options]="getGovernorateOptions()"
+      placeholder="Sélectionnez..."
+      [required]="true"
+      variant="dropdown">
+    </app-ui-select>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-header">Consommation</div>
+    <div class="form-grid">
+      <app-ui-input
+        formControlName="recentBillConsumption"
+        type="number"
+        label="Consommation (kWh)"
+        placeholder="0"
+        [required]="true"
+        tooltipTitle="Consommation facture"
+        tooltipDescription="kWh figurant sur la dernière facture."
+        size="md">
+      </app-ui-input>
+
+      <app-ui-input
+        formControlName="monthlyBillAmount"
+        type="number"
+        label="Montant (TND)"
+        placeholder="0"
+        [required]="true"
+        tooltipTitle="Montant mensuel"
+        tooltipDescription="Total TTC payé sur la facture."
+        size="md">
+      </app-ui-input>
+
+      <app-ui-input
+        formControlName="contractedPower"
+        type="number"
+        label="Puissance (kVA)"
+        placeholder="0"
+        [required]="true"
+        tooltipTitle="Puissance souscrite"
+        tooltipDescription="Valeur indiquée sur l'abonnement."
+        size="md">
+      </app-ui-input>
+
+      <app-ui-select
+        formControlName="tariffType"
+        label="Type tarifaire"
+        [options]="getTariffOptions()"
+        placeholder="Sélectionnez..."
+        [required]="true"
+        variant="dropdown">
+      </app-ui-select>
+    </div>
+  </div>
+</div>

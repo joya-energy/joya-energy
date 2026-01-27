@@ -1,7 +1,8 @@
-import { Component, signal, computed, ChangeDetectionStrategy, OnInit, OnDestroy, PLATFORM_ID, inject } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { Component, signal, computed, ChangeDetectionStrategy, OnInit, OnDestroy, PLATFORM_ID, inject, ChangeDetectorRef } from '@angular/core';
+import { CommonModule, isPlatformBrowser, DatePipe } from '@angular/common';
+import { ReactiveFormsModule, FormGroup } from '@angular/forms';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
+import { finalize } from 'rxjs/operators';
 import { 
   lucideArrowRight, 
   lucideArrowLeft,
@@ -12,39 +13,36 @@ import {
   lucideZap,
   lucideFlame,
   lucideDroplet,
-  lucideMapPin
+  lucideMapPin,
+  lucideBox,
+  lucideDrumstick,
+  lucideGraduationCap,
+  lucideHammer,
+  lucideHotel,
+  lucidePill,
+  lucideSnowflake,
+  lucideSparkles,
+  lucideStethoscope,
+  lucideShirt,
+  lucideUtensilsCrossed
 } from '@ng-icons/lucide';
 
 // Base Components
 import { UiStepTimelineComponent } from '../../shared/components/ui-step-timeline/ui-step-timeline.component';
-import { UiSelectComponent, SelectOption } from '../../shared/components/ui-select/ui-select.component';
-import { UiInputComponent } from '../../shared/components/ui-input/ui-input.component';
 import { UiProgressBarComponent } from '../../shared/components/ui-progress-bar/ui-progress-bar.component';
 
-export interface SimulatorStep {
-  number: number;
-  title: string;
-  description?: string;
-  fields: StepField[];
-  isResult?: boolean;
-}
+// Step Components
+import { StepBuildingComponent } from './steps/step-building/step-building.component';
+import { StepTechnicalComponent } from './steps/step-technical/step-technical.component';
+import { StepEquipmentComponent } from './steps/step-equipment/step-equipment.component';
+import { StepPersonalComponent } from './steps/step-personal/step-personal.component';
 
-export interface StepField {
-  name: string;
-  label: string;
-  type: 'text' | 'number' | 'select' | 'select-icon' | 'box' | 'box-icon';
-  placeholder?: string;
-  required?: boolean;
-  options?: SelectOption[] | string[];
-  icon?: string;
-  iconPosition?: 'left' | 'top';
-  tooltipTitle?: string;
-  tooltipDescription?: string;
-  tooltipOptions?: string[];
-  min?: number;
-  max?: number;
-  condition?: (form: any) => boolean;
-}
+// Services and Types
+import { EnergyAuditFormService } from './services/energy-audit-form.service';
+import { EnergyAuditService } from './services/energy-audit.service';
+import { NotificationStore } from '../../core/notifications/notification.store';
+import { SimulatorStep, StepField, EnergyAuditRequest } from './types/energy-audit.types';
+import { AuditEnergetiqueResponse } from '../../core/services/audit-energetique.service';
 
 @Component({
   selector: 'app-energy-audit',
@@ -54,9 +52,12 @@ export interface StepField {
     ReactiveFormsModule,
     NgIconComponent,
     UiStepTimelineComponent,
-    UiSelectComponent,
-    UiInputComponent,
     UiProgressBarComponent,
+    DatePipe,
+    StepBuildingComponent,
+    StepTechnicalComponent,
+    StepEquipmentComponent,
+    StepPersonalComponent,
   ],
   templateUrl: './energy-audit.component.html',
   styleUrls: ['./energy-audit.component.scss'],
@@ -72,13 +73,44 @@ export interface StepField {
       lucideZap,
       lucideFlame,
       lucideDroplet,
-      lucideMapPin
+      lucideMapPin,
+      lucideBox,
+      lucideDrumstick,
+      lucideGraduationCap,
+      lucideHammer,
+      lucideHotel,
+      lucidePill,
+      lucideSnowflake,
+      lucideSparkles,
+      lucideStethoscope,
+      lucideShirt,
+      lucideUtensilsCrossed
     })
   ]
 })
 export class EnergyAuditComponent implements OnInit, OnDestroy {
-  private fb = new FormBuilder();
   private platformId = inject(PLATFORM_ID);
+  private readonly formService = inject(EnergyAuditFormService);
+  private auditService = inject(EnergyAuditService);
+  private notificationStore = inject(NotificationStore);
+  private cdr = inject(ChangeDetectorRef);
+
+  protected readonly form = this.formService.buildForm();
+  protected readonly steps = this.formService.getSteps();
+  protected readonly buildingCategories = this.formService.buildingCategories;
+  protected readonly buildingTypes = this.formService.buildingTypes;
+  
+  // Expose formService for template access
+  protected get formServiceInstance() {
+    return this.formService;
+  }
+  
+  protected readonly currentStep = signal<number>(1);
+  protected readonly isSubmitting = signal(false);
+  protected readonly simulationResult = signal<AuditEnergetiqueResponse['data'] | null>(null);
+  
+  // Force recomputation signal - updates when form changes
+  private readonly formUpdateTrigger = signal(0);
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -86,6 +118,23 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
       document.body.style.overflow = 'hidden';
       document.documentElement.style.overflow = 'hidden';
     }
+
+    // Subscribe to form value changes to trigger progress updates
+    this.form.valueChanges.subscribe(() => {
+      // Update validity for all controls
+      Object.keys(this.form.controls).forEach(key => {
+        const control = this.form.get(key);
+        if (control) {
+          control.updateValueAndValidity({ emitEvent: false });
+        }
+      });
+      
+      // Trigger recomputation of progress
+      this.formUpdateTrigger.update(v => v + 1);
+      
+      // Force change detection to update progress bars
+      this.cdr.markForCheck();
+    });
   }
 
   ngOnDestroy(): void {
@@ -96,153 +145,13 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Step configuration
-  protected readonly steps: SimulatorStep[] = [
-    {
-      number: 1,
-      title: 'Informations de base',
-      description: 'Commencez par fournir les informations essentielles sur votre bâtiment et votre consommation énergétique.',
-      fields: [
-        {
-          name: 'buildingType',
-          label: 'Type de bâtiment',
-          type: 'box-icon',
-          required: true,
-          options: [
-            { label: 'Résidentiel', value: 'residential', icon: 'lucideHome' },
-            { label: 'Bureaux', value: 'office', icon: 'lucideBuilding2' },
-            { label: 'Industriel', value: 'industrial', icon: 'lucideFactory' },
-            { label: 'Entrepôt', value: 'warehouse', icon: 'lucideWarehouse' }
-          ],
-          iconPosition: 'top'
-        },
-        {
-          name: 'surfaceArea',
-          label: 'Surface (m²)',
-          type: 'number',
-          required: true,
-          placeholder: '0',
-          tooltipTitle: 'Surface du bâtiment',
-          tooltipDescription: 'Entrez la surface totale de votre bâtiment en m²'
-        },
-        {
-          name: 'address',
-          label: 'Adresse',
-          type: 'text',
-          required: true,
-          placeholder: 'Entrez votre adresse',
-          icon: 'lucideMapPin'
-        }
-      ]
-    },
-    {
-      number: 2,
-      title: 'Consommation énergétique',
-      fields: [
-        {
-          name: 'monthlyConsumption',
-          label: 'Consommation mensuelle (kWh)',
-          type: 'number',
-          required: true,
-          placeholder: '0',
-          tooltipTitle: 'Consommation mensuelle',
-          tooltipDescription: 'Votre consommation moyenne mensuelle en kilowatt-heures'
-        },
-        {
-          name: 'energyType',
-          label: 'Type d\'énergie',
-          type: 'box-icon',
-          required: true,
-          options: [
-            { label: 'Électricité', value: 'electricity', icon: 'lucideZap' },
-            { label: 'Gaz', value: 'gas', icon: 'lucideFlame' },
-            { label: 'Eau', value: 'water', icon: 'lucideDroplet' }
-          ],
-          iconPosition: 'top'
-        },
-        {
-          name: 'tariffType',
-          label: 'Type de tarif',
-          type: 'select',
-          required: true,
-          options: ['Tarif simple', 'Tarif double', 'Tarif triple'],
-          placeholder: 'Sélectionnez un tarif'
-        }
-      ]
-    },
-    {
-      number: 3,
-      title: 'Équipements',
-      fields: [
-        {
-          name: 'heatingSystem',
-          label: 'Système de chauffage',
-          type: 'select',
-          required: true,
-          options: ['Central', 'Individuel', 'Aucun'],
-          placeholder: 'Sélectionnez un système'
-        },
-        {
-          name: 'coolingSystem',
-          label: 'Système de climatisation',
-          type: 'select',
-          required: true,
-          options: ['Central', 'Individuel', 'Aucun'],
-          placeholder: 'Sélectionnez un système'
-        },
-        {
-          name: 'insulation',
-          label: 'Isolation',
-          type: 'box',
-          required: true,
-          options: ['Bonne', 'Moyenne', 'Faible', 'Aucune']
-        }
-      ]
-    },
-    {
-      number: 4,
-      title: 'Informations complémentaires',
-      fields: [
-        {
-          name: 'openingHours',
-          label: 'Heures d\'ouverture par jour',
-          type: 'number',
-          required: true,
-          placeholder: '0',
-          min: 0,
-          max: 24
-        },
-        {
-          name: 'occupancy',
-          label: 'Nombre d\'occupants',
-          type: 'number',
-          required: true,
-          placeholder: '0',
-          min: 1
-        },
-        {
-          name: 'notes',
-          label: 'Notes supplémentaires',
-          type: 'text',
-          required: false,
-          placeholder: 'Ajoutez des informations pertinentes...'
-        }
-      ]
-    },
-    {
-      number: 5,
-      title: 'Résultats',
-      isResult: true,
-      fields: []
-    }
-  ];
-
-  protected readonly currentStep = signal<number>(1);
-  protected readonly form = this.fb.group({});
-
-  // Calculate progress for each step
+  // Calculate progress for each step - based on all fields being filled AND valid
   protected readonly stepProgress = computed(() => {
+    // Access trigger to recompute when form changes
+    this.formUpdateTrigger();
+    
     const progress: Record<number, number> = {};
+    const formValue = this.form.value;
     
     this.steps.forEach(step => {
       if (step.isResult) {
@@ -250,20 +159,37 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
         return;
       }
 
+      // Get visible fields for this step
       const stepFields = step.fields.filter(field => this.isFieldVisible(field));
-      if (stepFields.length === 0) {
+      
+      // For step 3 (equipment), also include hasExistingMeasures
+      const fieldsToCheck = step.number === 3 
+        ? [...stepFields, { name: 'hasExistingMeasures', required: true } as StepField]
+        : stepFields;
+      
+      if (fieldsToCheck.length === 0) {
         progress[step.number] = 0;
         return;
       }
 
-      const filledFields = stepFields.filter(field => {
+      // Count filled AND valid fields (progress only increases when fields are valid)
+      const filledFields = fieldsToCheck.filter(field => {
         const control = this.form.get(field.name);
         if (!control) return false;
         const value = control.value;
-        return value !== null && value !== '' && value !== undefined;
+        
+        // Check if value is filled
+        const isFilled = value !== null && value !== '' && value !== undefined && 
+          (Array.isArray(value) ? value.length > 0 : true);
+        
+        // Check if control is valid (no validation errors)
+        const isValid = control.valid;
+        
+        // Both filled and valid required for progress
+        return isFilled && isValid;
       });
 
-      progress[step.number] = Math.round((filledFields.length / stepFields.length) * 100);
+      progress[step.number] = Math.round((filledFields.length / fieldsToCheck.length) * 100);
     });
 
     return progress;
@@ -274,39 +200,48 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
     return this.steps.find(s => s.number === this.currentStep()) || this.steps[0];
   });
 
-  // Calculate overall progress
+  // Calculate overall progress - only for current step
   protected readonly overallProgress = computed(() => {
-    const totalSteps = this.steps.filter(s => !s.isResult).length;
-    if (totalSteps === 0) return 0;
+    const current = this.currentStepData();
+    if (current.isResult) return 0;
     
-    const totalProgress = this.steps
-      .filter(s => !s.isResult)
-      .reduce((sum, step) => sum + this.stepProgress()[step.number], 0);
-    
-    return Math.round(totalProgress / totalSteps);
+    return this.stepProgress()[current.number];
   });
 
-  // Check if we can proceed to next step
+  // Check if we can proceed to next step - requires 100% completion
   protected readonly canProceed = computed(() => {
     const step = this.currentStepData();
     if (step.isResult) return false;
 
-    const stepFields = step.fields.filter(field => this.isFieldVisible(field) && field.required);
-    return stepFields.every(field => {
-      const control = this.form.get(field.name);
-      if (!control) return false;
-      return control.valid && control.value !== null && control.value !== '';
-    });
+    // Check if current step is 100% complete
+    return this.stepProgress()[step.number] === 100;
   });
 
-  constructor() {
-    // Initialize form with all fields
-    this.steps.forEach(step => {
-      step.fields.forEach(field => {
-        const validators = field.required ? [Validators.required] : [];
-        this.form.addControl(field.name, this.fb.control(null, validators));
-      });
-    });
+  // Check if previous button should be enabled
+  protected readonly canGoBack = computed(() => {
+    return this.currentStep() > 1;
+  });
+
+  /** Last form step (4). Result step is 5. */
+  protected readonly lastFormStepNumber = (() => {
+    const resultStep = this.steps.find(s => s.isResult);
+    return resultStep ? resultStep.number - 1 : this.steps.length - 1;
+  })();
+
+  // Check if a step is clickable in sidebar - ONLY allows going back
+  protected isStepClickable(stepNumber: number): boolean {
+    const step = this.steps.find(s => s.number === stepNumber);
+    if (!step) return false;
+    
+    // Result step is never clickable
+    if (step.isResult) {
+      return false;
+    }
+    
+    const current = this.currentStep();
+    
+    // Can only go back to previous steps (not forward, not current)
+    return stepNumber < current;
   }
 
   protected isFieldVisible(field: StepField): boolean {
@@ -315,7 +250,23 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
   }
 
   protected nextStep(): void {
-    if (!this.canProceed()) return;
+    if (!this.canProceed()) {
+      // Mark current step fields as touched to show validation errors
+      const currentStep = this.currentStepData();
+      currentStep.fields.forEach(field => {
+        const control = this.form.get(field.name);
+        if (control) {
+          control.markAsTouched();
+        }
+      });
+      
+      this.notificationStore.addNotification({
+        type: 'warning',
+        title: 'Étape incomplète',
+        message: 'Veuillez remplir tous les champs avant de continuer.'
+      });
+      return;
+    }
     
     const nextStepNum = this.currentStep() + 1;
     if (nextStepNum <= this.steps.length) {
@@ -331,12 +282,14 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
   }
 
   protected goToStep(stepNumber: number): void {
-    const completedSteps = this.steps.filter(step => {
-      if (step.isResult) return false;
-      return this.stepProgress()[step.number] === 100;
-    }).map(s => s.number);
+    if (!this.isStepClickable(stepNumber)) {
+      return;
+    }
 
-    if (stepNumber <= this.currentStep() || completedSteps.includes(stepNumber)) {
+    const current = this.currentStep();
+    
+    // Can only go back to previous steps
+    if (stepNumber < current) {
       this.currentStep.set(stepNumber);
     }
   }
@@ -344,32 +297,92 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
   protected submitForm(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.notificationStore.addNotification({
+        type: 'warning',
+        title: 'Formulaire incomplet',
+        message: 'Veuillez remplir tous les champs obligatoires.'
+      });
       return;
     }
 
-    console.log('Form submitted:', this.form.value);
+    const payload = this.buildPayload();
+    this.isSubmitting.set(true);
     
-    const resultStep = this.steps.find(s => s.isResult);
-    if (resultStep) {
-      this.currentStep.set(resultStep.number);
-    }
+    this.auditService
+      .createSimulation(payload)
+      .pipe(finalize(() => this.isSubmitting.set(false)))
+      .subscribe({
+        next: (response: AuditEnergetiqueResponse) => {
+          this.simulationResult.set(response.data);
+          const resultStep = this.steps.find(s => s.isResult);
+          if (resultStep) {
+            this.currentStep.set(resultStep.number);
+          }
+          this.notificationStore.addNotification({
+            type: 'success',
+            title: 'Simulation terminée',
+            message: 'Voici les résultats de votre audit.'
+          });
+        },
+        error: (error) => {
+          console.error(error);
+          this.notificationStore.addNotification({
+            type: 'error',
+            title: 'Erreur',
+            message: 'Impossible de créer la simulation. Vérifiez les informations saisies.'
+          });
+        }
+      });
   }
 
-  protected getFieldOptions(field: StepField): SelectOption[] | string[] {
-    if (!field.options) return [];
+  private buildPayload(): EnergyAuditRequest {
+    const formValue = this.form.getRawValue();
     
-    if (field.options.length > 0 && typeof field.options[0] === 'object') {
-      return field.options as SelectOption[];
-    }
+    // Determine if user has recent bill (if recentBillConsumption is provided, assume yes)
+    const hasRecentBill = formValue.recentBillConsumption !== null && 
+                         formValue.recentBillConsumption !== undefined && 
+                         formValue.recentBillConsumption > 0;
     
-    return (field.options as string[]).map(opt => ({ label: opt, value: opt }));
+    return {
+      // Personal
+      fullName: formValue.fullName || '',
+      companyName: formValue.companyName || '',
+      email: formValue.email || '',
+      phoneNumber: formValue.phoneNumber || '',
+      address: formValue.address || '',
+      governorate: formValue.governorate || '',
+      
+      // Building
+      buildingType: formValue.buildingType || '',
+      surfaceArea: formValue.surfaceArea || 0,
+      floors: formValue.floors || 0,
+      activityType: formValue.activityType || '',
+      climateZone: formValue.climateZone || '',
+      
+      // Technical
+      openingDaysPerWeek: formValue.openingDaysPerWeek || 0,
+      openingHoursPerDay: formValue.openingHoursPerDay || 0,
+      insulation: formValue.insulation || '',
+      glazingType: formValue.glazingType || '',
+      ventilation: formValue.ventilation || '',
+      heatingSystem: formValue.heatingSystem || '',
+      coolingSystem: formValue.coolingSystem || '',
+      conditionedCoverage: formValue.conditionedCoverage || '',
+      domesticHotWater: formValue.domesticHotWater || '',
+      equipmentCategories: Array.isArray(formValue.equipmentCategories) ? formValue.equipmentCategories : [],
+      existingMeasures: formValue.hasExistingMeasures === true && Array.isArray(formValue.existingMeasures) && formValue.existingMeasures.length > 0
+        ? formValue.existingMeasures 
+        : [],
+      lightingType: formValue.lightingType || '',
+      
+      // Consumption
+      tariffType: formValue.tariffType || '',
+      contractedPower: formValue.contractedPower && formValue.contractedPower > 0 ? formValue.contractedPower : undefined,
+      monthlyBillAmount: formValue.monthlyBillAmount || 0,
+      hasRecentBill: hasRecentBill,
+      recentBillConsumption: hasRecentBill && formValue.recentBillConsumption ? formValue.recentBillConsumption : undefined,
+      billAttachmentUrl: undefined
+    };
   }
 
-  protected getFieldOptionsForIcon(field: StepField): SelectOption[] {
-    const options = this.getFieldOptions(field);
-    if (options.length > 0 && typeof options[0] === 'object') {
-      return options as SelectOption[];
-    }
-    return (options as string[]).map(opt => ({ label: opt, value: opt }));
-  }
 }

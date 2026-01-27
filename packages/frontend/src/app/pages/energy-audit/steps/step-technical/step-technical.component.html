@@ -1,0 +1,76 @@
+<div class="step-technical" [formGroup]="form">
+  <!-- Short inputs grouped on same row -->
+  <div class="form-field-group-short">
+    <app-ui-input
+      formControlName="openingDaysPerWeek"
+      type="number"
+      label="Jours / semaine"
+      placeholder="0"
+      [required]="true"
+      tooltipTitle="Jours d'ouverture"
+      tooltipDescription="Nombre moyen de jours d'activité par semaine."
+      size="md"
+      [min]="1"
+      [max]="7">
+    </app-ui-input>
+
+    <app-ui-input
+      formControlName="openingHoursPerDay"
+      type="number"
+      label="Heures / jour"
+      placeholder="0"
+      [required]="true"
+      tooltipTitle="Heures d'ouverture"
+      tooltipDescription="Plage quotidienne moyenne (h/jour)."
+      size="md"
+      [min]="1"
+      [max]="24">
+    </app-ui-input>
+  </div>
+
+  <!-- Selection fields -->
+  <div class="form-field" [class.selection-centered]="true">
+    <app-ui-select
+      formControlName="insulation"
+      label="Isolation"
+      [options]="getInsulationOptions()"
+      placeholder="Sélectionnez..."
+      [required]="true"
+      variant="box">
+    </app-ui-select>
+  </div>
+
+  <div class="form-field" [class.selection-centered]="true">
+    <app-ui-select
+      formControlName="glazingType"
+      label="Vitrage"
+      [options]="getGlazingOptions()"
+      placeholder="Sélectionnez..."
+      [required]="true"
+      variant="box">
+    </app-ui-select>
+  </div>
+
+  <div class="form-field" [class.selection-centered]="true">
+    <app-ui-select
+      formControlName="heatingSystem"
+      label="Chauffage"
+      [options]="getHeatingOptions()"
+      placeholder="Sélectionnez..."
+      [required]="true"
+      variant="box">
+    </app-ui-select>
+  </div>
+
+  <div class="form-field" [class.selection-centered]="true">
+    <app-ui-select
+      formControlName="coolingSystem"
+      label="Climatisation"
+      [options]="getCoolingOptions()"
+      placeholder="Sélectionnez..."
+      [required]="true"
+      variant="box">
+    </app-ui-select>
+  </div>
+
+</div>

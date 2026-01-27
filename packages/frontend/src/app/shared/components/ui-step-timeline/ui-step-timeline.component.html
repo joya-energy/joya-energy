@@ -12,7 +12,7 @@
         <span class="timeline-label">{{ step.label }}</span>
       }
       @if (i < displaySteps().length - 1) {
-        <div class="timeline-connector"></div>
+        <div class="timeline-connector" [class.completed]="isStepCompleted(step.number)"></div>
       }
     </div>
   }

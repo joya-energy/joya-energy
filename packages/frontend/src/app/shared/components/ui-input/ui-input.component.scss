@@ -37,7 +37,7 @@
 
   &.has-icon.icon-left {
     .ui-input {
-      padding-left: 2.5rem;
+      padding-left: 3rem !important;
     }
   }
 
@@ -68,7 +68,7 @@
   &:focus {
     outline: none;
     border-color: var(--teal-soft);
-    box-shadow: 0 0 0 3px rgba(13, 87, 87, 0.1);
+    box-shadow: 0 0 0 3px var(--ui-input-focus-shadow);
   }
 
   &:disabled {
@@ -154,4 +154,23 @@
     opacity: 0.5;
     cursor: not-allowed;
   }
+}
+
+// Error state
+.ui-input-container.has-error {
+  .ui-input {
+    border-color: var(--danger-500);
+    
+    &:focus {
+      border-color: var(--danger-600);
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
+  }
+}
+
+.ui-input-error {
+  font-size: var(--font-size-xs);
+  color: var(--danger-600);
+  margin-top: 0.25rem;
+  line-height: 1.4;
 }

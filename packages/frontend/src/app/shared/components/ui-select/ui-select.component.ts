@@ -51,9 +51,11 @@ export class UiSelectComponent implements ControlValueAccessor, OnInit, OnDestro
   @Input() placeholder: string = 'Sélectionnez...';
   @Input() disabled: boolean = false;
   @Input() label: string = '';
+  @Input() required: boolean = false;
   @Input() multiple = false;
   @Input() variant: SelectVariant = 'dropdown';
   @Input() iconPosition: IconPosition = 'left'; // For box-icon variant
+  @Input() columns: number = 0; // 0 = auto-calculate based on options count
 
   protected isOpen = signal(false);
   private singleValue = signal<string>('');
@@ -86,6 +88,21 @@ export class UiSelectComponent implements ControlValueAccessor, OnInit, OnDestro
       return opt;
     });
   });
+
+  protected readonly gridColumns = computed(() => {
+    if (this.columns > 0) {
+      return this.columns;
+    }
+    // Auto-calculate: always use consistent columns
+    const count = this.normalizedOptions().length;
+    if (count <= 3) return count; // 1-3 options: use that many columns
+    if (count <= 6) return 3; // 4-6 options: 3 columns
+    if (count <= 8) return 4; // 7-8 options: 4 columns
+    if (count <= 12) return 4; // 9-12 options: 4 columns
+    return 4; // Default to 4 columns for more options
+  });
+
+  protected readonly shouldDropUp = signal(false);
   
   private onChange: (value: string | string[]) => void = () => {};
   private onTouched: () => void = () => {};
@@ -114,10 +131,33 @@ export class UiSelectComponent implements ControlValueAccessor, OnInit, OnDestro
 
   toggleDropdown(): void {
     if (this.disabled || this.variant === 'box' || this.variant === 'box-icon') return;
+    
+    if (!this.isOpen()) {
+      // Check if we should drop up before opening
+      this.checkDropUpPosition();
+    }
+    
     this.isOpen.update((v) => !v);
     if (this.isOpen()) {
       this.onTouched();
     }
+  }
+
+  private checkDropUpPosition(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    
+    const element = this.elementRef.nativeElement;
+    const trigger = element.querySelector('.ui-select-trigger') as HTMLElement;
+    if (!trigger) return;
+
+    const rect = trigger.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const spaceBelow = viewportHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const dropdownHeight = 240; // Approximate max height of dropdown (15rem = 240px)
+
+    // Drop up if there's not enough space below but enough space above
+    this.shouldDropUp.set(spaceBelow < dropdownHeight && spaceAbove > spaceBelow);
   }
 
   selectOption(option: string | SelectOption): void {
