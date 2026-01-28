@@ -5,6 +5,7 @@ import { ApiService } from './api.service';
 import { IAuditSolaireSimulation } from '@shared/interfaces';
 
 export interface CreateSimulationPayload {
+  // Location
   address: string;
   fullName: string;
   companyName: string;
@@ -12,8 +13,18 @@ export interface CreateSimulationPayload {
   phoneNumber: string;
   measuredAmountTnd: number;
   referenceMonth: number;
+  
+  // Building
   buildingType: string;
   climateZone: string;
+  
+  // Personal Info (ready for backend integration)
+  // NOTE: These fields are currently sent but backend doesn't use them yet.
+  // Backend will be updated to accept and store these fields.
+  fullName: string;
+  companyName: string;
+  email: string;
+  phoneNumber: string;
 }
 
 export interface PaginatedSimulationsResponse {
@@ -32,6 +43,10 @@ export class AuditSolaireService {
 
   createSimulation(payload: CreateSimulationPayload): Observable<IAuditSolaireSimulation> {
     return this.api.post<IAuditSolaireSimulation>('/audit-solaire-simulations', payload);
+  }
+
+  createSimulationWithBill(formData: FormData): Observable<IAuditSolaireSimulation> {
+    return this.api.postFormData<IAuditSolaireSimulation>('/audit-solaire-simulations/with-bill', formData);
   }
 
   getSimulations(page = 1, limit = 10): Observable<PaginatedSimulationsResponse> {

@@ -1,0 +1,677 @@
+<div class="energy-audit-page">
+  <div class="energy-audit-container">
+    <!-- Sidebar with Step Progress -->
+    <aside class="simulator-sidebar">
+      <div class="sidebar-steps">
+        @for (step of steps; track step.number) {
+          <div
+            class="sidebar-step-item"
+            [class.active]="currentStep() === step.number"
+            [class.clickable]="isStepClickable(step.number) && !step.isResult"
+            [class.disabled]="!isStepClickable(step.number) && !step.isResult"
+            (click)="!step.isResult && goToStep(step.number)">
+            @if (!step.isResult) {
+              <app-ui-progress-bar
+                [step]="step.number"
+                [title]="step.title"
+                [progress]="stepProgress()[step.number]"
+                [completed]="stepProgress()[step.number] === 100"
+                [isFocused]="currentStep() === step.number"
+                class="sidebar-progress-bar">
+              </app-ui-progress-bar>
+            } @else {
+              <!-- Result step - matches progress bar layout but without progress bar -->
+              <div class="sidebar-result-step" [class.active]="currentStep() === step.number" [class.disabled]="true">
+                <div class="sidebar-result-step-left">
+                  <div
+                    class="sidebar-step-circle result"
+                    [class.active]="currentStep() === step.number">
+                    <span class="step-number">{{ step.number }}</span>
+                  </div>
+                </div>
+                <div class="sidebar-result-step-right">
+                  <h3 class="sidebar-step-title">{{ step.title }}</h3>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="simulator-main">
+      <!-- Fixed Timeline Header -->
+      <div class="form-timeline-header">
+        <div class="step-progress-header">
+          <span class="step-indicator">Étape {{ currentStep() }} sur {{ steps.length }}</span>
+          <span class="step-completion">Progression: {{ overallProgress() }}%</span>
+        </div>
+        <app-ui-step-timeline
+          [currentStep]="currentStep()"
+          [totalSteps]="steps.length">
+        </app-ui-step-timeline>
+      </div>
+
+      <!-- Scrollable Step Content Area -->
+      <div class="form-content-scrollable">
+        <div class="form-content">
+          <!-- Dynamic Step Content -->
+          <div
+            class="step-content"
+            [attr.data-step]="currentStep()">
+
+            @if (currentStepData().isResult) {
+              <!-- Results View - Original Audit Solaire Structure -->
+              <div class="results-content" [@resultCards]>
+                @if (simulationResult(); as simulation) {
+                  <!-- Professional Header -->
+                  <div class="results-header">
+                    <div class="header-icon">
+                      <ng-icon name="lucideSun" class="sun-icon"></ng-icon>
+                    </div>
+                    <div class="header-content">
+                      <h2 class="results-title">Rapport d'Audit Solaire</h2>
+                      <p class="results-subtitle">Analyse technique et économique de votre installation solaire</p>
+                      <div class="results-meta">
+                        <span class="meta-item">
+                          <ng-icon name="lucideCalendar" class="meta-icon"></ng-icon>
+                          {{ simulation.createdAt | date:'dd/MM/yyyy' }}
+                        </span>
+                        <span class="meta-item">
+                          <ng-icon name="lucideMapPin" class="meta-icon"></ng-icon>
+                          {{ form.get('location.address')?.value || 'Adresse non spécifiée' }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Executive Summary Cards -->
+                  <div class="executive-summary">
+                    <div class="summary-card primary">
+                      <div class="card-header">
+                        <div class="card-icon">
+                          <ng-icon name="lucideZap"></ng-icon>
+                        </div>
+                        <div class="card-category">Système</div>
+                      </div>
+                      <div class="card-content">
+                        <div class="card-value">{{ simulation.systemSize_kWp.toFixed(1) }} <span class="unit">kWc</span></div>
+                        <div class="card-label">Puissance Installée</div>
+                        <div class="card-description">Capacité solaire optimale</div>
+                      </div>
+                      <div class="card-accent"></div>
+                    </div>
+
+                    <div class="summary-card success">
+                      <div class="card-header">
+                        <div class="card-icon">
+                          <ng-icon name="lucideSun"></ng-icon>
+                        </div>
+                        <div class="card-category">Production</div>
+                      </div>
+                      <div class="card-content">
+                        <div class="card-value">{{ (simulation.expectedProduction / 1000).toFixed(0) }} <span class="unit">MWh</span></div>
+                        <div class="card-label">Production Annuelle</div>
+                        <div class="card-description">{{ simulation.expectedProduction.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} kWh/an</div>
+                      </div>
+                      <div class="card-accent"></div>
+                    </div>
+
+                    <div class="summary-card info">
+                      <div class="card-header">
+                        <div class="card-category">Économies</div>
+                      </div>
+                      <div class="card-content">
+                        <div class="card-value">{{ (simulation.annualSavings / 1000).toFixed(0) }} <span class="unit">k DT</span></div>
+                        <div class="card-label">Économies Annuelles</div>
+                        <div class="card-description">{{ simulation.annualSavings.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} DT/an</div>
+                      </div>
+                      <div class="card-accent"></div>
+                    </div>
+
+                    <div class="summary-card warning" [class]="simulation.paybackMonths <= 84 ? 'success' : simulation.paybackMonths <= 120 ? 'warning' : 'danger'">
+                      <div class="card-header">
+                        <div class="card-icon">
+                          <ng-icon name="lucideClock"></ng-icon>
+                        </div>
+                        <div class="card-category">ROI</div>
+                      </div>
+                      <div class="card-content">
+                        <div class="card-value">{{ formatPaybackPeriod(simulation.paybackMonths) }}</div>
+                        <div class="card-label">Retour sur Investissement</div>
+                        <div class="card-description">Période de remboursement</div>
+                      </div>
+                      <div class="card-accent"></div>
+                    </div>
+                  </div>
+
+                  <!-- Cost Comparison Section -->
+                  <div class="analysis-section">
+                    <div class="section-header">
+                      <h3 class="section-title">
+                        <ng-icon name="lucideBarChart3" class="section-icon"></ng-icon>
+                        Comparaison des Coûts Annuels
+                      </h3>
+                      <p class="section-description">
+                        Impact sur votre facture d'électricité après installation solaire
+                      </p>
+                    </div>
+
+                    <div class="cost-comparison-grid">
+                      <!-- Situation Actuelle -->
+                      <div class="comparison-card current-situation">
+                        <div class="comparison-header">
+                          <div class="comparison-icon current">
+                            <ng-icon name="lucideZap"></ng-icon>
+                          </div>
+                          <div class="comparison-badge">Avant</div>
+                        </div>
+                        <div class="comparison-content">
+                          <div class="comparison-value warning">{{ simulation.annualBillWithoutPV.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} <span class="currency">DT</span></div>
+                          <div class="comparison-label">Situation Actuelle</div>
+                          <div class="comparison-subtitle">Coût annuel d'électricité</div>
+                          <div class="comparison-details">
+                            <div class="detail-item">
+                              <ng-icon name="lucideActivity" class="detail-icon"></ng-icon>
+                              <span>{{ simulation.annualConsumption.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} kWh/an</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="comparison-accent"></div>
+                      </div>
+
+                      <!-- Flèche animée -->
+                      <div class="comparison-transition">
+                        <div class="transition-arrow">
+                          <ng-icon name="lucideArrowRight" class="transition-icon"></ng-icon>
+                          <div class="transition-label">Installation Solaire</div>
+                        </div>
+                        <div class="savings-indicator">
+                          <div class="savings-amount">
+                            -{{ (simulation.annualBillWithoutPV - simulation.annualBillWithPV).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} DT
+                          </div>
+                          <div class="savings-label">Économies annuelles</div>
+                        </div>
+                      </div>
+
+                      <!-- Avec Panneaux Solaires -->
+                      <div class="comparison-card solar-situation">
+                        <div class="comparison-header">
+                          <div class="comparison-icon solar">
+                            <ng-icon name="lucideSun"></ng-icon>
+                          </div>
+                          <div class="comparison-badge">Après</div>
+                        </div>
+                        <div class="comparison-content">
+                          <div class="comparison-value success">{{ simulation.annualBillWithPV.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} <span class="currency">DT</span></div>
+                          <div class="comparison-label">Avec Panneaux Solaires</div>
+                          <div class="comparison-subtitle">Coût annuel restant</div>
+                          <div class="comparison-details">
+                            <div class="detail-item">
+                              <ng-icon name="lucideZap" class="detail-icon"></ng-icon>
+                              <span>Couverture: {{ simulation.coverage }}%</span>
+                            </div>
+                            <div class="detail-item">
+                              <ng-icon name="lucideSun" class="detail-icon"></ng-icon>
+                              <span>{{ (simulation.expectedProduction / 1000).toFixed(1) }} MWh/an produits</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="comparison-accent"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Economic Analysis -->
+                  <div class="analysis-section">
+                    <div class="section-header">
+                      <h3 class="section-title">
+                        <ng-icon name="lucideTrendingUp" class="section-icon"></ng-icon>
+                        Analyse Économique Détaillée
+                      </h3>
+                      <p class="section-description">
+                        Résultats financiers sur 25 ans d'exploitation solaire
+                      </p>
+                    </div>
+
+                    <div class="economic-metrics-grid">
+                      <!-- CAPEX -->
+                      <div class="metric-item capex-card">
+                        <div class="metric-header">
+                          <div class="metric-icon capex">
+                            <ng-icon name="lucideWallet"></ng-icon>
+                          </div>
+                          <div class="metric-badge">Investissement</div>
+                        </div>
+                        <div class="metric-content">
+                          <div class="metric-value primary">{{ simulation.installationCost.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}</div>
+                          <div class="metric-label">CAPEX</div>
+                          <div class="metric-subtitle">Coût d'investissement</div>
+                        </div>
+                      </div>
+
+                      <!-- OPEX -->
+                      <div class="metric-item opex-card">
+                        <div class="metric-header">
+                          <div class="metric-icon opex">
+                            <ng-icon name="lucideSettings"></ng-icon>
+                          </div>
+                          <div class="metric-badge">Maintenance</div>
+                        </div>
+                        <div class="metric-content">
+                          <div class="metric-value neutral">{{ simulation.annualOpex.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}</div>
+                          <div class="metric-label">OPEX</div>
+                          <div class="metric-subtitle">Coût de maintenance annuel</div>
+                        </div>
+                      </div>
+
+                      <!-- ROI -->
+                      <div class="metric-item roi-card">
+                        <div class="metric-header">
+                          <div class="metric-icon roi">
+                            <ng-icon name="lucideTrendingUp"></ng-icon>
+                          </div>
+                          <div class="metric-badge">Profit</div>
+                        </div>
+                        <div class="metric-content">
+                          <div class="metric-value success">{{ ((simulation.roi25Years || 0) * 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}%</div>
+                          <div class="metric-label">ROI</div>
+                          <div class="metric-subtitle">Retour sur investissement</div>
+                        </div>
+                      </div>
+
+                      <!-- Gain cumulé non actualisé -->
+                      @if (simulation.annualEconomics && simulation.annualEconomics.length > 0) {
+                        <div class="metric-item gain-cumule-card">
+                          <div class="metric-header">
+                            <div class="metric-icon gain-cumule">
+                              <ng-icon name="lucideBarChart3"></ng-icon>
+                            </div>
+                            <div class="metric-badge">Cumulé</div>
+                          </div>
+                          <div class="metric-content">
+                            <div class="metric-value success">{{ simulation.annualEconomics[simulation.annualEconomics.length - 1]!.cumulativeNetGain.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}</div>
+                            <div class="metric-label">Gain cumulé</div>
+                            <div class="metric-subtitle">Non actualisé (25 ans)</div>
+                          </div>
+                        </div>
+                      }
+
+                      <!-- TRI (Internal Rate of Return) -->
+                      <div class="metric-item tri-card">
+                        <div class="metric-header">
+                          <div class="metric-icon tri">
+                            <ng-icon name="lucidePercent"></ng-icon>
+                          </div>
+                          <div class="metric-badge">TRI</div>
+                        </div>
+                        <div class="metric-content">
+                          <div class="metric-value success">{{ (simulation.irr * 100).toFixed(1) }}<span class="unit">%</span></div>
+                          <div class="metric-label">Taux de Rendement Interne</div>
+                          <div class="metric-subtitle">Retour sur investissement annuel</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Environmental Impact -->
+                  <div class="analysis-section">
+                    <div class="section-header">
+                      <h3 class="section-title">
+                        <ng-icon name="lucideLeaf" class="section-icon"></ng-icon>
+                        Impact Environnemental
+                      </h3>
+                      <p class="section-description">
+                        Réduction des émissions de CO₂ grâce à votre installation solaire
+                      </p>
+                    </div>
+
+                    <div class="environmental-metrics-grid">
+                      <!-- CO2 annuel évité -->
+                      <div class="environmental-item co2-annual-card">
+                        <div class="environmental-header">
+                          <div class="environmental-icon co2-annual">
+                            <ng-icon name="lucideCloud"></ng-icon>
+                          </div>
+                          <div class="environmental-badge">Annuel</div>
+                        </div>
+                        <div class="environmental-content">
+                          <div class="environmental-value success">{{ (simulation.annualCo2Avoided / 1000).toFixed(1) }} <span class="unit">tonnes</span></div>
+                          <div class="environmental-label">CO₂ évité</div>
+                          <div class="environmental-subtitle">Émissions de carbone réduites par an</div>
+                        </div>
+                      </div>
+
+                      <!-- CO2 total évité sur 25 ans -->
+                      <div class="environmental-item co2-total-card">
+                        <div class="environmental-header">
+                          <div class="environmental-icon co2-total">
+                            <ng-icon name="lucideTreePine"></ng-icon>
+                          </div>
+                          <div class="environmental-badge">25 ans</div>
+                        </div>
+                        <div class="environmental-content">
+                          <div class="environmental-value success">{{ (simulation.totalCo2Avoided25Years / 1000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} <span class="unit">tonnes</span></div>
+                          <div class="environmental-label">CO₂ évité total</div>
+                          <div class="environmental-subtitle">Émissions cumulées sur la durée de vie</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Recommendations -->
+                  <div class="analysis-section">
+                    <h3 class="section-title">
+                      <ng-icon name="lucideLightbulb" class="section-icon" style="margin-bottom: 2  rem;"></ng-icon>
+                      Prochaines Étapes Recommandées
+                    </h3>
+
+                    <div class="recommendations">
+                      <div class="recommendation-item">
+                        <div class="recommendation-icon">
+                          <ng-icon name="lucidePhone"></ng-icon>
+                        </div>
+                        <div class="recommendation-content">
+                          <h4>Contactez notre équipe</h4>
+                          <p>Obtenez un devis personnalisé et détaillé pour votre installation</p>
+                        </div>
+                      </div>
+
+                      <div class="recommendation-item">
+                        <div class="recommendation-icon">
+                          <ng-icon name="lucideFileText"></ng-icon>
+                        </div>
+                        <div class="recommendation-content">
+                          <h4>Étude de faisabilité</h4>
+                          <p>Visite technique gratuite pour valider l'installation sur site</p>
+                        </div>
+                      </div>
+
+                      <div class="recommendation-item">
+                        <div class="recommendation-icon">
+                          <ng-icon name="lucideCreditCard"></ng-icon>
+                        </div>
+                        <div class="recommendation-content">
+                          <h4>Options de financement</h4>
+                          <p>Solutions de paiement échelonnées et aides financières disponibles</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                } @else {
+                  <div class="loading-state">
+                    <div class="loading-content">
+                      <div class="loading-spinner">
+                        <ng-icon name="lucideZap" class="spinning"></ng-icon>
+                      </div>
+                      <h3>Analyse en cours...</h3>
+                      <p>Nous calculons votre solution solaire optimale</p>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <!-- Form Fields -->
+              <form [formGroup]="form" class="simulator-form">
+                <div class="simulator-form-header">
+                  <h3 class="simulator-form-title">Calculateur Audit Solaire</h3>
+                  <h2 class="step-title">{{ currentStepData().title }}</h2>
+                  @if (currentStepData().description) {
+                    <p class="step-description">{{ currentStepData().description }}</p>
+                  }
+                </div>
+
+                <!-- Step 1: Invoice & consumption -->
+                @if (currentStep() === 1) {
+                  <div [@stepTransition]="currentStep()">
+                    <!-- Bill Upload Feature - Temporarily Disabled -->
+                    <!--
+                    <div class="form-field" formGroupName="consumption">
+                      <app-ui-select
+                        formControlName="hasInvoice"
+                        [options]="invoiceOptions"
+                        label="Avez-vous une facture d'électricité récente ?"
+                        placeholder="Sélectionnez une option"
+                        [required]="true"
+                        variant="box"
+                        [columns]="2">
+                      </app-ui-select>
+                    </div>
+
+                    @if (invoiceChoice() === 'yes') {
+                      <div class="upload-section">
+                        <app-upload-card
+                          [config]="uploadCardConfig"
+                          [selectedFile]="form.get('consumption.billAttachment')?.value"
+                          (fileSelected)="onBillSelected($event)"
+                          (extractClicked)="onExtractFromBill()"
+                          (manualEntryClicked)="onManualEntry()">
+                        </app-upload-card>
+                      </div>
+                    }
+
+                    @if (invoiceChoice() === 'no') {
+                    -->
+                    
+                    <!-- Simulator Description -->
+                    <div class="simulator-description">
+                      <p>
+                        Ce simulateur analyse votre consommation énergétique et calcule le potentiel solaire de votre bâtiment.
+                        Il vous fournira une estimation détaillée de la production photovoltaïque, des économies réalisables,
+                        et des indicateurs financiers (ROI, période de retour sur investissement, NPV).
+                      </p>
+                      <p>
+                        Pour obtenir des résultats précis, veuillez renseigner le montant de votre dernière facture d'électricité
+                        et le mois de référence correspondant.
+                      </p>
+                    </div>
+
+                    <!-- Manual entry form -->
+                    <div class="manual-entry-section" formGroupName="consumption">
+                      <div class="form-grid">
+                        <!-- Monthly Amount -->
+                        <app-ui-input
+                          formControlName="measuredAmountTnd"
+                          type="number"
+                          label="Montant mensuel (TND)"
+                          placeholder="Ex: 2500"
+                          [required]="true"
+                          icon="lucideZap"
+                          tooltipTitle="Facture"
+                          tooltipDescription="Montant total de votre dernière facture d'électricité."
+                          size="md">
+                        </app-ui-input>
+
+                        <!-- Reference Month -->
+                        <div class="form-field">
+                          <app-ui-select
+                            formControlName="referenceMonth"
+                            [options]="monthLabels()"
+                            label="Mois de référence"
+                            placeholder="Sélectionnez le mois"
+                            [required]="true"
+                            variant="dropdown">
+                          </app-ui-select>
+                          <app-field-tooltip
+                            title="Mois"
+                            description="Mois durant lequel la facture a été établie."
+                            class="field-tooltip-inline">
+                          </app-field-tooltip>
+                        </div>
+                      </div>
+                    </div>
+                    <!--
+                    }
+                    -->
+                  </div>
+                }
+
+                <!-- Step 2: Building -->
+                @if (currentStep() === 2) {
+                  <div [@stepTransition]="currentStep()">
+                    <div class="building-type-selection" formGroupName="building">
+                      <div class="field-label">
+                        <span>Type de bâtiment</span>
+                      </div>
+                      <div class="building-grid">
+                        @for (card of buildingTypeCards; track card.id) {
+                          <button
+                            type="button"
+                            class="building-card"
+                            [class.building-card--active]="form.get('building.buildingType')?.value === card.id"
+                            (click)="form.get('building.buildingType')?.setValue(card.id)">
+                            <div class="building-card-icon">
+                              <ng-icon [name]="card.icon"></ng-icon>
+                            </div>
+                            <span>{{ card.label }}</span>
+                          </button>
+                        }
+                      </div>
+
+                      <div class="form-field" style="margin-bottom: 4rem;">
+                        <label class="field-label">Zone climatique</label>
+                        <app-ui-select
+                          variant="box"
+                          [options]="climateZones"
+                          placeholder="Sélectionnez la zone"
+                          [formControlName]="'climateZone'">
+                        </app-ui-select>
+                      </div>
+                    </div>
+                  </div>
+                }
+
+                <!-- Step 3: Personal Info & Location -->
+                @if (currentStep() === 3) {
+                  <div [@stepTransition]="currentStep()">
+                    <!-- Personal Information Fields -->
+                    <div class="form-grid" formGroupName="personal">
+                      <app-ui-input
+                        formControlName="fullName"
+                        type="text"
+                        label="Nom complet"
+                        placeholder="Entrez votre nom complet"
+                        [required]="true"
+                        tooltipTitle="Nom complet"
+                        tooltipDescription="Personne référente pour l'audit."
+                        size="md">
+                      </app-ui-input>
+
+                      <app-ui-input
+                        formControlName="companyName"
+                        type="text"
+                        label="Entreprise"
+                        placeholder="Entrez le nom de l'entreprise"
+                        [required]="true"
+                        tooltipTitle="Raison sociale"
+                        tooltipDescription="Nom légal ou enseigne du site."
+                        size="md">
+                      </app-ui-input>
+
+                      <app-ui-input
+                        formControlName="email"
+                        type="text"
+                        label="Email"
+                        placeholder="email@example.com"
+                        [required]="true"
+                        tooltipTitle="Email de contact"
+                        tooltipDescription="Adresse utilisée pour l'envoi des résultats."
+                        size="md">
+                      </app-ui-input>
+
+                      <app-ui-input
+                        formControlName="phoneNumber"
+                        type="text"
+                        label="Téléphone"
+                        placeholder="Entrez votre numéro de téléphone"
+                        [required]="true"
+                        tooltipTitle="Téléphone"
+                        tooltipDescription="Numéro pour les échanges techniques."
+                        size="md">
+                      </app-ui-input>
+                    </div>
+
+                    <!-- Location Field -->
+                    <div class="form-field" formGroupName="location" style="margin-top: 2rem;">
+                      <app-google-maps-input
+                       style="margin-bottom: 4rem;"
+                        formControlName="address"
+                        label="Adresse complète du bâtiment"
+                        placeholder="Entrez l'adresse complète"
+                        [required]="true"
+                        size="md"
+                        tooltipTitle="Lieu"
+                        tooltipDescription="Adresse précise pour estimer l'ensoleillement."
+                        (addressSelected)="onAddressChange($event)">
+                      </app-google-maps-input>
+                    </div>
+                  </div>
+                }
+              </form>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Fixed Navigation Buttons Footer -->
+      <div class="form-actions" [class.result-actions]="currentStepData().isResult">
+        @if (!currentStepData().isResult) {
+          <button
+            type="button"
+            class="hero__btn hero__btn--outline"
+            [disabled]="!canGoBack()"
+            (click)="previousStep()">
+            <ng-icon name="lucideArrowLeft" size="16"></ng-icon>
+            Précédent
+          </button>
+
+          @if (currentStep() < lastFormStepNumber) {
+            <button
+              type="button"
+              class="hero__btn hero__btn--primary"
+              [disabled]="isSubmitting()"
+              (click)="nextStep()">
+              Suivant
+              <ng-icon name="lucideArrowRight" size="16"></ng-icon>
+            </button>
+          } @else {
+            <button
+              type="button"
+              class="hero__btn hero__btn--primary"
+              [disabled]="isSubmitting()"
+              (click)="nextStep()">
+              @if (isSubmitting()) {
+                <span>Calcul en cours...</span>
+              } @else {
+                <span>Lancer la simulation</span>
+                <ng-icon name="lucideArrowRight" size="16"></ng-icon>
+              }
+            </button>
+          }
+        } @else {
+          <!-- Results step actions -->
+          <button
+            type="button"
+            class="hero__btn hero__btn--outline"
+            (click)="resetForm()">
+            Nouvelle simulation
+          </button>
+          <button
+            type="button"
+            class="hero__btn hero__btn--primary"
+            [disabled]="isGeneratingPDF() || !simulationResult()?.id"
+            (click)="downloadPVReport()">
+            @if (isGeneratingPDF()) {
+              <span>Génération...</span>
+            } @else {
+              <span>Télécharger le rapport PV</span>
+              <ng-icon name="lucideDownload" size="16"></ng-icon>
+            }
+          </button>
+        }
+      </div>
+    </main>
+  </div>
+</div>
+

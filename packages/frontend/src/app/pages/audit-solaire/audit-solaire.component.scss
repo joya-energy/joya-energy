@@ -65,7 +65,7 @@
 
     &.full-width {
       grid-template-columns: 1fr;
-      max-width: 1200px;
+      max-width: 1600px; /* Changed from 1200px to 1600px */
       margin: 0 auto;
       padding: 2rem 1rem;
     }

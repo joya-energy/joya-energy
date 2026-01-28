@@ -11,12 +11,14 @@ import {
   inject,
   PLATFORM_ID,
   Output,
-  EventEmitter
+  EventEmitter,
+  Input
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { isPlatformBrowser } from '@angular/common';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import { lucideMapPin, lucideLoader } from '@ng-icons/lucide';
+import { FieldTooltipComponent } from '../field-tooltip/field-tooltip.component';
 import { environment } from '../../../../environments/environment';
 
 // Interfaces for Google Solar API REST responses
@@ -65,7 +67,7 @@ export interface SolarInfo {
 @Component({
   selector: 'app-google-maps-input',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, NgIconComponent],
+  imports: [CommonModule, ReactiveFormsModule, NgIconComponent, FieldTooltipComponent],
   templateUrl: './google-maps-input.component.html',
   styleUrl: './google-maps-input.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -82,6 +84,13 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
   @ViewChild('addressInput', { static: false }) addressInput!: ElementRef<HTMLInputElement>;
   @ViewChild('mapContainer', { static: false }) mapContainer!: ElementRef<HTMLDivElement>;
   @Output() addressSelected = new EventEmitter<AddressData>();
+  
+  @Input() label: string = '';
+  @Input() placeholder: string = 'Tapez une adresse...';
+  @Input() required: boolean = false;
+  @Input() size: 'sm' | 'md' | 'lg' = 'md';
+  @Input() tooltipTitle: string = '';
+  @Input() tooltipDescription: string = '';
 
   private platformId = inject(PLATFORM_ID);
   private autocomplete: google.maps.places.Autocomplete | null = null;
@@ -90,18 +99,29 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
   private googleMapsLoaded = false;
 
   protected selectedAddress = signal<AddressData | null>(null);
-  protected showMap = signal(false);
+  protected showMap = signal(true); // Always show map when address is selected
   protected isLoading = signal(false);
   protected isAnalyzingSolar = signal(false);
   protected solarInfo = signal<SolarInfo | null>(null);
   protected solarAnalysisError = signal<string | null>(null);
   protected isDisabled = false;
 
-  private onChange: (value: AddressData | null) => void = () => {};
+  private onChange: (value: AddressData | string | null) => void = () => {};
   private onTouchedCallback: () => void = () => {};
 
   protected onTouched(): void {
     this.onTouchedCallback();
+  }
+
+  protected onInputChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
+    // Update form control with string value
+    this.onChange(value);
+    // If there's a selected address and it doesn't match, clear it
+    if (this.selectedAddress() && this.selectedAddress()!.address !== value) {
+      this.selectedAddress.set(null);
+    }
   }
 
   ngOnInit(): void {
@@ -184,27 +204,28 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
 
     this.selectedAddress.set(addressData);
     this.solarInfo.set(null); // Reset solar info when new address is selected
-    this.onChange(addressData);
+    
+    // Emit both AddressData (for event) and string (for form control)
+    this.onChange(addressData.address); // For formControlName compatibility
     this.onTouchedCallback();
     this.addressSelected.emit(addressData);
 
-    if (this.showMap()) {
-      this.updateMap(addressData);
-    }
+    // Always show map when address is selected
+    this.showMap.set(true);
+    setTimeout(() => {
+      if (!this.map) {
+        this.initializeMap();
+      } else {
+        this.updateMap(addressData);
+      }
+      // Automatically analyze solar potential when address is selected
+      if (!this.solarInfo()) {
+        this.analyzeSolarPotential();
+      }
+    }, 100);
   }
 
-  protected toggleMap(): void {
-    this.showMap.update(v => !v);
-    if (this.showMap() && this.selectedAddress()) {
-      setTimeout(() => {
-        this.initializeMap();
-        // Automatically analyze solar potential when showing the map
-        if (!this.solarInfo()) {
-          this.analyzeSolarPotential();
-        }
-      }, 100);
-    }
-  }
+  // Removed toggleMap - map is always shown when address is selected
 
   protected useCurrentLocation(): void {
     if (!navigator.geolocation) return;
@@ -242,14 +263,24 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
           };
           this.selectedAddress.set(addressData);
           this.solarInfo.set(null);
-          this.onChange(addressData);
+          this.onChange(addressData.address); // Emit string for form control
           this.addressSelected.emit(addressData);
           if (this.addressInput) {
             this.addressInput.nativeElement.value = addressData.address;
           }
-          if (this.showMap()) {
-            this.updateMap(addressData);
-          }
+          // Always show map when address is selected
+          this.showMap.set(true);
+          setTimeout(() => {
+            if (!this.map) {
+              this.initializeMap();
+            } else {
+              this.updateMap(addressData);
+            }
+            // Automatically analyze solar potential when address is selected
+            if (!this.solarInfo()) {
+              this.analyzeSolarPotential();
+            }
+          }, 100);
         } else {
           console.error('Geocoding failed:', status);
         }
@@ -268,13 +299,36 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
       zoom: 20,
       mapTypeId: 'satellite',
       tilt: 45,
-      mapId: 'SOLAR_AUDIT_MAP'
+      mapId: 'SOLAR_AUDIT_MAP',
+      draggableCursor: 'crosshair' // Show crosshair cursor for manual positioning
     } as google.maps.MapOptions);
 
     this.marker = new google.maps.Marker({
       position: center,
       map: this.map,
-      animation: google.maps.Animation.DROP
+      animation: google.maps.Animation.DROP,
+      draggable: true // Allow dragging the marker
+    });
+
+    // Add click listener to map for manual positioning
+    this.map.addListener('click', (event: google.maps.MapMouseEvent) => {
+      if (event.latLng) {
+        const lat = event.latLng.lat();
+        const lng = event.latLng.lng();
+        this.reverseGeocode(lat, lng);
+      }
+    });
+
+    // Add drag listener to marker for manual positioning
+    this.marker.addListener('dragend', () => {
+      if (this.marker) {
+        const position = this.marker.getPosition();
+        if (position) {
+          const lat = position.lat();
+          const lng = position.lng();
+          this.reverseGeocode(lat, lng);
+        }
+      }
     });
   }
 
@@ -287,6 +341,9 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
     const position = { lat: address.latitude, lng: address.longitude };
     this.map.setCenter(position);
     this.marker.setPosition(position);
+    
+    // Ensure marker is draggable
+    this.marker.setDraggable(true);
   }
 
   protected analyzeSolarPotential(): void {
@@ -336,11 +393,24 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
   }
 
 
-  writeValue(value: AddressData | null): void {
+  writeValue(value: AddressData | string | null): void {
     if (value) {
-      this.selectedAddress.set(value);
-      if (this.addressInput) {
-        this.addressInput.nativeElement.value = value.address;
+      // Handle both AddressData objects and string values
+      if (typeof value === 'string') {
+        // String value from form control
+        if (this.addressInput) {
+          this.addressInput.nativeElement.value = value;
+        }
+        // Keep existing selectedAddress if it matches, otherwise clear it
+        if (!this.selectedAddress() || this.selectedAddress()!.address !== value) {
+          this.selectedAddress.set(null);
+        }
+      } else {
+        // AddressData object
+        this.selectedAddress.set(value);
+        if (this.addressInput) {
+          this.addressInput.nativeElement.value = value.address;
+        }
       }
     } else {
       this.selectedAddress.set(null);
@@ -350,7 +420,7 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
     }
   }
 
-  registerOnChange(fn: (value: AddressData | null) => void): void {
+  registerOnChange(fn: (value: AddressData | string | null) => void): void {
     this.onChange = fn;
   }
 

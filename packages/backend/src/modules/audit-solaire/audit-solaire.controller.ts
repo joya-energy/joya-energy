@@ -6,6 +6,7 @@ import { HTTP400Error, HTTP404Error } from '@backend/errors/http.error';
 import { Logger } from '@backend/middlewares';
 import { requireNumber, requireString } from '../common/validation.utils';
 import { BuildingTypes, ClimateZones } from '@shared/enums/audit-general.enum';
+import { billExtractionService } from '../audit-energetique/bill-extraction.service';
 
 export class AuditSolaireSimulationController {
   public createSimulation = async (req: Request, res: Response): Promise<void> => {
@@ -19,6 +20,33 @@ export class AuditSolaireSimulationController {
       }
 
       Logger.error(`Error: Audit solaire simulation not created: ${String(error)}`);
+      throw new HTTP400Error('Error: Audit solaire simulation not created', error);
+    }
+  };
+
+  public createSimulationWithBill = async (req: Request, res: Response): Promise<void> => {
+    try {
+      if (!req.file) {
+        throw new HTTP400Error('No bill file uploaded. Please provide an image or PDF file.');
+      }
+
+      // Extract data from bill image
+      Logger.info('Extracting data from bill image...');
+      const extracted = await billExtractionService.extractDataFromImage(req.file.buffer, req.file.mimetype);
+      
+      // Merge extracted data with form data
+      const mergedBody = AuditSolaireSimulationController.mergeExtractedData(req.body, extracted);
+      
+      // Sanitize and create simulation
+      const input = AuditSolaireSimulationController.sanitizePayload(mergedBody);
+      const simulation = await auditSolaireSimulationService.createSimulation(input);
+      
+      res.status(HttpStatusCode.CREATED).json(simulation);
+    } catch (error) {
+      if (error instanceof HTTP400Error) {
+        throw error;
+      }
+      Logger.error(`Error: Audit solaire simulation (with bill) not created: ${String(error)}`);
       throw new HTTP400Error('Error: Audit solaire simulation not created', error);
     }
   };
@@ -56,6 +84,49 @@ export class AuditSolaireSimulationController {
       throw new HTTP400Error('Error: Audit solaire simulation not deleted', error);
     }
   };
+
+  private static mergeExtractedData(
+    body: Record<string, any>,
+    extracted: any
+  ): Record<string, string | number | boolean> {
+    const merged: Record<string, any> = { ...body };
+
+    // Map monthlyBillAmount to measuredAmountTnd
+    if (extracted.monthlyBillAmount?.value !== undefined && !merged.measuredAmountTnd) {
+      merged.measuredAmountTnd = extracted.monthlyBillAmount.value;
+      Logger.info(`Extracted monthlyBillAmount: ${extracted.monthlyBillAmount.value}`);
+    }
+
+    // Derive referenceMonth from periodEnd date
+    if (extracted.periodEnd?.value && !merged.referenceMonth) {
+      try {
+        const periodEndDate = new Date(extracted.periodEnd.value);
+        const month = periodEndDate.getMonth() + 1; // getMonth() returns 0-11, we need 1-12
+        if (month >= 1 && month <= 12) {
+          merged.referenceMonth = month;
+          Logger.info(`Derived referenceMonth from periodEnd: ${month}`);
+        }
+      } catch (error) {
+        Logger.warn(`Failed to parse periodEnd date: ${extracted.periodEnd.value}`);
+      }
+    }
+
+    // If still no referenceMonth, try periodStart
+    if (!merged.referenceMonth && extracted.periodStart?.value) {
+      try {
+        const periodStartDate = new Date(extracted.periodStart.value);
+        const month = periodStartDate.getMonth() + 1;
+        if (month >= 1 && month <= 12) {
+          merged.referenceMonth = month;
+          Logger.info(`Derived referenceMonth from periodStart: ${month}`);
+        }
+      } catch (error) {
+        Logger.warn(`Failed to parse periodStart date: ${extracted.periodStart.value}`);
+      }
+    }
+
+    return merged;
+  }
 
   private static sanitizePayload(body: Record<string, string | number | boolean>): CreateSimulationInput {
     // Handle case where buildingType might be an object instead of a string

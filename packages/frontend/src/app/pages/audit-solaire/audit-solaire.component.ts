@@ -359,6 +359,7 @@ export class AuditSolaireComponent {
       : referenceMonthLabel ?? 1;
 
     const payload: CreateSimulationPayload = {
+      // Location
       address: this.auditForm.controls.location.value.address ?? '',
       fullName: this.auditForm.controls.location.value.fullName ?? '',
       companyName: this.auditForm.controls.location.value.companyName ?? '',
@@ -366,8 +367,17 @@ export class AuditSolaireComponent {
       phoneNumber: this.auditForm.controls.location.value.phoneNumber ?? '',
       measuredAmountTnd: this.auditForm.controls.consumption.value.measuredAmountTnd ?? 0,
       referenceMonth,
+      
+      // Building
       buildingType: this.auditForm.controls.building.value.buildingType ?? '',
-      climateZone: this.auditForm.controls.building.value.climateZone ?? this.climateZones[0] ?? ''
+      climateZone: this.auditForm.controls.building.value.climateZone ?? this.climateZones[0] ?? '',
+      
+      // Personal Info (not collected in old component, using empty defaults)
+      // NOTE: The new solar_audit page collects these fields properly
+      fullName: '',
+      companyName: '',
+      email: '',
+      phoneNumber: ''
     };
 
     this.isSubmitting.set(true);

@@ -31,6 +31,15 @@
   z-index: 9999;
   pointer-events: none;
   white-space: normal;
+
+  // Mobile responsive adjustments
+  @media (max-width: 640px) {
+    min-width: calc(100vw - 2rem);
+    max-width: calc(100vw - 2rem);
+    left: 1rem !important;
+    right: 1rem !important;
+    transform: translateX(0) !important;
+  }
 }
 
 .tooltip-title {

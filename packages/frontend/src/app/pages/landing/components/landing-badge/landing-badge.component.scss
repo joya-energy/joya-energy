@@ -1,0 +1,19 @@
+.landing-badge {
+  display: inline-block;
+  padding: var(--landing-badge-padding);
+  border-radius: var(--landing-badge-radius);
+  font-size: var(--landing-badge-font-size);
+  font-weight: var(--landing-badge-font-weight);
+  background: var(--landing-badge-primary-bg);
+  color: var(--landing-badge-primary-color);
+  margin-bottom: var(--landing-spacing-md);
+
+  @media (min-width: 768px) {
+    margin-bottom: var(--landing-spacing-lg);
+  }
+}
+
+.landing-badge--secondary {
+  background: var(--landing-badge-secondary-bg);
+  color: var(--landing-badge-secondary-color);
+}

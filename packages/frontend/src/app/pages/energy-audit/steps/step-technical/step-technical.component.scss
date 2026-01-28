@@ -1,0 +1,81 @@
+.step-technical {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem; // Spacing between questions
+}
+
+.form-field-group-short {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  width: 100%;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-field {
+  width: 100%;
+
+  // Center selection boxes when 3 or fewer options (but keep title aligned)
+  &.selection-centered {
+    // Title stays aligned with main content (no centering)
+    ::ng-deep .ui-select-box-label,
+    ::ng-deep .ui-select-dropdown-label {
+      width: 100%;
+      margin: 0; // Title doesn't get centered
+    }
+
+    // Only center the boxes container, not the wrapper or title
+    ::ng-deep .ui-select-box-container {
+      max-width: 600px;
+      margin: 0 auto;
+      justify-content: center;
+    }
+  }
+}
+
+// Fixed input sizes - ensure consistent sizing
+::ng-deep {
+  app-ui-input {
+    width: 100%;
+    display: block;
+  }
+
+  .ui-input-wrapper {
+    width: 100%;
+  }
+
+  .ui-input-container {
+    width: 100%;
+  }
+
+  .ui-input {
+    width: 100% !important;
+    min-width: 100% !important;
+    height: 3.5rem !important; // Fixed height
+    padding: 1rem 1.25rem !important; // Bigger padding
+    font-size: var(--font-size-base) !important;
+    box-sizing: border-box;
+  }
+
+  // Select boxes also need fixed sizes
+  app-ui-select {
+    width: 100%;
+    display: block;
+  }
+
+  .ui-select-box-container {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .ui-select-box {
+    min-height: 3.5rem !important; // Match input height
+    padding: 1rem 1.25rem !important;
+    font-size: var(--font-size-base) !important;
+    box-sizing: border-box;
+  }
+}

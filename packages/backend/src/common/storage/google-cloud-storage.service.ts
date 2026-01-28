@@ -15,10 +15,43 @@ export class GoogleCloudStorageService implements IFileStorageService {
   ) {
     this.bucketName = bucketName;
     
-    // Set environment variable for impersonation if provided
-    // This allows the GoogleAuth library to automatically handle impersonation
-    if (impersonateServiceAccount && !process.env.GOOGLE_IMPERSONATE_SERVICE_ACCOUNT) {
-      process.env.GOOGLE_IMPERSONATE_SERVICE_ACCOUNT = impersonateServiceAccount;
+    // If keyFilename is provided, use service account key file
+    if (keyFilename) {
+      const resolvedPath = path.isAbsolute(keyFilename) 
+        ? keyFilename 
+        : path.resolve(process.cwd(), keyFilename);
+      try {
+        this.storage = new Storage({ keyFilename: resolvedPath });
+        Logger.info(`✅ GCS initialized with key file: ${resolvedPath}`);
+      } catch (error) {
+        Logger.error(`❌ Failed to initialize GCS with key file ${resolvedPath}: ${error instanceof Error ? error.message : String(error)}`);
+        throw error;
+      }
+    } else {
+      // Use Application Default Credentials (ADC)
+      // For signed URLs without JSON keys, use service account impersonation:
+      // 1. Set GOOGLE_IMPERSONATE_SERVICE_ACCOUNT environment variable, OR
+      // 2. Run: gcloud auth application-default login --impersonate-service-account=SERVICE_ACCOUNT_EMAIL
+      // 3. Or set GOOGLE_APPLICATION_CREDENTIALS to point to a service account JSON file
+      try {
+        this.storage = new Storage();
+        
+        if (impersonateServiceAccount) {
+          // Set environment variable for impersonation (if not already set via gcloud command)
+          if (!process.env.GOOGLE_IMPERSONATE_SERVICE_ACCOUNT) {
+            process.env.GOOGLE_IMPERSONATE_SERVICE_ACCOUNT = impersonateServiceAccount;
+          }
+          Logger.info(`🔐 Service account impersonation configured: ${impersonateServiceAccount}`);
+          Logger.info(`📝 To authenticate, run: gcloud auth application-default login --impersonate-service-account=${impersonateServiceAccount}`);
+          Logger.info(`📝 Or set GOOGLE_APPLICATION_CREDENTIALS environment variable to a service account JSON file path`);
+        } else {
+          Logger.warn(`⚠️ No service account impersonation configured. Signed URLs may not work with user credentials.`);
+          Logger.info(`📝 To authenticate, set GOOGLE_APPLICATION_CREDENTIALS or run: gcloud auth application-default login`);
+        }
+      } catch (error) {
+        Logger.error(`❌ Failed to initialize GCS with Application Default Credentials: ${error instanceof Error ? error.message : String(error)}`);
+        throw error;
+      }
     }
     
     // Create Storage client
@@ -54,18 +87,23 @@ export class GoogleCloudStorageService implements IFileStorageService {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      const errorDetails = this.extractErrorDetails(error);
       
-      Logger.error(
-        `❌ Failed to upload file to GCS: ${errorMessage}${errorDetails ? ` (${errorDetails})` : ''}`,
-        error
-      );
+      // Check if it's a credentials/authentication error
+      const isCredentialError = errorMessage.includes('Could not load the default credentials') ||
+                                errorMessage.includes('credentials') ||
+                                errorMessage.includes('authentication') ||
+                                errorMessage.includes('permission');
       
-      // Preserve the original error for better error handling upstream
-      throw new HTTP400Error(
-        `Failed to upload file to Google Cloud Storage: ${errorMessage}${errorDetails ? ` (${errorDetails})` : ''}`,
-        error
-      );
+      if (isCredentialError) {
+        Logger.warn(`⚠️ GCS upload failed (credentials issue): ${errorMessage}`);
+        Logger.warn(`⚠️ File will not be saved to cloud storage. Email will still be sent with PDF attachment.`);
+        Logger.info(`📝 To fix: Set up GCS credentials (see GCS_SIGNED_URLS_SETUP.md)`);
+      } else {
+        Logger.error(`❌ Failed to upload file to GCS: ${errorMessage}`, error);
+      }
+      
+      // Re-throw the error so FileService can handle it and use fallback values
+      throw new HTTP400Error(`Failed to upload file to Google Cloud Storage: ${errorMessage}`, error);
     }
   }
 

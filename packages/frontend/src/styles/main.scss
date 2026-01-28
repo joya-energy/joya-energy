@@ -9,10 +9,15 @@
 @use './animations';
 @use './layout';
 @use './buttons';
+@use './cards';
 @use './utilities';
 @use './colors';
+@use './componentsColors';
+@use './landing-theme';
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -20,6 +25,13 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden !important;
+  overflow-y: auto;
+  width: 100vw;
+  max-width: 100vw;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  position: relative;
 }
 
 body {
@@ -30,6 +42,14 @@ body {
   background-color: var(--bg-page);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden !important;
+  overflow-y: auto;
+  width: 100vw;
+  max-width: 100vw;
+  min-height: 100vh;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  position: relative;
 }
 
 // Reset heading margins

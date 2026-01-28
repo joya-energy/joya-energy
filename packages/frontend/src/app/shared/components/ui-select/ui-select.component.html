@@ -1,25 +1,99 @@
-<div class="ui-select-container" [class.disabled]="disabled" [class.open]="isOpen()">
-    <div class="ui-select-trigger" (click)="toggleDropdown()">
-        <span class="ui-select-value" [class.placeholder]="!hasSelection()">
-            {{ hasSelection() ? displayValue() : placeholder }}
-        </span>
-        <span class="ui-select-arrow">
-            <ng-icon name="lucideChevronDown" size="16"></ng-icon>
-        </span>
+<!-- Dropdown Variants (dropdown, dropdown-icon) -->
+@if (variant === 'dropdown' || variant === 'dropdown-icon') {
+  <div class="ui-select-dropdown-wrapper">
+    @if (label) {
+      <label class="ui-select-dropdown-label">
+        <span>{{ label }}</span>
+        @if (required) {
+          <span class="required-asterisk"> *</span>
+        }
+      </label>
+    }
+    <div class="ui-select-container" 
+         [class.disabled]="disabled" 
+         [class.open]="isOpen()"
+         [class.variant-icon]="variant === 'dropdown-icon'">
+      <div class="ui-select-trigger" (click)="toggleDropdown()">
+      <span class="ui-select-value" [class.placeholder]="!hasSelection()">
+        @if (variant === 'dropdown-icon' && hasSelection()) {
+          @for (option of normalizedOptions(); track getOptionValue(option)) {
+            @if (isSelected(option)) {
+              @if (getOptionIcon(option)) {
+                <ng-icon [name]="getOptionIcon(option)!" size="16" class="trigger-icon"></ng-icon>
+              }
+            }
+          }
+        }
+        {{ hasSelection() ? displayValue() : placeholder }}
+      </span>
+      <span class="ui-select-arrow">
+        <ng-icon name="lucideChevronDown" size="16"></ng-icon>
+      </span>
     </div>
 
-    <div class="ui-select-dropdown" *ngIf="isOpen()">
-        <div
+    @if (isOpen()) {
+      <div class="ui-select-dropdown" [class.drop-up]="shouldDropUp()">
+        @for (option of normalizedOptions(); track getOptionValue(option)) {
+          <div
             class="ui-select-option"
-            *ngFor="let option of options"
             [class.selected]="isSelected(option)"
             (click)="selectOption(option)"
-        >
-            <span class="option-label">{{ option }}</span>
-            <ng-icon *ngIf="isSelected(option)" name="lucideCheck" size="16" class="check-icon"></ng-icon>
-        </div>
-        <div class="ui-select-empty" *ngIf="options.length === 0">
+          >
+          @if (variant === 'dropdown-icon' && getOptionIcon(option)) {
+            <ng-icon [name]="getOptionIcon(option)!" size="18" class="option-icon"></ng-icon>
+          }
+          <span class="option-label">{{ getOptionLabel(option) }}</span>
+          </div>
+        }
+        @if (normalizedOptions().length === 0) {
+          <div class="ui-select-empty">
             Aucune option
-        </div>
+          </div>
+        }
+      </div>
+    }
     </div>
-</div>
+  </div>
+}
+
+<!-- Box Variants (box, box-icon) -->
+@if (variant === 'box' || variant === 'box-icon') {
+  <div class="ui-select-box-wrapper">
+    @if (label) {
+      <label class="ui-select-box-label">
+        {{ label }}
+        @if (required) {
+          <span class="required-asterisk">*</span>
+        }
+      </label>
+    }
+    <div class="ui-select-box-container" 
+         [class.disabled]="disabled"
+         [class.variant-icon]="variant === 'box-icon'"
+         [class.icon-top]="variant === 'box-icon' && iconPosition === 'top'"
+         [class.icon-left]="variant === 'box-icon' && iconPosition === 'left'"
+         [class.multiple]="multiple"
+         [style.grid-template-columns]="'repeat(' + gridColumns() + ', 1fr)'">
+      @for (option of normalizedOptions(); track getOptionValue(option)) {
+        <div
+          class="ui-select-box"
+          [class.selected]="isSelected(option)"
+          [class.disabled]="disabled"
+          (click)="selectOption(option)"
+        >
+        @if (variant === 'box-icon' && getOptionIcon(option)) {
+          <div class="box-icon-wrapper">
+            <ng-icon [name]="getOptionIcon(option)!" size="24" class="box-icon"></ng-icon>
+          </div>
+        }
+        <span class="box-label">{{ getOptionLabel(option) }}</span>
+        </div>
+      }
+      @if (normalizedOptions().length === 0) {
+        <div class="ui-select-empty">
+          Aucune option
+        </div>
+      }
+    </div>
+  </div>
+}

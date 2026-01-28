@@ -239,3 +239,8 @@ Si tout fonctionne, vous avez maintenant un module complet de comparaison de fin
 
 **Besoin d'aide ?** Consultez le README dans `packages/backend/src/modules/comparaison-financements/README.md`
 
+
+## To create a new component use this command :
+
+npx ng generate page pages/component-name 
+also can be used for component creation.

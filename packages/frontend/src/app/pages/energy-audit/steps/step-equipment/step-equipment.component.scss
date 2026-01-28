@@ -1,0 +1,81 @@
+.step-equipment {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem; // Spacing between questions
+}
+
+.form-field {
+  width: 100%;
+
+  .field-label {
+    display: block;
+    margin-bottom: 0.75rem;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .choice-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+
+    .choice-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem 1.25rem;
+      border: 2px solid var(--neutral-200);
+      border-radius: 1rem;
+      background: var(--bg-card);
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      .choice-title {
+        margin: 0;
+        font-size: var(--font-size-base);
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      &:hover {
+        border-color: var(--teal-soft);
+        box-shadow: 0 4px 12px rgba(13, 87, 87, 0.1);
+      }
+
+      &.active {
+        border-color: var(--teal-primary);
+        background: var(--teal-wash);
+        box-shadow: 0 4px 12px rgba(13, 87, 87, 0.15);
+      }
+    }
+  }
+}
+
+// Fixed input sizes - ensure consistent sizing
+::ng-deep {
+  // Select boxes also need fixed sizes
+  app-ui-select {
+    width: 100%;
+    display: block;
+  }
+
+  .ui-select-box-container {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .ui-select-box {
+    min-height: 3.5rem !important; // Match input height
+    padding: 1rem 1.25rem !important;
+    font-size: var(--font-size-base) !important;
+    box-sizing: border-box;
+  }
+}

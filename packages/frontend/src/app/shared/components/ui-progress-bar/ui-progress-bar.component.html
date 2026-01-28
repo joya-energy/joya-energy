@@ -1,0 +1,38 @@
+<div class="ui-progress-bar-wrapper" [class.focused]="isFocused">
+  <!-- Left: Circle -->
+  <div class="ui-progress-bar-left">
+    <div class="ui-progress-bar-step-indicator" 
+         [class.completed]="completed"
+         [class.active]="isActive()"
+         [class.focused]="isFocused">
+      @if (completed) {
+        <ng-icon name="lucideCheck" size="24" class="step-check-icon"></ng-icon>
+      } @else {
+        <span class="step-number">{{ step }}</span>
+      }
+    </div>
+  </div>
+
+  <!-- Right: Title + Progress Bar + Percentage -->
+  <div class="ui-progress-bar-right">
+    @if (title) {
+      <div class="ui-progress-bar-title" [class.focused]="isFocused" [class.completed]="completed">{{ title }}</div>
+    }
+    
+    <div class="ui-progress-bar-bottom">
+      <!-- Progress Bar -->
+      <div class="ui-progress-bar-track">
+        <div 
+          class="ui-progress-bar-fill" 
+          [class.completed]="completed"
+          [style.width.%]="displayProgress()"
+        ></div>
+      </div>
+
+      <!-- Percentage Display -->
+      <div class="ui-progress-bar-percentage" [class.focused]="isFocused" [class.completed]="completed">
+        {{ displayPercentage() }}
+      </div>
+    </div>
+  </div>
+</div>
