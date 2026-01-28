@@ -47,6 +47,11 @@ export interface AnnualEconomicData {
 
 export interface  IAuditSolaireSimulation extends BusinessObject {
   // Location & Site
+  address?: string;
+  fullName: string;
+  companyName?: string;
+  email: string;
+  phoneNumber?: string;
   latitude: number;
   longitude: number;
   buildingType: BuildingTypes;

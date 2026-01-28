@@ -1,4 +1,18 @@
 /* ==========================
+   PAGE SIZE FOR PDF
+========================== */
+
+@page {
+  size: A4;
+  margin: 0;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+/* ==========================
    JOYA BRAND SYSTEM
 ========================== */
 
@@ -54,6 +68,11 @@ h3 {
 .page-content {
   padding: 110px 60px 90px;
   box-sizing: border-box;
+}
+
+/* Page 3 bottom padding */
+.energy-page .page-content {
+  padding-bottom: 90px;
 }
 
 .page-header {
@@ -436,4 +455,412 @@ h3 {
 .impact-label {
   font-size: 13px;
   color: var(--joya-orange-main);
+}
+
+/* ==========================
+   PV – MONTHLY BILLS CHART
+========================== */
+
+.pv-monthly-bills {
+  margin-top: 60px;
+  margin-bottom: 200px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px 12px 10px;
+}
+
+.pv-monthly-bills-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.pv-monthly-bills-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--joya-blue);
+}
+
+.pv-monthly-bills-unit {
+  font-size: 11px;
+  font-weight: 700;
+  color: #2563eb;
+  background: #eef2ff;
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.pv-monthly-bills-chart {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.pv-monthly-bills-y-axis {
+  position: relative;
+  min-width: 32px;
+  height: 180px;
+  padding: 12px 6px 12px 0;
+}
+
+.pv-y-axis-label {
+  position: absolute;
+  right: 0;
+  font-size: 9px;
+  color: #6b7280;
+  line-height: 1;
+  font-weight: 600;
+  text-align: right;
+}
+
+.pv-monthly-bills-y-axis .pv-y-axis-label:nth-child(1) { top: 0; }
+.pv-monthly-bills-y-axis .pv-y-axis-label:nth-child(2) { top: 36px; }
+.pv-monthly-bills-y-axis .pv-y-axis-label:nth-child(3) { top: 72px; }
+.pv-monthly-bills-y-axis .pv-y-axis-label:nth-child(4) { top: 108px; }
+.pv-monthly-bills-y-axis .pv-y-axis-label:nth-child(5) { top: 144px; }
+
+.pv-monthly-bills-chart-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.pv-monthly-bills-bars-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.pv-monthly-bills-bars {
+  height: 180px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 12px 12px 0;
+  border-radius: 10px 10px 0 0;
+  background:
+    linear-gradient(to top, rgba(229,231,235,0.8) 1px, transparent 1px) 0 0 / 100% 20%,
+    #fafafa;
+  border: 1px solid #eef2f7;
+  border-bottom: none;
+}
+
+.pv-monthly-bills-month {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.pv-monthly-bills-pair {
+  width: 100%;
+  height: 180px;
+  margin-top: -12px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+  position: relative;
+}
+
+.pv-bar {
+  width: 46%;
+  border-radius: 6px 6px 0 0;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 0;
+}
+
+.pv-bar-zero {
+  background: transparent !important;
+  border-color: transparent !important;
+}
+
+.pv-bar-zero .pv-bar-value {
+  display: block;
+  opacity: 1;
+}
+
+.pv-bar-with.pv-bar-zero {
+  height: 2px !important;
+  background: rgba(232, 113, 92, 0.95) !important;
+  border: 1px solid rgba(232, 113, 92, 1) !important;
+  border-radius: 999px !important;
+}
+
+.pv-bar-without {
+  background: rgba(59, 130, 246, 0.45);
+  border: 1px solid rgba(59, 130, 246, 0.55);
+}
+
+.pv-bar-with {
+  background: rgba(248, 113, 113, 0.55);
+  border: 1px solid rgba(248, 113, 113, 0.7);
+}
+
+.pv-bar-value {
+  position: absolute;
+  top: -18px;
+  font-size: 8px;
+  font-weight: 700;
+  color: #374151;
+  white-space: nowrap;
+  text-align: center;
+  line-height: 1;
+}
+
+.pv-monthly-bills-labels-row {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  padding: 8px 14px 0;
+  background: #fafafa;
+  border: 1px solid #eef2f7;
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+}
+
+.pv-monthly-bills-label {
+  flex: 1;
+  font-size: 9px;
+  color: #6b7280;
+  text-align: center;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.pv-monthly-bills-legend {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  font-size: 11px;
+  color: #374151;
+  margin-top: 8px;
+}
+
+.pv-monthly-bills-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pv-monthly-bills-swatch {
+  width: 18px;
+  height: 8px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.pv-swatch-without {
+  background: rgba(59, 130, 246, 0.45);
+  border: 1px solid rgba(59, 130, 246, 0.55);
+}
+
+.pv-swatch-with {
+  background: rgba(248, 113, 113, 0.55);
+  border: 1px solid rgba(248, 113, 113, 0.7);
+}
+
+/* ==========================
+   CUMULATIVE GAINS CHART
+========================== */
+
+.pv-cumulative-gains-chart {
+  margin-top: 24px;
+  padding: 18px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.pv-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.pv-chart-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--joya-blue);
+}
+
+.pv-chart-unit {
+  font-size: 10px;
+  font-weight: 700;
+  color: #2563eb;
+  background: #eef2ff;
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.pv-line-chart-container {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.pv-line-chart-y-axis {
+  position: relative;
+  min-width: 40px;
+  height: 200px;
+  padding: 10px 6px 10px 0;
+  font-size: 9px;
+  color: #6b7280;
+}
+
+.pv-line-chart-y-axis .pv-y-axis-label {
+  position: absolute;
+  right: 0;
+  line-height: 1;
+  font-weight: 600;
+  text-align: right;
+}
+
+.pv-line-chart-y-axis .pv-y-axis-label:nth-child(1) { top: 0; }
+.pv-line-chart-y-axis .pv-y-axis-label:nth-child(2) { top: 40px; }
+.pv-line-chart-y-axis .pv-y-axis-label:nth-child(3) { top: 80px; }
+.pv-line-chart-y-axis .pv-y-axis-label:nth-child(4) { top: 120px; }
+.pv-line-chart-y-axis .pv-y-axis-label:nth-child(5) { top: 160px; }
+.pv-line-chart-y-axis .pv-y-axis-label:nth-child(6) { top: 200px; }
+
+.pv-line-chart-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pv-line-chart-svg-container {
+  height: 200px;
+  width: 100%;
+  position: relative;
+  padding: 10px;
+  background:
+    linear-gradient(to top, 
+      rgba(229,231,235,0.8) 0%,
+      rgba(229,231,235,0.8) 0.5%,
+      transparent 0.5%,
+      transparent 20%,
+      rgba(229,231,235,0.8) 20%,
+      rgba(229,231,235,0.8) 20.5%,
+      transparent 20.5%,
+      transparent 40%,
+      rgba(229,231,235,0.8) 40%,
+      rgba(229,231,235,0.8) 40.5%,
+      transparent 40.5%,
+      transparent 60%,
+      rgba(229,231,235,0.8) 60%,
+      rgba(229,231,235,0.8) 60.5%,
+      transparent 60.5%,
+      transparent 80%,
+      rgba(229,231,235,0.8) 80%,
+      rgba(229,231,235,0.8) 80.5%,
+      transparent 80.5%,
+      transparent 100%,
+      rgba(229,231,235,0.8) 100%,
+      rgba(229,231,235,0.8) 100.5%,
+      transparent 100.5%
+    ),
+    #fafafa;
+  border: 1px solid #eef2f7;
+  border-radius: 10px;
+  overflow: visible;
+}
+
+.pv-line-chart-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.pv-line-gains {
+  stroke: rgba(59, 130, 246, 0.8);
+  stroke-width: 3;
+  fill: none;
+}
+
+.pv-line-capex {
+  stroke: rgba(248, 113, 113, 0.8);
+  stroke-width: 3;
+  stroke-dasharray: 8, 4;
+  fill: none;
+}
+
+.pv-line-chart-x-axis {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 6px 0 6px;
+  font-size: 9px;
+  color: #6b7280;
+  height: 40px;
+  align-items: flex-start;
+}
+
+.pv-x-axis-label {
+  flex: 1;
+  text-align: center;
+  font-weight: 500;
+  transform: rotate(-45deg);
+  transform-origin: top left;
+  white-space: nowrap;
+  padding-left: 4px;
+}
+
+.pv-line-chart-x-axis-sparse {
+  height: 22px;
+  padding-top: 10px;
+}
+
+.pv-line-chart-x-axis-sparse .pv-x-axis-label {
+  transform: none;
+  padding-left: 0;
+  font-size: 10px;
+}
+
+.pv-line-chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 12px;
+  font-size: 11px;
+  color: #374151;
+}
+
+.pv-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pv-legend-line {
+  width: 24px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.pv-legend-line-gains {
+  background: rgba(59, 130, 246, 0.8);
+}
+
+.pv-legend-line-capex {
+  background: rgba(248, 113, 113, 0.8);
+  background-image: repeating-linear-gradient(
+    to right,
+    rgba(248, 113, 113, 0.8) 0,
+    rgba(248, 113, 113, 0.8) 8px,
+    transparent 8px,
+    transparent 12px
+  );
 }

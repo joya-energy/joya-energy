@@ -26,7 +26,7 @@ import {
   computeCo2Emissions,
   computeEnergyClass,
   computeEnergySplit,
-  computeProgressiveTariff
+  computeFlatRateTariff
 } from './helpers';
 import { Logger } from '@backend/middlewares';
 
@@ -182,7 +182,7 @@ export class AuditSimulationService extends CommonService<
      * COST
      * ----------------------------------------- */
 
-    const tariff = computeProgressiveTariff({ monthlyConsumption });
+    const tariff = computeFlatRateTariff({ monthlyConsumption });
     const avgPrice = tariff.annualCost / annualConsumption;
 
     const coolingKwh =

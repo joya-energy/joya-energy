@@ -67,8 +67,8 @@ export interface EconomicAnalysisResult {
   returnOnInvestmentPercent: number; // ROI as a ratio (multiply by 100 for percentage)
   netPresentValue: number; // NPV/VAN (DT)
   internalRateOfReturnPercent: number; // IRR/TRI (%)
-  annualCo2Avoided: number; // Annual CO2 emissions avoided (kg)
-  totalCo2Avoided25Years: number; // Total CO2 avoided over 25 years (kg)
+  annualCo2Avoided: number; // Annual CO2 emissions avoided (tonnes)
+  totalCo2Avoided25Years: number; // Total CO2 avoided over 25 years (tonnes)
 }
 
 // ============================================================================
@@ -610,15 +610,36 @@ export function analyzeEconomics(input: EconomicAnalysisInput): EconomicAnalysis
   const internalRateOfReturnPercent = calculateIRR(investmentCost, annualResults);
 
   // Calculate CO2 avoided emissions
+  // Formula: CO₂ évité (t/an) (25 ans) = Σ (MIN(consommation brute annuelle ; Production PV annuelle ×(1-d)ⁿ⁻¹) × 0,463) / 1000
+  // Where: d = taux de dégradation de performance (0.4%)
+  // Note: 0.463 is kg CO2 per kWh (emission factor)
   const annualRawConsumption = input.monthlyRawConsumptions.reduce((sum, consumption) => sum + consumption, 0);
-  const effectiveEnergyForCo2 = Math.min(annualRawConsumption, input.annualPVProduction);
-  const annualCo2Avoided = (effectiveEnergyForCo2 * 0.463) / 100; // kg CO2/year
-  const totalCo2Avoided25Years = annualCo2Avoided * projectLifetimeYears; // kg CO2 over 25 years
+  const emissionFactor = 0.463; // kg CO2 per kWh
+  
+  // Calculate total CO2 avoided over 25 years with degradation
+  let totalCo2Avoided25Years = 0;
+  for (let year = 1; year <= projectLifetimeYears; year++) {
+    // Calculate degraded PV production for year n: Production PV annuelle × (1-d)^(n-1)
+    const degradationMultiplier = Math.pow(1 - pvDegradationRate, year - 1);
+    const degradedPVProduction = input.annualPVProduction * degradationMultiplier;
+    
+    // Take minimum of consumption and degraded production
+    const effectiveEnergyForCo2 = Math.min(annualRawConsumption, degradedPVProduction);
+    
+    // Calculate CO2 avoided for this year: (effectiveEnergy × 0.463) / 1000
+    const annualCo2Avoided = (effectiveEnergyForCo2 * emissionFactor) / 1000; // tonnes CO2/year
+    
+    totalCo2Avoided25Years += annualCo2Avoided;
+  }
+  
+  // Calculate first year CO2 avoided for annual metric
+  const firstYearEffectiveEnergy = Math.min(annualRawConsumption, input.annualPVProduction);
+  const annualCo2Avoided = (firstYearEffectiveEnergy * emissionFactor) / 1000; // tonnes CO2/year
 
   Logger.info(
     `Economic analysis complete: NPV=${netPresentValue} DT, IRR=${internalRateOfReturnPercent}%, ` +
     `Payback=${simplePaybackYears} months, ROI=${(returnOnInvestmentPercent * 100).toFixed(2)}%, ` +
-    `CO2 avoided=${annualCo2Avoided.toFixed(0)} kg/year, ${totalCo2Avoided25Years.toFixed(0)} kg total`
+    `CO2 avoided=${annualCo2Avoided.toFixed(2)} tonnes/year, ${totalCo2Avoided25Years.toFixed(2)} tonnes total`
   );
 
   return {
@@ -632,7 +653,7 @@ export function analyzeEconomics(input: EconomicAnalysisInput): EconomicAnalysis
     returnOnInvestmentPercent,
     netPresentValue,
     internalRateOfReturnPercent,
-    annualCo2Avoided: Number(annualCo2Avoided.toFixed(0)),
-    totalCo2Avoided25Years: Number(totalCo2Avoided25Years.toFixed(0)),
+    annualCo2Avoided: Number(annualCo2Avoided.toFixed(2)),
+    totalCo2Avoided25Years: Number(totalCo2Avoided25Years.toFixed(2)),
   };
 }

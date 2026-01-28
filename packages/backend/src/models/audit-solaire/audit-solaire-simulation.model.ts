@@ -9,6 +9,11 @@ export type AuditSolaireSimulationDocument = IAuditSolaireSimulation & Document<
 export const AuditSolaireSimulationModel: Model<AuditSolaireSimulationDocument> = buildSchema<AuditSolaireSimulationDocument>(
   ModelsCollection.AUDIT_SOLAIRE_SIMULATION,
   {
+    address: { type: String, required: false },
+    fullName: { type: String, required: false },
+    companyName: { type: String, required: false },
+    email: { type: String, required: false },
+    phoneNumber: { type: String, required: false },
     latitude: { type: Number, required: true, min: -90, max: 90 },
     longitude: { type: Number, required: true, min: -180, max: 180 },
     measuredAmount: { type: Number, required: true, min: 0 },

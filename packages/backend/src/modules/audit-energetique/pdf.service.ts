@@ -1,6 +1,7 @@
 import puppeteer, { type Browser } from 'puppeteer';
 import fs from 'fs';
 import path from 'path';
+import sharp from 'sharp';
 import { AuditEnergetiqueResponseDto } from './dto/audit-energetique-response.dto';
 import { AuditSolaireResponseDto } from '../audit-solaire/dto/audit-solaire-response.dto';
 import { buildPvReportDataFromSolaire, type PvReportData } from './pv-report.builder';
@@ -12,6 +13,19 @@ import { FileType, type IFile } from '@shared/interfaces/file.interface';
 import { Logger } from '@backend/middlewares/logger.midddleware';
 import { getFileService } from '../file/file.service.factory';
 import { AuditSimulationTypes } from '@backend/enums';
+
+/**
+ * Image compression quality (0-100)
+ * 60 provides good quality for PDF documents while keeping file size small
+ */
+const IMAGE_COMPRESSION_QUALITY = 60;
+
+/**
+ * Maximum image dimensions for PDF
+ * Images larger than this will be resized down
+ */
+const MAX_IMAGE_WIDTH = 800;
+const MAX_IMAGE_HEIGHT = 600;
 
 type PDFInputDto =
   | AuditEnergetiqueResponseDto
@@ -39,6 +53,7 @@ export class AuditPDFService {
   private browserPromise: Promise<Browser> | null = null;
   private readonly fileService: FileService;
   private readonly assetsCache: StaticAssetsCache;
+  private assetsCacheReady: Promise<void>;
 
   constructor(fileService: FileService) {
     this.fileService = fileService;
@@ -47,14 +62,80 @@ export class AuditPDFService {
       css: new Map(),
       images: new Map(),
     };
-    this.initializeAssetsCache();
+    this.assetsCacheReady = this.initializeAssetsCache();
+  }
+
+  /**
+   * Compress and resize an image using sharp
+   * - Resizes large images to fit within MAX dimensions
+   * - Converts PNG to optimized PNG or JPEG depending on content
+   */
+  private async compressImage(imagePath: string): Promise<string> {
+    try {
+      const imageBuffer = fs.readFileSync(imagePath);
+      let image = sharp(imageBuffer);
+      const metadata = await image.metadata();
+      
+      // Resize if image is too large (keeps aspect ratio)
+      const width = metadata.width || 0;
+      const height = metadata.height || 0;
+      
+      if (width > MAX_IMAGE_WIDTH || height > MAX_IMAGE_HEIGHT) {
+        image = image.resize(MAX_IMAGE_WIDTH, MAX_IMAGE_HEIGHT, {
+          fit: 'inside',
+          withoutEnlargement: true
+        });
+      }
+      
+      // For images with transparency, use PNG with compression
+      // For others, convert to JPEG for better compression
+      let compressedBuffer: Buffer;
+      let mimeType: string;
+      
+      if (metadata.hasAlpha) {
+        // Keep PNG but optimize it aggressively
+        compressedBuffer = await image
+          .png({ 
+            quality: IMAGE_COMPRESSION_QUALITY,
+            compressionLevel: 9,
+            effort: 10,
+            palette: true  // Use palette-based PNG for smaller files
+          })
+          .toBuffer();
+        mimeType = 'image/png';
+      } else {
+        // Convert to JPEG for better compression (no transparency needed)
+        compressedBuffer = await image
+          .jpeg({ 
+            quality: IMAGE_COMPRESSION_QUALITY,
+            mozjpeg: true
+          })
+          .toBuffer();
+        mimeType = 'image/jpeg';
+      }
+      
+      const originalSize = imageBuffer.length;
+      const compressedSize = compressedBuffer.length;
+      const savings = ((originalSize - compressedSize) / originalSize * 100).toFixed(1);
+      
+      Logger.debug(`📦 Compressed ${path.basename(imagePath)}: ${(originalSize/1024).toFixed(1)}KB → ${(compressedSize/1024).toFixed(1)}KB (${savings}% saved)`);
+      
+      // Return as data URI with correct MIME type
+      return `data:${mimeType};base64,${compressedBuffer.toString('base64')}`;
+    } catch (error) {
+      Logger.warn(`⚠️ Failed to compress ${imagePath}, using original: ${String(error)}`);
+      // Fallback to original
+      const originalBuffer = fs.readFileSync(imagePath);
+      return originalBuffer.toString('base64');
+    }
   }
 
   /**
    * Initialize static assets cache on service creation
    * Loads all templates, CSS files, and images into memory
+   * Images are compressed to reduce PDF size
    */
-  private initializeAssetsCache(): void {
+  private async initializeAssetsCache(): Promise<void> {
     try {
       // Cache templates
       const auditTemplateDir = path.resolve(__dirname, './template/audit');
@@ -87,7 +168,7 @@ export class AuditPDFService {
         'utf8'
       ));
 
-      // Cache images from organized uploads folders
+      // Cache images from organized uploads folders (with compression)
       const uploadsDir = path.resolve(__dirname, './uploads');
       const imageMapping = [
         { file: 'cover.png', category: 'covers' },
@@ -106,16 +187,20 @@ export class AuditPDFService {
         { file: 'invest.png', category: 'financial' },
       ];
 
-      for (const { file, category } of imageMapping) {
+      // Compress all images in parallel for faster startup
+      const compressionPromises = imageMapping.map(async ({ file, category }) => {
         const imagePath = path.join(uploadsDir, category, file);
         if (fs.existsSync(imagePath)) {
-          this.assetsCache.images.set(file, fs.readFileSync(imagePath).toString('base64'));
+          const compressedDataUri = await this.compressImage(imagePath);
+          this.assetsCache.images.set(file, compressedDataUri);
         } else {
           Logger.warn(`⚠️ Image file not found: ${category}/${file}`);
         }
-      }
+      });
 
-      Logger.info(`✅ Static assets cache initialized: ${this.assetsCache.templates.size} templates, ${this.assetsCache.css.size} CSS files, ${this.assetsCache.images.size} images`);
+      await Promise.all(compressionPromises);
+
+      Logger.info(`✅ Static assets cache initialized: ${this.assetsCache.templates.size} templates, ${this.assetsCache.css.size} CSS files, ${this.assetsCache.images.size} images (compressed)`);
     } catch (error) {
       Logger.error(`❌ Failed to initialize static assets cache: ${String(error)}`);
       // Continue execution - will fall back to reading files on demand
@@ -123,24 +208,72 @@ export class AuditPDFService {
   }
 
   /**
-   * Load image as base64 from cache
+   * Load image as complete data URI from cache
+   * Returns a complete data URI (data:image/...;base64,...)
+   * Templates should use src="{{imageName}}" without any prefix
    */
-  private getImageBase64(imageName: string): string {
+  private getImageDataUri(imageName: string): string {
     const cached = this.assetsCache.images.get(imageName);
     if (cached) {
-      return cached;
+      // If it's already a data URI, return as-is
+      if (cached.startsWith('data:')) {
+        return cached;
+      }
+      // Legacy: plain base64 without data URI prefix
+      return `data:image/png;base64,${cached}`;
     }
     
-    // Fallback: read from disk if not in cache
-    Logger.warn(`⚠️ Image ${imageName} not in cache, reading from disk`);
-    const imagePath = path.resolve(__dirname, './image', imageName);
+    // Fallback: read from disk if not in cache (uncompressed)
+    Logger.warn(`⚠️ Image ${imageName} not in cache, reading from disk (uncompressed)`);
+    const uploadsDir = path.resolve(__dirname, './uploads');
+    const categoryMapping: Record<string, string> = {
+      'cover.png': 'covers',
+      'logo.png': 'branding',
+      'building.png': 'buildings',
+      'building2.png': 'buildings',
+      'cold.png': 'icons',
+      'heat.png': 'icons',
+      'light.png': 'icons',
+      'equipment.png': 'icons',
+      'ecs.png': 'icons',
+      'energy.png': 'icons',
+      'panneau.png': 'solar',
+      'pv-cover.png': 'solar',
+      'bank.png': 'financial',
+      'invest.png': 'financial',
+    };
+    
+    const category = categoryMapping[imageName];
+    const imagePath = category 
+      ? path.join(uploadsDir, category, imageName)
+      : path.resolve(__dirname, './image', imageName);
+    
     if (fs.existsSync(imagePath)) {
       const base64 = fs.readFileSync(imagePath).toString('base64');
-      this.assetsCache.images.set(imageName, base64);
-      return base64;
+      const dataUri = `data:image/png;base64,${base64}`;
+      this.assetsCache.images.set(imageName, dataUri);
+      return dataUri;
     }
     
     throw new Error(`Image file not found: ${imageName}`);
+  }
+
+  /**
+   * Load image as base64 from cache (for legacy templates)
+   * Returns just the base64 part without data URI prefix
+   * Templates use src="data:image/png;base64,{{imageName}}"
+   */
+  private getImageBase64(imageName: string): string {
+    const dataUri = this.getImageDataUri(imageName);
+    
+    // Extract just the base64 part from data URI
+    const match = dataUri.match(/^data:image\/[^;]+;base64,(.+)$/);
+    if (match) {
+      return match[1];
+    }
+    
+    // If not a valid data URI, return as-is (probably already base64)
+    return dataUri;
   }
 
   private async getBrowser(): Promise<Browser> {
@@ -151,7 +284,18 @@ export class AuditPDFService {
     if (!this.browserPromise) {
       this.browserPromise = puppeteer.launch({
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--disable-extensions',
+          '--disable-background-networking',
+          '--disable-background-timer-throttling',
+          '--disable-renderer-backgrounding',
+          '--disable-features=TranslateUI',
+          '--disable-ipc-flooding-protection',
+        ],
       });
     }
     
@@ -245,7 +389,14 @@ export class AuditPDFService {
     const page = await browser.newPage();
     
     try {
-      await page.setContent(html, { waitUntil: 'networkidle0' });
+      // We don't need JS for our templates (we render everything server-side).
+      // Disabling it reduces overhead and avoids waiting on script execution.
+      await page.setJavaScriptEnabled(false);
+
+      // Use 'load' instead of 'networkidle0' for faster rendering
+      // Since all content is already in memory (templates, CSS, images as base64),
+      // we don't need to wait for network requests
+      await page.setContent(html, { waitUntil: 'domcontentloaded' });
 
       const pdf = await page.pdf({
         format: 'A4',
@@ -276,6 +427,9 @@ export class AuditPDFService {
     solaireDto?: AuditSolaireResponseDto | null,
     energetiqueDto?: AuditEnergetiqueResponseDto | null
   ): Promise<Buffer> {
+    // Ensure assets cache is ready (images compressed)
+    await this.assetsCacheReady;
+    
     return Promise.race([
       this._generatePDF(dto, template, solaireDto, energetiqueDto),
       new Promise<Buffer>((_, reject) =>
@@ -418,17 +572,17 @@ export class AuditPDFService {
       classes,
       co2Classes,
 
-      // Contact info - from Energetique if available, otherwise use Solaire or defaults
-      auditDate: data 
-        ? new Date(data.createdAt).toLocaleDateString('fr-FR')
-        : (finalSolaireDto ? new Date(finalSolaireDto.createdAt).toLocaleDateString('fr-FR') : new Date().toLocaleDateString('fr-FR')),
+      // Contact info - from PV (Audit Solaire) simulation only (no fallback to Energetique)
+      auditDate: finalSolaireDto
+        ? new Date(finalSolaireDto.createdAt).toLocaleDateString('fr-FR')
+        : (data ? new Date(data.createdAt).toLocaleDateString('fr-FR') : new Date().toLocaleDateString('fr-FR')),
 
-      fullName: data?.contact.fullName ?? '',
-      companyName: data?.contact.companyName ?? '',
-      email: data?.contact.email ?? '',
-      phoneNumber: data?.contact.phoneNumber ?? '',
-      address: data?.contact.address ?? '',
-      governorate: data?.contact.governorate ?? '',
+      fullName: finalSolaireDto?.fullName ?? '',
+      companyName: finalSolaireDto?.companyName ?? '',
+      email: finalSolaireDto?.email ?? '',
+      phoneNumber: finalSolaireDto?.phoneNumber ?? '',
+      address: finalSolaireDto?.address ?? '',
+      governorate: '', // Not stored in PV simulation
 
       // Building info - from Energetique if available
       heating: data?.systems.heating ?? '',
@@ -552,19 +706,8 @@ export class AuditPDFService {
         (data?.results?.energyConsumption?.annual?.value ?? 0);
       flattened.annualConsumption = formatNumber(annualConsumptionValue, 0);
       
-      // Use actual CO2 data from audit if PV data doesn't have it
-      // Pass null if audit data is also missing (formatNumber will return "N/A")
-      if (pvData.co2PerYear === null || pvData.co2PerYear === undefined) {
-        const co2TonsFromAudit = data?.results?.co2Emissions?.annual?.tons;
-        flattened.co2PerYear = formatNumber(co2TonsFromAudit, 2);
-      }
-      if (pvData.co2Total === null || pvData.co2Total === undefined) {
-        const co2TonsFromAudit = data?.results?.co2Emissions?.annual?.tons;
-        const studyDuration = typeof flattened.studyDuration === 'number' ? flattened.studyDuration : 25;
-        flattened.co2Total = co2TonsFromAudit !== null && co2TonsFromAudit !== undefined
-          ? formatNumber(co2TonsFromAudit * studyDuration, 0)
-          : formatNumber(null, 0);
-      }
+      // CO₂ data now comes from PV economic analysis (Audit Solaire).
+      // We no longer fall back to Audit Énergétique CO₂ to keep results consistent with the PV simulation UI.
     }
 
     // Note: monthlyEconomics would come from AuditSolaireResponseDto if available
@@ -572,11 +715,252 @@ export class AuditPDFService {
     if (isPv && finalSolaireDto && 'monthlyEconomics' in finalSolaireDto) {
       const monthlyData = finalSolaireDto.monthlyEconomics;
       if (Array.isArray(monthlyData)) {
-        monthlyData.forEach((m: MonthlyEconomicData, i: number) => {
-          flattened[`pv.month.${i}.withoutPv`] = m.billWithoutPV ?? 0;
-          flattened[`pv.month.${i}.withPv`] = m.billWithPV ?? 0;
-          flattened[`pv.month.${i}.savings`] = m.monthlySavings ?? 0;
+        const normalizedMonthlyData = monthlyData.slice(0, 12);
+
+        const maxBillValue = normalizedMonthlyData.reduce((max, m) => {
+          const withoutPv = typeof m.billWithoutPV === 'number' ? m.billWithoutPV : 0;
+          const withPv = typeof m.billWithPV === 'number' ? m.billWithPV : 0;
+          return Math.max(max, withoutPv, withPv);
+        }, 0);
+
+        // Build "nice" Y-axis ticks (no 0 label as requested)
+        const tickCount = 5;
+        const safeMaxBillValue = maxBillValue > 0 ? maxBillValue : 1;
+        const rawStep = safeMaxBillValue / tickCount;
+        const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+        const normalized = rawStep / magnitude;
+        const stepBase = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
+        const step = stepBase * magnitude;
+        const topTick = step * tickCount;
+
+        flattened.pvChartTick1 = topTick;
+        flattened.pvChartTick2 = topTick - step;
+        flattened.pvChartTick3 = topTick - step * 2;
+        flattened.pvChartTick4 = topTick - step * 3;
+        flattened.pvChartTick5 = topTick - step * 4;
+
+        normalizedMonthlyData.forEach((m: MonthlyEconomicData, i: number) => {
+          const withoutPv = typeof m.billWithoutPV === 'number' ? m.billWithoutPV : 0;
+          const withPv = typeof m.billWithPV === 'number' ? m.billWithPV : 0;
+          const savings = typeof m.monthlySavings === 'number' ? m.monthlySavings : 0;
+
+          flattened[`pv.month.${i}.withoutPv`] = withoutPv;
+          flattened[`pv.month.${i}.withPv`] = withPv;
+          flattened[`pv.month.${i}.savings`] = savings;
+
+          // Use topTick for scaling so bars match displayed Y-axis ticks
+          // The chart-bars container has height: 220px with 14px top padding
+          // The chart-bars-pair has height: 220px with margin-top: -14px to offset padding
+          // So bars are calculated as percentage of topTick, which matches the 220px container height
+          // Bars are positioned from bottom, so 0% = bottom, 100% = top
+          const withoutPvPct = topTick > 0 ? (withoutPv / topTick) * 100 : 0;
+          const withPvPct = topTick > 0 ? (withPv / topTick) * 100 : 0;
+          // Round to 2 decimal places for precision, but ensure 0 values stay at 0
+          flattened[`pv.month.${i}.withoutPvPct`] = withoutPv === 0 ? 0 : Math.round(withoutPvPct * 100) / 100;
+          flattened[`pv.month.${i}.withPvPct`] = withPv === 0 ? 0 : Math.round(withPvPct * 100) / 100;
+          // Keep the element so the label "0" is still visible, but make the bar itself visually hidden.
+          flattened[`pv.month.${i}.withoutPvZeroClass`] = withoutPv === 0 ? 'pv-bar-zero' : '';
+          flattened[`pv.month.${i}.withPvZeroClass`] = withPv === 0 ? 'pv-bar-zero' : '';
         });
+      }
+
+      // Calculate cumulative gains vs CAPEX chart data
+      if (isPv && finalSolaireDto && 'annualEconomics' in finalSolaireDto && Array.isArray(finalSolaireDto.annualEconomics)) {
+        const annualData = finalSolaireDto.annualEconomics.slice(0, 25); // All 25 years
+        const reportData = isPv && finalSolaireDto
+          ? buildPvReportDataFromSolaire(finalSolaireDto, auditDto ?? undefined)
+          : null;
+        const capex = (reportData as PvReportData)?.capexTotal ?? 0;
+        
+        if (annualData.length > 0) {
+          // Calculate max and min values
+          const maxGain = Math.max(...annualData.map(e => e.cumulativeNetGain || 0));
+          const minGain = Math.min(...annualData.map(e => e.cumulativeNetGain || 0));
+          const maxValue = Math.max(maxGain, capex);
+          const minValue = Math.min(minGain, capex);
+          
+          // Calculate "nice" ticks for Y-axis (5 intervals: 0%, 20%, 40%, 60%, 80%, 100%)
+          const tickCount = 5;
+          const range = maxValue - minValue;
+          const safeRange = Number.isFinite(range) && range > 0 ? range : 1;
+          const rawStep = safeRange / tickCount;
+          const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+          const normalized = rawStep / magnitude;
+          let stepBase;
+          if (normalized <= 1) stepBase = 1;
+          else if (normalized <= 2) stepBase = 2;
+          else if (normalized <= 5) stepBase = 5;
+          else stepBase = 10;
+          const step = stepBase * magnitude;
+          
+          // Round min and max to nice values
+          const roundedMin = Math.floor(minValue / step) * step;
+          const roundedMax = Math.ceil(maxValue / step) * step;
+          const actualRange = roundedMax - roundedMin;
+          const actualStep = actualRange / tickCount;
+          
+          // Generate ticks from bottom to top (ascending: min to max)
+          const ticksAscending = Array.from({ length: tickCount + 1 }, (_, i) => roundedMin + i * actualStep);
+          
+          // Reverse to get descending order (max to min) for display (top to bottom in chart)
+          const ticks = ticksAscending.reverse();
+          
+          flattened.lineChartMaxValue = Math.round(roundedMax);
+          flattened.lineChartMinValue = Math.round(roundedMin);
+          flattened.lineChartCapex = capex;
+          
+          // Store Y-axis ticks for template (already in descending order: max at top, min at bottom)
+          // 6 ticks total: 0%, 20%, 40%, 60%, 80%, 100%
+          flattened.lineChartTick1 = Math.round(ticks[0]);  // Top (100% from bottom = max value)
+          flattened.lineChartTick2 = Math.round(ticks[1]);  // 80%
+          flattened.lineChartTick3 = Math.round(ticks[2]);  // 60%
+          flattened.lineChartTick4 = Math.round(ticks[3]);  // 40%
+          flattened.lineChartTick5 = Math.round(ticks[4]);  // 20%
+          flattened.lineChartTick6 = Math.round(ticks[5]);  // Bottom (0% from bottom = min value)
+          
+          // Calculate line points for gains and CAPEX using rounded min/max
+          const gainsPoints: string[] = [];
+          const capexPoints: string[] = [];
+          const gainsPointsArray: Array<{x: number, y: number}> = [];
+          const capexPointsArray: Array<{x: number, y: number}> = [];
+          
+          annualData.forEach((yearData, index) => {
+            const value = yearData.cumulativeNetGain || 0;
+            const x = annualData.length > 1 ? (index / (annualData.length - 1)) * 1000 : 500;
+            const y = 400 - ((value - roundedMin) / actualRange) * 400;
+            gainsPoints.push(`${x.toFixed(2)},${y.toFixed(2)}`);
+            gainsPointsArray.push({ x, y });
+            
+            const capexY = 400 - ((capex - roundedMin) / actualRange) * 400;
+            capexPoints.push(`${x.toFixed(2)},${capexY.toFixed(2)}`);
+            capexPointsArray.push({ x, y: capexY });
+          });
+          
+          flattened.lineChartGainsPoints = gainsPoints.join(' ');
+          flattened.lineChartCapexPoints = capexPoints.join(' ');
+          
+          // Store individual points for circles (generate HTML directly for template)
+          // Generate gains circles HTML
+          const gainsCirclesHTML = gainsPointsArray.map((p) => 
+            `<circle cx="${p.x.toFixed(2)}" cy="${p.y.toFixed(2)}" r="4" fill="rgba(59, 130, 246, 0.8)"/>`
+          ).join('\n              ');
+          
+          // Generate CAPEX circles HTML
+          const capexCirclesHTML = capexPointsArray.map((p) => 
+            `<circle cx="${p.x.toFixed(2)}" cy="${p.y.toFixed(2)}" r="4" fill="rgba(248, 113, 113, 0.8)"/>`
+          ).join('\n              ');
+          
+          flattened.lineChartGainsCirclesHTML = gainsCirclesHTML;
+          flattened.lineChartCapexCirclesHTML = capexCirclesHTML;
+          flattened.lineChartYears = annualData.map(e => e.year).join(',');
+          flattened.lineChartMinValueNegative = roundedMin < 0;
+
+          // Calculate intersection point (where cumulative gains = CAPEX)
+          let intersectionYear: number | null = null;
+          let intersectionX: number | null = null;
+          let intersectionY: number | null = null;
+          
+          for (let i = 0; i < annualData.length - 1; i++) {
+            const currentGain = annualData[i].cumulativeNetGain || 0;
+            const nextGain = annualData[i + 1].cumulativeNetGain || 0;
+            
+            // Check if CAPEX is between current and next year
+            if (currentGain <= capex && nextGain >= capex) {
+              // Linear interpolation to find exact intersection
+              const year1 = annualData[i].year;
+              const year2 = annualData[i + 1].year;
+              const ratio = (capex - currentGain) / (nextGain - currentGain);
+              intersectionYear = year1 + (year2 - year1) * ratio;
+              
+              intersectionX = annualData.length > 1 ? ((i + ratio) / (annualData.length - 1)) * 1000 : 500;
+              intersectionY = 400 - ((capex - roundedMin) / actualRange) * 400;
+              
+              break;
+            }
+          }
+          
+          // Format intersection year with 1 decimal (like frontend: number:'1.1-1')
+          const intersectionYearText = intersectionYear !== null ? intersectionYear.toFixed(1) + ' ans' : '';
+          flattened.lineChartIntersectionYear = intersectionYear !== null ? intersectionYear.toFixed(1) : '';
+          flattened.lineChartIntersectionX = intersectionX !== null ? intersectionX.toFixed(2) : '';
+          flattened.lineChartIntersectionY = intersectionY !== null ? intersectionY.toFixed(2) : '';
+          flattened.lineChartIntersectionCapex = Math.round(capex);
+          flattened.lineChartHasIntersection = intersectionYear !== null ? 'true' : 'false';
+          
+          // Calculate bubble width based on text length (approx 7px per char + 30px padding)
+          const calculateBubbleWidth = (text: string): number => {
+            const charWidth = 7; // Approximate width per character for 14px bold font
+            const padding = 30; // 15px padding on each side
+            return Math.max(80, text.length * charWidth + padding);
+          };
+          
+          const intersectionBubbleWidth = calculateBubbleWidth(intersectionYearText);
+          flattened.lineChartIntersectionBubbleWidth = intersectionBubbleWidth;
+          flattened.lineChartIntersectionBubbleX = intersectionX !== null ? (intersectionX - intersectionBubbleWidth / 2).toFixed(2) : '';
+          
+          // Calculate final value (year 25)
+          const year25Index = Math.min(24, annualData.length - 1);
+          const finalGain = annualData[year25Index]?.cumulativeNetGain || 0;
+          const finalX = annualData.length > 1 ? (year25Index / (annualData.length - 1)) * 1000 : 500;
+          const finalY = 400 - ((finalGain - roundedMin) / actualRange) * 400;
+          
+          // Format final gain with spaces as thousand separators (like frontend: number:'1.0-0')
+          const formatNumberWithSpaces = (num: number): string => {
+            return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+          };
+          
+          flattened.lineChartFinalGain = formatNumberWithSpaces(finalGain);
+          flattened.lineChartFinalX = finalX.toFixed(2);
+          flattened.lineChartFinalY = finalY.toFixed(2);
+          
+          // Calculate bubble width for final gains
+          const finalGainText = formatNumberWithSpaces(finalGain) + ' DT';
+          const finalGainBubbleWidth = calculateBubbleWidth(finalGainText);
+          flattened.lineChartFinalBubbleWidth = finalGainBubbleWidth;
+          
+          // Calculate leader line and bubble positions (matching frontend)
+          flattened.lineChartFinalXMinus95 = (finalX - 95).toFixed(2);
+          flattened.lineChartFinalYPlus50 = (finalY + 50).toFixed(2);
+          flattened.lineChartFinalBubbleX = (finalX - 210 - (finalGainBubbleWidth - 180) / 2).toFixed(2);
+          flattened.lineChartFinalYPlus20 = (finalY + 20).toFixed(2);
+          flattened.lineChartFinalTextX = (
+            (finalX - 210 - (finalGainBubbleWidth - 180) / 2) + finalGainBubbleWidth / 2
+          ).toFixed(2);
+          flattened.lineChartFinalYPlus46 = (finalY + 46).toFixed(2);
+          
+          flattened.lineChartHasFinal = finalGain > 0 ? 'true' : 'false';
+          
+          // Calculate final CAPEX value (constant, same as initial)
+          const finalCapexX = annualData.length > 1 ? (year25Index / (annualData.length - 1)) * 1000 : 500;
+          const finalCapexY = 400 - ((capex - roundedMin) / actualRange) * 400;
+          
+          flattened.lineChartFinalCapex = formatNumberWithSpaces(capex);
+          flattened.lineChartFinalCapexX = finalCapexX.toFixed(2);
+          flattened.lineChartFinalCapexY = finalCapexY.toFixed(2);
+          
+          // Calculate bubble width for final CAPEX
+          const finalCapexText = formatNumberWithSpaces(capex) + ' DT';
+          const finalCapexBubbleWidth = calculateBubbleWidth(finalCapexText);
+          flattened.lineChartFinalCapexBubbleWidth = finalCapexBubbleWidth;
+          
+          // Calculate leader line and bubble positions for CAPEX (matching frontend)
+          flattened.lineChartFinalCapexXMinus95 = (finalCapexX - 95).toFixed(2);
+          flattened.lineChartFinalCapexYMinus28 = (finalCapexY - 28).toFixed(2);
+          flattened.lineChartFinalCapexBubbleX = (finalCapexX - 210 - (finalCapexBubbleWidth - 180) / 2).toFixed(2);
+          flattened.lineChartFinalCapexYMinus50 = (finalCapexY - 50).toFixed(2);
+          flattened.lineChartFinalCapexTextX = (
+            (finalCapexX - 210 - (finalCapexBubbleWidth - 180) / 2) + finalCapexBubbleWidth / 2
+          ).toFixed(2);
+          flattened.lineChartFinalCapexYMinus24 = (finalCapexY - 24).toFixed(2);
+          
+          flattened.lineChartHasFinalCapex = capex > 0 ? 'true' : 'false';
+
+          // Precompute display styles so the PDF template doesn't need JS.
+          // (renderHTML does simple {{var}} replacement only)
+          flattened.lineChartIntersectionDisplay = intersectionYear !== null ? 'block' : 'none';
+          flattened.lineChartFinalDisplay = finalGain > 0 ? 'block' : 'none';
+          flattened.lineChartFinalCapexDisplay = capex > 0 ? 'block' : 'none';
+        }
       }
     }
 
@@ -585,35 +969,43 @@ export class AuditPDFService {
     =============================== */
     html = this.renderHTML(html, flattened);
     const pdfBuffer = await this.generatePDFFromHTML(html);
+    
+    const sizeKB = (pdfBuffer.length / 1024).toFixed(1);
+    const sizeMB = (pdfBuffer.length / 1024 / 1024).toFixed(2);
+    Logger.info(`📄 PDF generated: ${sizeKB} KB (${sizeMB} MB) - template: ${template}`);
 
-    // Save to cloud storage (or fallback)
+    // Save to cloud storage (or fallback) WITHOUT blocking the response.
+    // This is often the slowest step (network upload). We run it in the background.
     try {
       const filePrefix = template === 'pv' ? 'PV' : 'Audit';
-      const fileName = data 
+      const fileName = data
         ? `${data.contact.companyName || data.contact.fullName || 'Client'}`
         : (finalSolaireDto ? 'Client' : 'Unknown');
       const originalFileName = `${filePrefix}_${fileName}.pdf`;
       const fileType = template === 'pv' ? FileType.PDF_PV_REPORT : FileType.PDF_AUDIT_REPORT;
-      
-      const simulationId = auditDto?.data?.simulationId ?? (dto as AuditEnergetiqueResponseDto)?.data?.simulationId ?? finalSolaireDto?.id;
-      
+
+      const simulationId = auditDto?.data?.simulationId
+        ?? (dto as AuditEnergetiqueResponseDto)?.data?.simulationId
+        ?? finalSolaireDto?.id;
+
       const metadata: IFile['metadata'] = {
         simulationId,
-        simulationType: template === 'pv' 
-          ? (finalSolaireDto ? AuditSimulationTypes.AUDIT_SOLAIRE : AuditSimulationTypes.AUDIT_ENERGETIQUE) 
+        simulationType: template === 'pv'
+          ? (finalSolaireDto ? AuditSimulationTypes.AUDIT_SOLAIRE : AuditSimulationTypes.AUDIT_ENERGETIQUE)
           : AuditSimulationTypes.AUDIT_ENERGETIQUE,
         companyName: data?.contact?.companyName || data?.contact?.fullName || undefined,
       };
 
-      await this.fileService.uploadAndSaveFile(
+      void this.fileService.uploadAndSaveFile(
         pdfBuffer,
         originalFileName,
         fileType,
         metadata
-      );
+      ).catch((error) => {
+        Logger.error(`⚠️ Failed to save PDF: ${String(error)}`);
+      });
     } catch (error) {
-      Logger.error(`⚠️ Failed to save PDF: ${String(error)}`);
-      // Continue execution even if save fails
+      Logger.error(`⚠️ Failed to schedule PDF save: ${String(error)}`);
     }
     
     return pdfBuffer;

@@ -36,14 +36,14 @@
 
 
 
-  <!-- BIG IMAGE -->
+  <!-- BIG IMAGE 
   <div class="cover-image-big">
     <img
       src="data:image/jpeg;base64,{{pvcoverBase64}}"
       alt="cover"
     />
   </div>
-
+-->
   <!-- FOOTER DATE -->
   <div class="cover-footer">
     Rapport généré le {{auditDate}}
@@ -280,6 +280,189 @@
 
     </div>
 
+    <!-- ===============================
+         FACTURES MENSUELLES – AVEC / SANS SOLAIRE (ANNÉE 1)
+    ================================ -->
+    <div class="pv-monthly-bills">
+      <div class="pv-monthly-bills-header">
+        <h2 class="pv-monthly-bills-title">Factures mensuelles – Avec / Sans solaire</h2>
+        <div class="pv-monthly-bills-unit">DT/MOIS</div>
+      </div>
+
+      <div class="pv-monthly-bills-chart">
+        <div class="pv-monthly-bills-y-axis">
+          <div class="pv-y-axis-label">{{pvChartTick1}}</div>
+          <div class="pv-y-axis-label">{{pvChartTick2}}</div>
+          <div class="pv-y-axis-label">{{pvChartTick3}}</div>
+          <div class="pv-y-axis-label">{{pvChartTick4}}</div>
+          <div class="pv-y-axis-label">{{pvChartTick5}}</div>
+        </div>
+
+        <div class="pv-monthly-bills-chart-container">
+          <div class="pv-monthly-bills-bars-wrapper">
+            <div class="pv-monthly-bills-bars">
+            <div class="pv-monthly-bills-month">
+              <div class="pv-monthly-bills-pair">
+                <div class="pv-bar pv-bar-without {{pv.month.0.withoutPvZeroClass}}" style="height: {{pv.month.0.withoutPvPct}}%;">
+                  <div class="pv-bar-value">{{pv.month.0.withoutPv}}</div>
+                </div>
+                <div class="pv-bar pv-bar-with {{pv.month.0.withPvZeroClass}}" style="height: {{pv.month.0.withPvPct}}%;">
+                  <div class="pv-bar-value">{{pv.month.0.withPv}}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pv-monthly-bills-month">
+              <div class="pv-monthly-bills-pair">
+                <div class="pv-bar pv-bar-without {{pv.month.1.withoutPvZeroClass}}" style="height: {{pv.month.1.withoutPvPct}}%;">
+                  <div class="pv-bar-value">{{pv.month.1.withoutPv}}</div>
+                </div>
+                <div class="pv-bar pv-bar-with {{pv.month.1.withPvZeroClass}}" style="height: {{pv.month.1.withPvPct}}%;">
+                  <div class="pv-bar-value">{{pv.month.1.withPv}}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pv-monthly-bills-month">
+              <div class="pv-monthly-bills-pair">
+                <div class="pv-bar pv-bar-without {{pv.month.2.withoutPvZeroClass}}" style="height: {{pv.month.2.withoutPvPct}}%;">
+                  <div class="pv-bar-value">{{pv.month.2.withoutPv}}</div>
+                </div>
+                <div class="pv-bar pv-bar-with {{pv.month.2.withPvZeroClass}}" style="height: {{pv.month.2.withPvPct}}%;">
+                  <div class="pv-bar-value">{{pv.month.2.withPv}}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pv-monthly-bills-month">
+              <div class="pv-monthly-bills-pair">
+                <div class="pv-bar pv-bar-without {{pv.month.3.withoutPvZeroClass}}" style="height: {{pv.month.3.withoutPvPct}}%;">
+                  <div class="pv-bar-value">{{pv.month.3.withoutPv}}</div>
+                </div>
+                <div class="pv-bar pv-bar-with {{pv.month.3.withPvZeroClass}}" style="height: {{pv.month.3.withPvPct}}%;">
+                  <div class="pv-bar-value">{{pv.month.3.withPv}}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pv-monthly-bills-month">
+              <div class="pv-monthly-bills-pair">
+                <div class="pv-bar pv-bar-without {{pv.month.4.withoutPvZeroClass}}" style="height: {{pv.month.4.withoutPvPct}}%;">
+                  <div class="pv-bar-value">{{pv.month.4.withoutPv}}</div>
+                </div>
+                <div class="pv-bar pv-bar-with {{pv.month.4.withPvZeroClass}}" style="height: {{pv.month.4.withPvPct}}%;">
+                  <div class="pv-bar-value">{{pv.month.4.withPv}}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pv-monthly-bills-month">
+              <div class="pv-monthly-bills-pair">
+                <div class="pv-bar pv-bar-without {{pv.month.5.withoutPvZeroClass}}" style="height: {{pv.month.5.withoutPvPct}}%;">
+                  <div class="pv-bar-value">{{pv.month.5.withoutPv}}</div>
+                </div>
+                <div class="pv-bar pv-bar-with {{pv.month.5.withPvZeroClass}}" style="height: {{pv.month.5.withPvPct}}%;">
+                  <div class="pv-bar-value">{{pv.month.5.withPv}}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pv-monthly-bills-month">
+              <div class="pv-monthly-bills-pair">
+                <div class="pv-bar pv-bar-without {{pv.month.6.withoutPvZeroClass}}" style="height: {{pv.month.6.withoutPvPct}}%;">
+                  <div class="pv-bar-value">{{pv.month.6.withoutPv}}</div>
+                </div>
+                <div class="pv-bar pv-bar-with {{pv.month.6.withPvZeroClass}}" style="height: {{pv.month.6.withPvPct}}%;">
+                  <div class="pv-bar-value">{{pv.month.6.withPv}}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pv-monthly-bills-month">
+              <div class="pv-monthly-bills-pair">
+                <div class="pv-bar pv-bar-without {{pv.month.7.withoutPvZeroClass}}" style="height: {{pv.month.7.withoutPvPct}}%;">
+                  <div class="pv-bar-value">{{pv.month.7.withoutPv}}</div>
+                </div>
+                <div class="pv-bar pv-bar-with {{pv.month.7.withPvZeroClass}}" style="height: {{pv.month.7.withPvPct}}%;">
+                  <div class="pv-bar-value">{{pv.month.7.withPv}}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pv-monthly-bills-month">
+              <div class="pv-monthly-bills-pair">
+                <div class="pv-bar pv-bar-without {{pv.month.8.withoutPvZeroClass}}" style="height: {{pv.month.8.withoutPvPct}}%;">
+                  <div class="pv-bar-value">{{pv.month.8.withoutPv}}</div>
+                </div>
+                <div class="pv-bar pv-bar-with {{pv.month.8.withPvZeroClass}}" style="height: {{pv.month.8.withPvPct}}%;">
+                  <div class="pv-bar-value">{{pv.month.8.withPv}}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pv-monthly-bills-month">
+              <div class="pv-monthly-bills-pair">
+                <div class="pv-bar pv-bar-without {{pv.month.9.withoutPvZeroClass}}" style="height: {{pv.month.9.withoutPvPct}}%;">
+                  <div class="pv-bar-value">{{pv.month.9.withoutPv}}</div>
+                </div>
+                <div class="pv-bar pv-bar-with {{pv.month.9.withPvZeroClass}}" style="height: {{pv.month.9.withPvPct}}%;">
+                  <div class="pv-bar-value">{{pv.month.9.withPv}}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pv-monthly-bills-month">
+              <div class="pv-monthly-bills-pair">
+                <div class="pv-bar pv-bar-without {{pv.month.10.withoutPvZeroClass}}" style="height: {{pv.month.10.withoutPvPct}}%;">
+                  <div class="pv-bar-value">{{pv.month.10.withoutPv}}</div>
+                </div>
+                <div class="pv-bar pv-bar-with {{pv.month.10.withPvZeroClass}}" style="height: {{pv.month.10.withPvPct}}%;">
+                  <div class="pv-bar-value">{{pv.month.10.withPv}}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pv-monthly-bills-month">
+              <div class="pv-monthly-bills-pair">
+                <div class="pv-bar pv-bar-without {{pv.month.11.withoutPvZeroClass}}" style="height: {{pv.month.11.withoutPvPct}}%;">
+                  <div class="pv-bar-value">{{pv.month.11.withoutPv}}</div>
+                </div>
+                <div class="pv-bar pv-bar-with {{pv.month.11.withPvZeroClass}}" style="height: {{pv.month.11.withPvPct}}%;">
+                  <div class="pv-bar-value">{{pv.month.11.withPv}}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Month labels row below the bars -->
+          <div class="pv-monthly-bills-labels-row">
+            <div class="pv-monthly-bills-label">Janv</div>
+            <div class="pv-monthly-bills-label">Févr</div>
+            <div class="pv-monthly-bills-label">Mars</div>
+            <div class="pv-monthly-bills-label">Avr</div>
+            <div class="pv-monthly-bills-label">Mai</div>
+            <div class="pv-monthly-bills-label">Juin</div>
+            <div class="pv-monthly-bills-label">Juil</div>
+            <div class="pv-monthly-bills-label">Août</div>
+            <div class="pv-monthly-bills-label">Sept</div>
+            <div class="pv-monthly-bills-label">Oct</div>
+            <div class="pv-monthly-bills-label">Nov</div>
+            <div class="pv-monthly-bills-label">Déc</div>
+          </div>
+
+          <div class="pv-monthly-bills-legend">
+            <div class="pv-monthly-bills-legend-item">
+              <span class="pv-monthly-bills-swatch pv-swatch-without"></span>
+              <span>Facture sans solaire</span>
+            </div>
+            <div class="pv-monthly-bills-legend-item">
+              <span class="pv-monthly-bills-swatch pv-swatch-with"></span>
+              <span>Facture avec solaire</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </div>
 
@@ -292,10 +475,6 @@
   </div>
 
 </div>
-
-
-
-
 
 <!-- ================= PAGE 4 ================= -->
 <div class="page usage-page">
@@ -345,7 +524,206 @@
   </tbody>
 </table>
 
+    <!-- ===============================
+         GAINS NETS CUMULÉS VS CAPEX CHART
+    ================================ -->
+    <div class="pv-cumulative-gains-chart">
+      <div class="pv-chart-header">
+        <h2 class="pv-chart-title">Gains nets cumulés vs CAPEX</h2>
+        <div class="pv-chart-unit">DT</div>
+      </div>
+      <div class="pv-line-chart-container">
+        <div class="pv-line-chart-y-axis">
+          <div class="pv-y-axis-label">{{lineChartTick1}}</div>
+          <div class="pv-y-axis-label">{{lineChartTick2}}</div>
+          <div class="pv-y-axis-label">{{lineChartTick3}}</div>
+          <div class="pv-y-axis-label">{{lineChartTick4}}</div>
+          <div class="pv-y-axis-label">{{lineChartTick5}}</div>
+          <div class="pv-y-axis-label">{{lineChartTick6}}</div>
+        </div>
+        <div class="pv-line-chart-content">
+          <div class="pv-line-chart-svg-container">
+            <svg class="pv-line-chart-svg" viewBox="0 0 1000 400" preserveAspectRatio="none">
+              <!-- Grid lines are now created by CSS gradient background -->
+              
+              <!-- CAPEX line (dashed orange) -->
+              <polyline 
+                class="pv-line-capex"
+                points="{{lineChartCapexPoints}}"
+                fill="none"
+                stroke="rgba(248, 113, 113, 0.8)"
+                stroke-width="3"
+                stroke-dasharray="8,4"/>
+              
+              <!-- CAPEX line circles -->
+              {{lineChartCapexCirclesHTML}}
+              
+              <!-- Cumulative Net Gains line (solid blue) -->
+              <polyline 
+                class="pv-line-gains"
+                points="{{lineChartGainsPoints}}"
+                fill="none"
+                stroke="rgba(59, 130, 246, 0.8)"
+                stroke-width="3"/>
+              
+              <!-- Gains line circles -->
+              {{lineChartGainsCirclesHTML}}
 
+              <!-- Shadow filter for bubbles -->
+              <defs>
+                <filter id="pv-shadow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+                  <feOffset dx="2" dy="2" result="offsetblur"/>
+                  <feComponentTransfer>
+                    <feFuncA type="linear" slope="0.3"/>
+                  </feComponentTransfer>
+                  <feMerge>
+                    <feMergeNode/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
+
+              <!-- Intersection annotation -->
+              <g id="intersection-annotation" style="display: {{lineChartIntersectionDisplay}};">
+                <circle 
+                  cx="{{lineChartIntersectionX}}" 
+                  cy="{{lineChartIntersectionY}}" 
+                  r="8" 
+                  fill="#10b981"
+                  stroke="white"
+                  stroke-width="3"/>
+                <rect 
+                  x="{{lineChartIntersectionBubbleX}}" 
+                  y="{{lineChartIntersectionY}}" 
+                  width="{{lineChartIntersectionBubbleWidth}}" 
+                  height="35" 
+                  rx="10" 
+                  fill="#ffffff" 
+                  stroke="#10b981" 
+                  stroke-width="3"
+                  opacity="0.95"
+                  filter="url(#pv-shadow)"
+                  transform="translate(0, -45)"/>
+                <text 
+                  x="{{lineChartIntersectionX}}" 
+                  y="{{lineChartIntersectionY}}" 
+                  text-anchor="middle" 
+                  font-size="14" 
+                  font-weight="bold" 
+                  fill="#047857"
+                  transform="translate(0, -25)">
+                  {{lineChartIntersectionYear}} ans
+                </text>
+              </g>
+
+              <!-- Final value annotation (blue bubble) -->
+              <g id="final-annotation" style="display: {{lineChartFinalDisplay}};">
+                <circle 
+                  cx="{{lineChartFinalX}}" 
+                  cy="{{lineChartFinalY}}" 
+                  r="8" 
+                  fill="#3b82f6"
+                  stroke="white"
+                  stroke-width="3"/>
+
+                <!-- Leader line (from last point to bubble) -->
+                <line
+                  x1="{{lineChartFinalX}}"
+                  y1="{{lineChartFinalY}}"
+                  x2="{{lineChartFinalXMinus95}}"
+                  y2="{{lineChartFinalYPlus50}}"
+                  stroke="rgba(59, 130, 246, 0.9)"
+                  stroke-width="3"
+                  stroke-linecap="round"/>
+
+                <rect 
+                  x="{{lineChartFinalBubbleX}}" 
+                  y="{{lineChartFinalYPlus20}}" 
+                  width="{{lineChartFinalBubbleWidth}}" 
+                  height="40" 
+                  rx="12" 
+                  fill="#ffffff" 
+                  stroke="#3b82f6" 
+                  stroke-width="3"
+                  opacity="0.97"
+                  filter="url(#pv-shadow)"/>
+                <text 
+                  x="{{lineChartFinalTextX}}" 
+                  y="{{lineChartFinalYPlus46}}" 
+                  text-anchor="middle" 
+                  font-size="14" 
+                  font-weight="bold" 
+                  fill="#1e40af">
+                  {{lineChartFinalGain}} DT
+                </text>
+              </g>
+
+              <!-- Final CAPEX value annotation (orange bubble) -->
+              <g id="final-capex-annotation" style="display: {{lineChartFinalCapexDisplay}};">
+                <circle 
+                  cx="{{lineChartFinalCapexX}}" 
+                  cy="{{lineChartFinalCapexY}}" 
+                  r="8" 
+                  fill="#f87171"
+                  stroke="white"
+                  stroke-width="3"/>
+
+                <!-- Leader line (from last point to bubble) -->
+                <line
+                  x1="{{lineChartFinalCapexX}}"
+                  y1="{{lineChartFinalCapexY}}"
+                  x2="{{lineChartFinalCapexXMinus95}}"
+                  y2="{{lineChartFinalCapexYMinus28}}"
+                  stroke="rgba(248, 113, 113, 0.9)"
+                  stroke-width="3"
+                  stroke-linecap="round"/>
+
+                <rect 
+                  x="{{lineChartFinalCapexBubbleX}}" 
+                  y="{{lineChartFinalCapexYMinus50}}" 
+                  width="{{lineChartFinalCapexBubbleWidth}}" 
+                  height="40" 
+                  rx="12" 
+                  fill="#ffffff" 
+                  stroke="#f87171" 
+                  stroke-width="3"
+                  opacity="0.97"
+                  filter="url(#pv-shadow)"/>
+                <text 
+                  x="{{lineChartFinalCapexTextX}}" 
+                  y="{{lineChartFinalCapexYMinus24}}" 
+                  text-anchor="middle" 
+                  font-size="14" 
+                  font-weight="bold" 
+                  fill="#c2410c">
+                  {{lineChartFinalCapex}} DT
+                </text>
+              </g>
+              <!-- annotations display is controlled server-side (no JS needed) -->
+            </svg>
+          </div>
+          <div class="pv-line-chart-x-axis pv-line-chart-x-axis-sparse">
+            <div class="pv-x-axis-label">Année 1</div>
+            <div class="pv-x-axis-label">Année 5</div>
+            <div class="pv-x-axis-label">Année 10</div>
+            <div class="pv-x-axis-label">Année 15</div>
+            <div class="pv-x-axis-label">Année 20</div>
+            <div class="pv-x-axis-label">Année 25</div>
+          </div>
+        </div>
+      </div>
+      <div class="pv-line-chart-legend">
+        <div class="pv-legend-item">
+          <div class="pv-legend-line pv-legend-line-gains"></div>
+          <span>Gains nets cumulés</span>
+        </div>
+        <div class="pv-legend-item">
+          <div class="pv-legend-line pv-legend-line-capex"></div>
+          <span>CAPEX</span>
+        </div>
+      </div>
+    </div>
 
   </div>
 
@@ -426,7 +804,7 @@
     <div class="footer-line"></div>
     <div class="footer-content">
       <span>Étude photovoltaïque </span>
-      <span>Page 4</span>
+      <span>Page 5</span>
     </div>
   </div>
 </div>

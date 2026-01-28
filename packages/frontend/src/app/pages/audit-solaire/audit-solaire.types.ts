@@ -2,13 +2,17 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { BuildingTypes, ClimateZones } from '@shared';
 
 export type InvoiceFieldName = 'hasInvoice';
-export type LocationFieldName = 'address';
+export type LocationFieldName = 'address' | 'fullName' | 'companyName' | 'email' | 'phoneNumber';
 export type ConsumptionFieldName = 'measuredAmountTnd' | 'referenceMonth' | 'billAttachment';
 export type BuildingFieldName = 'buildingType' | 'climateZone';
 export type PersonalFieldName = 'fullName' | 'companyName' | 'email' | 'phoneNumber';
 
 export type LocationFormValue = {
   address: string;
+  fullName: string;
+  companyName: string;
+  email: string;
+  phoneNumber: string;
 };
 
 export type ConsumptionFormValue = {
@@ -39,6 +43,10 @@ export type AuditSolaireFormValue = {
 
 export type LocationForm = {
   address: FormControl<string>;
+  fullName: FormControl<string>;
+  companyName: FormControl<string>;
+  email: FormControl<string>;
+  phoneNumber: FormControl<string>;
 };
 
 export type ConsumptionForm = {
