@@ -98,15 +98,4 @@
   }
 }
 
-// Responsive adjustments
-@media (max-width: 768px) {
-  .timeline-circle {
-    width: 2rem;
-    height: 2rem;
-    font-size: var(--font-size-xs);
-  }
 
-  .timeline-label {
-    font-size: 10px;
-  }
-}

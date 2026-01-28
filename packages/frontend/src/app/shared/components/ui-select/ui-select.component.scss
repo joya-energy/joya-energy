@@ -270,6 +270,9 @@
     cursor: not-allowed;
     opacity: 0.5;
   }
+
+ 
+
 }
 
 .box-icon-wrapper {
@@ -308,6 +311,9 @@
 
   .icon-left & {
     text-align: left;
+  }
+  @media (max-width: 1105px) {
+    font-size: var(--font-size-sm);
   }
 }
 

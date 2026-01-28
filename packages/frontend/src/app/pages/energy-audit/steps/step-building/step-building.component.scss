@@ -21,7 +21,7 @@
   text-transform: uppercase;
   font-weight: var(--font-weight-semibold);
   color: var(--text-secondary);
-  margin-bottom: 0rem;
+  margin-bottom: 0.5rem;
   letter-spacing: 0.05em;
 }
 
@@ -70,9 +70,9 @@
   }
 
   &.building-card--active {
-    background: var(--landing-primary-lightest);
-    border-color: var(--landing-primary);
-    box-shadow: 0 4px 12px rgba(227, 112, 81, 0.15);
+    background: var(--select-box-bg-selected);
+    border-color: var(--select-box-border-selected);
+    
   }
 
   .building-card-icon {

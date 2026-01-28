@@ -6,7 +6,7 @@
   overflow: hidden;
   box-sizing: border-box;
   margin-top: 8rem; // Navbar height
-  padding: 0 2rem 2rem 2rem; // Left, right, bottom padding
+  padding: 0 0rem 2rem 2rem; // Left, right, bottom padding
   font-family: var(--font-family-primary);
   color: var(--text-primary);
   display: flex;
@@ -15,7 +15,7 @@
   box-shadow: 0px -1px 3px rgba(0,0,0,0.2);
 
   @media (max-width: 768px) {
-    padding: 0 1rem 1rem 1rem;
+    padding: 0 0rem 1rem 1rem;
     margin-top: 5rem;
     height: calc(100vh - 5rem);
   }
@@ -69,7 +69,9 @@
     }
   }
 
-  @media (max-width: 1023px) {
+  
+
+  @media (max-width: 1105px) {
     display: none; // Hide sidebar on mobile
   }
 }
@@ -287,7 +289,7 @@
 .form-timeline-header {
   flex-shrink: 0;
   width: 100%;
-  max-width: 70%;
+  max-width: 1073px;
   margin: 0 auto;
   padding: 2.5rem 2.5rem 1.5rem 2.5rem;
   background: var(--bg-page);
@@ -353,7 +355,7 @@
 
 .form-content {
   width: 100%;
-  max-width: 70%;
+  max-width: 1073px;
   margin: 0 auto;
   padding: 0 2.5rem 0 2.5rem; // Only horizontal padding, no bottom padding
 
@@ -795,7 +797,7 @@
 .form-actions {
   flex-shrink: 0;
   width: 100%;
-  max-width: 70%;
+  max-width: 1073px;
   margin: 0 auto;
   padding: 1.5rem 2.5rem;
   display: flex;
