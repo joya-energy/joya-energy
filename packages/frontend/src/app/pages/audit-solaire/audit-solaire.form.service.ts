@@ -8,7 +8,9 @@ import {
   LocationFieldName,
   ConsumptionFieldName,
   BuildingFieldName,
-  ConsumptionForm
+  PersonalFieldName,
+  ConsumptionForm,
+  PersonalForm
 } from './audit-solaire.types';
 
 const DEFAULT_PLACEHOLDER_OPTION = 'Sélectionnez...';
@@ -81,6 +83,33 @@ export class AuditSolaireFormService {
 
   ];
 
+  readonly personalFields: FieldConfig<PersonalFieldName>[] = [
+    {
+      control: 'fullName',
+      label: 'Nom complet',
+      type: 'text',
+      tooltip: { title: 'Nom complet', description: 'Personne référente pour l\'audit.' }
+    },
+    {
+      control: 'companyName',
+      label: 'Entreprise',
+      type: 'text',
+      tooltip: { title: 'Raison sociale', description: 'Nom légal ou enseigne du site.' }
+    },
+    {
+      control: 'email',
+      label: 'Email',
+      type: 'text',
+      tooltip: { title: 'Email de contact', description: 'Adresse utilisée pour l\'envoi des résultats.' }
+    },
+    {
+      control: 'phoneNumber',
+      label: 'Téléphone',
+      type: 'text',
+      tooltip: { title: 'Téléphone', description: 'Numéro pour les échanges techniques.' }
+    }
+  ];
+
   buildForm(): AuditSolaireFormGroup {
     return this.fb.group<AuditSolaireFormControls>({
       location: this.fb.group({
@@ -99,6 +128,12 @@ export class AuditSolaireFormService {
       building: this.fb.group({
         buildingType: this.fb.nonNullable.control<BuildingTypes>({} as BuildingTypes, [Validators.required]),
         climateZone: this.fb.nonNullable.control<ClimateZones>({} as ClimateZones, [Validators.required])
+      }),
+      personal: this.fb.group<PersonalForm>({
+        fullName: this.fb.nonNullable.control('', [Validators.required]),
+        companyName: this.fb.nonNullable.control('', [Validators.required]),
+        email: this.fb.nonNullable.control('', [Validators.required, Validators.email]),
+        phoneNumber: this.fb.nonNullable.control('', [Validators.required])
       })
     });
   }

@@ -63,8 +63,28 @@
           @if (currentStepData().isResult) {
             <!-- Results View -->
             <div class="results-view">
-              <h1 class="results-title" >Résultats de votre Audit :</h1>
               @if (simulationResult(); as result) {
+                <!-- Results Header -->
+                <div class="results-header">
+                  <div class="header-icon">
+                    <ng-icon name="lucideZap" class="energy-icon"></ng-icon>
+                  </div>
+                  <div class="header-content">
+                    <h2 class="results-title">Rapport d'Audit Énergétique</h2>
+                    <p class="results-subtitle">Analyse technique et économique de votre consommation énergétique</p>
+                    <div class="results-meta">
+                      <span class="meta-item">
+                        <ng-icon name="lucideCalendar" class="meta-icon"></ng-icon>
+                        {{ result.createdAt | date:'dd/MM/yyyy' }}
+                      </span>
+                      <span class="meta-item">
+                        <ng-icon name="lucideMapPin" class="meta-icon"></ng-icon>
+                        {{ form.get('address')?.value || 'Adresse non spécifiée' }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
                 <div class="results-container">
                   <div class="results-grid">
                     <!-- Energy Consumption -->

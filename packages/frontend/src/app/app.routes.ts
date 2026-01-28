@@ -40,6 +40,12 @@ export const routes: Routes = [
     title: 'Simulation audit solaire | JOYA Energy'
   },
   {
+    path: 'solar-audit',
+    loadComponent: () => import('./pages/solar-audit/solar-audit.component').then(m => m.SolarAuditComponent),
+    title: 'Audit Solaire | JOYA Energy',
+    data: { hideFooter: true }
+  },
+  {
     path: 'comparaison-financements',
     loadComponent: () => import('./features/financing-comparison/financing-comparison.component').then(m => m.FinancingComparisonComponent),
     title: 'Comparateur de Financements | JOYA Energy'

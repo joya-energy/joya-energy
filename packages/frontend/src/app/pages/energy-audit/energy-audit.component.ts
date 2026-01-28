@@ -25,7 +25,8 @@ import {
   lucideSparkles,
   lucideStethoscope,
   lucideShirt,
-  lucideUtensilsCrossed
+  lucideUtensilsCrossed,
+  lucideCalendar
 } from '@ng-icons/lucide';
 
 // Base Components
@@ -83,8 +84,8 @@ import { AuditEnergetiqueResponse } from '../../core/services/audit-energetique.
     ])
   ],
   providers: [
-    provideIcons({
-      lucideArrowRight,
+    provideIcons({ 
+      lucideArrowRight, 
       lucideArrowLeft,
       lucideHome,
       lucideBuilding2,
@@ -104,7 +105,8 @@ import { AuditEnergetiqueResponse } from '../../core/services/audit-energetique.
       lucideSparkles,
       lucideStethoscope,
       lucideShirt,
-      lucideUtensilsCrossed
+      lucideUtensilsCrossed,
+      lucideCalendar
     })
   ]
 })

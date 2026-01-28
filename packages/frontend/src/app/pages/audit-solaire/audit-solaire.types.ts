@@ -5,6 +5,7 @@ export type InvoiceFieldName = 'hasInvoice';
 export type LocationFieldName = 'address';
 export type ConsumptionFieldName = 'measuredAmountTnd' | 'referenceMonth' | 'billAttachment';
 export type BuildingFieldName = 'buildingType' | 'climateZone';
+export type PersonalFieldName = 'fullName' | 'companyName' | 'email' | 'phoneNumber';
 
 export type LocationFormValue = {
   address: string;
@@ -22,10 +23,18 @@ export type BuildingFormValue = {
   climateZone: ClimateZones;
 };
 
+export type PersonalFormValue = {
+  fullName: string;
+  companyName: string;
+  email: string;
+  phoneNumber: string;
+};
+
 export type AuditSolaireFormValue = {
   location: LocationFormValue;
   consumption: ConsumptionFormValue;
   building: BuildingFormValue;
+  personal: PersonalFormValue;
 };
 
 export type LocationForm = {
@@ -44,10 +53,18 @@ export type BuildingForm = {
   climateZone: FormControl<ClimateZones>;
 };
 
+export type PersonalForm = {
+  fullName: FormControl<string>;
+  companyName: FormControl<string>;
+  email: FormControl<string>;
+  phoneNumber: FormControl<string>;
+};
+
 export type AuditSolaireFormControls = {
   location: FormGroup<LocationForm>;
   consumption: FormGroup<ConsumptionForm>;
   building: FormGroup<BuildingForm>;
+  personal: FormGroup<PersonalForm>;
 };
 
 export type AuditSolaireFormGroup = FormGroup<AuditSolaireFormControls>;

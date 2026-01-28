@@ -5,11 +5,24 @@ import { ApiService } from './api.service';
 import { IAuditSolaireSimulation } from '@shared/interfaces';
 
 export interface CreateSimulationPayload {
+  // Location
   address: string;
+  
+  // Consumption
   measuredAmountTnd: number;
   referenceMonth: number;
+  
+  // Building
   buildingType: string;
   climateZone: string;
+  
+  // Personal Info (ready for backend integration)
+  // NOTE: These fields are currently sent but backend doesn't use them yet.
+  // Backend will be updated to accept and store these fields.
+  fullName: string;
+  companyName: string;
+  email: string;
+  phoneNumber: string;
 }
 
 export interface PaginatedSimulationsResponse {

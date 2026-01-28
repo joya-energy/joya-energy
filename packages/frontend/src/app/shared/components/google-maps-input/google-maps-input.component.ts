@@ -11,12 +11,14 @@ import {
   inject,
   PLATFORM_ID,
   Output,
-  EventEmitter
+  EventEmitter,
+  Input
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { isPlatformBrowser } from '@angular/common';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import { lucideMapPin, lucideLoader } from '@ng-icons/lucide';
+import { FieldTooltipComponent } from '../field-tooltip/field-tooltip.component';
 import { environment } from '../../../../environments/environment';
 
 // Interfaces for Google Solar API REST responses
@@ -65,7 +67,7 @@ export interface SolarInfo {
 @Component({
   selector: 'app-google-maps-input',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, NgIconComponent],
+  imports: [CommonModule, ReactiveFormsModule, NgIconComponent, FieldTooltipComponent],
   templateUrl: './google-maps-input.component.html',
   styleUrl: './google-maps-input.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -82,6 +84,13 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
   @ViewChild('addressInput', { static: false }) addressInput!: ElementRef<HTMLInputElement>;
   @ViewChild('mapContainer', { static: false }) mapContainer!: ElementRef<HTMLDivElement>;
   @Output() addressSelected = new EventEmitter<AddressData>();
+  
+  @Input() label: string = '';
+  @Input() placeholder: string = 'Tapez une adresse...';
+  @Input() required: boolean = false;
+  @Input() size: 'sm' | 'md' | 'lg' = 'md';
+  @Input() tooltipTitle: string = '';
+  @Input() tooltipDescription: string = '';
 
   private platformId = inject(PLATFORM_ID);
   private autocomplete: google.maps.places.Autocomplete | null = null;
@@ -97,11 +106,22 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
   protected solarAnalysisError = signal<string | null>(null);
   protected isDisabled = false;
 
-  private onChange: (value: AddressData | null) => void = () => {};
+  private onChange: (value: AddressData | string | null) => void = () => {};
   private onTouchedCallback: () => void = () => {};
 
   protected onTouched(): void {
     this.onTouchedCallback();
+  }
+
+  protected onInputChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
+    // Update form control with string value
+    this.onChange(value);
+    // If there's a selected address and it doesn't match, clear it
+    if (this.selectedAddress() && this.selectedAddress()!.address !== value) {
+      this.selectedAddress.set(null);
+    }
   }
 
   ngOnInit(): void {
@@ -184,7 +204,9 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
 
     this.selectedAddress.set(addressData);
     this.solarInfo.set(null); // Reset solar info when new address is selected
-    this.onChange(addressData);
+    
+    // Emit both AddressData (for event) and string (for form control)
+    this.onChange(addressData.address); // For formControlName compatibility
     this.onTouchedCallback();
     this.addressSelected.emit(addressData);
 
@@ -242,7 +264,7 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
           };
           this.selectedAddress.set(addressData);
           this.solarInfo.set(null);
-          this.onChange(addressData);
+          this.onChange(addressData.address); // Emit string for form control
           this.addressSelected.emit(addressData);
           if (this.addressInput) {
             this.addressInput.nativeElement.value = addressData.address;
@@ -336,11 +358,24 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
   }
 
 
-  writeValue(value: AddressData | null): void {
+  writeValue(value: AddressData | string | null): void {
     if (value) {
-      this.selectedAddress.set(value);
-      if (this.addressInput) {
-        this.addressInput.nativeElement.value = value.address;
+      // Handle both AddressData objects and string values
+      if (typeof value === 'string') {
+        // String value from form control
+        if (this.addressInput) {
+          this.addressInput.nativeElement.value = value;
+        }
+        // Keep existing selectedAddress if it matches, otherwise clear it
+        if (!this.selectedAddress() || this.selectedAddress()!.address !== value) {
+          this.selectedAddress.set(null);
+        }
+      } else {
+        // AddressData object
+        this.selectedAddress.set(value);
+        if (this.addressInput) {
+          this.addressInput.nativeElement.value = value.address;
+        }
       }
     } else {
       this.selectedAddress.set(null);
@@ -350,7 +385,7 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
     }
   }
 
-  registerOnChange(fn: (value: AddressData | null) => void): void {
+  registerOnChange(fn: (value: AddressData | string | null) => void): void {
     this.onChange = fn;
   }
 

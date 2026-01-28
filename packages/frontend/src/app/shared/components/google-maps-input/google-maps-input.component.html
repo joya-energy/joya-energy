@@ -1,17 +1,37 @@
 <div class="google-maps-input">
-  <div class="input-wrapper">
-    <ng-icon name="lucideMapPin" class="input-icon"></ng-icon>
-    <input
-      #addressInput
-      type="text"
-      class="address-input"
-      placeholder="Tapez une adresse..."
-      [disabled]="isDisabled"
-      (focus)="onTouched()"
-      autocomplete="off"
-      name="address"
-      id="address-input"
-    />
+  <div class="ui-input-wrapper">
+    @if (label) {
+      <div class="ui-input-label-row">
+        <label class="ui-input-label" [class.required]="required">
+          {{ label }}
+        </label>
+        @if (tooltipTitle) {
+          <app-field-tooltip
+            [title]="tooltipTitle"
+            [description]="tooltipDescription">
+          </app-field-tooltip>
+        }
+      </div>
+    }
+
+    <div class="ui-input-container has-icon icon-left" 
+         [class.size-sm]="size === 'sm'" 
+         [class.size-md]="size === 'md'" 
+         [class.size-lg]="size === 'lg'">
+      <ng-icon name="lucideMapPin" class="input-icon input-icon-left"></ng-icon>
+      <input
+        #addressInput
+        type="text"
+        class="ui-input address-input"
+        [placeholder]="placeholder"
+        [disabled]="isDisabled"
+        (focus)="onTouched()"
+        (input)="onInputChange($event)"
+        autocomplete="off"
+        name="address"
+        id="address-input"
+      />
+    </div>
   </div>
 
   <div class="actions">
