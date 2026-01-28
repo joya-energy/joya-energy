@@ -53,6 +53,7 @@ import { UploadCardComponent, UploadCardConfig } from '../../shared/components/u
 // Services and Types
 import { NotificationStore } from '../../core/notifications/notification.store';
 import { AuditSolaireService, CreateSimulationPayload } from '../../core/services/audit-solaire.service';
+import { AuditEnergetiqueService } from '../../core/services/audit-energetique.service';
 import { AuditSolaireFormService } from '../audit-solaire/audit-solaire.form.service';
 import { AuditSolaireFormStep } from '../audit-solaire/audit-solaire.types';
 import { IAuditSolaireSimulation } from '@shared/interfaces';
@@ -132,6 +133,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly formService = inject(AuditSolaireFormService);
   private readonly auditService = inject(AuditSolaireService);
+  private readonly auditEnergetiqueService = inject(AuditEnergetiqueService);
   private readonly notificationStore = inject(NotificationStore);
   private readonly cdr = inject(ChangeDetectorRef);
 
@@ -143,22 +145,23 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     {
       number: 1,
       title: 'Facture & consommation',
-      description: 'Indiquez votre facture mensuelle ou téléchargez votre facture récente.',
+      description: 'Indiquez le montant de votre facture mensuelle d\'électricité.',
       fields: [
-        { name: 'consumption.hasInvoice', label: 'Facture disponible', type: 'select', required: true },
+        // Bill upload feature temporarily disabled
+        // { name: 'consumption.hasInvoice', label: 'Facture disponible', type: 'select', required: true },
         {
           name: 'consumption.measuredAmountTnd',
           label: 'Montant mensuel (TND)',
           type: 'number',
-          required: true,
-          condition: (value) => value?.consumption?.hasInvoice === 'no'
+          required: true
+          // condition: (value) => value?.consumption?.hasInvoice === 'no' // Temporarily disabled
         } as StepField,
         {
           name: 'consumption.referenceMonth',
           label: 'Mois de référence',
           type: 'select',
-          required: true,
-          condition: (value) => value?.consumption?.hasInvoice === 'no'
+          required: true
+          // condition: (value) => value?.consumption?.hasInvoice === 'no' // Temporarily disabled
         } as StepField
       ]
     },
@@ -374,31 +377,26 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     const stepNumber = this.currentStep();
 
     if (stepNumber === 1) {
-      const hasInvoice = this.invoiceChoice();
-      if (!hasInvoice) {
+      // Bill upload feature temporarily disabled - only manual entry validation
+      // Check only the fields we care about (ignore hasInvoice)
+      const measuredAmountControl = this.form.get('consumption.measuredAmountTnd');
+      const referenceMonthControl = this.form.get('consumption.referenceMonth');
+      
+      if (!measuredAmountControl?.value || !referenceMonthControl?.value || 
+          measuredAmountControl.invalid || referenceMonthControl.invalid) {
+        measuredAmountControl?.markAsTouched();
+        referenceMonthControl?.markAsTouched();
         this.notificationStore.addNotification({
           type: 'warning',
-          title: 'Sélectionnez une option',
-          message: 'Veuillez indiquer si vous disposez d\'une facture récente.'
+          title: 'Informations manquantes',
+          message: 'Veuillez saisir votre montant mensuel et le mois de référence.'
         });
         return;
       }
-
-      if (hasInvoice === 'no') {
-        const consumptionGroup = this.form.get('consumption') as FormGroup | null;
-        if (!consumptionGroup || consumptionGroup.invalid) {
-          consumptionGroup?.markAllAsTouched();
-          this.notificationStore.addNotification({
-            type: 'warning',
-            title: 'Informations manquantes',
-            message: 'Veuillez saisir votre montant mensuel et le mois de référence.'
-          });
-          return;
-        }
-      }
     }
 
-    if (!this.canProceed() && stepNumber !== 1) {
+    // For step 1, we already validated above, so skip canProceed check
+    if (stepNumber !== 1 && !this.canProceed()) {
       const currentStep = this.currentStepData();
       currentStep.fields.forEach(field => {
         const control = this.form.get(field.name);
@@ -449,12 +447,22 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       document.documentElement.style.overflow = 'hidden';
     }
 
+    // Bill upload feature temporarily disabled
+    // Set default value for hasInvoice to avoid form validation errors
+    const hasInvoiceControl = this.form.get('consumption.hasInvoice');
+    if (hasInvoiceControl) {
+      hasInvoiceControl.setValue('no', { emitEvent: false });
+      hasInvoiceControl.clearValidators();
+      hasInvoiceControl.updateValueAndValidity({ emitEvent: false });
+    }
+
+    // Bill upload feature temporarily disabled
     // Watch for invoice choice changes from ui-select
-    this.form.get('consumption.hasInvoice')?.valueChanges.subscribe((value: 'yes' | 'no' | null) => {
-      if (value === 'yes' || value === 'no') {
-        this.invoiceChoice.set(value);
-      }
-    });
+    // this.form.get('consumption.hasInvoice')?.valueChanges.subscribe((value: 'yes' | 'no' | null) => {
+    //   if (value === 'yes' || value === 'no') {
+    //     this.invoiceChoice.set(value);
+    //   }
+    // });
 
     this.form.valueChanges.subscribe(() => {
       // Update validity for all controls
@@ -493,17 +501,100 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   }
 
   protected onExtractFromBill(): void {
-    // For now, just proceed to manual confirmation step
-    this.nextStep();
+    const billFile = this.form.get('consumption.billAttachment')?.value as File | null;
+    
+    if (!billFile) {
+      this.notificationStore.addNotification({
+        type: 'warning',
+        title: 'Aucun fichier',
+        message: 'Veuillez d\'abord sélectionner un fichier de facture.'
+      });
+      return;
+    }
+
+    // Create FormData for extraction
+    const formData = new FormData();
+    formData.append('billImage', billFile);
+
+    this.isSubmitting.set(true);
+
+    // Call extraction endpoint (reusing energy audit endpoint)
+    this.auditEnergetiqueService
+      .extractBillData(formData)
+      .pipe(finalize(() => this.isSubmitting.set(false)))
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            const extracted = response.data;
+            
+            // Populate form fields with extracted data
+            const consumptionControl = this.form.get('consumption');
+            if (consumptionControl) {
+              // Map monthlyBillAmount to measuredAmountTnd
+              if (extracted.monthlyBillAmount?.value !== undefined) {
+                consumptionControl.get('measuredAmountTnd')?.setValue(extracted.monthlyBillAmount.value);
+              }
+              
+              // Derive referenceMonth from periodEnd or periodStart
+              // Note: referenceMonth field expects month label (string), not number
+              if (extracted.periodEnd?.value) {
+                try {
+                  const periodEndDate = new Date(extracted.periodEnd.value);
+                  const monthNumber = periodEndDate.getMonth() + 1; // getMonth() returns 0-11
+                  if (monthNumber >= 1 && monthNumber <= 12) {
+                    const monthLabel = this.months.find(m => m.value === monthNumber)?.label;
+                    if (monthLabel) {
+                      consumptionControl.get('referenceMonth')?.setValue(monthLabel);
+                    }
+                  }
+                } catch (error) {
+                  console.warn('Failed to parse periodEnd date:', extracted.periodEnd.value);
+                }
+              } else if (extracted.periodStart?.value) {
+                try {
+                  const periodStartDate = new Date(extracted.periodStart.value);
+                  const monthNumber = periodStartDate.getMonth() + 1;
+                  if (monthNumber >= 1 && monthNumber <= 12) {
+                    const monthLabel = this.months.find(m => m.value === monthNumber)?.label;
+                    if (monthLabel) {
+                      consumptionControl.get('referenceMonth')?.setValue(monthLabel);
+                    }
+                  }
+                } catch (error) {
+                  console.warn('Failed to parse periodStart date:', extracted.periodStart.value);
+                }
+              }
+            }
+
+            this.notificationStore.addNotification({
+              type: 'success',
+              title: 'Données extraites',
+              message: 'Les données de votre facture ont été extraites avec succès. Veuillez vérifier et continuer.'
+            });
+
+            // Proceed to next step
+            this.nextStep();
+          }
+        },
+        error: (error) => {
+          console.error('Error extracting bill data:', error);
+          this.notificationStore.addNotification({
+            type: 'error',
+            title: 'Erreur d\'extraction',
+            message: error.error?.message || 'Impossible d\'extraire les données de la facture. Veuillez saisir les informations manuellement.'
+          });
+        }
+      });
   }
 
-  protected onManualEntry(): void {
-    const billControl = this.form.get('consumption.billAttachment');
-    if (billControl) {
-      billControl.setValue(null);
-    }
-    this.handleInvoiceChoice('no');
-  }
+  // Temporarily disabled - bill upload feature
+  // protected onManualEntry(): void {
+  //   const billControl = this.form.get('consumption.billAttachment');
+  //   if (billControl) {
+  //     billControl.setValue(null);
+  //   }
+  //   this.handleInvoiceChoice('no');
+  // }
 
   protected onAddressChange(addressData: AddressData | null): void {
     const control = this.form.get('location.address');
@@ -524,7 +615,14 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     }
 
     const value = this.form.value as any;
+    // Bill upload feature temporarily disabled
+    // const billFile = value.consumption?.billAttachment as File | null;
+    // if (billFile && this.invoiceChoice() === 'yes') {
+    //   this.submitFormWithBill(billFile);
+    //   return;
+    // }
 
+    // Regular JSON submission
     // Ensure referenceMonth is always a valid month number (1-12)
     const rawReferenceMonth = value.consumption?.referenceMonth;
     let referenceMonth: number = 1;
@@ -573,15 +671,81 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
           }
           this.notificationStore.addNotification({
             type: 'success',
-            title: 'Simulation prête',
-            message: 'Votre audit solaire a été généré avec succès.'
+            title: 'Simulation terminée',
+            message: 'Voici les résultats de votre audit solaire.'
           });
         },
-        error: () => {
+        error: (error) => {
+          console.error('Error creating simulation:', error);
           this.notificationStore.addNotification({
             type: 'error',
             title: 'Erreur',
-            message: 'Impossible de générer la simulation. Veuillez réessayer.'
+            message: error.error?.message || 'Une erreur est survenue lors de la création de la simulation.'
+          });
+        }
+      });
+  }
+
+  private submitFormWithBill(billFile: File): void {
+    const value = this.form.value as any;
+
+    // Ensure referenceMonth is always a valid month number (1-12)
+    const rawReferenceMonth = value.consumption?.referenceMonth;
+    let referenceMonth: number | undefined = undefined;
+    if (typeof rawReferenceMonth === 'number') {
+      referenceMonth = rawReferenceMonth || undefined;
+    } else if (typeof rawReferenceMonth === 'string') {
+      const month = this.months.find(m => m.label === rawReferenceMonth);
+      referenceMonth = month ? month.value : undefined;
+    }
+
+    // Build FormData with file and form fields
+    const formData = new FormData();
+    formData.append('billImage', billFile);
+    formData.append('address', value.location?.address ?? '');
+    formData.append('buildingType', value.building?.buildingType ?? '');
+    formData.append('climateZone', value.building?.climateZone ?? this.climateZones[0] ?? '');
+    
+    // Add measuredAmountTnd if provided (will be overridden by extracted value if present)
+    if (value.consumption?.measuredAmountTnd) {
+      formData.append('measuredAmountTnd', value.consumption.measuredAmountTnd.toString());
+    }
+    
+    // Add referenceMonth if provided (will be overridden by extracted value if present)
+    if (referenceMonth) {
+      formData.append('referenceMonth', referenceMonth.toString());
+    }
+    
+    // Personal Info
+    formData.append('fullName', value.personal?.fullName ?? '');
+    formData.append('companyName', value.personal?.companyName ?? '');
+    formData.append('email', value.personal?.email ?? '');
+    formData.append('phoneNumber', value.personal?.phoneNumber ?? '');
+
+    this.isSubmitting.set(true);
+
+    this.auditService
+      .createSimulationWithBill(formData)
+      .pipe(finalize(() => this.isSubmitting.set(false)))
+      .subscribe({
+        next: (result: IAuditSolaireSimulation) => {
+          this.simulationResult.set(result);
+          const resultStep = this.steps.find(s => s.isResult);
+          if (resultStep) {
+            this.currentStep.set(resultStep.number);
+          }
+          this.notificationStore.addNotification({
+            type: 'success',
+            title: 'Simulation terminée',
+            message: 'Les données de votre facture ont été extraites et la simulation a été créée.'
+          });
+        },
+        error: (error) => {
+          console.error('Error creating simulation with bill:', error);
+          this.notificationStore.addNotification({
+            type: 'error',
+            title: 'Erreur',
+            message: error.error?.message || 'Une erreur est survenue lors de l\'extraction des données de la facture ou de la création de la simulation.'
           });
         }
       });

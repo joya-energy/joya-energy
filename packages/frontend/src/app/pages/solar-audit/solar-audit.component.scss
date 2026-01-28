@@ -583,6 +583,25 @@
   border-top: 1px solid var(--neutral-200);
 }
 
+.simulator-description {
+  background: var(--bg-light-teal);
+  border: 1px solid var(--teal-light);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+
+  p {
+    margin: 0 0 1rem 0;
+    font-size: var(--font-size-sm);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
 .manual-entry-section {
   .form-grid {
     display: grid;

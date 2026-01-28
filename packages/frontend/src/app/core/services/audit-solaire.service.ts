@@ -43,6 +43,10 @@ export class AuditSolaireService {
     return this.api.post<IAuditSolaireSimulation>('/audit-solaire-simulations', payload);
   }
 
+  createSimulationWithBill(formData: FormData): Observable<IAuditSolaireSimulation> {
+    return this.api.postFormData<IAuditSolaireSimulation>('/audit-solaire-simulations/with-bill', formData);
+  }
+
   getSimulations(page = 1, limit = 10): Observable<PaginatedSimulationsResponse> {
     const params = new HttpParams().set('page', page.toString()).set('limit', limit.toString());
     return this.api.get<PaginatedSimulationsResponse>('/audit-solaire-simulations', params);

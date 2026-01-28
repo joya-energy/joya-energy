@@ -363,7 +363,7 @@
                   <!-- Recommendations -->
                   <div class="analysis-section">
                     <h3 class="section-title">
-                      <ng-icon name="lucideLightbulb" class="section-icon"></ng-icon>
+                      <ng-icon name="lucideLightbulb" class="section-icon" style="margin-bottom: 2  rem;"></ng-icon>
                       Prochaines Étapes Recommandées
                     </h3>
 
@@ -425,6 +425,8 @@
                 <!-- Step 1: Invoice & consumption -->
                 @if (currentStep() === 1) {
                   <div [@stepTransition]="currentStep()">
+                    <!-- Bill Upload Feature - Temporarily Disabled -->
+                    <!--
                     <div class="form-field" formGroupName="consumption">
                       <app-ui-select
                         formControlName="hasInvoice"
@@ -437,7 +439,6 @@
                       </app-ui-select>
                     </div>
 
-                    <!-- Upload bill when user has an invoice -->
                     @if (invoiceChoice() === 'yes') {
                       <div class="upload-section">
                         <app-upload-card
@@ -450,42 +451,59 @@
                       </div>
                     }
 
-                    <!-- Manual entry when no invoice -->
                     @if (invoiceChoice() === 'no') {
-                      <div class="manual-entry-section" formGroupName="consumption">
-                        <div class="form-grid">
-                          <!-- Monthly Amount -->
-                          <app-ui-input
-                            formControlName="measuredAmountTnd"
-                            type="number"
-                            label="Montant mensuel (TND)"
-                            placeholder="Ex: 2500"
-                            [required]="true"
-                            icon="lucideZap"
-                            tooltipTitle="Facture"
-                            tooltipDescription="Montant total de votre dernière facture d'électricité."
-                            size="md">
-                          </app-ui-input>
+                    -->
+                    
+                    <!-- Simulator Description -->
+                    <div class="simulator-description">
+                      <p>
+                        Ce simulateur analyse votre consommation énergétique et calcule le potentiel solaire de votre bâtiment.
+                        Il vous fournira une estimation détaillée de la production photovoltaïque, des économies réalisables,
+                        et des indicateurs financiers (ROI, période de retour sur investissement, NPV).
+                      </p>
+                      <p>
+                        Pour obtenir des résultats précis, veuillez renseigner le montant de votre dernière facture d'électricité
+                        et le mois de référence correspondant.
+                      </p>
+                    </div>
 
-                          <!-- Reference Month -->
-                          <div class="form-field">
-                            <app-ui-select
-                              formControlName="referenceMonth"
-                              [options]="monthLabels()"
-                              label="Mois de référence"
-                              placeholder="Sélectionnez le mois"
-                              [required]="true"
-                              variant="dropdown">
-                            </app-ui-select>
-                            <app-field-tooltip
-                              title="Mois"
-                              description="Mois durant lequel la facture a été établie."
-                              class="field-tooltip-inline">
-                            </app-field-tooltip>
-                          </div>
+                    <!-- Manual entry form -->
+                    <div class="manual-entry-section" formGroupName="consumption">
+                      <div class="form-grid">
+                        <!-- Monthly Amount -->
+                        <app-ui-input
+                          formControlName="measuredAmountTnd"
+                          type="number"
+                          label="Montant mensuel (TND)"
+                          placeholder="Ex: 2500"
+                          [required]="true"
+                          icon="lucideZap"
+                          tooltipTitle="Facture"
+                          tooltipDescription="Montant total de votre dernière facture d'électricité."
+                          size="md">
+                        </app-ui-input>
+
+                        <!-- Reference Month -->
+                        <div class="form-field">
+                          <app-ui-select
+                            formControlName="referenceMonth"
+                            [options]="monthLabels()"
+                            label="Mois de référence"
+                            placeholder="Sélectionnez le mois"
+                            [required]="true"
+                            variant="dropdown">
+                          </app-ui-select>
+                          <app-field-tooltip
+                            title="Mois"
+                            description="Mois durant lequel la facture a été établie."
+                            class="field-tooltip-inline">
+                          </app-field-tooltip>
                         </div>
                       </div>
+                    </div>
+                    <!--
                     }
+                    -->
                   </div>
                 }
 
