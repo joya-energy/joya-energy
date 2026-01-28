@@ -3,11 +3,23 @@ declare namespace google {
     class Map {
       constructor(mapDiv: HTMLElement, opts?: MapOptions);
       setCenter(latLng: LatLng | LatLngLiteral): void;
+      addListener(eventName: string, handler: (event: MapMouseEvent) => void): MapsEventListener;
     }
 
     class Marker {
       constructor(opts?: MarkerOptions);
       setPosition(latLng: LatLng | LatLngLiteral): void;
+      getPosition(): LatLng | null;
+      setDraggable(draggable: boolean): void;
+      addListener(eventName: 'dragend' | 'click', handler: () => void): MapsEventListener;
+    }
+
+    interface MapsEventListener {
+      remove(): void;
+    }
+
+    interface MapMouseEvent {
+      latLng: LatLng | null;
     }
 
     class Geocoder {
@@ -32,12 +44,14 @@ declare namespace google {
       mapTypeId?: string;
       tilt?: number;
       mapId?: string;
+      draggableCursor?: string;
     }
 
     interface MarkerOptions {
       position?: LatLng | LatLngLiteral;
       map?: Map;
       animation?: Animation;
+      draggable?: boolean;
     }
 
     interface LatLng {

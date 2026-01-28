@@ -99,7 +99,7 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
   private googleMapsLoaded = false;
 
   protected selectedAddress = signal<AddressData | null>(null);
-  protected showMap = signal(false);
+  protected showMap = signal(true); // Always show map when address is selected
   protected isLoading = signal(false);
   protected isAnalyzingSolar = signal(false);
   protected solarInfo = signal<SolarInfo | null>(null);
@@ -210,23 +210,22 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
     this.onTouchedCallback();
     this.addressSelected.emit(addressData);
 
-    if (this.showMap()) {
-      this.updateMap(addressData);
-    }
+    // Always show map when address is selected
+    this.showMap.set(true);
+    setTimeout(() => {
+      if (!this.map) {
+        this.initializeMap();
+      } else {
+        this.updateMap(addressData);
+      }
+      // Automatically analyze solar potential when address is selected
+      if (!this.solarInfo()) {
+        this.analyzeSolarPotential();
+      }
+    }, 100);
   }
 
-  protected toggleMap(): void {
-    this.showMap.update(v => !v);
-    if (this.showMap() && this.selectedAddress()) {
-      setTimeout(() => {
-        this.initializeMap();
-        // Automatically analyze solar potential when showing the map
-        if (!this.solarInfo()) {
-          this.analyzeSolarPotential();
-        }
-      }, 100);
-    }
-  }
+  // Removed toggleMap - map is always shown when address is selected
 
   protected useCurrentLocation(): void {
     if (!navigator.geolocation) return;
@@ -269,9 +268,19 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
           if (this.addressInput) {
             this.addressInput.nativeElement.value = addressData.address;
           }
-          if (this.showMap()) {
-            this.updateMap(addressData);
-          }
+          // Always show map when address is selected
+          this.showMap.set(true);
+          setTimeout(() => {
+            if (!this.map) {
+              this.initializeMap();
+            } else {
+              this.updateMap(addressData);
+            }
+            // Automatically analyze solar potential when address is selected
+            if (!this.solarInfo()) {
+              this.analyzeSolarPotential();
+            }
+          }, 100);
         } else {
           console.error('Geocoding failed:', status);
         }
@@ -290,13 +299,36 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
       zoom: 20,
       mapTypeId: 'satellite',
       tilt: 45,
-      mapId: 'SOLAR_AUDIT_MAP'
+      mapId: 'SOLAR_AUDIT_MAP',
+      draggableCursor: 'crosshair' // Show crosshair cursor for manual positioning
     } as google.maps.MapOptions);
 
     this.marker = new google.maps.Marker({
       position: center,
       map: this.map,
-      animation: google.maps.Animation.DROP
+      animation: google.maps.Animation.DROP,
+      draggable: true // Allow dragging the marker
+    });
+
+    // Add click listener to map for manual positioning
+    this.map.addListener('click', (event: google.maps.MapMouseEvent) => {
+      if (event.latLng) {
+        const lat = event.latLng.lat();
+        const lng = event.latLng.lng();
+        this.reverseGeocode(lat, lng);
+      }
+    });
+
+    // Add drag listener to marker for manual positioning
+    this.marker.addListener('dragend', () => {
+      if (this.marker) {
+        const position = this.marker.getPosition();
+        if (position) {
+          const lat = position.lat();
+          const lng = position.lng();
+          this.reverseGeocode(lat, lng);
+        }
+      }
     });
   }
 
@@ -309,6 +341,9 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
     const position = { lat: address.latitude, lng: address.longitude };
     this.map.setCenter(position);
     this.marker.setPosition(position);
+    
+    // Ensure marker is draggable
+    this.marker.setDraggable(true);
   }
 
   protected analyzeSolarPotential(): void {

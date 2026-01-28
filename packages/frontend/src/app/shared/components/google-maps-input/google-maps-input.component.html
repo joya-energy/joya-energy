@@ -39,14 +39,9 @@
       <ng-icon [name]="isLoading() ? 'lucideLoader' : 'lucideMapPin'" [class.spinning]="isLoading()"></ng-icon>
       Utiliser ma position
     </button>
-    <button type="button" class="btn-toggle-map" (click)="toggleMap()" [disabled]="!selectedAddress()">
-      {{ showMap() ? 'Masquer la carte' : 'Afficher la carte 3D' }}
-    </button>
   </div>
 
-
-
-  @if (showMap() && selectedAddress()) {
+  @if (selectedAddress()) {
     <div class="map-container">
       <div #mapContainer class="map" style="width: 100%; height: 550px; border-radius: 16px;"></div>
       @if (isAnalyzingSolar()) {
