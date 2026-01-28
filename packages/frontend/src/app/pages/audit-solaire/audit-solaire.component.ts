@@ -370,14 +370,7 @@ export class AuditSolaireComponent {
       
       // Building
       buildingType: this.auditForm.controls.building.value.buildingType ?? '',
-      climateZone: this.auditForm.controls.building.value.climateZone ?? this.climateZones[0] ?? '',
-      
-      // Personal Info (not collected in old component, using empty defaults)
-      // NOTE: The new solar_audit page collects these fields properly
-      fullName: '',
-      companyName: '',
-      email: '',
-      phoneNumber: ''
+      climateZone: this.auditForm.controls.building.value.climateZone ?? this.climateZones[0] ?? ''
     };
 
     this.isSubmitting.set(true);

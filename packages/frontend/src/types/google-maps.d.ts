@@ -67,6 +67,13 @@ declare namespace google {
     interface GeocoderRequest {
       location?: LatLngLiteral;
       address?: string;
+      result_type?: string[];
+    }
+
+    interface GeocoderAddressComponent {
+      long_name: string;
+      short_name: string;
+      types: string[];
     }
 
     interface GeocoderResult {
@@ -74,6 +81,8 @@ declare namespace google {
       geometry: {
         location: LatLng;
       };
+      types?: string[];
+      address_components?: GeocoderAddressComponent[];
     }
 
     type GeocoderStatus = 'OK' | 'ZERO_RESULTS' | 'ERROR';

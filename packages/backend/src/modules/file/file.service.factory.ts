@@ -1,7 +1,7 @@
 import { FileService } from './file.service';
 import { Logger } from '@backend/middlewares/logger.midddleware';
 import { GoogleCloudStorageService } from '@backend/common/storage/google-cloud-storage.service';
-import { LocalFallbackStorageService } from '@backend/common/storage/local-fallback-storage.service';
+import { FallbackStorageService } from '@backend/common/storage/fallback-storage.service';
 import { ServerConfig } from '@backend/configs/server.config';
 import { IFileStorageService } from '@backend/common/storage/file-storage.interface';
 
@@ -17,7 +17,7 @@ export function getFileService(): FileService {
   let storageService: IFileStorageService;
   
   if (!gcsConfig.bucketName || gcsConfig.bucketName.trim() === '') {
-    storageService = new LocalFallbackStorageService();
+    storageService = new FallbackStorageService();
     Logger.warn('⚠️ GCS_BUCKET_NAME not configured. Using local fallback storage (files will not be persisted).');
   } else {
     // Initialize GCS service (constructor doesn't throw, errors happen during upload)

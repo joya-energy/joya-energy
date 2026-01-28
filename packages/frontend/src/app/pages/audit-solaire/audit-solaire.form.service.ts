@@ -149,10 +149,12 @@ export class AuditSolaireFormService {
   buildForm(): AuditSolaireFormGroup {
     return this.fb.group<AuditSolaireFormControls>({
       location: this.fb.group({
-        fullName: this.fb.nonNullable.control('', [Validators.required]),
-        companyName: this.fb.nonNullable.control('', [Validators.required]),
-        email: this.fb.nonNullable.control('', [Validators.required, Validators.email]),
-        phoneNumber: this.fb.nonNullable.control('', [Validators.required]),
+        // Legacy fields - kept for backward compatibility but not required
+        // New solar_audit page uses 'personal' group instead
+        fullName: this.fb.nonNullable.control('', []), // Removed required validator
+        companyName: this.fb.nonNullable.control('', []), // Removed required validator
+        email: this.fb.nonNullable.control('', []), // Removed required validator
+        phoneNumber: this.fb.nonNullable.control('', []), // Removed required validator
         address: this.fb.nonNullable.control('', [Validators.required])
       }),
       consumption: this.fb.group<ConsumptionForm>({

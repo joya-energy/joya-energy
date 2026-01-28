@@ -79,7 +79,6 @@ interface BuildingTypeCard {
     UiInputComponent,
     FieldTooltipComponent,
     GoogleMapsInputComponent,
-    UploadCardComponent,
     DatePipe
   ],
   templateUrl: './solar-audit.component.html',
@@ -600,12 +599,36 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     const control = this.form.get('location.address');
     if (addressData && control) {
       control.setValue(addressData.address);
+      control.markAsTouched();
+      control.updateValueAndValidity({ emitEvent: false });
     }
   }
 
   protected submitForm(): void {
+    // Check form validity and mark all fields as touched
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      
+      // Debug: Log invalid fields
+      const invalidFields: string[] = [];
+      Object.keys(this.form.controls).forEach(key => {
+        const control = this.form.get(key);
+        if (control && control.invalid) {
+          if (control instanceof FormGroup) {
+            Object.keys(control.controls).forEach(nestedKey => {
+              const nestedControl = control.get(nestedKey);
+              if (nestedControl && nestedControl.invalid) {
+                invalidFields.push(`${key}.${nestedKey}`);
+              }
+            });
+          } else {
+            invalidFields.push(key);
+          }
+        }
+      });
+      
+      console.log('Invalid form fields:', invalidFields);
+      
       this.notificationStore.addNotification({
         type: 'warning',
         title: 'Formulaire incomplet',

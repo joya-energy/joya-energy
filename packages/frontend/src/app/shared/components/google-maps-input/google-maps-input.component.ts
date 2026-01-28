@@ -218,10 +218,11 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
       } else {
         this.updateMap(addressData);
       }
+      // Solar analysis disabled - causing errors
       // Automatically analyze solar potential when address is selected
-      if (!this.solarInfo()) {
-        this.analyzeSolarPotential();
-      }
+      // if (!this.solarInfo()) {
+      //   this.analyzeSolarPotential();
+      // }
     }, 100);
   }
 
@@ -255,9 +256,62 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
       { location: { lat, lng } },
       (results: google.maps.GeocoderResult[] | null, status: google.maps.GeocoderStatus) => {
         this.isLoading.set(false);
-        if (status === 'OK' && results && results[0]) {
+        if (status === 'OK' && results && results.length > 0) {
+          // Find the best address result (prefer street_address, then route, then others)
+          let bestResult = results[0];
+          for (const result of results) {
+            const types = result.types || [];
+            if (types.includes('street_address')) {
+              bestResult = result;
+              break;
+            } else if (types.includes('route') && !bestResult.types?.includes('street_address')) {
+              bestResult = result;
+            }
+          }
+
+          // Format address from components if formatted_address contains Plus Code
+          let formattedAddress = bestResult.formatted_address || '';
+          
+          // If address contains Plus Code (like "JVRR+397"), try to build a better address
+          if (formattedAddress.includes('+') && formattedAddress.match(/[A-Z0-9]+\+[0-9]+/)) {
+            const components = bestResult.address_components || [];
+            const addressParts: string[] = [];
+            
+            // Extract street number and route
+            const streetNumber = components.find((c: google.maps.GeocoderAddressComponent) => c.types.includes('street_number'))?.long_name;
+            const route = components.find((c: google.maps.GeocoderAddressComponent) => c.types.includes('route'))?.long_name;
+            if (streetNumber && route) {
+              addressParts.push(`${streetNumber} ${route}`);
+            } else if (route) {
+              addressParts.push(route);
+            }
+            
+            // Extract locality (city)
+            const locality = components.find((c: google.maps.GeocoderAddressComponent) => c.types.includes('locality'))?.long_name;
+            if (locality) {
+              addressParts.push(locality);
+            }
+            
+            // Extract postal code
+            const postalCode = components.find((c: google.maps.GeocoderAddressComponent) => c.types.includes('postal_code'))?.long_name;
+            if (postalCode) {
+              addressParts.push(postalCode);
+            }
+            
+            // Extract country
+            const country = components.find((c: google.maps.GeocoderAddressComponent) => c.types.includes('country'))?.long_name;
+            if (country) {
+              addressParts.push(country);
+            }
+            
+            // Use constructed address if we have meaningful parts, otherwise use original
+            if (addressParts.length > 0) {
+              formattedAddress = addressParts.join(', ');
+            }
+          }
+
           const addressData: AddressData = {
-            address: results[0].formatted_address,
+            address: formattedAddress,
             latitude: lat,
             longitude: lng
           };
@@ -276,10 +330,10 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
             } else {
               this.updateMap(addressData);
             }
-            // Automatically analyze solar potential when address is selected
-            if (!this.solarInfo()) {
-              this.analyzeSolarPotential();
-            }
+            // Disable automatic solar analysis - it's causing errors and not needed
+            // if (!this.solarInfo()) {
+            //   this.analyzeSolarPotential();
+            // }
           }, 100);
         } else {
           console.error('Geocoding failed:', status);
@@ -347,49 +401,49 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
   }
 
   protected analyzeSolarPotential(): void {
-    if (!this.selectedAddress()) return;
-
-    this.isAnalyzingSolar.set(true);
-    this.solarAnalysisError.set(null);
-    const address = this.selectedAddress()!;
-
-    // Use Google Solar API REST endpoint
-    const solarApiUrl = `https://solar.googleapis.com/v1/buildingInsights:findClosest?location.latitude=${address.latitude}&location.longitude=${address.longitude}&key=${environment.googleMapsApiKey}`;
-
-    fetch(solarApiUrl)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Solar API error: ${response.status} ${response.statusText}`);
-        }
-        return response.json();
-      })
-      .then((result: SolarBuildingInsightsResponse) => {
-        this.isAnalyzingSolar.set(false);
-        this.solarAnalysisError.set(null);
-
-        if (result && result.solarPotential) {
-          const solarData = result.solarPotential;
-
-          this.solarInfo.set({
-            maxSolarPanelCount: solarData.maxSolarPanelCount ?? 0,
-            maxArrayAreaMeters2: solarData.maxArrayAreaMeters2 ?? 0,
-            maxArrayPanelsCount: solarData.maxArrayPanelsCount ?? 0,
-            roofSegmentStats: solarData.roofSegmentStats ?? []
-          });
-
-            // Note: Solar layer visualization would require additional implementation
-          // For now, we just store the data
-          console.log('Solar analysis completed:', this.solarInfo());
-        } else {
-          this.solarAnalysisError.set('No solar potential data available for this location');
-          console.warn('No solar potential data available for this location');
-        }
-      })
-      .catch((error: unknown) => {
-        console.error('Solar analysis error:', error);
-        this.isAnalyzingSolar.set(false);
-        this.solarAnalysisError.set('Solar analysis is currently unavailable. Please try again later.');
-      });
+    // Solar API analysis disabled - causing 404 errors
+    // This feature can be re-enabled when Solar API is properly configured
+    // if (!this.selectedAddress()) return;
+    // 
+    // this.isAnalyzingSolar.set(true);
+    // this.solarAnalysisError.set(null);
+    // const address = this.selectedAddress()!;
+    // 
+    // // Use Google Solar API REST endpoint
+    // const solarApiUrl = `https://solar.googleapis.com/v1/buildingInsights:findClosest?location.latitude=${address.latitude}&location.longitude=${address.longitude}&key=${environment.googleMapsApiKey}`;
+    // 
+    // fetch(solarApiUrl)
+    //   .then(response => {
+    //     if (!response.ok) {
+    //       throw new Error(`Solar API error: ${response.status} ${response.statusText}`);
+    //     }
+    //     return response.json();
+    //   })
+    //   .then((result: SolarBuildingInsightsResponse) => {
+    //     this.isAnalyzingSolar.set(false);
+    //     this.solarAnalysisError.set(null);
+    // 
+    //     if (result && result.solarPotential) {
+    //       const solarData = result.solarPotential;
+    // 
+    //       this.solarInfo.set({
+    //         maxSolarPanelCount: solarData.maxSolarPanelCount ?? 0,
+    //         maxArrayAreaMeters2: solarData.maxArrayAreaMeters2 ?? 0,
+    //         maxArrayPanelsCount: solarData.maxArrayPanelsCount ?? 0,
+    //         roofSegmentStats: solarData.roofSegmentStats ?? []
+    //       });
+    // 
+    //       console.log('Solar analysis completed:', this.solarInfo());
+    //     } else {
+    //       this.solarAnalysisError.set('No solar potential data available for this location');
+    //       console.warn('No solar potential data available for this location');
+    //     }
+    //   })
+    //   .catch((error: unknown) => {
+    //     console.error('Solar analysis error:', error);
+    //     this.isAnalyzingSolar.set(false);
+    //     this.solarAnalysisError.set('Solar analysis is currently unavailable. Please try again later.');
+    //   });
   }
 
 

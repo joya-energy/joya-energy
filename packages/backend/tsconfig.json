@@ -18,6 +18,7 @@
   "exclude": ["node_modules", "dist", "**/*.js", "**/*.d.ts"],
   "files": [
     "src/types/express/index.d.ts",
-    "src/types/pdf-to-png-converter.d.ts"
+    "src/types/pdf-to-png-converter.d.ts",
+    "src/types/sharp.d.ts"
   ]
 }

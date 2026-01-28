@@ -69,11 +69,7 @@
           </div>
         </div>
       }
-      @if (solarAnalysisError() && !isAnalyzingSolar() && !solarInfo()) {
-        <div class="solar-error-overlay">
-          <p class="error-message">{{ solarAnalysisError() }}</p>
-        </div>
-      }
+      <!-- Solar analysis error display removed per user request -->
     </div>
   }
 </div>

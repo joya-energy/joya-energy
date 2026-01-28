@@ -1,4 +1,5 @@
 import { Storage } from '@google-cloud/storage';
+import path from 'path';
 import { Logger } from '@backend/middlewares/logger.midddleware';
 import { HTTP400Error } from '@backend/errors/http.error';
 import { type IFileStorageService, type UploadFileResult } from './file-storage.interface';
@@ -182,42 +183,4 @@ export class GoogleCloudStorageService implements IFileStorageService {
     return contentTypes[extension ?? ''] ?? 'application/octet-stream';
   }
 
-  /**
-   * Extract meaningful error details from GCS errors.
-   * Helps identify authentication issues, permission problems, etc.
-   */
-  private extractErrorDetails(error: unknown): string | null {
-    if (!error) {
-      return null;
-    }
-
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    const lowerMessage = errorMessage.toLowerCase();
-
-    // Authentication errors
-    if (lowerMessage.includes('invalid_rapt') || lowerMessage.includes('invalid_grant')) {
-      return 'Authentication token expired or invalid. Re-authenticate with: gcloud auth application-default login --impersonate-service-account=SERVICE_ACCOUNT';
-    }
-
-    if (lowerMessage.includes('unable to impersonate')) {
-      return 'Service account impersonation failed. Check GCS_IMPERSONATE_SERVICE_ACCOUNT configuration';
-    }
-
-    // Permission errors
-    if (lowerMessage.includes('permission denied') || lowerMessage.includes('access denied')) {
-      return 'Insufficient permissions. Check service account IAM roles';
-    }
-
-    // Network/connectivity errors
-    if (lowerMessage.includes('network') || lowerMessage.includes('timeout') || lowerMessage.includes('connection')) {
-      return 'Network connectivity issue. Check internet connection';
-    }
-
-    // Bucket errors
-    if (lowerMessage.includes('bucket') && (lowerMessage.includes('not found') || lowerMessage.includes('does not exist'))) {
-      return `Bucket '${this.bucketName}' not found. Check GCS_BUCKET_NAME configuration`;
-    }
-
-    return null;
-  }
 }

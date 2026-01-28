@@ -21,10 +21,6 @@ export interface CreateSimulationPayload {
   // Personal Info (ready for backend integration)
   // NOTE: These fields are currently sent but backend doesn't use them yet.
   // Backend will be updated to accept and store these fields.
-  fullName: string;
-  companyName: string;
-  email: string;
-  phoneNumber: string;
 }
 
 export interface PaginatedSimulationsResponse {
