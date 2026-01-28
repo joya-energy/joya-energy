@@ -36,14 +36,14 @@
 
 
 
-  <!-- BIG IMAGE -->
+  <!-- BIG IMAGE 
   <div class="cover-image-big">
     <img
       src="data:image/jpeg;base64,{{pvcoverBase64}}"
       alt="cover"
     />
   </div>
-
+-->
   <!-- FOOTER DATE -->
   <div class="cover-footer">
     Rapport généré le {{auditDate}}
@@ -546,12 +546,12 @@
             <svg class="pv-line-chart-svg" viewBox="0 0 1000 400" preserveAspectRatio="none">
               <!-- Grid lines are now created by CSS gradient background -->
               
-              <!-- CAPEX line (dashed pink) -->
+              <!-- CAPEX line (dashed orange) -->
               <polyline 
                 class="pv-line-capex"
                 points="{{lineChartCapexPoints}}"
                 fill="none"
-                stroke="rgba(236, 72, 153, 0.8)"
+                stroke="rgba(248, 113, 113, 0.8)"
                 stroke-width="3"
                 stroke-dasharray="8,4"/>
               
@@ -590,28 +590,28 @@
                   cx="{{lineChartIntersectionX}}" 
                   cy="{{lineChartIntersectionY}}" 
                   r="8" 
-                  fill="#ef4444"
+                  fill="#10b981"
                   stroke="white"
                   stroke-width="3"/>
                 <rect 
-                  x="{{lineChartIntersectionX}}" 
+                  x="{{lineChartIntersectionBubbleX}}" 
                   y="{{lineChartIntersectionY}}" 
-                  width="100" 
+                  width="{{lineChartIntersectionBubbleWidth}}" 
                   height="35" 
                   rx="10" 
                   fill="#ffffff" 
-                  stroke="#ef4444" 
+                  stroke="#10b981" 
                   stroke-width="3"
                   opacity="0.95"
                   filter="url(#pv-shadow)"
-                  transform="translate(-50, -45)"/>
+                  transform="translate(0, -45)"/>
                 <text 
                   x="{{lineChartIntersectionX}}" 
                   y="{{lineChartIntersectionY}}" 
                   text-anchor="middle" 
                   font-size="14" 
                   font-weight="bold" 
-                  fill="#dc2626"
+                  fill="#047857"
                   transform="translate(0, -25)">
                   {{lineChartIntersectionYear}} ans
                 </text>
@@ -638,9 +638,9 @@
                   stroke-linecap="round"/>
 
                 <rect 
-                  x="{{lineChartFinalXMinus210}}" 
+                  x="{{lineChartFinalBubbleX}}" 
                   y="{{lineChartFinalYPlus20}}" 
-                  width="180" 
+                  width="{{lineChartFinalBubbleWidth}}" 
                   height="40" 
                   rx="12" 
                   fill="#ffffff" 
@@ -649,7 +649,7 @@
                   opacity="0.97"
                   filter="url(#pv-shadow)"/>
                 <text 
-                  x="{{lineChartFinalXMinus120}}" 
+                  x="{{lineChartFinalTextX}}" 
                   y="{{lineChartFinalYPlus46}}" 
                   text-anchor="middle" 
                   font-size="14" 
@@ -659,13 +659,13 @@
                 </text>
               </g>
 
-              <!-- Final CAPEX value annotation (red bubble) -->
+              <!-- Final CAPEX value annotation (orange bubble) -->
               <g id="final-capex-annotation" style="display: {{lineChartFinalCapexDisplay}};">
                 <circle 
                   cx="{{lineChartFinalCapexX}}" 
                   cy="{{lineChartFinalCapexY}}" 
                   r="8" 
-                  fill="#ec4899"
+                  fill="#f87171"
                   stroke="white"
                   stroke-width="3"/>
 
@@ -675,28 +675,28 @@
                   y1="{{lineChartFinalCapexY}}"
                   x2="{{lineChartFinalCapexXMinus95}}"
                   y2="{{lineChartFinalCapexYMinus28}}"
-                  stroke="rgba(236, 72, 153, 0.9)"
+                  stroke="rgba(248, 113, 113, 0.9)"
                   stroke-width="3"
                   stroke-linecap="round"/>
 
                 <rect 
-                  x="{{lineChartFinalCapexXMinus210}}" 
+                  x="{{lineChartFinalCapexBubbleX}}" 
                   y="{{lineChartFinalCapexYMinus50}}" 
-                  width="180" 
+                  width="{{lineChartFinalCapexBubbleWidth}}" 
                   height="40" 
                   rx="12" 
                   fill="#ffffff" 
-                  stroke="#ec4899" 
+                  stroke="#f87171" 
                   stroke-width="3"
                   opacity="0.97"
                   filter="url(#pv-shadow)"/>
                 <text 
-                  x="{{lineChartFinalCapexXMinus120}}" 
+                  x="{{lineChartFinalCapexTextX}}" 
                   y="{{lineChartFinalCapexYMinus24}}" 
                   text-anchor="middle" 
                   font-size="14" 
                   font-weight="bold" 
-                  fill="#be185d">
+                  fill="#c2410c">
                   {{lineChartFinalCapex}} DT
                 </text>
               </g>

@@ -91,6 +91,7 @@ export class AuditReportController {
       // 4️⃣ Generate PDF
       // ---------------------------------------------------------------------
       const pdfBuffer = await this.pdfService.generatePDF(dto);
+      Logger.info(`✅ Audit PDF generated (${pdfBuffer.length} bytes)`);
 
       // ---------------------------------------------------------------------
       // 5️⃣ Extract email data (SAFE)
@@ -118,18 +119,20 @@ export class AuditReportController {
 
       // Template configurable via env
       const templateId =
-        Number(process.env.POSTMARK_AUDIT_TEMPLATE_ID) ;
+        Number(process.env.POSTMARK_AUDIT_TEMPLATE_ID);
 
       // ---------------------------------------------------------------------
-      // 7️⃣ Send email
+      // 7️⃣ Send email (non-blocking - don't wait for Postmark response)
       // ---------------------------------------------------------------------
       Logger.info(`📧 Sending audit report to ${email}...`);
 
-      await mailService.sendMail({
+      // Send email in background - don't block the HTTP response
+      // Postmark can take 30-60 seconds which makes the UI feel slow
+      void mailService.sendMail({
         to: email,
         subject: 'Votre audit énergétique JOYA',
-        text: 'Veuillez trouver votre rapport d’audit énergétique en pièce jointe.',
-        html: '<p>Veuillez trouver votre rapport d’audit énergétique en pièce jointe.</p>',
+        text: 'Veuillez trouver votre rapport d\'audit énergétique en pièce jointe.',
+        html: '<p>Veuillez trouver votre rapport d\'audit énergétique en pièce jointe.</p>',
         templateId,
         templateModel: {
           fullName,
@@ -139,12 +142,15 @@ export class AuditReportController {
           becth,
         },
         attachments: [attachment],
+      }).then(() => {
+        Logger.info(`✅ Audit PDF sent to ${email}`);
+      }).catch((err: Error) => {
+        Logger.error(`❌ Failed to send audit PDF to ${email}: ${err.message}`);
       });
 
-      Logger.info(`✅ Audit PDF sent to ${email}`);
-
-      return res.status(200).json({
-        message: 'Audit PDF generated and sent successfully',
+      // Return immediately - email is being sent in background
+      return res.status(202).json({
+        message: 'Audit PDF generated. Email is being sent in the background.',
         email,
         simulationId,
       });

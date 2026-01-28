@@ -35,7 +35,7 @@ describe('EscoSolutionService', () => {
       expect(result.initialInvestment).toBe(0);
       expect(result.monthlyOpex).toBe(0);
       expect(result.escoOpexIncluded).toBe(true);
-      expect(result.escoTargetIrrAnnual).toBe(0.16);
+      expect(result.escoTargetIrrAnnual).toBe(0.13);
       expect(result.durationYears).toBe(FINANCING_CONSTANTS.DURATION_YEARS);
     });
 
@@ -100,7 +100,7 @@ describe('EscoSolutionService', () => {
 
       const result = service.calculate(projectCalculation, DEFAULT_ESCO_PARAMETERS);
 
-      const expectedMonthlyIrr = Math.pow(1.16, 1 / 12) - 1;
+      const expectedMonthlyIrr = Math.pow(1.13, 1 / 12) - 1;
       expect(result.escoTargetIrrMonthly).toBeCloseTo(expectedMonthlyIrr, 6);
     });
   });

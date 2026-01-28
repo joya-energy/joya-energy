@@ -13,7 +13,7 @@ import { extrapolateConsumption } from './helpers/consumption-extrapolation.calc
 import axios, { type AxiosResponse } from 'axios';
 import { calculatePVProduction } from './helpers/pv-production.calculator';
 import { analyzeEconomics } from './helpers/economic-analysis.calculator';
-import { convertAmountToConsumption } from '../audit-energetique/helpers/progressive-tariff.calculator';
+import { convertAmountToConsumptionFlatRate } from '../audit-energetique/helpers/progressive-tariff.calculator';
 import { PVGISService } from '@shared/services/pvgis.service';
 
 
