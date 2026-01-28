@@ -571,19 +571,19 @@
                         <svg class="line-chart-svg" viewBox="0 0 1000 400" preserveAspectRatio="none">
                           <!-- Grid lines are now created by CSS gradient background -->
                           
-                          <!-- CAPEX line (dashed pink) -->
+                          <!-- CAPEX line (dashed orange) -->
                           <polyline 
                             class="line-capex"
                             [attr.points]="getCapexLinePoints()"
                             fill="none"
-                            stroke="rgba(236, 72, 153, 0.8)"
+                            stroke="rgba(248, 113, 113, 0.8)"
                             stroke-width="3"
                             stroke-dasharray="8,4"/>
                           <circle *ngFor="let point of getCapexLinePointsArray(); trackBy: trackByIndex" 
                                   [attr.cx]="point.x" 
                                   [attr.cy]="point.y" 
                                   r="4" 
-                                  fill="rgba(236, 72, 153, 0.8)"/>
+                                  fill="rgba(248, 113, 113, 0.8)"/>
 
                           <!-- Cumulative Net Gains line (solid blue) -->
                           <polyline 
@@ -604,17 +604,17 @@
                               [attr.cx]="getIntersectionPoint()!.x" 
                               [attr.cy]="getIntersectionPoint()!.y" 
                               r="8" 
-                              fill="#ef4444"
+                              fill="#10b981"
                               stroke="white"
                               stroke-width="3"/>
                             <rect 
-                              [attr.x]="getIntersectionPoint()!.x - 50" 
+                              [attr.x]="getIntersectionBubbleX()" 
                               [attr.y]="getIntersectionPoint()!.y - 45" 
-                              width="100" 
+                              [attr.width]="getIntersectionBubbleWidth()" 
                               height="35" 
                               rx="10" 
                               fill="#ffffff" 
-                              stroke="#ef4444" 
+                              stroke="#10b981" 
                               stroke-width="3"
                               opacity="0.95"
                               filter="url(#shadow)"/>
@@ -624,7 +624,7 @@
                               text-anchor="middle" 
                               font-size="14" 
                               font-weight="bold" 
-                              fill="#dc2626">
+                              fill="#047857">
                               {{ getIntersectionPoint()!.year | number:'1.1-1' }} ans
                             </text>
                           </g>
@@ -650,9 +650,9 @@
                               stroke-linecap="round"/>
 
                             <rect
-                              [attr.x]="getFinalGainsPoint()!.x - 210"
+                              [attr.x]="getFinalGainsBubbleX()"
                               [attr.y]="getFinalGainsPoint()!.y + 20"
-                              width="180"
+                              [attr.width]="getFinalGainsBubbleWidth()"
                               height="40"
                               rx="12"
                               fill="#ffffff"
@@ -661,7 +661,7 @@
                               opacity="0.97"
                               filter="url(#shadow)"/>
                             <text
-                              [attr.x]="getFinalGainsPoint()!.x - 120"
+                              [attr.x]="getFinalGainsTextX()"
                               [attr.y]="getFinalGainsPoint()!.y + 46"
                               text-anchor="middle"
                               font-size="14"
@@ -671,13 +671,13 @@
                             </text>
                           </g>
 
-                          <!-- Final CAPEX value annotation (red bubble at end of red curve) -->
+                          <!-- Final CAPEX value annotation (orange bubble at end of orange curve) -->
                           <g *ngIf="getFinalCapexPoint() && getFinalCapexValue() !== null && getFinalCapexValue()! > 0">
                             <circle
                               [attr.cx]="getFinalCapexPoint()!.x"
                               [attr.cy]="getFinalCapexPoint()!.y"
                               r="8"
-                              fill="#ec4899"
+                              fill="#f87171"
                               stroke="white"
                               stroke-width="3"/>
 
@@ -687,28 +687,28 @@
                               [attr.y1]="getFinalCapexPoint()!.y"
                               [attr.x2]="getFinalCapexPoint()!.x - 95"
                               [attr.y2]="getFinalCapexPoint()!.y - 28"
-                              stroke="rgba(236, 72, 153, 0.9)"
+                              stroke="rgba(248, 113, 113, 0.9)"
                               stroke-width="3"
                               stroke-linecap="round"/>
 
                             <rect
-                              [attr.x]="getFinalCapexPoint()!.x - 210"
+                              [attr.x]="getFinalCapexBubbleX()"
                               [attr.y]="getFinalCapexPoint()!.y - 50"
-                              width="180"
+                              [attr.width]="getFinalCapexBubbleWidth()"
                               height="40"
                               rx="12"
                               fill="#ffffff"
-                              stroke="#ec4899"
+                              stroke="#f87171"
                               stroke-width="3"
                               opacity="0.97"
                               filter="url(#shadow)"/>
                             <text
-                              [attr.x]="getFinalCapexPoint()!.x - 120"
+                              [attr.x]="getFinalCapexTextX()"
                               [attr.y]="getFinalCapexPoint()!.y - 24"
                               text-anchor="middle"
                               font-size="14"
                               font-weight="bold"
-                              fill="#be185d">
+                              fill="#c2410c">
                               {{ getFinalCapexValue() | number:'1.0-0' }} DT
                             </text>
                           </g>

@@ -71,10 +71,20 @@ export class ComparisonService {
       projectParams
     );
 
+    // Calculate ESCO with specific cost per kWp if provided
+    const escoProjectParams: ProjectParameters = {
+      ...projectParams,
+      costPerKwpDt: escoParameters.escoCostPerKwpDt ?? projectParams.costPerKwpDt,
+    };
+    const escoProjectCalculation = this.projectCalculator.calculateProject(
+      input,
+      escoProjectParams
+    );
+
     const cash = this.cashSolution.calculate(projectCalculation);
     const credit = this.creditSolution.calculate(projectCalculation, creditParameters);
     const leasing = this.leasingSolution.calculate(projectCalculation, leasingParameters);
-    const esco = this.escoSolution.calculate(projectCalculation, escoParameters);
+    const esco = this.escoSolution.calculate(escoProjectCalculation, escoParameters);
 
     return {
       input,

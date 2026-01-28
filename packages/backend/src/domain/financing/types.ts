@@ -59,6 +59,7 @@ export interface LeasingParameters {
 export interface EscoParameters {
   escoTargetIrrAnnual: number;
   escoOpexIncluded: boolean;
+  escoCostPerKwpDt?: number; // Optional: if not provided, uses DEFAULT_PROJECT_PARAMETERS.costPerKwpDt
 }
 
 /**

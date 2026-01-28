@@ -84,7 +84,7 @@ models/financing-comparison/     # Data layer
 
 ### 4. ⭐ ESCO JOYA (Energy Service Company)
 - **Initial Investment**: 0 DT
-- **Monthly Payment**: Calculated for 16% IRR target
+- **Monthly Payment**: Calculated for 13% IRR target
 - **OPEX**: Included (managed by JOYA)
 - **✅ Advantage**: Zero risk, positive cashflow from month 1
 - **❌ Disadvantage**: Shared savings
@@ -167,7 +167,7 @@ monthlyPayment = (principal × monthlyRate) / (1 - (1 + monthlyRate)^(-84))
 
 #### ESCO Payment (Target IRR)
 ```typescript
-escoMonthlyIrr = (1 + 0.16)^(1/12) - 1
+escoMonthlyIrr = (1 + 0.13)^(1/12) - 1
 annuityFactor = (monthlyIrr × (1 + monthlyIrr)^84) / ((1 + monthlyIrr)^84 - 1)
 escoPayment = CAPEX × annuityFactor + monthlyOpex
 ```
@@ -204,8 +204,9 @@ export const DEFAULT_LEASING_PARAMETERS = {
 };
 
 export const DEFAULT_ESCO_PARAMETERS = {
-  escoTargetIrrAnnual: 0.16,
+  escoTargetIrrAnnual: 0.13,
   escoOpexIncluded: true,
+  escoCostPerKwpDt: 1750, // ESCO-specific cost per kWp (lower than standard 2000 DT)
 };
 ```
 

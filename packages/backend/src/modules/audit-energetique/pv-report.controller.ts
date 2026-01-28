@@ -247,44 +247,46 @@ export class PVReportController {
       const pdfBuffer = await this.buildPvPdf(finalSolaireId, finalEnergetiqueId);
       Logger.info(`✅ PDF generated successfully (${pdfBuffer.length} bytes)`);
 
-      // Attachment
-      const attachment: MailAttachment = {
-        Name: `PVReport-${contactInfo.company.replace(/\s+/g, '_')}.pdf`,
-        Content: pdfBuffer.toString('base64'),
-        ContentType: 'application/pdf',
-        ContentID: '',
-      };
-
-      // Template id can be configured through env; fallback to audit template if missing
-      const templateId = Number(process.env.POSTMARK_PV_TEMPLATE_ID);
-
-      // Send email
-      Logger.info(`📧 Sending PV report to ${contactInfo.email}...`);
-      // Do not block the HTTP response on email delivery.
-      // Postmark calls can be slow and make the UI feel like "PDF generation" is taking ~1 minute.
-      void mailService.sendMail({
-        to: contactInfo.email,
-        subject: 'Votre rapport photovoltaïque JOYA',
-        text: 'Veuillez trouver votre rapport photovoltaïque en pièce jointe.',
-        html: '<p>Veuillez trouver votre rapport photovoltaïque en pièce jointe.</p>',
-        templateId,
-        templateModel: {
-          fullName: contactInfo.fullName,
-          company: contactInfo.company,
-        },
-        attachments: [attachment],
-      }).then(() => {
-        Logger.info(`✅ PV PDF sent to ${contactInfo.email}`);
-      }).catch((err: Error) => {
-        Logger.error(`❌ Failed to send PV PDF to ${contactInfo.email}: ${err.message}`);
-      });
-
-      return res.status(202).json({
+      // Send HTTP response FIRST (before starting email)
+      Logger.info(`🚀 Sending HTTP 202 response to client IMMEDIATELY...`);
+      res.status(202).json({
         message: 'PV PDF generated. Email is being sent in the background.',
         email: contactInfo.email,
         solaireId: finalSolaireId,
         energetiqueId: finalEnergetiqueId,
       });
+
+      // Now start email in background using setImmediate to ensure response is sent first
+      setImmediate(() => {
+        const attachment: MailAttachment = {
+          Name: `PVReport-${contactInfo.company.replace(/\s+/g, '_')}.pdf`,
+          Content: pdfBuffer.toString('base64'),
+          ContentType: 'application/pdf',
+          ContentID: '',
+        };
+
+        const templateId = Number(process.env.POSTMARK_PV_TEMPLATE_ID);
+
+        Logger.info(`📧 Sending PV report to ${contactInfo.email}...`);
+        mailService.sendMail({
+          to: contactInfo.email,
+          subject: 'Votre rapport photovoltaïque JOYA',
+          text: 'Veuillez trouver votre rapport photovoltaïque en pièce jointe.',
+          html: '<p>Veuillez trouver votre rapport photovoltaïque en pièce jointe.</p>',
+          templateId,
+          templateModel: {
+            fullName: contactInfo.fullName,
+            company: contactInfo.company,
+          },
+          attachments: [attachment],
+        }).then(() => {
+          Logger.info(`✅ PV PDF sent to ${contactInfo.email}`);
+        }).catch((err: Error) => {
+          Logger.error(`❌ Failed to send PV PDF to ${contactInfo.email}: ${err.message}`);
+        });
+      });
+
+      return;
 
     } catch (error) {
       const errorMessage = (error as Error).message;

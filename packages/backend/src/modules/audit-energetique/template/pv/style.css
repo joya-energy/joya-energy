@@ -70,9 +70,9 @@ h3 {
   box-sizing: border-box;
 }
 
-/* Page 3 needs extra bottom padding to prevent page 4 from bleeding in */
+/* Page 3 bottom padding */
 .energy-page .page-content {
-  padding-bottom: 200px;
+  padding-bottom: 90px;
 }
 
 .page-header {
@@ -792,7 +792,7 @@ h3 {
 }
 
 .pv-line-capex {
-  stroke: rgba(236, 72, 153, 0.8);
+  stroke: rgba(248, 113, 113, 0.8);
   stroke-width: 3;
   stroke-dasharray: 8, 4;
   fill: none;
@@ -855,11 +855,11 @@ h3 {
 }
 
 .pv-legend-line-capex {
-  background: rgba(236, 72, 153, 0.8);
+  background: rgba(248, 113, 113, 0.8);
   background-image: repeating-linear-gradient(
     to right,
-    rgba(236, 72, 153, 0.8) 0,
-    rgba(236, 72, 153, 0.8) 8px,
+    rgba(248, 113, 113, 0.8) 0,
+    rgba(248, 113, 113, 0.8) 8px,
     transparent 8px,
     transparent 12px
   );

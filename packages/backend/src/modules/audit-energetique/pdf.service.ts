@@ -1,6 +1,7 @@
 import puppeteer, { type Browser } from 'puppeteer';
 import fs from 'fs';
 import path from 'path';
+import sharp from 'sharp';
 import { AuditEnergetiqueResponseDto } from './dto/audit-energetique-response.dto';
 import { AuditSolaireResponseDto } from '../audit-solaire/dto/audit-solaire-response.dto';
 import { buildPvReportDataFromSolaire, type PvReportData } from './pv-report.builder';
@@ -12,6 +13,19 @@ import { FileType, type IFile } from '@shared/interfaces/file.interface';
 import { Logger } from '@backend/middlewares/logger.midddleware';
 import { getFileService } from '../file/file.service.factory';
 import { AuditSimulationTypes } from '@backend/enums';
+
+/**
+ * Image compression quality (0-100)
+ * 60 provides good quality for PDF documents while keeping file size small
+ */
+const IMAGE_COMPRESSION_QUALITY = 60;
+
+/**
+ * Maximum image dimensions for PDF
+ * Images larger than this will be resized down
+ */
+const MAX_IMAGE_WIDTH = 800;
+const MAX_IMAGE_HEIGHT = 600;
 
 type PDFInputDto =
   | AuditEnergetiqueResponseDto
@@ -39,6 +53,7 @@ export class AuditPDFService {
   private browserPromise: Promise<Browser> | null = null;
   private readonly fileService: FileService;
   private readonly assetsCache: StaticAssetsCache;
+  private assetsCacheReady: Promise<void>;
 
   constructor(fileService: FileService) {
     this.fileService = fileService;
@@ -47,14 +62,80 @@ export class AuditPDFService {
       css: new Map(),
       images: new Map(),
     };
-    this.initializeAssetsCache();
+    this.assetsCacheReady = this.initializeAssetsCache();
+  }
+
+  /**
+   * Compress and resize an image using sharp
+   * - Resizes large images to fit within MAX dimensions
+   * - Converts PNG to optimized PNG or JPEG depending on content
+   */
+  private async compressImage(imagePath: string): Promise<string> {
+    try {
+      const imageBuffer = fs.readFileSync(imagePath);
+      let image = sharp(imageBuffer);
+      const metadata = await image.metadata();
+      
+      // Resize if image is too large (keeps aspect ratio)
+      const width = metadata.width || 0;
+      const height = metadata.height || 0;
+      
+      if (width > MAX_IMAGE_WIDTH || height > MAX_IMAGE_HEIGHT) {
+        image = image.resize(MAX_IMAGE_WIDTH, MAX_IMAGE_HEIGHT, {
+          fit: 'inside',
+          withoutEnlargement: true
+        });
+      }
+      
+      // For images with transparency, use PNG with compression
+      // For others, convert to JPEG for better compression
+      let compressedBuffer: Buffer;
+      let mimeType: string;
+      
+      if (metadata.hasAlpha) {
+        // Keep PNG but optimize it aggressively
+        compressedBuffer = await image
+          .png({ 
+            quality: IMAGE_COMPRESSION_QUALITY,
+            compressionLevel: 9,
+            effort: 10,
+            palette: true  // Use palette-based PNG for smaller files
+          })
+          .toBuffer();
+        mimeType = 'image/png';
+      } else {
+        // Convert to JPEG for better compression (no transparency needed)
+        compressedBuffer = await image
+          .jpeg({ 
+            quality: IMAGE_COMPRESSION_QUALITY,
+            mozjpeg: true
+          })
+          .toBuffer();
+        mimeType = 'image/jpeg';
+      }
+      
+      const originalSize = imageBuffer.length;
+      const compressedSize = compressedBuffer.length;
+      const savings = ((originalSize - compressedSize) / originalSize * 100).toFixed(1);
+      
+      Logger.debug(`📦 Compressed ${path.basename(imagePath)}: ${(originalSize/1024).toFixed(1)}KB → ${(compressedSize/1024).toFixed(1)}KB (${savings}% saved)`);
+      
+      // Return as data URI with correct MIME type
+      return `data:${mimeType};base64,${compressedBuffer.toString('base64')}`;
+    } catch (error) {
+      Logger.warn(`⚠️ Failed to compress ${imagePath}, using original: ${String(error)}`);
+      // Fallback to original
+      const originalBuffer = fs.readFileSync(imagePath);
+      return originalBuffer.toString('base64');
+    }
   }
 
   /**
    * Initialize static assets cache on service creation
    * Loads all templates, CSS files, and images into memory
+   * Images are compressed to reduce PDF size
    */
-  private initializeAssetsCache(): void {
+  private async initializeAssetsCache(): Promise<void> {
     try {
       // Cache templates
       const auditTemplateDir = path.resolve(__dirname, './template/audit');
@@ -87,7 +168,7 @@ export class AuditPDFService {
         'utf8'
       ));
 
-      // Cache images from organized uploads folders
+      // Cache images from organized uploads folders (with compression)
       const uploadsDir = path.resolve(__dirname, './uploads');
       const imageMapping = [
         { file: 'cover.png', category: 'covers' },
@@ -106,16 +187,20 @@ export class AuditPDFService {
         { file: 'invest.png', category: 'financial' },
       ];
 
-      for (const { file, category } of imageMapping) {
+      // Compress all images in parallel for faster startup
+      const compressionPromises = imageMapping.map(async ({ file, category }) => {
         const imagePath = path.join(uploadsDir, category, file);
         if (fs.existsSync(imagePath)) {
-          this.assetsCache.images.set(file, fs.readFileSync(imagePath).toString('base64'));
+          const compressedDataUri = await this.compressImage(imagePath);
+          this.assetsCache.images.set(file, compressedDataUri);
         } else {
           Logger.warn(`⚠️ Image file not found: ${category}/${file}`);
         }
-      }
+      });
 
-      Logger.info(`✅ Static assets cache initialized: ${this.assetsCache.templates.size} templates, ${this.assetsCache.css.size} CSS files, ${this.assetsCache.images.size} images`);
+      await Promise.all(compressionPromises);
+
+      Logger.info(`✅ Static assets cache initialized: ${this.assetsCache.templates.size} templates, ${this.assetsCache.css.size} CSS files, ${this.assetsCache.images.size} images (compressed)`);
     } catch (error) {
       Logger.error(`❌ Failed to initialize static assets cache: ${String(error)}`);
       // Continue execution - will fall back to reading files on demand
@@ -123,24 +208,72 @@ export class AuditPDFService {
   }
 
   /**
-   * Load image as base64 from cache
+   * Load image as complete data URI from cache
+   * Returns a complete data URI (data:image/...;base64,...)
+   * Templates should use src="{{imageName}}" without any prefix
    */
-  private getImageBase64(imageName: string): string {
+  private getImageDataUri(imageName: string): string {
     const cached = this.assetsCache.images.get(imageName);
     if (cached) {
-      return cached;
+      // If it's already a data URI, return as-is
+      if (cached.startsWith('data:')) {
+        return cached;
+      }
+      // Legacy: plain base64 without data URI prefix
+      return `data:image/png;base64,${cached}`;
     }
     
-    // Fallback: read from disk if not in cache
-    Logger.warn(`⚠️ Image ${imageName} not in cache, reading from disk`);
-    const imagePath = path.resolve(__dirname, './image', imageName);
+    // Fallback: read from disk if not in cache (uncompressed)
+    Logger.warn(`⚠️ Image ${imageName} not in cache, reading from disk (uncompressed)`);
+    const uploadsDir = path.resolve(__dirname, './uploads');
+    const categoryMapping: Record<string, string> = {
+      'cover.png': 'covers',
+      'logo.png': 'branding',
+      'building.png': 'buildings',
+      'building2.png': 'buildings',
+      'cold.png': 'icons',
+      'heat.png': 'icons',
+      'light.png': 'icons',
+      'equipment.png': 'icons',
+      'ecs.png': 'icons',
+      'energy.png': 'icons',
+      'panneau.png': 'solar',
+      'pv-cover.png': 'solar',
+      'bank.png': 'financial',
+      'invest.png': 'financial',
+    };
+    
+    const category = categoryMapping[imageName];
+    const imagePath = category 
+      ? path.join(uploadsDir, category, imageName)
+      : path.resolve(__dirname, './image', imageName);
+    
     if (fs.existsSync(imagePath)) {
       const base64 = fs.readFileSync(imagePath).toString('base64');
-      this.assetsCache.images.set(imageName, base64);
-      return base64;
+      const dataUri = `data:image/png;base64,${base64}`;
+      this.assetsCache.images.set(imageName, dataUri);
+      return dataUri;
     }
     
     throw new Error(`Image file not found: ${imageName}`);
+  }
+
+  /**
+   * Load image as base64 from cache (for legacy templates)
+   * Returns just the base64 part without data URI prefix
+   * Templates use src="data:image/png;base64,{{imageName}}"
+   */
+  private getImageBase64(imageName: string): string {
+    const dataUri = this.getImageDataUri(imageName);
+    
+    // Extract just the base64 part from data URI
+    const match = dataUri.match(/^data:image\/[^;]+;base64,(.+)$/);
+    if (match) {
+      return match[1];
+    }
+    
+    // If not a valid data URI, return as-is (probably already base64)
+    return dataUri;
   }
 
   private async getBrowser(): Promise<Browser> {
@@ -294,6 +427,9 @@ export class AuditPDFService {
     solaireDto?: AuditSolaireResponseDto | null,
     energetiqueDto?: AuditEnergetiqueResponseDto | null
   ): Promise<Buffer> {
+    // Ensure assets cache is ready (images compressed)
+    await this.assetsCacheReady;
+    
     return Promise.race([
       this._generatePDF(dto, template, solaireDto, energetiqueDto),
       new Promise<Buffer>((_, reject) =>
@@ -711,7 +847,7 @@ export class AuditPDFService {
           
           // Generate CAPEX circles HTML
           const capexCirclesHTML = capexPointsArray.map((p) => 
-            `<circle cx="${p.x.toFixed(2)}" cy="${p.y.toFixed(2)}" r="4" fill="rgba(236, 72, 153, 0.8)"/>`
+            `<circle cx="${p.x.toFixed(2)}" cy="${p.y.toFixed(2)}" r="4" fill="rgba(248, 113, 113, 0.8)"/>`
           ).join('\n              ');
           
           flattened.lineChartGainsCirclesHTML = gainsCirclesHTML;
@@ -744,11 +880,23 @@ export class AuditPDFService {
           }
           
           // Format intersection year with 1 decimal (like frontend: number:'1.1-1')
+          const intersectionYearText = intersectionYear !== null ? intersectionYear.toFixed(1) + ' ans' : '';
           flattened.lineChartIntersectionYear = intersectionYear !== null ? intersectionYear.toFixed(1) : '';
           flattened.lineChartIntersectionX = intersectionX !== null ? intersectionX.toFixed(2) : '';
           flattened.lineChartIntersectionY = intersectionY !== null ? intersectionY.toFixed(2) : '';
           flattened.lineChartIntersectionCapex = Math.round(capex);
           flattened.lineChartHasIntersection = intersectionYear !== null ? 'true' : 'false';
+          
+          // Calculate bubble width based on text length (approx 7px per char + 30px padding)
+          const calculateBubbleWidth = (text: string): number => {
+            const charWidth = 7; // Approximate width per character for 14px bold font
+            const padding = 30; // 15px padding on each side
+            return Math.max(80, text.length * charWidth + padding);
+          };
+          
+          const intersectionBubbleWidth = calculateBubbleWidth(intersectionYearText);
+          flattened.lineChartIntersectionBubbleWidth = intersectionBubbleWidth;
+          flattened.lineChartIntersectionBubbleX = intersectionX !== null ? (intersectionX - intersectionBubbleWidth / 2).toFixed(2) : '';
           
           // Calculate final value (year 25)
           const year25Index = Math.min(24, annualData.length - 1);
@@ -765,12 +913,19 @@ export class AuditPDFService {
           flattened.lineChartFinalX = finalX.toFixed(2);
           flattened.lineChartFinalY = finalY.toFixed(2);
           
+          // Calculate bubble width for final gains
+          const finalGainText = formatNumberWithSpaces(finalGain) + ' DT';
+          const finalGainBubbleWidth = calculateBubbleWidth(finalGainText);
+          flattened.lineChartFinalBubbleWidth = finalGainBubbleWidth;
+          
           // Calculate leader line and bubble positions (matching frontend)
           flattened.lineChartFinalXMinus95 = (finalX - 95).toFixed(2);
           flattened.lineChartFinalYPlus50 = (finalY + 50).toFixed(2);
-          flattened.lineChartFinalXMinus210 = (finalX - 210).toFixed(2);
+          flattened.lineChartFinalBubbleX = (finalX - 210 - (finalGainBubbleWidth - 180) / 2).toFixed(2);
           flattened.lineChartFinalYPlus20 = (finalY + 20).toFixed(2);
-          flattened.lineChartFinalXMinus120 = (finalX - 120).toFixed(2);
+          flattened.lineChartFinalTextX = (
+            (finalX - 210 - (finalGainBubbleWidth - 180) / 2) + finalGainBubbleWidth / 2
+          ).toFixed(2);
           flattened.lineChartFinalYPlus46 = (finalY + 46).toFixed(2);
           
           flattened.lineChartHasFinal = finalGain > 0 ? 'true' : 'false';
@@ -783,12 +938,19 @@ export class AuditPDFService {
           flattened.lineChartFinalCapexX = finalCapexX.toFixed(2);
           flattened.lineChartFinalCapexY = finalCapexY.toFixed(2);
           
+          // Calculate bubble width for final CAPEX
+          const finalCapexText = formatNumberWithSpaces(capex) + ' DT';
+          const finalCapexBubbleWidth = calculateBubbleWidth(finalCapexText);
+          flattened.lineChartFinalCapexBubbleWidth = finalCapexBubbleWidth;
+          
           // Calculate leader line and bubble positions for CAPEX (matching frontend)
           flattened.lineChartFinalCapexXMinus95 = (finalCapexX - 95).toFixed(2);
           flattened.lineChartFinalCapexYMinus28 = (finalCapexY - 28).toFixed(2);
-          flattened.lineChartFinalCapexXMinus210 = (finalCapexX - 210).toFixed(2);
+          flattened.lineChartFinalCapexBubbleX = (finalCapexX - 210 - (finalCapexBubbleWidth - 180) / 2).toFixed(2);
           flattened.lineChartFinalCapexYMinus50 = (finalCapexY - 50).toFixed(2);
-          flattened.lineChartFinalCapexXMinus120 = (finalCapexX - 120).toFixed(2);
+          flattened.lineChartFinalCapexTextX = (
+            (finalCapexX - 210 - (finalCapexBubbleWidth - 180) / 2) + finalCapexBubbleWidth / 2
+          ).toFixed(2);
           flattened.lineChartFinalCapexYMinus24 = (finalCapexY - 24).toFixed(2);
           
           flattened.lineChartHasFinalCapex = capex > 0 ? 'true' : 'false';
@@ -807,6 +969,10 @@ export class AuditPDFService {
     =============================== */
     html = this.renderHTML(html, flattened);
     const pdfBuffer = await this.generatePDFFromHTML(html);
+    
+    const sizeKB = (pdfBuffer.length / 1024).toFixed(1);
+    const sizeMB = (pdfBuffer.length / 1024 / 1024).toFixed(2);
+    Logger.info(`📄 PDF generated: ${sizeKB} KB (${sizeMB} MB) - template: ${template}`);
 
     // Save to cloud storage (or fallback) WITHOUT blocking the response.
     // This is often the slowest step (network upload). We run it in the background.

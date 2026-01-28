@@ -1,6 +1,6 @@
 /**
  * ESCO Solution Service
- * Calculates ESCO JOYA financing solution with target IRR of 16%
+ * Calculates ESCO JOYA financing solution with target IRR of 13%
  * JOYA finances 100% and includes OPEX
  */
 

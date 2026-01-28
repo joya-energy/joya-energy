@@ -789,6 +789,71 @@ export class AuditSolaireComponent {
     return { x, y };
   }
 
+  // Calculate bubble width based on text length
+  private calculateBubbleWidth(text: string): number {
+    const charWidth = 7; // Approximate width per character for 14px bold font
+    const padding = 30; // 15px padding on each side
+    return Math.max(80, text.length * charWidth + padding);
+  }
+
+  // Get intersection bubble dimensions
+  protected getIntersectionBubbleWidth(): number {
+    const point = this.getIntersectionPoint();
+    if (!point) return 100;
+    const text = point.year.toFixed(1) + ' ans';
+    return this.calculateBubbleWidth(text);
+  }
+
+  protected getIntersectionBubbleX(): number {
+    const point = this.getIntersectionPoint();
+    if (!point) return 0;
+    return point.x - this.getIntersectionBubbleWidth() / 2;
+  }
+
+  // Get final gains bubble dimensions
+  protected getFinalGainsBubbleWidth(): number {
+    const value = this.getFinalGainsValue();
+    if (value === null) return 180;
+    const text = Math.round(value).toLocaleString('fr-FR').replace(/\s/g, ' ') + ' DT';
+    return this.calculateBubbleWidth(text);
+  }
+
+  protected getFinalGainsBubbleX(): number {
+    const point = this.getFinalGainsPoint();
+    if (!point) return 0;
+    const width = this.getFinalGainsBubbleWidth();
+    return point.x - 210 - (width - 180) / 2;
+  }
+
+  protected getFinalGainsTextX(): number {
+    const point = this.getFinalGainsPoint();
+    if (!point) return 0;
+    const width = this.getFinalGainsBubbleWidth();
+    return this.getFinalGainsBubbleX() + width / 2;
+  }
+
+  // Get final CAPEX bubble dimensions
+  protected getFinalCapexBubbleWidth(): number {
+    const value = this.getFinalCapexValue();
+    if (value === null || value === 0) return 180;
+    const text = Math.round(value).toLocaleString('fr-FR').replace(/\s/g, ' ') + ' DT';
+    return this.calculateBubbleWidth(text);
+  }
+
+  protected getFinalCapexBubbleX(): number {
+    const point = this.getFinalCapexPoint();
+    if (!point) return 0;
+    const width = this.getFinalCapexBubbleWidth();
+    return point.x - 210 - (width - 180) / 2;
+  }
+
+  protected getFinalCapexTextX(): number {
+    const point = this.getFinalCapexPoint();
+    if (!point) return 0;
+    const width = this.getFinalCapexBubbleWidth();
+    return this.getFinalCapexBubbleX() + width / 2;
+  }
+
   protected downloadPVReport(): void {
     const result = this.simulationResult();
     if (!result?.id) {
