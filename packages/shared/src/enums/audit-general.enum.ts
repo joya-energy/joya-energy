@@ -25,8 +25,8 @@ export enum Governorates {
 }
 
 export enum BuildingTypes {
-  CAFE_RESTAURANT = 'Café / Restaurant', 
-  BEAUTY_CENTER = 'Centre esthétique / Spa', 
+  CAFE_RESTAURANT = 'Café / Restaurant',
+  BEAUTY_CENTER = 'Centre esthétique / Spa',
   HOTEL_GUESTHOUSE = 'Hôtel',
   CLINIC_MEDICAL = 'Clinique / Centre médical', 
   OFFICE_ADMIN_BANK = 'Bureau / Administration / Banque',
@@ -48,8 +48,8 @@ export enum ClimateZones {
 
 export enum ActivityTypes {
   CAFE_RESTAURANT = 'Restauration / Services alimentaires',
-  BEAUTY_CENTER = 'Beauté / Bien-être', 
-  HOTEL_GUESTHOUSE = 'Hôtellerie / Hébergement',      
+  BEAUTY_CENTER = 'Beauté / Bien-être',
+  HOTEL_GUESTHOUSE = 'Hôtellerie / Hébergement',
   CLINIC_MEDICAL = 'Santé / Soins médicaux',
   OFFICE_ADMIN_BANK = 'Services / Administration',
   LIGHT_WORKSHOP = 'Industrie légère / Artisanat',
