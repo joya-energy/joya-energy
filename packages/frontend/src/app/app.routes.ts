@@ -28,7 +28,7 @@ export const routes: Routes = [
   },
   {
     path: 'bilan-carbon',
-    loadComponent: () => import('./pages/bilan-carbon/bilan-carbon.component').then(m => m.BilanCarbonComponent),
+    loadComponent: () => import('./pages/bilan-carbon/bilan-carbon.component.js').then(m => m.BilanCarbonComponent),
     title: 'Bilan Carbone | JOYA Energy'
   },
   {
