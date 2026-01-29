@@ -35,7 +35,7 @@ export function computeEnergySplit(input: EnergySplitInput): EnergySplitResult {
 
   // Add gas from heating system
   if (input.heatingSystem === HeatingSystemTypes.GAS_BOILER) {
-    gasConsumption += input.heatingLoadKwh ;
+    gasConsumption += input.heatingLoadKwh;
   }
 
   // Add gas from ECS

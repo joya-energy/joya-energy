@@ -16,8 +16,5 @@
   },
   "include": ["src", "../shared/src"],
   "exclude": ["node_modules", "dist", "**/*.js", "**/*.d.ts"],
-  "files": [
-    "src/types/express/index.d.ts",
-    "src/types/pdf-to-png-converter.d.ts"
-  ]
+  "files": ["src/types/express/index.d.ts"]
 }

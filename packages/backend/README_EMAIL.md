@@ -40,7 +40,7 @@ npm run dev
 Use the `test-contact-api.http` file with REST Client extension, or:
 
 ```bash
-curl -X POST http://localhost:3001/api/contacts \
+curl -X POST http://localhost:3000/api/contacts \
   -H "Content-Type: application/json" \
   -d '{"name":"Test","email":"test@example.com","message":"Hello!"}'
 ```

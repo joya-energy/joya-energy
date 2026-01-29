@@ -1,6 +1,1 @@
 node_modules
-
-# Local file exports (now using Google Cloud Storage)
-exports/
-src/exports/
-dist/

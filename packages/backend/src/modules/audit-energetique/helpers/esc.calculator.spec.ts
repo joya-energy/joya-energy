@@ -35,8 +35,7 @@ describe('computeDomesticHotWaterLoad', () => {
       ecsType: DomesticHotWaterTypes.GAS
     });
 
-    // Gas: 80 / 0.9 = 88.888... (repeating)
-    expect(result.perSquare).toBeCloseTo(88.889, 2);
+    expect(result.perSquare).toBeCloseTo(88.888, 3);
   });
 
   it('handles solar appoint part only', () => {
@@ -45,8 +44,7 @@ describe('computeDomesticHotWaterLoad', () => {
       ecsType: DomesticHotWaterTypes.SOLAR
     });
 
-    // Solar: (1 - 0.7) * (80 / 0.9) = 0.3 * 88.889 = 26.667 (repeating)
-    expect(result.perSquare).toBeCloseTo(26.667, 2);
+    expect(result.perSquare).toBeCloseTo(26.666, 3);
   });
 
   it('handles heat pump performance', () => {
@@ -55,8 +53,7 @@ describe('computeDomesticHotWaterLoad', () => {
       ecsType: DomesticHotWaterTypes.HEAT_PUMP
     });
 
-    // Heat pump: 80 / 3 = 26.666... (repeating)
-    expect(result.perSquare).toBeCloseTo(26.667, 2);
+    expect(result.perSquare).toBeCloseTo(26.666, 3);
   });
 });
 

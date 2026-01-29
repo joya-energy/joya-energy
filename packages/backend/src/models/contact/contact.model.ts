@@ -11,11 +11,10 @@ export const Contact: Model<ContactDocument> = buildSchema<ContactDocument>(
   ModelsCollection.CONTACT,
   {
     name: { type: String, required: true, trim: true, maxlength: 100 },
-    email: { type: String, required: true, trim: true, lowercase: true },
-    message: { type: String, trim: true, maxlength: 5000 },
+    email: { type: String, required: true, unique: true, trim: true, lowercase: true },
+    message: { type: String, required: true, trim: true, maxlength: 5000 },
     phoneNumber: { type: String, required: true, trim: true },
-    subject: { type: String, trim: true },
-    companyName: { type: String, trim: true },
+    subject: { type: String, required: true, trim: true },
   },
   {
     timestamps: true

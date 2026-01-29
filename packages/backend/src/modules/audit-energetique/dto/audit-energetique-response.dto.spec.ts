@@ -9,23 +9,24 @@ import {
   ConditionedCoverage,
   DomesticHotWaterTypes
 } from '@shared/enums/audit-batiment.enum';
-import { EnergyTariffTypes } from '@shared/enums/audit-energy-tariff';
+import { EnergyTariffTypes } from '@shared/enums/audit-energetique.enum';
 import { LightingTypes } from '@shared/enums/audit-usage.enum';
 import { type IAuditEnergetiqueSimulation } from '@shared/interfaces/audit-energetique.interface';
 
 describe('toAuditEnergetiqueResponseDto', () => {
   const mockSimulation: IAuditEnergetiqueSimulation = {
     id: '507f1f77bcf86cd799439011',
-    fullName: 'Ahmed Ben Salem',
-    companyName: 'Office Central',
-    email: 'ahmed@office.tn',
+    firstName: 'Ahmed',
+    lastName: 'Ben Salem',
+    companyName: 'Pharmacie Centrale',
+    email: 'ahmed@pharmacie.tn',
     phoneNumber: '20123456',
     address: '123 Avenue Bourguiba',
     governorate: Governorates.TUNIS,
-    buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
+    buildingType: BuildingTypes.PHARMACY,
     surfaceArea: 100,
     floors: 1,
-    activityType: 'Bureau / Administration / Banque',
+    activityType: 'Pharmacie',
     openingDaysPerWeek: 6,
     openingHoursPerDay: 10,
     insulation: InsulationQualities.MEDIUM,
@@ -72,9 +73,10 @@ describe('toAuditEnergetiqueResponseDto', () => {
     const result = toAuditEnergetiqueResponseDto(mockSimulation);
 
     expect(result.data.contact).toEqual({
-      fullName: 'Ahmed Ben Salem',
-      companyName: 'Office Central',
-      email: 'ahmed@office.tn',
+      firstName: 'Ahmed',
+      lastName: 'Ben Salem',
+      companyName: 'Pharmacie Centrale',
+      email: 'ahmed@pharmacie.tn',
       phoneNumber: '20123456',
       address: '123 Avenue Bourguiba',
       governorate: Governorates.TUNIS
@@ -85,10 +87,10 @@ describe('toAuditEnergetiqueResponseDto', () => {
     const result = toAuditEnergetiqueResponseDto(mockSimulation);
 
     expect(result.data.building).toEqual({
-      type: BuildingTypes.OFFICE_ADMIN_BANK,
+      type: BuildingTypes.PHARMACY,
       surfaceArea: 100,
       floors: 1,
-      activityType: 'Bureau / Administration / Banque',
+      activityType: 'Pharmacie',
       openingHoursPerDay: 10,
       openingDaysPerWeek: 6
     });
@@ -118,32 +120,13 @@ describe('toAuditEnergetiqueResponseDto', () => {
     });
   });
 
-  it('should include energy end-use breakdown when provided', () => {
-    const simWithBreakdown: IAuditEnergetiqueSimulation = {
-      ...mockSimulation,
-      energyEndUseBreakdown: {
-        totalConsumptionKwh: 12500.5,
-        totalCostTunisianDinar: 4375.18,
-        breakdown: {
-          cooling: { consumptionKwh: 2000, costTunisianDinar: 700, sharePercent: 16 },
-          heating: { consumptionKwh: 3000, costTunisianDinar: 1050, sharePercent: 24 },
-          lighting: { consumptionKwh: 1500, costTunisianDinar: 525, sharePercent: 12 },
-          equipment: { consumptionKwh: 5000, costTunisianDinar: 1750, sharePercent: 40 },
-          domesticHotWater: { consumptionKwh: 1000, costTunisianDinar: 350, sharePercent: 8 }
-        }
-      }
-    };
-
-    const result = toAuditEnergetiqueResponseDto(simWithBreakdown);
-
-    expect(result.data.results.energyEndUseBreakdown).toEqual(simWithBreakdown.energyEndUseBreakdown);
-  });
-
   it('should calculate energy consumption per m²', () => {
     const result = toAuditEnergetiqueResponseDto(mockSimulation);
 
-    expect(result.data.results.energyConsumption.perSquareMeter.value).toBeCloseTo(125, 0);
-    expect(result.data.results.energyConsumption.perSquareMeter.unit).toBe('kWh/m².an');
+    expect(result.data.results.energyConsumption.perSquareMeter).toEqual({
+      value: 125.01,
+      unit: 'kWh/m².an'
+    });
   });
 
   it('should calculate CO2 emissions per m²', () => {
@@ -170,14 +153,12 @@ describe('toAuditEnergetiqueResponseDto', () => {
       buildingType: BuildingTypes.OFFICE_ADMIN_BANK,
       energyClass: 'Classe 3',
       energyClassDescription: 'Bonne performance',
-      becth: 95.5,
-      totalAnnualEnergy: 125,
-      siteIntensity: 125
+      becth: 95.5
     };
 
     const result = toAuditEnergetiqueResponseDto(officeSimulation);
 
-    expect(result.data.results.energyClassification).toMatchObject({
+    expect(result.data.results.energyClassification).toEqual({
       becth: 95.5,
       class: 'Classe 3',
       description: 'Bonne performance',
@@ -188,12 +169,13 @@ describe('toAuditEnergetiqueResponseDto', () => {
   it('should mark energy classification as not applicable for non-office buildings', () => {
     const result = toAuditEnergetiqueResponseDto(mockSimulation);
 
-    expect(result.data.results.energyClassification).toMatchObject({
+    expect(result.data.results.energyClassification).toEqual({
+      becth: 0,
       class: 'N/A',
-      description: 'Classement énergétique non disponible pour ce type de bâtiment',
-      isApplicable: false
+      description: 'Classement énergétique non applicable à ce type de bâtiment',
+      isApplicable: false,
+      note: 'Le classement BECTh est réservé aux bâtiments de type Bureau / Administration / Banque'
     });
-    expect(result.data.results.energyClassification?.becth).toBeGreaterThan(0);
   });
 
   it('should handle simulation with optional fields', () => {
@@ -238,7 +220,7 @@ describe('toAuditEnergetiqueResponseDto', () => {
 
     const result = toAuditEnergetiqueResponseDto(simWithFractionalValues);
 
-    expect(result.data.results.energyConsumption.perSquareMeter.value).toBeCloseTo(125.01, 2);
-    expect(result.data.results.co2Emissions.perSquareMeter.value).toBeCloseTo(63.96, 2);
+    expect(result.data.results.energyConsumption.perSquareMeter.value).toBeCloseTo(125.02, 2);
+    expect(result.data.results.co2Emissions.perSquareMeter.value).toBeCloseTo(63.97, 2);
   });
 });

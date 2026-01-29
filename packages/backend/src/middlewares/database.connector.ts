@@ -17,7 +17,6 @@ export const dbConnectToPlatform = async (uri?: string): Promise<void> => {
     const regexResults = uri.match(/mongodb\+srv:\/\/[^:]+:([a-zA-Z0-9]+)@/);
     const password = regexResults != null && regexResults.length === 2 ? regexResults[1] : '';
     Logger.debug(`Database uri used: ${String(uri).replace(password, '********')}`);
-    Logger.debug(`running on port ${process.env.PORT}`);
   }
   mongoose.connection.once('open', () => {});
   mongoose.connection.on('disconnected', () => Logger.info(`Disconnected`));

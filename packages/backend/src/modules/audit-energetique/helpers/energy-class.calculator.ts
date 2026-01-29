@@ -5,12 +5,7 @@
  * Calculates BECTh (Besoins Énergétiques liés au Confort Thermique)
  * and assigns energy class according to Tunisia's building energy regulation
  * 
- * Applicable to 5 building types:
- * 1. Bureaux / Administration / Banque
- * 2. Café / Restaurant / Centre esthétique / Spa
- * 3. Hôtel / Maison d'hôtes
- * 4. Clinique / Centre médical
- * 5. École / Centre de formation
+ * Only applicable to: Bureau / Administration / Banque
  * 
  * Formula:
  * BECTh = (BECh + BERef) / STC
@@ -22,119 +17,98 @@
  * - BECTh: Thermal comfort energy needs (kWh/m².year)
  */
 
-import { Logger } from '@backend/middlewares';
 import { BuildingTypes } from '@shared/enums/audit-general.enum';
-import { ClassificationGrade, EnergyUnit } from '@shared/enums/classification.enum';
+
+export enum EnergyClass {
+  CLASS_1 = 'Classe 1',
+  CLASS_2 = 'Classe 2',
+  CLASS_3 = 'Classe 3',
+  CLASS_4 = 'Classe 4',
+  CLASS_5 = 'Classe 5',
+  CLASS_6 = 'Classe 6',
+  CLASS_7 = 'Classe 7',
+  CLASS_8 = 'Classe 8'
+}
 
 export interface EnergyClassInput {
   buildingType: BuildingTypes;
-  electricityConsumption: number;
-  gasConsumption: number;
-  conditionedSurface: number;
-  gasEfficiency?: number;
+  heatingLoad: number; // kWh/year
+  coolingLoad: number; // kWh/year
+  conditionedSurface: number; // m²
 }
 
 export interface EnergyClassResult {
-  totalAnnualEnergy: number;
-  siteIntensity: number;
-  referenceIntensity: number | null;
-  joyaIndex: number | null;
-  joyaClass: ClassificationGrade;
-  classDescription: string;
+  becth: number | null; // kWh/m².year
+  energyClass: EnergyClass | null;
+  classDescription: string | null;
   isApplicable: boolean;
-  unit: EnergyUnit.KWH_PER_M2_YEAR;
-  becth: number;
 }
 
-type Threshold = { max: number; class: ClassificationGrade; description: string };
-
-const JOYA_THRESHOLDS: Threshold[] = [
-  { max: 0.6, class: ClassificationGrade.A, description: 'Optimisé' },
-  { max: 0.85, class: ClassificationGrade.B, description: 'Efficace' },
-  { max: 1.15, class: ClassificationGrade.C, description: 'Standard' },
-  { max: 1.4, class: ClassificationGrade.D, description: 'Surconsommation' },
-  { max: Number.POSITIVE_INFINITY, class: ClassificationGrade.E, description: 'Très énergivore' }
-];
-
-const REFERENCE_INTENSITIES: Record<BuildingTypes, number> = {
-  [BuildingTypes.SERVICE]: 138,
-  [BuildingTypes.CAFE_RESTAURANT]: 180,
-  [BuildingTypes.BEAUTY_CENTER]: 140,
-  [BuildingTypes.OFFICE_ADMIN_BANK]: 110,
-  [BuildingTypes.CLINIC_MEDICAL]: 220,
-  [BuildingTypes.HOTEL_GUESTHOUSE]: 200,
-  [BuildingTypes.SCHOOL_TRAINING]: 90,
-  [BuildingTypes.LIGHT_WORKSHOP]: 130,
-  [BuildingTypes.HEAVY_FACTORY]: 180,
-  [BuildingTypes.TEXTILE_PACKAGING]: 160,
-  [BuildingTypes.FOOD_INDUSTRY]: 190,
-  [BuildingTypes.PLASTIC_INJECTION]: 170,
-  [BuildingTypes.COLD_AGRO_INDUSTRY]: 240
-};
-
-function classifyIndex(index: number): { class: ClassificationGrade; description: string } {
-  for (const threshold of JOYA_THRESHOLDS) {
-    if (index <= threshold.max) {
-      return { class: threshold.class, description: threshold.description };
-    }
+/**
+ * Determines energy class based on BECTh value
+ */
+function getEnergyClass(becth: number): { class: EnergyClass; description: string } {
+  if (becth <= 75) {
+    return { class: EnergyClass.CLASS_1, description: 'Excellente performance' };
   }
-  const finalThreshold = JOYA_THRESHOLDS[JOYA_THRESHOLDS.length - 1];
-  return { class: finalThreshold.class, description: finalThreshold.description };
+  if (becth <= 85) {
+    return { class: EnergyClass.CLASS_2, description: 'Très bonne performance' };
+  }
+  if (becth <= 95) {
+    return { class: EnergyClass.CLASS_3, description: 'Bonne performance' };
+  }
+  if (becth <= 105) {
+    return { class: EnergyClass.CLASS_4, description: 'Performance moyenne' };
+  }
+  if (becth <= 125) {
+    return { class: EnergyClass.CLASS_5, description: 'Performance faible' };
+  }
+  if (becth <= 150) {
+    return { class: EnergyClass.CLASS_6, description: 'Mauvaise performance' };
+  }
+  if (becth <= 180) {
+    return { class: EnergyClass.CLASS_7, description: 'Très mauvaise performance' };
+  }
+  return { class: EnergyClass.CLASS_8, description: 'Performance critique' };
 }
 
+/**
+ * Computes BECTh and energy class
+ * 
+ * Only applicable to Bureau / Administration / Banque buildings
+ */
 export function computeEnergyClass(input: EnergyClassInput): EnergyClassResult {
+  // Energy classification only applies to offices
+  const isOfficeBuilding = input.buildingType === BuildingTypes.OFFICE_ADMIN_BANK;
+
+  if (!isOfficeBuilding) {
+    return {
+      becth: null,
+      energyClass: null,
+      classDescription: null,
+      isApplicable: false
+    };
+  }
+
+  // Check if conditioned surface is valid
   if (input.conditionedSurface <= 0) {
     return {
-      totalAnnualEnergy: 0,
-      siteIntensity: 0,
-      referenceIntensity: null,
-      joyaIndex: null,
-      joyaClass: ClassificationGrade.NOT_APPLICABLE,
+      becth: 0,
+      energyClass: null,
       classDescription: 'Surface conditionnée invalide',
-      isApplicable: false,
-      unit: EnergyUnit.KWH_PER_M2_YEAR,
-      becth: 0
+      isApplicable: true
     };
   }
 
-  const referenceIntensity = REFERENCE_INTENSITIES[input.buildingType] ?? null;
-  if (!referenceIntensity) {
-    return {
-      totalAnnualEnergy: 0,
-      siteIntensity: 0,
-      referenceIntensity: null,
-      joyaIndex: null,
-      joyaClass: ClassificationGrade.NOT_APPLICABLE,
-      classDescription: 'Classement énergétique non disponible pour ce type de bâtiment',
-      isApplicable: false,
-      unit: EnergyUnit.KWH_PER_M2_YEAR,
-      becth: 0
-    };
-  }
-
-//  const gasEfficiency = input.gasEfficiency ?? DEFAULT_GAS_EFFICIENCY;
-//  const usefulGasEnergy = input.gasConsumption / gasEfficiency;
-//  const totalAnnualEnergy = input.electricityConsumption + usefulGasEnergy;
-  const totalAnnualEnergy = input.electricityConsumption + input.gasConsumption;
-  const siteIntensity = totalAnnualEnergy / input.conditionedSurface;
-  const joyaIndex = siteIntensity / referenceIntensity;
-
-  Logger.info(`Total annual energy: ${totalAnnualEnergy} kWh`);
-  Logger.info(`Site intensity: ${siteIntensity} kWh/m².an`);
-  Logger.info(`Reference intensity: ${referenceIntensity} kWh/m².an`);
-
-  const { class: joyaClass, description } = classifyIndex(joyaIndex);
+  // Calculate BECTh
+  const becth = (input.heatingLoad + input.coolingLoad) / input.conditionedSurface;
+  const { class: energyClass, description } = getEnergyClass(becth);
 
   return {
-    totalAnnualEnergy: Number(totalAnnualEnergy.toFixed(2)),
-    siteIntensity: Number(siteIntensity.toFixed(2)),
-    referenceIntensity,
-    joyaIndex: Number(joyaIndex.toFixed(2)),
-    joyaClass,
+    becth: Number(becth.toFixed(2)),
+    energyClass,
     classDescription: description,
-    isApplicable: true,
-    unit: EnergyUnit.KWH_PER_M2_YEAR,
-    becth: Number(siteIntensity.toFixed(2))
+    isApplicable: true
   };
 }
 

@@ -1,18 +1,20 @@
-import { ConditionedCoverage,
+import {
+  ConditionedCoverage,
   CoolingSystemTypes,
   DomesticHotWaterTypes,
   GlazingTypes,
   HeatingSystemTypes,
   InsulationQualities,
   VentilationSystems
-} from '../enums/audit-batiment.enum';
+} from '@shared/enums/audit-batiment.enum';
 import { BusinessObject, CreateBusinessObject, UpdateBusinessObject } from './buisness.interface';
 import { BuildingTypes, ClimateZones, Governorates } from '@shared/enums/audit-general.enum';
-import { EnergyTariffTypes } from '@shared/enums/audit-energy-tariff';
+import { EnergyTariffTypes } from '@shared/enums/audit-energetique.enum';
 import { EquipmentCategories, ExistingMeasures, LightingTypes } from '@shared/enums/audit-usage.enum';
 
 export interface IAuditEnergetiqueSimulation extends BusinessObject {
-  fullName: string;
+  firstName: string;
+  lastName: string;
   companyName: string;
   email: string;
   phoneNumber: string;
@@ -46,28 +48,8 @@ export interface IAuditEnergetiqueSimulation extends BusinessObject {
   energyCostPerYear: number;
   co2EmissionsKg: number;
   co2EmissionsTons: number;
-  energyEndUseBreakdown?: {
-    totalConsumptionKwh: number;
-    totalCostTunisianDinar: number;
-    breakdown: {
-      cooling: { consumptionKwh: number; costTunisianDinar: number; sharePercent: number };
-      heating: { consumptionKwh: number; costTunisianDinar: number; sharePercent: number };
-      lighting: { consumptionKwh: number; costTunisianDinar: number; sharePercent: number };
-      equipment: { consumptionKwh: number; costTunisianDinar: number; sharePercent: number };
-      domesticHotWater: { consumptionKwh: number; costTunisianDinar: number; sharePercent: number };
-    };
-  };
-  co2EmissionsElecKg?: number;
-  co2EmissionsGasKg?: number;
-  carbonClass?: string;
-  carbonClassDescription?: string;
-  carbonIntensity?: number;
   energyClass?: string;
   energyClassDescription?: string;
-  totalAnnualEnergy?: number;
-  siteIntensity?: number;
-  referenceIntensity?: number;
-  joyaIndex?: number;
   becth?: number;
   createdAt: Date;
   updatedAt: Date;

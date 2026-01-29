@@ -11,7 +11,7 @@ import {
   ConditionedCoverage,
   DomesticHotWaterTypes
 } from '@shared/enums/audit-batiment.enum';
-import { EnergyTariffTypes } from '@shared/enums/audit-energy-tariff';
+import { EnergyTariffTypes } from '@shared/enums/audit-energetique.enum';
 import { LightingTypes, EquipmentCategories } from '@shared/enums/audit-usage.enum';
 import { Types } from 'mongoose';
 import {
@@ -46,16 +46,17 @@ describe('AuditSimulationService', () => {
   let mockRepository: jest.Mocked<AuditEnergetiqueSimulationRepository>;
 
   const mockSimulationInput: AuditEnergetiqueCreateInput = {
-    fullName: 'Ahmed Ben Salem',
-    companyName: 'Office Central',
-    email: 'ahmed@office.tn',
+    firstName: 'Ahmed',
+    lastName: 'Ben Salem',
+    companyName: 'Pharmacie Centrale',
+    email: 'ahmed@pharmacie.tn',
     phoneNumber: '20123456',
     address: '123 Avenue Bourguiba',
     governorate: Governorates.TUNIS,
-    buildingType: BuildingTypes.CAFE_RESTAURANT,
+    buildingType: BuildingTypes.PHARMACY,
     surfaceArea: 100,
     floors: 1,
-    activityType: 'Café / Restaurant',
+    activityType: 'Pharmacie',
     openingDaysPerWeek: 6,
     openingHoursPerDay: 10,
     insulation: InsulationQualities.MEDIUM,
@@ -114,7 +115,8 @@ describe('AuditSimulationService', () => {
 
       expect(mockRepository.createOne).toHaveBeenCalledWith(
         expect.objectContaining({
-          fullName: mockSimulationInput.fullName,
+          firstName: mockSimulationInput.firstName,
+          lastName: mockSimulationInput.lastName,
           annualConsumption: expect.any(Number),
           monthlyConsumption: expect.any(Number),
           energyCostPerYear: expect.any(Number),
@@ -148,19 +150,14 @@ describe('AuditSimulationService', () => {
       expect(result.becth).toBeDefined();
     });
 
-    it('should calculate energy class for all supported building types', async () => {
+    it('should not calculate energy class for non-office buildings', async () => {
       mockRepository.createOne.mockResolvedValue(mockSimulationDocument);
 
       await service.createSimulation(mockSimulationInput);
 
       const createCall = mockRepository.createOne.mock.calls[0][0] as ICreateAuditEnergetiqueSimulation;
-      // Pharmacy is supported: energy class should be computed, not N/A
-      expect(createCall.energyClass).toBeDefined();
-      expect(createCall.energyClass).not.toBe('N/A');
-      expect(createCall.becth).toBeDefined();
-      expect(createCall.totalAnnualEnergy).toBeDefined();
-      expect(createCall.siteIntensity).toBeDefined();
-      expect(createCall.joyaIndex).toBeDefined();
+      expect(createCall.energyClass).toBeUndefined();
+      expect(createCall.becth).toBeUndefined();
     });
 
     it('should include equipment loads when categories provided', async () => {
@@ -204,6 +201,26 @@ describe('AuditSimulationService', () => {
       expect(createCall.co2EmissionsTons).toBe(Number((createCall.co2EmissionsKg / 1000).toFixed(3)));
     });
 
+    it('should apply pharmacy-specific cold load', async () => {
+      const pharmacyInput = {
+        ...mockSimulationInput,
+        buildingType: BuildingTypes.PHARMACY,
+        surfaceArea: 80
+      };
+
+      const pharmacySimulation: IAuditEnergetiqueSimulation = {
+        ...mockSimulationDocument,
+        surfaceArea: 80
+      };
+
+      mockRepository.createOne.mockResolvedValue(pharmacySimulation);
+
+      const result = await service.createSimulation(pharmacyInput);
+
+      // Pharmacy should have additional cold load factored in
+      expect(result.annualConsumption).toBeGreaterThan(0);
+      expect(mockRepository.createOne).toHaveBeenCalled();
+    });
   });
 
   describe('getSimulationById', () => {

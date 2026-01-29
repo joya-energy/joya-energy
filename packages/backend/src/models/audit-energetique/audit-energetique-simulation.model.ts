@@ -13,7 +13,7 @@ import {
   InsulationQualities,
   VentilationSystems
 } from '@shared/enums/audit-batiment.enum';
-import { EnergyTariffTypes } from '@shared/enums/audit-energy-tariff';
+import { EnergyTariffTypes } from '@shared/enums/audit-energetique.enum';
 import { BuildingTypes, ClimateZones, Governorates } from '@shared/enums/audit-general.enum';
 import { EquipmentCategories, ExistingMeasures, LightingTypes } from '@shared/enums/audit-usage.enum';
 import { type IAuditEnergetiqueSimulation } from '@shared/interfaces/audit-energetique.interface';
@@ -23,7 +23,8 @@ export type AuditEnergetiqueSimulationDocument = IAuditEnergetiqueSimulation & D
 export const AuditEnergetiqueSimulation: Model<AuditEnergetiqueSimulationDocument> = buildSchema<AuditEnergetiqueSimulationDocument>(
   ModelsCollection.AUDIT_ENERGETIQUE_SIMULATION,
   {
-    fullName: { type: String, required: true, trim: true, maxlength: 60 },
+    firstName: { type: String, required: true, trim: true, maxlength: 60 },
+    lastName: { type: String, required: true, trim: true, maxlength: 60 },
     companyName: { type: String, required: true, trim: true, maxlength: 120 },
     email: { type: String, required: true, trim: true, lowercase: true },
     phoneNumber: { type: String, required: true, trim: true, maxlength: 30 },
@@ -59,59 +60,7 @@ export const AuditEnergetiqueSimulation: Model<AuditEnergetiqueSimulationDocumen
     co2EmissionsTons: { type: Number, required: true, min: 0 },
     energyClass: { type: String, required: false },
     energyClassDescription: { type: String, required: false },
-    totalAnnualEnergy: { type: Number, required: false, min: 0 },
-    siteIntensity: { type: Number, required: false, min: 0 },
-    referenceIntensity: { type: Number, required: false, min: 0 },
-    joyaIndex: { type: Number, required: false, min: 0 },
-    becth: { type: Number, required: false, min: 0 },
-
-
-    carbonClass: { type: String, required: false },
-carbonIntensity: { type: Number, required: false, min: 0 },
-carbonClassDescription: { type: String, required: false },
-
-co2EmissionsElecKg: { type: Number, required: false, min: 0 },
-co2EmissionsGasKg: { type: Number, required: false, min: 0 },
-
-
-
-
-
-
-
-
-    energyEndUseBreakdown: {
-      breakdown: {
-        cooling: {
-          consumptionKwh: { type: Number, required: true, min: 0 },
-          costTunisianDinar: { type: Number, required: true, min: 0 },
-          sharePercent: { type: Number, required: true, min: 0 },
-        },
-        heating: {
-          consumptionKwh: { type: Number, required: true, min: 0 },
-          costTunisianDinar: { type: Number, required: true, min: 0 },
-          sharePercent: { type: Number, required: true, min: 0 },
-        },
-        lighting: {
-          consumptionKwh: { type: Number, required: true, min: 0 },
-          costTunisianDinar: { type: Number, required: true, min: 0 },
-          sharePercent: { type: Number, required: true, min: 0 },
-        },
-        equipment: {
-          consumptionKwh: { type: Number, required: true, min: 0 },
-          costTunisianDinar: { type: Number, required: true, min: 0 },
-          sharePercent: { type: Number, required: true, min: 0 },
-        },
-        domesticHotWater: {
-          consumptionKwh: { type: Number, required: true, min: 0 },
-          costTunisianDinar: { type: Number, required: true, min: 0 },
-          sharePercent: { type: Number, required: true, min: 0 },
-        },
-      },
-      totalConsumptionKwh: { type: Number, required: true, min: 0 },
-      totalCostTunisianDinar: { type: Number, required: true, min: 0 },
-    },
-
+    becth: { type: Number, required: false, min: 0 }
   },
   {
     timestamps: true
