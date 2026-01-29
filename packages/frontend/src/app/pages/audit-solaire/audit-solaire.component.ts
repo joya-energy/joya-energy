@@ -190,18 +190,17 @@ export class AuditSolaireComponent {
 
   protected buildingTypeCards: BuildingTypeCard[] = [
     { id: BuildingTypes.CAFE_RESTAURANT, label: 'Café / Restaurant', icon: 'lucideUtensilsCrossed' },
-    { id: BuildingTypes.BEAUTY_CENTER, label: 'Centre esthétique', icon: 'lucideSparkles' },
-    { id: BuildingTypes.HOTEL_GUESTHOUSE, label: 'Hôtel', icon: 'lucideHotel' },
-    { id: BuildingTypes.CLINIC_MEDICAL, label: 'Clinique', icon: 'lucideStethoscope' },
-    { id: BuildingTypes.SERVICE, label: 'Service tertiaire', icon: 'lucideBuilding2' },
     { id: BuildingTypes.OFFICE_ADMIN_BANK, label: 'Bureau / Banque', icon: 'lucideBuilding2' },
     { id: BuildingTypes.LIGHT_WORKSHOP, label: 'Atelier', icon: 'lucideHammer' },
+    { id: BuildingTypes.HOTEL_GUESTHOUSE, label: 'Hôtel', icon: 'lucideHotel' },
+    { id: BuildingTypes.CLINIC_MEDICAL, label: 'Clinique', icon: 'lucideStethoscope' },
     { id: BuildingTypes.HEAVY_FACTORY, label: 'Usine', icon: 'lucideFactory' },
+    { id: BuildingTypes.SCHOOL_TRAINING, label: 'École', icon: 'lucideGraduationCap' },
+    { id: BuildingTypes.BEAUTY_CENTER, label: 'Centre esthétique', icon: 'lucideSparkles' },
     { id: BuildingTypes.TEXTILE_PACKAGING, label: 'Ind. textile', icon: 'lucideShirt' },
     { id: BuildingTypes.FOOD_INDUSTRY, label: 'Ind. alimentaire', icon: 'lucideDrumstick' },
     { id: BuildingTypes.PLASTIC_INJECTION, label: 'Ind. plastique', icon: 'lucideBox' },
-    { id: BuildingTypes.COLD_AGRO_INDUSTRY, label: 'Ind. froid', icon: 'lucideSnowflake' },
-    { id: BuildingTypes.SCHOOL_TRAINING, label: 'École', icon: 'lucideGraduationCap' }
+    { id: BuildingTypes.COLD_AGRO_INDUSTRY, label: 'Ind. froid', icon: 'lucideSnowflake' }
   ];
 
   protected heroStats = [
@@ -349,17 +348,49 @@ export class AuditSolaireComponent {
     }
   }
 
-  private submitSimulation(): void {
-    if (this.auditForm.invalid) {
-      this.auditForm.markAllAsTouched();
+  protected isLocationStepValid(): boolean {
+    // Check only the fields that are actually required for submission
+    const location = this.auditForm.controls.location;
+    const consumption = this.auditForm.controls.consumption;
+    const building = this.auditForm.controls.building;
+
+    // Address is required
+    if (!location.controls.address.value || location.controls.address.invalid) {
+      return false;
+    }
+
+    // Consumption fields are required
+    if (consumption.controls.measuredAmountTnd.invalid || consumption.controls.referenceMonth.invalid) {
+      return false;
+    }
+
+    // Building fields are required
+    if (building.controls.buildingType.invalid || building.controls.climateZone.invalid) {
+      return false;
+    }
+
+    return true;
+  }
+
+  protected submitSimulation(): void {
+    console.log('🚀 submitSimulation called');
+    console.log('Form valid:', this.auditForm.valid);
+    console.log('Form value:', this.auditForm.value);
+    console.log('isSubmitting:', this.isSubmitting());
+    
+    // Don't block on form validation - just proceed
+    if (this.isSubmitting()) {
+      console.log('Already submitting, ignoring click');
       return;
     }
+    
     const referenceMonthLabel = this.auditForm.controls.consumption.value.referenceMonth;
     const referenceMonth = typeof referenceMonthLabel === 'string'
       ? this.monthMap[referenceMonthLabel] ?? 1
       : referenceMonthLabel ?? 1;
 
     const payload: CreateSimulationPayload = {
+      // Location
       address: this.auditForm.controls.location.value.address ?? '',
       fullName: this.auditForm.controls.location.value.fullName ?? '',
       companyName: this.auditForm.controls.location.value.companyName ?? '',
@@ -367,6 +398,8 @@ export class AuditSolaireComponent {
       phoneNumber: this.auditForm.controls.location.value.phoneNumber ?? '',
       measuredAmountTnd: this.auditForm.controls.consumption.value.measuredAmountTnd ?? 0,
       referenceMonth,
+      
+      // Building
       buildingType: this.auditForm.controls.building.value.buildingType ?? '',
       climateZone: this.auditForm.controls.building.value.climateZone ?? this.climateZones[0] ?? ''
     };
@@ -891,4 +924,3 @@ export class AuditSolaireComponent {
       });
   }
 }
-

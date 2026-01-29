@@ -24,11 +24,10 @@ export enum Governorates {
   GAFSA = 'Gafsa'
 }
 
-/** Building types — order matches solar-building.matrix.json columns (index 0–12) */
 export enum BuildingTypes {
   CAFE_RESTAURANT = 'Café / Restaurant',
   BEAUTY_CENTER = 'Centre esthétique / Spa',
-  HOTEL_GUESTHOUSE = 'Hôtel / Maison d\'hôtes',
+  HOTEL_GUESTHOUSE = 'Hôtel',
   CLINIC_MEDICAL = 'Clinique / Centre médical',
   OFFICE_ADMIN_BANK = 'Bureau / Administration / Banque',
   LIGHT_WORKSHOP = 'Atelier léger / Artisanat / Menuiserie',
@@ -37,9 +36,8 @@ export enum BuildingTypes {
   FOOD_INDUSTRY = 'Industrie alimentaire',
   PLASTIC_INJECTION = 'Industrie plastique / Injection',
   COLD_AGRO_INDUSTRY = 'Industrie agroalimentaire réfrigérée',
-  SCHOOL_TRAINING = 'École / Centre de formation',
+  SCHOOL_TRAINING = 'École / Centre de formation' ,
   SERVICE = 'Service Tertiaire',
-
 }
 
 export enum ClimateZones {
@@ -53,8 +51,7 @@ export enum ActivityTypes {
   BEAUTY_CENTER = 'Beauté / Bien-être',
   HOTEL_GUESTHOUSE = 'Hôtellerie / Hébergement',
   CLINIC_MEDICAL = 'Santé / Soins médicaux',
-  SERVICE = 'Services tertiaires',
-  OFFICE_ADMIN_BANK = 'Bureau / Administration / Banque',
+  OFFICE_ADMIN_BANK = 'Services / Administration',
   LIGHT_WORKSHOP = 'Industrie légère / Artisanat',
   HEAVY_FACTORY = 'Industrie lourde / Métallurgie',
   TEXTILE_PACKAGING = 'Textile / Emballage',
