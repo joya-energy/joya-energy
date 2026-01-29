@@ -61,6 +61,16 @@ export class SimulatorsSectionComponent {
       iconVariant: 'aqua',
       label: 'Nouveau',
       route: 'comparaison-financements'
+    },
+    {
+      title: 'Bilan Carbone',
+      description: 'Estimez votre empreinte carbone et identifiez les leviers de réduction.',
+      cta: 'Lancer le simulateur',
+      href: 'bilan-carbon',
+      icon: 'leaf',
+      iconVariant: 'teal',
+      label: 'Environnement',
+      route: 'bilan-carbon'
     }
   ]);
 

@@ -15,6 +15,7 @@ import { auditEnergetiqueSimulationRoutes } from './modules/audit-energetique/au
 import { auditSolaireSimulationRoutes } from './modules/audit-solaire/audit-solaire.routes';
 import { comparisonRoutes } from './interfaces/financing-comparison';
 import { fileRoutes } from './modules/file/file.routes';
+import { carbonSimulatorRoutes } from './modules/carbon-simulator/carbon-simulator.routes';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './configs/swagger.config';
 
@@ -63,6 +64,7 @@ const createApp = (): http.Server => {
   router.use('/api/audit-solaire-simulations', auditSolaireSimulationRoutes);
   router.use('/api/financing-comparisons', comparisonRoutes);
   router.use('/api/files', fileRoutes);
+  router.use('/api/carbon-simulator', carbonSimulatorRoutes);
 
   // Apply middleware (database checks etc) LAST if they are global
   useMiddleware(router);
