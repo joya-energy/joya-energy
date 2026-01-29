@@ -348,11 +348,42 @@ export class AuditSolaireComponent {
     }
   }
 
-  private submitSimulation(): void {
-    if (this.auditForm.invalid) {
-      this.auditForm.markAllAsTouched();
+  protected isLocationStepValid(): boolean {
+    // Check only the fields that are actually required for submission
+    const location = this.auditForm.controls.location;
+    const consumption = this.auditForm.controls.consumption;
+    const building = this.auditForm.controls.building;
+
+    // Address is required
+    if (!location.controls.address.value || location.controls.address.invalid) {
+      return false;
+    }
+
+    // Consumption fields are required
+    if (consumption.controls.measuredAmountTnd.invalid || consumption.controls.referenceMonth.invalid) {
+      return false;
+    }
+
+    // Building fields are required
+    if (building.controls.buildingType.invalid || building.controls.climateZone.invalid) {
+      return false;
+    }
+
+    return true;
+  }
+
+  protected submitSimulation(): void {
+    console.log('🚀 submitSimulation called');
+    console.log('Form valid:', this.auditForm.valid);
+    console.log('Form value:', this.auditForm.value);
+    console.log('isSubmitting:', this.isSubmitting());
+    
+    // Don't block on form validation - just proceed
+    if (this.isSubmitting()) {
+      console.log('Already submitting, ignoring click');
       return;
     }
+    
     const referenceMonthLabel = this.auditForm.controls.consumption.value.referenceMonth;
     const referenceMonth = typeof referenceMonthLabel === 'string'
       ? this.monthMap[referenceMonthLabel] ?? 1

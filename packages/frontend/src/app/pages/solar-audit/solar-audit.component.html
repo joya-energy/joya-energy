@@ -298,7 +298,7 @@
                         </div>
                       }
 
-                      <!-- TRI (Internal Rate of Return) -->
+                      <!-- TRI (Internal Rate of Return) - backend returns percent (e.g. 15.2) -->
                       <div class="metric-item tri-card">
                         <div class="metric-header">
                           <div class="metric-icon tri">
@@ -307,13 +307,163 @@
                           <div class="metric-badge">TRI</div>
                         </div>
                         <div class="metric-content">
-                          <div class="metric-value success">{{ (simulation.irr * 100).toFixed(1) }}<span class="unit">%</span></div>
+                          <div class="metric-value success">{{ simulation.irr.toFixed(1) }}<span class="unit">%</span></div>
                           <div class="metric-label">Taux de Rendement Interne</div>
                           <div class="metric-subtitle">Retour sur investissement annuel</div>
                         </div>
                       </div>
                     </div>
                   </div>
+
+                  <!-- Monthly Bills Chart – linked to backend monthlyEconomics -->
+                  @if (simulation.monthlyEconomics && simulation.monthlyEconomics.length > 0) {
+                    <div class="monthly-bills-chart">
+                      <div class="chart-header">
+                        <h4 class="chart-title">Factures mensuelles – Avec / Sans solaire</h4>
+                        <div class="chart-unit">DT/MOIS</div>
+                      </div>
+                      <div class="chart-container">
+                        <div class="chart-y-axis">
+                          @for (tick of getChartYAxisTicks(); track $index) {
+                            <div class="y-axis-label">{{ tick | number:'1.0-0' }}</div>
+                          }
+                        </div>
+                        <div class="chart-bars-container">
+                          <div class="chart-bars-wrapper">
+                            <div class="chart-bars">
+                              @for (month of simulation.monthlyEconomics; track month.month) {
+                                <div class="chart-month">
+                                  <div class="chart-bars-pair">
+                                    <div
+                                      class="chart-bar chart-bar-without"
+                                      [class.chart-bar-zero]="month.billWithoutPV === 0"
+                                      [style.height.%]="getBarHeight(month.billWithoutPV)">
+                                      <span class="chart-bar-value">{{ month.billWithoutPV | number:'1.0-0' }}</span>
+                                    </div>
+                                    <div
+                                      class="chart-bar chart-bar-with"
+                                      [class.chart-bar-zero]="month.billWithPV === 0"
+                                      [style.height.%]="getBarHeight(month.billWithPV)">
+                                      <span class="chart-bar-value">{{ month.billWithPV | number:'1.0-0' }}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              }
+                            </div>
+                            <div class="chart-labels-row">
+                              @for (month of simulation.monthlyEconomics; track month.month; let i = $index) {
+                                <div class="chart-month-label">{{ getMonthLabel(i) }}</div>
+                              }
+                            </div>
+                          </div>
+                          <div class="chart-legend">
+                            <div class="chart-legend-item">
+                              <span class="chart-swatch chart-swatch-without"></span>
+                              <span>Facture sans solaire</span>
+                            </div>
+                            <div class="chart-legend-item">
+                              <span class="chart-swatch chart-swatch-with"></span>
+                              <span>Facture avec solaire</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  }
+
+                  <!-- Cumulative Gains vs CAPEX Chart – linked to backend annualEconomics -->
+                  @if (simulation.annualEconomics && simulation.annualEconomics.length > 0) {
+                    <div class="analysis-section cumulative-gains-section">
+                      <div class="cumulative-gains-chart">
+                        <div class="chart-header">
+                          <div class="chart-title">Gains nets cumulés vs CAPEX</div>
+                          <div class="chart-unit">DT</div>
+                        </div>
+                        <div class="line-chart-container">
+                          <div class="line-chart-y-axis">
+                            @for (tick of getLineChartYAxisTicks(); track tick; let i = $index) {
+                              <div class="y-axis-label">{{ tick | number:'1.0-0' }}</div>
+                            }
+                          </div>
+                          <div class="line-chart-content">
+                            <div class="line-chart-svg-container">
+                              <svg class="line-chart-svg" viewBox="0 0 1000 400" preserveAspectRatio="none">
+                                <polyline
+                                  class="line-capex"
+                                  [attr.points]="getCapexLinePoints()"
+                                  fill="none"
+                                  stroke="rgba(248, 113, 113, 0.8)"
+                                  stroke-width="3"
+                                  stroke-dasharray="8,4"/>
+                                @for (point of getCapexLinePointsArray(); track $index) {
+                                  <circle [attr.cx]="point.x" [attr.cy]="point.y" r="4" fill="rgba(248, 113, 113, 0.8)"/>
+                                }
+                                <polyline
+                                  class="line-gains"
+                                  [attr.points]="getGainsLinePoints()"
+                                  fill="none"
+                                  stroke="rgba(59, 130, 246, 0.8)"
+                                  stroke-width="3"/>
+                                @for (point of getGainsLinePointsArray(); track $index) {
+                                  <circle [attr.cx]="point.x" [attr.cy]="point.y" r="4" fill="rgba(59, 130, 246, 0.8)"/>
+                                }
+                                @if (getIntersectionPoint(); as pt) {
+                                  <g>
+                                    <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="8" fill="#10b981" stroke="white" stroke-width="3"/>
+                                    <rect [attr.x]="getIntersectionBubbleX()" [attr.y]="pt.y - 45" [attr.width]="getIntersectionBubbleWidth()" height="35" rx="10" fill="#ffffff" stroke="#10b981" stroke-width="3" opacity="0.95" filter="url(#shadow)"/>
+                                    <text [attr.x]="pt.x" [attr.y]="pt.y - 25" text-anchor="middle" font-size="14" font-weight="bold" fill="#047857">{{ pt.year | number:'1.1-1' }} ans</text>
+                                  </g>
+                                }
+                                @if (getFinalGainsPoint(); as fp) {
+                                  @if (getFinalGainsValue() !== null && getFinalGainsValue()! > 0) {
+                                    <g>
+                                      <circle [attr.cx]="fp.x" [attr.cy]="fp.y" r="8" fill="#3b82f6" stroke="white" stroke-width="3"/>
+                                      <line [attr.x1]="fp.x" [attr.y1]="fp.y" [attr.x2]="fp.x - 95" [attr.y2]="fp.y + 50" stroke="rgba(59, 130, 246, 0.9)" stroke-width="3" stroke-linecap="round"/>
+                                      <rect [attr.x]="getFinalGainsBubbleX()" [attr.y]="fp.y + 20" [attr.width]="getFinalGainsBubbleWidth()" height="40" rx="12" fill="#ffffff" stroke="#3b82f6" stroke-width="3" opacity="0.97" filter="url(#shadow)"/>
+                                      <text [attr.x]="getFinalGainsTextX()" [attr.y]="fp.y + 46" text-anchor="middle" font-size="14" font-weight="bold" fill="#1e40af">{{ getFinalGainsValue() | number:'1.0-0' }} DT</text>
+                                    </g>
+                                  }
+                                }
+                                @if (getFinalCapexPoint(); as cp) {
+                                  @if (getFinalCapexValue() !== null && getFinalCapexValue()! > 0) {
+                                    <g>
+                                      <circle [attr.cx]="cp.x" [attr.cy]="cp.y" r="8" fill="#f87171" stroke="white" stroke-width="3"/>
+                                      <line [attr.x1]="cp.x" [attr.y1]="cp.y" [attr.x2]="cp.x - 95" [attr.y2]="cp.y - 28" stroke="rgba(248, 113, 113, 0.9)" stroke-width="3" stroke-linecap="round"/>
+                                      <rect [attr.x]="getFinalCapexBubbleX()" [attr.y]="cp.y - 50" [attr.width]="getFinalCapexBubbleWidth()" height="40" rx="12" fill="#ffffff" stroke="#f87171" stroke-width="3" opacity="0.97" filter="url(#shadow)"/>
+                                      <text [attr.x]="getFinalCapexTextX()" [attr.y]="cp.y - 24" text-anchor="middle" font-size="14" font-weight="bold" fill="#c2410c">{{ getFinalCapexValue() | number:'1.0-0' }} DT</text>
+                                    </g>
+                                  }
+                                }
+                                <defs>
+                                  <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                                    <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+                                    <feOffset dx="2" dy="2" result="offsetblur"/>
+                                    <feComponentTransfer><feFuncA type="linear" slope="0.3"/></feComponentTransfer>
+                                    <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+                                  </filter>
+                                </defs>
+                              </svg>
+                            </div>
+                            <div class="line-chart-x-axis line-chart-x-axis-sparse">
+                              @for (year of getSparseChartYears(); track year) {
+                                <div class="x-axis-label">Année {{ year }}</div>
+                              }
+                            </div>
+                          </div>
+                        </div>
+                        <div class="line-chart-legend">
+                          <div class="legend-item">
+                            <div class="legend-line legend-line-gains"></div>
+                            <span>Gains nets cumulés</span>
+                          </div>
+                          <div class="legend-item">
+                            <div class="legend-line legend-line-capex"></div>
+                            <span>CAPEX</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  }
 
                   <!-- Environmental Impact -->
                   <div class="analysis-section">
@@ -328,7 +478,7 @@
                     </div>
 
                     <div class="environmental-metrics-grid">
-                      <!-- CO2 annuel évité -->
+                      <!-- CO₂ évité (annuel) – backend sends kg, display in tonnes -->
                       <div class="environmental-item co2-annual-card">
                         <div class="environmental-header">
                           <div class="environmental-icon co2-annual">
@@ -337,13 +487,13 @@
                           <div class="environmental-badge">Annuel</div>
                         </div>
                         <div class="environmental-content">
-                          <div class="environmental-value success">{{ (simulation.annualCo2Avoided / 1000).toFixed(1) }} <span class="unit">tonnes</span></div>
+                          <div class="environmental-value success">{{ (simulation.annualCo2Avoided ).toFixed(1) }} <span class="unit">tonnes</span></div>
                           <div class="environmental-label">CO₂ évité</div>
                           <div class="environmental-subtitle">Émissions de carbone réduites par an</div>
                         </div>
                       </div>
 
-                      <!-- CO2 total évité sur 25 ans -->
+                      <!-- CO₂ évité total (25 ans) – backend sends kg, display in tonnes -->
                       <div class="environmental-item co2-total-card">
                         <div class="environmental-header">
                           <div class="environmental-icon co2-total">
@@ -352,7 +502,7 @@
                           <div class="environmental-badge">25 ans</div>
                         </div>
                         <div class="environmental-content">
-                          <div class="environmental-value success">{{ (simulation.totalCo2Avoided25Years / 1000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} <span class="unit">tonnes</span></div>
+                          <div class="environmental-value success">{{ (simulation.totalCo2Avoided25Years ).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} <span class="unit">tonnes</span></div>
                           <div class="environmental-label">CO₂ évité total</div>
                           <div class="environmental-subtitle">Émissions cumulées sur la durée de vie</div>
                         </div>
@@ -362,7 +512,7 @@
 
                   <!-- Recommendations -->
                   <div class="analysis-section">
-                    <h3 class="section-title">
+                    <h3 class="section-title" style="margin-bottom: 2rem;">
                       <ng-icon name="lucideLightbulb" class="section-icon" style="margin-bottom: 2  rem;"></ng-icon>
                       Prochaines Étapes Recommandées
                     </h3>

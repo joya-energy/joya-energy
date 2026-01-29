@@ -234,16 +234,26 @@
               ></app-google-maps-input>
             </div>
 
-
-            <button
-              type="button"
-              class="btn-next"
-              (click)="nextStep()"
-              [disabled]="isSubmitting()"
-            >
-              <ng-icon name="lucideLoader" class="spinning" *ngIf="isSubmitting()"></ng-icon>
-              {{ isSubmitting() ? 'Calcul en cours...' : 'Lancer la simulation' }} <ng-icon name="lucideArrowRight" *ngIf="!isSubmitting()"></ng-icon>
-            </button>
+            <!-- Separate action buttons outside form-group to avoid any overlay issues -->
+            <div class="location-step-actions" style="margin-top: 2rem; position: relative; z-index: 10;">
+              <button
+                type="button"
+                class="btn-next"
+                (click)="nextStep(); $event.stopPropagation()"
+                [disabled]="isSubmitting()"
+              >
+                Suivant <ng-icon name="lucideArrowRight"></ng-icon>
+              </button>
+              <button
+                type="button"
+                class="btn-submit"
+                (click)="submitSimulation(); $event.stopPropagation(); $event.preventDefault()"
+                [disabled]="isSubmitting()"
+              >
+                <ng-icon name="lucideLoader" class="spinning" *ngIf="isSubmitting()"></ng-icon>
+                {{ isSubmitting() ? 'Calcul en cours...' : 'Lancer la simulation' }} <ng-icon name="lucideZap" *ngIf="!isSubmitting()"></ng-icon>
+              </button>
+            </div>
           </div>
 
           <!-- Step 4: Results -->

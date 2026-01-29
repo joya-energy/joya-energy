@@ -843,5 +843,321 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     }
     return `${years} an${years > 1 ? 's' : ''} et ${remainingMonths} mois`;
   }
+
+  // ----- Chart helpers (monthly bills + cumulative gains vs CAPEX) – same logic as old audit-solaire -----
+
+  protected getChartMaxValue(): number {
+    const simulation = this.simulationResult();
+    if (!simulation?.monthlyEconomics || simulation.monthlyEconomics.length === 0) {
+      return 2000;
+    }
+    const maxBill = simulation.monthlyEconomics.reduce((max, m) => {
+      return Math.max(max, m.billWithoutPV || 0, m.billWithPV || 0);
+    }, 0);
+    const { topTick } = this.getMonthlyBillsYAxisTicks(maxBill);
+    return topTick;
+  }
+
+  protected getChartYAxisTicks(): number[] {
+    const simulation = this.simulationResult();
+    const maxBill = simulation?.monthlyEconomics?.reduce((max, m) => {
+      return Math.max(max, m.billWithoutPV || 0, m.billWithPV || 0);
+    }, 0) ?? 0;
+    const { ticks } = this.getMonthlyBillsYAxisTicks(maxBill);
+    return ticks;
+  }
+
+  private getMonthlyBillsYAxisTicks(maxValue: number): { topTick: number; ticks: number[] } {
+    const tickCount = 5;
+    const safeMax = Number.isFinite(maxValue) && maxValue > 0 ? maxValue : 1;
+    const rawStep = safeMax / tickCount;
+    const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+    const normalized = rawStep / magnitude;
+    const stepBase = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
+    const step = stepBase * magnitude;
+    const topTick = step * tickCount;
+    const ticks = Array.from({ length: tickCount }, (_, i) => topTick - i * step);
+    return { topTick, ticks };
+  }
+
+  protected getBarHeight(value: number): number {
+    const maxValue = this.getChartMaxValue();
+    if (maxValue === 0) return 0;
+    return Math.min((value / maxValue) * 100, 100);
+  }
+
+  protected getMonthLabel(index: number): string {
+    const months = ['Janv', 'Févr', 'Mars', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
+    return months[index] ?? '';
+  }
+
+  protected getChartYears(): number[] {
+    const simulation = this.simulationResult();
+    if (!simulation?.annualEconomics) return [];
+    return simulation.annualEconomics.map(e => e.year).slice(0, 25);
+  }
+
+  protected getSparseChartYears(): number[] {
+    return [1, 5, 10, 15, 20, 25];
+  }
+
+  protected getLineChartMaxValue(): number {
+    const simulation = this.simulationResult();
+    if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) return 500000;
+    const maxGain = Math.max(...simulation.annualEconomics.map(e => e.cumulativeNetGain ?? 0));
+    const capex = simulation.installationCost ?? 0;
+    const maxValue = Math.max(maxGain, capex);
+    const minGain = Math.min(...simulation.annualEconomics.map(e => e.cumulativeNetGain ?? 0));
+    const minValue = Math.min(minGain, capex);
+    const { topTick } = this.calculateLineChartYAxisTicks(minValue, maxValue);
+    return topTick;
+  }
+
+  protected getLineChartMinValue(): number {
+    const simulation = this.simulationResult();
+    if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) return -50000;
+    const minGain = Math.min(...simulation.annualEconomics.map(e => e.cumulativeNetGain ?? 0));
+    const capex = simulation.installationCost ?? 0;
+    const minValue = Math.min(minGain, capex);
+    const { bottomTick } = this.calculateLineChartYAxisTicks(minValue, Math.max(minValue, capex));
+    return bottomTick;
+  }
+
+  protected getLineChartYAxisTicks(): number[] {
+    const simulation = this.simulationResult();
+    if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) {
+      return [500000, 400000, 300000, 200000, 100000, 0];
+    }
+    const maxGain = Math.max(...simulation.annualEconomics.map(e => e.cumulativeNetGain ?? 0));
+    const capex = simulation.installationCost ?? 0;
+    const maxValue = Math.max(maxGain, capex);
+    const minGain = Math.min(...simulation.annualEconomics.map(e => e.cumulativeNetGain ?? 0));
+    const minValue = Math.min(minGain, capex);
+    const { ticks } = this.calculateLineChartYAxisTicks(minValue, maxValue);
+    return ticks;
+  }
+
+  private calculateLineChartYAxisTicks(minValue: number, maxValue: number): { topTick: number; bottomTick: number; ticks: number[] } {
+    const tickCount = 5;
+    const range = maxValue - minValue;
+    const safeRange = Number.isFinite(range) && range > 0 ? range : 1;
+    const rawStep = safeRange / tickCount;
+    const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+    const normalized = rawStep / magnitude;
+    const stepBase = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
+    const step = stepBase * magnitude;
+    const bottomTick = Math.floor(minValue / step) * step;
+    const topTick = Math.ceil(maxValue / step) * step;
+    const actualRange = topTick - bottomTick;
+    const actualStep = actualRange / tickCount;
+    const ticksAscending = Array.from({ length: tickCount + 1 }, (_, i) => bottomTick + i * actualStep);
+    return { topTick, bottomTick, ticks: ticksAscending.reverse() };
+  }
+
+  protected getGainsLinePoints(): string {
+    const simulation = this.simulationResult();
+    if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) return '';
+    const maxValue = this.getLineChartMaxValue();
+    const minValue = this.getLineChartMinValue();
+    const range = maxValue - minValue;
+    if (range === 0) return '';
+    const years = this.getChartYears();
+    if (years.length === 0) return '';
+    return years
+      .map((_, index) => {
+        const data = simulation.annualEconomics[index];
+        if (!data) return '';
+        const value = data.cumulativeNetGain ?? 0;
+        const x = years.length > 1 ? ((index / (years.length - 1)) * 1000).toFixed(2) : '500';
+        const y = (400 - ((value - minValue) / range) * 400).toFixed(2);
+        return `${x},${y}`;
+      })
+      .filter(p => p !== '')
+      .join(' ');
+  }
+
+  protected getGainsLinePointsArray(): Array<{ x: number; y: number }> {
+    const simulation = this.simulationResult();
+    if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) return [];
+    const maxValue = this.getLineChartMaxValue();
+    const minValue = this.getLineChartMinValue();
+    const range = maxValue - minValue;
+    if (range === 0) return [];
+    const years = this.getChartYears();
+    if (years.length === 0) return [];
+    return years.map((_, index) => {
+      const data = simulation.annualEconomics[index];
+      if (!data) return { x: 0, y: 200 };
+      const value = data.cumulativeNetGain ?? 0;
+      const x = years.length > 1 ? (index / (years.length - 1)) * 1000 : 500;
+      const y = 400 - ((value - minValue) / range) * 400;
+      return { x, y };
+    });
+  }
+
+  protected getCapexLinePoints(): string {
+    const simulation = this.simulationResult();
+    if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) return '';
+    const capex = simulation.installationCost ?? 0;
+    const maxValue = this.getLineChartMaxValue();
+    const minValue = this.getLineChartMinValue();
+    const range = maxValue - minValue;
+    if (range === 0) return '';
+    const years = this.getChartYears();
+    if (years.length === 0) return '';
+    return years
+      .map((_, index) => {
+        const x = years.length > 1 ? ((index / (years.length - 1)) * 1000).toFixed(2) : '500';
+        const y = (400 - ((capex - minValue) / range) * 400).toFixed(2);
+        return `${x},${y}`;
+      })
+      .join(' ');
+  }
+
+  protected getCapexLinePointsArray(): Array<{ x: number; y: number }> {
+    const simulation = this.simulationResult();
+    if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) return [];
+    const capex = simulation.installationCost ?? 0;
+    const maxValue = this.getLineChartMaxValue();
+    const minValue = this.getLineChartMinValue();
+    const range = maxValue - minValue;
+    if (range === 0) return [];
+    const years = this.getChartYears();
+    if (years.length === 0) return [];
+    return years.map((_, index) => {
+      const x = years.length > 1 ? (index / (years.length - 1)) * 1000 : 500;
+      const y = 400 - ((capex - minValue) / range) * 400;
+      return { x, y };
+    });
+  }
+
+  protected getIntersectionPoint(): { x: number; y: number; year: number; capex: number } | null {
+    const simulation = this.simulationResult();
+    if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) return null;
+    const capex = simulation.installationCost ?? 0;
+    const years = this.getChartYears();
+    const maxValue = this.getLineChartMaxValue();
+    const minValue = this.getLineChartMinValue();
+    const range = maxValue - minValue;
+    if (range === 0) return null;
+    for (let i = 0; i < simulation.annualEconomics.length && i < years.length; i++) {
+      const currentGain = simulation.annualEconomics[i].cumulativeNetGain ?? 0;
+      const nextGain = i + 1 < simulation.annualEconomics.length ? (simulation.annualEconomics[i + 1].cumulativeNetGain ?? 0) : currentGain;
+      if (currentGain <= capex && nextGain >= capex) {
+        const year1 = years[i];
+        const year2 = i + 1 < years.length ? years[i + 1] : year1;
+        const ratio = (capex - currentGain) / (nextGain - currentGain);
+        const exactYear = year1 + (year2 - year1) * ratio;
+        const x = years.length > 1 ? ((i + ratio) / (years.length - 1)) * 1000 : 500;
+        const y = 400 - ((capex - minValue) / range) * 400;
+        return { x, y, year: exactYear, capex };
+      }
+    }
+    return null;
+  }
+
+  protected getIntersectionBubbleWidth(): number {
+    const point = this.getIntersectionPoint();
+    if (!point) return 100;
+    return this.calculateBubbleWidth(point.year.toFixed(1) + ' ans');
+  }
+
+  protected getIntersectionBubbleX(): number {
+    const point = this.getIntersectionPoint();
+    if (!point) return 0;
+    return point.x - this.getIntersectionBubbleWidth() / 2;
+  }
+
+  protected getFinalGainsValue(): number | null {
+    const simulation = this.simulationResult();
+    if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) return null;
+    const year25Index = Math.min(24, simulation.annualEconomics.length - 1);
+    return simulation.annualEconomics[year25Index]?.cumulativeNetGain ?? null;
+  }
+
+  protected getFinalGainsPoint(): { x: number; y: number } | null {
+    const simulation = this.simulationResult();
+    if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) return null;
+    const years = this.getChartYears();
+    if (years.length === 0) return null;
+    const maxValue = this.getLineChartMaxValue();
+    const minValue = this.getLineChartMinValue();
+    const range = maxValue - minValue;
+    if (range === 0) return null;
+    const finalGain = this.getFinalGainsValue();
+    if (finalGain === null) return null;
+    const year25Index = Math.min(24, years.length - 1);
+    const x = years.length > 1 ? (year25Index / (years.length - 1)) * 1000 : 500;
+    const y = 400 - ((finalGain - minValue) / range) * 400;
+    return { x, y };
+  }
+
+  protected getFinalGainsBubbleWidth(): number {
+    const value = this.getFinalGainsValue();
+    if (value === null) return 180;
+    return this.calculateBubbleWidth(Math.round(value).toLocaleString('fr-FR').replace(/\s/g, ' ') + ' DT');
+  }
+
+  protected getFinalGainsBubbleX(): number {
+    const point = this.getFinalGainsPoint();
+    if (!point) return 0;
+    const width = this.getFinalGainsBubbleWidth();
+    return point.x - 210 - (width - 180) / 2;
+  }
+
+  protected getFinalGainsTextX(): number {
+    const point = this.getFinalGainsPoint();
+    if (!point) return 0;
+    const width = this.getFinalGainsBubbleWidth();
+    return this.getFinalGainsBubbleX() + width / 2;
+  }
+
+  protected getFinalCapexValue(): number | null {
+    const simulation = this.simulationResult();
+    return simulation ? (simulation.installationCost ?? null) : null;
+  }
+
+  protected getFinalCapexPoint(): { x: number; y: number } | null {
+    const simulation = this.simulationResult();
+    if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) return null;
+    const years = this.getChartYears();
+    if (years.length === 0) return null;
+    const maxValue = this.getLineChartMaxValue();
+    const minValue = this.getLineChartMinValue();
+    const range = maxValue - minValue;
+    if (range === 0) return null;
+    const capex = this.getFinalCapexValue();
+    if (capex === null || capex === 0) return null;
+    const year25Index = Math.min(24, years.length - 1);
+    const x = years.length > 1 ? (year25Index / (years.length - 1)) * 1000 : 500;
+    const y = 400 - ((capex - minValue) / range) * 400;
+    return { x, y };
+  }
+
+  protected getFinalCapexBubbleWidth(): number {
+    const value = this.getFinalCapexValue();
+    if (value === null || value === 0) return 180;
+    return this.calculateBubbleWidth(Math.round(value).toLocaleString('fr-FR').replace(/\s/g, ' ') + ' DT');
+  }
+
+  protected getFinalCapexBubbleX(): number {
+    const point = this.getFinalCapexPoint();
+    if (!point) return 0;
+    const width = this.getFinalCapexBubbleWidth();
+    return point.x - 210 - (width - 180) / 2;
+  }
+
+  protected getFinalCapexTextX(): number {
+    const point = this.getFinalCapexPoint();
+    if (!point) return 0;
+    const width = this.getFinalCapexBubbleWidth();
+    return this.getFinalCapexBubbleX() + width / 2;
+  }
+
+  private calculateBubbleWidth(text: string): number {
+    const charWidth = 7;
+    const padding = 30;
+    return Math.max(80, text.length * charWidth + padding);
+  }
 }
 
