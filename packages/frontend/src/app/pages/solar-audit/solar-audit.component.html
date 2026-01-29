@@ -411,7 +411,7 @@
                                   <g>
                                     <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="8" fill="#10b981" stroke="white" stroke-width="3"/>
                                     <rect [attr.x]="getIntersectionBubbleX()" [attr.y]="pt.y - 45" [attr.width]="getIntersectionBubbleWidth()" height="35" rx="10" fill="#ffffff" stroke="#10b981" stroke-width="3" opacity="0.95" filter="url(#shadow)"/>
-                                    <text [attr.x]="pt.x" [attr.y]="pt.y - 25" text-anchor="middle" font-size="14" font-weight="bold" fill="#047857">{{ pt.year | number:'1.1-1' }} ans</text>
+                                    <text [attr.x]="pt.x" [attr.y]="pt.y - 25" text-anchor="middle" class="chart-inside-text"  fill="#047857">{{ pt.year | number:'1.1-1' }} ans</text>
                                   </g>
                                 }
                                 @if (getFinalGainsPoint(); as fp) {
@@ -420,7 +420,7 @@
                                       <circle [attr.cx]="fp.x" [attr.cy]="fp.y" r="8" fill="#3b82f6" stroke="white" stroke-width="3"/>
                                       <line [attr.x1]="fp.x" [attr.y1]="fp.y" [attr.x2]="fp.x - 95" [attr.y2]="fp.y + 50" stroke="rgba(59, 130, 246, 0.9)" stroke-width="3" stroke-linecap="round"/>
                                       <rect [attr.x]="getFinalGainsBubbleX()" [attr.y]="fp.y + 20" [attr.width]="getFinalGainsBubbleWidth()" height="40" rx="12" fill="#ffffff" stroke="#3b82f6" stroke-width="3" opacity="0.97" filter="url(#shadow)"/>
-                                      <text [attr.x]="getFinalGainsTextX()" [attr.y]="fp.y + 46" text-anchor="middle" font-size="14" font-weight="bold" fill="#1e40af">{{ getFinalGainsValue() | number:'1.0-0' }} DT</text>
+                                      <text [attr.x]="getFinalGainsTextX()" [attr.y]="fp.y + 46" text-anchor="middle" class="chart-inside-text"  fill="#1e40af">{{ getFinalGainsValue() | number:'1.0-0' }} DT</text>
                                     </g>
                                   }
                                 }
@@ -430,7 +430,7 @@
                                       <circle [attr.cx]="cp.x" [attr.cy]="cp.y" r="8" fill="#f87171" stroke="white" stroke-width="3"/>
                                       <line [attr.x1]="cp.x" [attr.y1]="cp.y" [attr.x2]="cp.x - 95" [attr.y2]="cp.y - 28" stroke="rgba(248, 113, 113, 0.9)" stroke-width="3" stroke-linecap="round"/>
                                       <rect [attr.x]="getFinalCapexBubbleX()" [attr.y]="cp.y - 50" [attr.width]="getFinalCapexBubbleWidth()" height="40" rx="12" fill="#ffffff" stroke="#f87171" stroke-width="3" opacity="0.97" filter="url(#shadow)"/>
-                                      <text [attr.x]="getFinalCapexTextX()" [attr.y]="cp.y - 24" text-anchor="middle" font-size="14" font-weight="bold" fill="#c2410c">{{ getFinalCapexValue() | number:'1.0-0' }} DT</text>
+                                      <text [attr.x]="getFinalCapexTextX()" [attr.y]="cp.y - 24" text-anchor="middle" class="chart-inside-text"  fill="#c2410c">{{ getFinalCapexValue() | number:'1.0-0' }} DT</text>
                                     </g>
                                   }
                                 }

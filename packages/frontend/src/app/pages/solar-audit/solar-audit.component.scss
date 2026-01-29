@@ -1245,7 +1245,7 @@
       }
 
       .chart-unit {
-        font-size: var(--font-size-xs);
+        font-size: 1rem;
         font-weight: 700;
         color: #2563eb;
         background: #eef2ff;
@@ -1266,6 +1266,10 @@
         height: 30rem;
         padding: 1rem 0.75rem 1rem 0;
 
+        @media (max-width: 640px) {
+          padding: 0.5rem 0.5rem 0.5rem 0;
+        }
+
         .y-axis-label {
           position: absolute;
           right: 0;
@@ -1280,6 +1284,10 @@
           &:nth-child(4) { top: 14.4rem; transform: translateY(0); }
           &:nth-child(5) { top: 19.2rem; transform: translateY(0); }
           
+          @media (max-width: 640px) {
+            font-size: 0.8rem;
+          }
+
         }
       }
 
@@ -1366,6 +1374,10 @@
                   white-space: nowrap;
                   text-align: center;
                   line-height: 1;
+
+                  @media (max-width: 640px) {
+                    font-size: 0.8rem;
+                  }
                 }
               }
             }
@@ -1493,6 +1505,10 @@
           &:nth-child(4) { top: 16rem; }
           &:nth-child(5) { top: 21rem; }
           &:nth-child(6) { top: 26rem; }
+
+          @media (max-width: 640px) {
+            font-size: 0.8rem;
+          }
         }
       }
 
@@ -1995,3 +2011,12 @@
   }
 }
 
+.chart-inside-text {
+  font-size: 1.5rem;
+  font-weight: "bold";
+
+  @media (max-width: 640px) {
+    font-size: 1.5rem;
+    font-weight: "light";
+  }
+}
