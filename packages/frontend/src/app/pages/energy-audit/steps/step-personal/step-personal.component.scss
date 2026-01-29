@@ -1,0 +1,76 @@
+.step-personal {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem; // Spacing between sections
+}
+
+.form-section {
+  margin-bottom: 2.5rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.form-section-header {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.05em;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Fixed input sizes - ensure consistent sizing
+::ng-deep {
+  app-ui-input {
+    width: 100%;
+    display: block;
+  }
+
+  .ui-input-wrapper {
+    width: 100%;
+  }
+
+  .ui-input-container {
+    width: 100%;
+  }
+
+  .ui-input {
+    width: 100% !important;
+    min-width: 100% !important;
+    height: 3.5rem !important; // Fixed height
+    padding: 1rem 1.25rem !important; // Bigger padding
+    font-size: var(--font-size-base) !important;
+    box-sizing: border-box;
+  }
+
+  // Select boxes also need fixed sizes
+  app-ui-select {
+    width: 100%;
+    display: block;
+  }
+
+  .ui-select-box-container {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .ui-select-box {
+    min-height: 3.5rem !important; // Match input height
+    padding: 1rem 1.25rem !important;
+    font-size: var(--font-size-base) !important;
+    box-sizing: border-box;
+  }
+}

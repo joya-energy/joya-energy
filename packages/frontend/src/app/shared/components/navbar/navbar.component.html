@@ -1,16 +1,30 @@
-<nav class="navbar" role="navigation" aria-label="Main navigation">
-  <div class="container">
+<nav 
+  class="navbar" 
+  [class.navbar--scrolled]="shouldShowScrolled()"
+  [class.navbar--hidden]="isNavbarHidden()"
+  role="navigation" 
+  aria-label="Main navigation"
+>
+  <div class="navbar-container">
     <div class="navbar-content">
-      <app-logo size="sm" [showText]="true" />
+      <!-- Logo -->
+      <a routerLink="/" class="navbar-logo">
+        <img 
+          src="/logo_big.webp" 
+          alt="JOYA Energy" 
+          class="navbar-logo-image"
+        />
+      </a>
 
+      <!-- Desktop Navigation Links -->
       <ul class="navbar-links" role="list">
         @for (link of navLinks; track link.id) {
           <li>
             <a 
-              [routerLink]="link.path"
-              routerLinkActive="active"
+              href="#"
               class="navbar-link"
-              [attr.aria-current]="'page'"
+              [attr.aria-label]="link.label"
+              [attr.data-link-id]="link.id"
             >
               {{ link.label }}
             </a>
@@ -18,18 +32,29 @@
         }
       </ul>
 
-      <a 
-        href="/estimation" 
-        class="btn btn-cta btn-md navbar-cta"
-        aria-label="Get free energy estimation"
-      >
-        {{ menuItems.ESTIMATION_GRATUITE  }}
-    </a>
+      <!-- CTA Buttons -->
+      <div class="navbar-ctas">
+        <a 
+          routerLink="/comparaison-financements" 
+          class="navbar-cta navbar-cta--primary"
+          aria-label="Demande de financement"
+        >
+          Demande de financement
+        </a>
+        <a 
+          routerLink="/audit-energetique" 
+          class="navbar-cta navbar-cta--secondary"
+          aria-label="Audit Énergétique"
+        >
+          Audit Énergétique
+        </a>
+      </div>
 
+      <!-- Mobile Menu Toggle -->
       <button
         type="button"
         class="navbar-toggle"
-        [class.active]="isMobileMenuOpen()"
+        [class.navbar-toggle--active]="isMobileMenuOpen()"
         (click)="toggleMobileMenu()"
         [attr.aria-expanded]="isMobileMenuOpen()"
         aria-controls="mobile-menu"
@@ -45,7 +70,7 @@
     @if (isMobileMenuOpen()) {
       <div 
         id="mobile-menu"
-        class="navbar-mobile animate-slide-in-down"
+        class="navbar-mobile"
         role="navigation"
         aria-label="Mobile navigation"
       >
@@ -53,25 +78,35 @@
           @for (link of navLinks; track link.id) {
             <li>
               <a 
-                [routerLink]="link.path"
-                routerLinkActive="active"
+                href="#"
                 class="navbar-mobile-link"
                 (click)="closeMobileMenu()"
-                [attr.aria-current]="'page'"
+                [attr.aria-label]="link.label"
+                [attr.data-link-id]="link.id"
               >
                 {{ link.label }}
               </a>
             </li>
           }
         </ul>
-        <a 
-          href="/estimation" 
-          class="btn btn-cta btn-lg btn-block"
-          (click)="closeMobileMenu()"
-          aria-label="Get free energy estimation"
-        >
-          {{ menuItems.ESTIMATION_GRATUITE }}
-      </a>
+        <div class="navbar-mobile-ctas">
+          <a 
+            routerLink="/comparaison-financements" 
+            class="navbar-mobile-cta navbar-mobile-cta--primary"
+            (click)="closeMobileMenu()"
+            aria-label="Demande de financement"
+          >
+            Demande de financement
+          </a>
+          <a 
+            routerLink="/audit-energetique" 
+            class="navbar-mobile-cta navbar-mobile-cta--secondary"
+            (click)="closeMobileMenu()"
+            aria-label="Audit Énergétique"
+          >
+            Audit Énergétique
+          </a>
+        </div>
       </div>
     }
   </div>

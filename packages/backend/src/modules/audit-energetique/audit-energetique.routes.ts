@@ -592,6 +592,43 @@ auditEnergetiqueSimulationRoutes.post(
   (req, res) => auditReportController.sendAuditReport(req, res)
 );
 
+/**
+ * @swagger
+ * /audit-energetique-simulations/download-pdf:
+ *   post:
+ *     summary: Generate and download audit report PDF directly
+ *     tags: [Audit Simulation]
+ *     description: Generates an audit report PDF and triggers a browser download. The PDF is also automatically saved to Google Cloud Storage.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               simulationId:
+ *                 type: string
+ *                 example: "6936dfef12308673de825e02"
+ *     responses:
+ *       200:
+ *         description: PDF generated and ready for download
+ *         content:
+ *           application/pdf:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       400:
+ *         description: simulationId missing
+ *       404:
+ *         description: Simulation not found
+ *       500:
+ *         description: PDF generation failed
+ */
+auditEnergetiqueSimulationRoutes.post(
+  '/download-pdf',
+  (req, res) => auditReportController.generateAuditReportPDF(req, res)
+);
+
 // ------------------------------------------
 // NEW ROUTE: Generate & send PV report PDF
 // ------------------------------------------

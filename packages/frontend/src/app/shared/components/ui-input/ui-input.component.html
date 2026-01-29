@@ -1,0 +1,59 @@
+<div class="ui-input-wrapper">
+  @if (label) {
+    <div class="ui-input-label-row">
+      <label class="ui-input-label" [class.required]="required">
+        {{ label }}
+      </label>
+      @if (tooltipTitle) {
+        <app-field-tooltip
+          [title]="tooltipTitle"
+          [description]="tooltipDescription"
+          [options]="tooltipOptions">
+        </app-field-tooltip>
+      }
+    </div>
+  }
+
+  <div class="ui-input-container" 
+       [class.has-icon]="icon" 
+       [class.icon-left]="icon && iconPosition === 'left'" 
+       [class.icon-right]="icon && iconPosition === 'right'" 
+       [class.size-sm]="size === 'sm'" 
+       [class.size-md]="size === 'md'" 
+       [class.size-lg]="size === 'lg'" 
+       [class.type-number]="type === 'number'"
+       [class.has-error]="showErrors()">
+    @if (icon && iconPosition === 'left') {
+      <ng-icon [name]="icon" class="input-icon input-icon-left"></ng-icon>
+    }
+
+    <input
+      [formControl]="control"
+      [type]="type"
+      [placeholder]="placeholder"
+      [required]="required"
+      [disabled]="disabled"
+      [min]="min !== null ? min : undefined"
+      [max]="max !== null ? max : undefined"
+      class="ui-input"
+      (blur)="onTouched()"
+    />
+
+    @if (type === 'number') {
+      <div class="number-controls">
+        
+       
+      </div>
+    }
+
+    @if (icon && iconPosition === 'right') {
+      <ng-icon [name]="icon" class="input-icon input-icon-right"></ng-icon>
+    }
+  </div>
+  
+  @if (showErrors() && errorMessage()) {
+    <div class="ui-input-error">
+      {{ errorMessage() }}
+    </div>
+  }
+</div>

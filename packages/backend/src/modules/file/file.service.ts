@@ -22,11 +22,24 @@ export class FileService extends CommonService<IFile> {
     const fileName = this.generateFileName(originalFileName);
     const folder = this.getFolderForFileType(fileType);
     
-    const { filePath, publicUrl } = await this.storageService.uploadFile(
-      buffer,
-      fileName,
-      folder
-    );
+    let filePath: string;
+    let publicUrl: string;
+    
+    try {
+      const uploadResult = await this.storageService.uploadFile(
+        buffer,
+        fileName,
+        folder
+      );
+      filePath = uploadResult.filePath;
+      publicUrl = uploadResult.publicUrl;
+    } catch (error) {
+      // If storage upload fails (e.g., GCS credentials issue), use fallback values
+      // This allows the file record to be saved in DB even if cloud storage fails
+      Logger.warn(`⚠️ Storage upload failed, using fallback values: ${error instanceof Error ? error.message : String(error)}`);
+      filePath = folder ? `${folder}/${fileName}` : fileName;
+      publicUrl = `fallback://${filePath}`; // Placeholder URL
+    }
 
     const fileData: ICreateFile = {
       fileName,

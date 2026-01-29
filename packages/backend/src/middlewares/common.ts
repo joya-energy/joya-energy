@@ -1,10 +1,10 @@
 import { Router } from "express";
 
-type Wrapper = (router: Router) => void;
+type Wrapper = (router: Router) => void | Promise<void>;
 
-export const applyMiddleware = (middleware: Wrapper[], router: Router): void => {
+export const applyMiddleware = async (middleware: Wrapper[], router: Router): Promise<void> => {
     // eslint-disable-next-line no-restricted-syntax
     for (const func of middleware) {
-      func(router);
+      await func(router);
     }
   };

@@ -156,3 +156,98 @@
   }
 }
 
+// ========================================
+// Landing Page Button Styles
+// ========================================
+
+.btn--landing-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: #fff;
+  background: linear-gradient(to right, var(--landing-primary), var(--landing-primary-dark));
+  border-radius: var(--card-radius-sm);
+  box-shadow: var(--card-shadow-md);
+  transition: all 0.3s ease;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(to right, var(--landing-primary-dark), #c55537);
+    box-shadow: var(--card-shadow-lg);
+    transform: translateY(-2px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--landing-primary);
+    outline-offset: 2px;
+  }
+}
+
+.btn--landing-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--landing-primary);
+  background: transparent;
+  border: 1px solid var(--landing-primary);
+  border-radius: var(--card-radius-sm);
+  transition: all 0.3s ease;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--landing-primary-lightest);
+    color: var(--landing-primary-dark);
+    border-color: var(--landing-primary-dark);
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--landing-primary);
+    outline-offset: 2px;
+  }
+}
+
+.btn--landing-outline {
+  @extend .btn--landing-secondary;
+}
+
+// Landing page button bounce animation
+.btn-bounce {
+  transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  &:hover:not(:disabled) {
+    transform: translateY(-2px) scale(1.02);
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(0) scale(1);
+  }
+}
+
+// Landing page button scale animation
+.btn-scale {
+  transition: transform 0.2s ease;
+  
+  &:hover:not(:disabled) {
+    transform: scale(1.05);
+  }
+  
+  &:active:not(:disabled) {
+    transform: scale(1);
+  }
+}

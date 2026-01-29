@@ -8,8 +8,9 @@ import {
   LocationFieldName,
   ConsumptionFieldName,
   BuildingFieldName,
+  PersonalFieldName,
   ConsumptionForm,
-  BuildingForm
+  PersonalForm
 } from './audit-solaire.types';
 
 const DEFAULT_PLACEHOLDER_OPTION = 'Sélectionnez...';
@@ -118,17 +119,48 @@ export class AuditSolaireFormService {
 
   ];
 
+  readonly personalFields: FieldConfig<PersonalFieldName>[] = [
+    {
+      control: 'fullName',
+      label: 'Nom complet',
+      type: 'text',
+      tooltip: { title: 'Nom complet', description: 'Personne référente pour l\'audit.' }
+    },
+    {
+      control: 'companyName',
+      label: 'Entreprise',
+      type: 'text',
+      tooltip: { title: 'Raison sociale', description: 'Nom légal ou enseigne du site.' }
+    },
+    {
+      control: 'email',
+      label: 'Email',
+      type: 'text',
+      tooltip: { title: 'Email de contact', description: 'Adresse utilisée pour l\'envoi des résultats.' }
+    },
+    {
+      control: 'phoneNumber',
+      label: 'Téléphone',
+      type: 'text',
+      tooltip: { title: 'Téléphone', description: 'Numéro pour les échanges techniques.' }
+    }
+  ];
+
   buildForm(): AuditSolaireFormGroup {
     return this.fb.group<AuditSolaireFormControls>({
       location: this.fb.group({
-        fullName: this.fb.nonNullable.control('', [Validators.required]),
-        companyName: this.fb.nonNullable.control('', [Validators.required]),
-        email: this.fb.nonNullable.control('', [Validators.required, Validators.email]),
-        phoneNumber: this.fb.nonNullable.control('', [Validators.required]),
+        // Legacy fields - kept for backward compatibility but not required
+        // New solar_audit page uses 'personal' group instead
+        fullName: this.fb.nonNullable.control('', []), // Removed required validator
+        companyName: this.fb.nonNullable.control('', []), // Removed required validator
+        email: this.fb.nonNullable.control('', []), // Removed required validator
+        phoneNumber: this.fb.nonNullable.control('', []), // Removed required validator
         address: this.fb.nonNullable.control('', [Validators.required])
       }),
       consumption: this.fb.group<ConsumptionForm>({
-        hasInvoice: this.fb.nonNullable.control<'yes' | 'no' | null>(null, [Validators.required]),
+        // Bill upload feature temporarily disabled
+        // hasInvoice: this.fb.nonNullable.control<'yes' | 'no' | null>(null, [Validators.required]),
+        hasInvoice: this.fb.nonNullable.control<'yes' | 'no' | null>('no', []), // Set default to 'no' and remove required
         measuredAmountTnd: this.fb.control<number | null>(null, [Validators.required, Validators.min(MIN_NUMERIC)]),
         referenceMonth: this.fb.control<number | null>(null, [
           Validators.required,
@@ -138,15 +170,15 @@ export class AuditSolaireFormService {
         billAttachment: this.fb.control<File | null>(null)
       }),
       building: this.fb.group({
-        buildingType: this.fb.nonNullable.control<BuildingTypes>({} as BuildingTypes, [
-          Validators.required,
-          enumValidator(BuildingTypes)
-        ]) as FormControl<BuildingTypes>,
-        climateZone: this.fb.nonNullable.control<ClimateZones>({} as ClimateZones, [
-          Validators.required,
-          enumValidator(ClimateZones)
-        ]) as FormControl<ClimateZones>
-      }) as FormGroup<BuildingForm>
+        buildingType: this.fb.nonNullable.control<BuildingTypes>({} as BuildingTypes, [Validators.required]),
+        climateZone: this.fb.nonNullable.control<ClimateZones>({} as ClimateZones, [Validators.required])
+      }),
+      personal: this.fb.group<PersonalForm>({
+        fullName: this.fb.nonNullable.control('', [Validators.required]),
+        companyName: this.fb.nonNullable.control('', [Validators.required]),
+        email: this.fb.nonNullable.control('', [Validators.required, Validators.email]),
+        phoneNumber: this.fb.nonNullable.control('', [Validators.required])
+      })
     });
   }
 }

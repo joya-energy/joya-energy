@@ -65,7 +65,7 @@
 
     &.full-width {
       grid-template-columns: 1fr;
-      max-width: 1200px;
+      max-width: 1600px; /* Changed from 1200px to 1600px */
       margin: 0 auto;
       padding: 2rem 1rem;
     }
@@ -282,7 +282,46 @@
             }
           }
 
+          .location-step-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1000;
+            pointer-events: auto;
+
+            @media (max-width: 768px) {
+              flex-direction: column;
+            }
+          }
+
           .btn-next {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--neutral-100);
+            color: var(--text-primary);
+            border: 2px solid var(--neutral-300);
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: var(--font-size-xs);
+            cursor: pointer;
+            transition: all 0.2s ease;
+
+            &:hover:not(:disabled) {
+              background: var(--neutral-200);
+              border-color: var(--neutral-400);
+            }
+
+            &:disabled {
+              opacity: 0.5;
+              cursor: not-allowed;
+            }
+          }
+
+          .btn-submit {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
@@ -293,6 +332,19 @@
             border-radius: 999px;
             font-weight: 700;
             font-size: var(--font-size-xs);
+            cursor: pointer;
+            transition: all 0.2s ease;
+
+            &:hover:not(:disabled) {
+              background: var(--orange-solar-dark);
+              transform: translateY(-1px);
+              box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+            }
+
+            &:disabled {
+              opacity: 0.6;
+              cursor: not-allowed;
+            }
             cursor: pointer;
             box-shadow: 0 10px 20px rgba(243, 163, 28, 0.25);
             transition: all 0.2s ease;

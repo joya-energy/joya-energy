@@ -1,6 +1,24 @@
 import { Routes } from '@angular/router';
 
+/**
+ * to hide a footer on a specific page, add the following data to the route:
+ * ```typescript
+ * {
+ *   path: 'special-page',
+ *   loadComponent: () => import('./pages/special/special.component').then(m => m.SpecialComponent),
+ *   data: { hideFooter: true }
+ * }
+ * ```
+*/
+
+
 export const routes: Routes = [
+  {
+    path: 'landing',
+    loadComponent: () => import('./pages/landing/landing.component').then(m => m.LandingComponent),
+    title: 'Landing | JOYA Energy',
+    data: { hideFooter: false }
+  },
   {
     path: '',
     loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent),
@@ -22,6 +40,12 @@ export const routes: Routes = [
     title: 'Simulation audit solaire | JOYA Energy'
   },
   {
+    path: 'solar-audit',
+    loadComponent: () => import('./pages/solar-audit/solar-audit.component').then(m => m.SolarAuditComponent),
+    title: 'Audit Solaire | JOYA Energy',
+    data: { hideFooter: true }
+  },
+  {
     path: 'comparaison-financements',
     loadComponent: () => import('./features/financing-comparison/financing-comparison.component').then(m => m.FinancingComparisonComponent),
     title: 'Comparateur de Financements | JOYA Energy'
@@ -30,6 +54,10 @@ export const routes: Routes = [
     path: 'bilan-carbon',
     loadComponent: () => import('./pages/bilan-carbon/bilan-carbon.component.js').then(m => m.BilanCarbonComponent),
     title: 'Bilan Carbone | JOYA Energy'
+    path: 'energy-audit',
+    loadComponent: () => import('./pages/energy-audit/energy-audit.component').then(m => m.EnergyAuditComponent),
+    title: 'Audit Énergétique | JOYA Energy',
+    data: { hideFooter: true }
   },
   {
     path: '**',

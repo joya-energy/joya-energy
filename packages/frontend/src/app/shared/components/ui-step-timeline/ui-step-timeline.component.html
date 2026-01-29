@@ -1,0 +1,19 @@
+<div class="ui-step-timeline">
+  @for (step of displaySteps(); track step.number; let i = $index) {
+    <div class="timeline-step" [class.completed]="isStepCompleted(step.number)" [class.active]="isStepActive(step.number)" [class.future]="isStepFuture(step.number)">
+      <div class="timeline-circle">
+        @if (isStepCompleted(step.number)) {
+          <ng-icon name="lucideCheck" size="20" class="check-icon"></ng-icon>
+        } @else {
+          <span class="step-number">{{ step.number }}</span>
+        }
+      </div>
+      @if (step.label) {
+        <span class="timeline-label">{{ step.label }}</span>
+      }
+      @if (i < displaySteps().length - 1) {
+        <div class="timeline-connector" [class.completed]="isStepCompleted(step.number)"></div>
+      }
+    </div>
+  }
+</div>

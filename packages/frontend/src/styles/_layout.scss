@@ -9,18 +9,20 @@
 
 .container {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1600px; /* Changed from 1200px to 1600px */
   margin-left: auto;
   margin-right: auto;
   padding-left: 1rem;
   padding-right: 1rem;
+  box-sizing: border-box;
+  overflow-x: hidden; // Prevent horizontal overflow
 
-  @media (min-width: 640px) {
+  @media (min-width: 640px) { /* sm */
     padding-left: 1.5rem;
     padding-right: 1.5rem;
   }
 
-  @media (min-width: 1024px) {
+  @media (min-width: 1024px) { /* lg */
     padding-left: 2rem;
     padding-right: 2rem;
   }
