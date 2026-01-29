@@ -28,7 +28,6 @@ export enum BuildingTypes {
   CAFE_RESTAURANT = 'Café / Restaurant', 
   BEAUTY_CENTER = 'Centre esthétique / Spa', 
   HOTEL_GUESTHOUSE = 'Hôtel',
-  SERVICE = 'Service Tertiaire',
   CLINIC_MEDICAL = 'Clinique / Centre médical', 
   OFFICE_ADMIN_BANK = 'Bureau / Administration / Banque',
   LIGHT_WORKSHOP = 'Atelier léger / Artisanat / Menuiserie', 
@@ -37,7 +36,8 @@ export enum BuildingTypes {
   FOOD_INDUSTRY = 'Industrie alimentaire', 
   PLASTIC_INJECTION = 'Industrie plastique / Injection', 
   COLD_AGRO_INDUSTRY = 'Industrie agroalimentaire réfrigérée', 
-  SCHOOL_TRAINING = 'École / Centre de formation' 
+  SCHOOL_TRAINING = 'École / Centre de formation' ,
+  SERVICE = 'Service Tertiaire',
 }
 
 export enum ClimateZones {
