@@ -1,98 +1,134 @@
 # =========================
-# CURSOR RULES FOR JOYA PROJECT (MERN)
+# JOYA PROJECT – CURSOR RULES
 # =========================
 
-# === GLOBAL CONTEXT ===
 project:
   name: JOYA
-  stack: MERN (MongoDB, Express, React, Node.js)
-  language: TypeScript for backend, JavaScript/TypeScript for frontend
+  stack: MEAN (MongoDB, Express, Angular, Node)
+  language:
+    backend: TypeScript
+    frontend: JavaScript/TypeScript
   architecture: Clean Architecture
-  principles: Clean Code (Robert C. Martin), SOLID, DRY, KISS, Separation of Concerns
+  principles:
+    - Clean Code
+    - SOLID
+    - DRY
+    - KISS
+    - Separation of Concerns
   monorepo: true
   backendRoot: packages/backend
   frontendRoot: packages/frontend
 
 # === GENERAL CODING STYLE ===
-rules:
-  - Always prefer readability over cleverness.
-  - Functions should do one thing only and be small (max ~20 lines ideally).
-  - Avoid deeply nested logic. Prefer early returns.
-  - Use clear, descriptive variable and function names (no abbreviations).
-  - No magic numbers or strings — move them to constants or enums.
-  - Avoid side effects in utility functions.
-  - Keep imports clean and ordered: external → internal → relative paths.
-  - Never commit commented-out code.
-  - Use consistent error handling; no silent failures.
+style:
+  - Readability over cleverness.
+  - Functions are small and single-purpose (~20 lines max).
+  - Prefer early returns; avoid deep nesting.
+  - Descriptive names; no abbreviations.
+  - No magic values → use constants or enums.
+  - Utilities must be pure.
+  - Ordered imports: external → internal → relative.
+  - No commented-out code.
+  - Always handle errors explicitly.
+  - Never use "any" or "unknown".
 
 # === BACKEND RULES ===
 backend:
-  - Folder `src/modules` contains feature-specific business logic.
-  - Folder `src/interfaces` contains controllers, routes, and request validation.
-  - Folder `src/infrastructure` (if created later) handles database, external APIs, etc.
-  - Folder `src/domain` (if added) contains entities and core logic.
-  - Folder `src/common` holds shared helpers (logging, error types, constants).
-  - Folder `src/middlewares` should contain only Express middlewares.
-  - Folder `src/utils` for general-purpose stateless functions.
-  - Tests live in `src/tests` and should mirror the folder structure of `src`.
+  structure:
+    modules: "Business logic (services, use-cases)"
+    interfaces: "Controllers, routes, request validation"
+    infrastructure: "Database + external API clients"
+    domain: "Entities and core abstractions"
+    middlewares: "Express middlewares only"
+    common: "Shared helpers: constants, logging, errors"
+    utils: "Stateless general helpers"
+    tests: "Mirrors folder tree"
 
-  coding-guidelines:
-    - Use dependency inversion: high-level modules must not depend on low-level details.
-    - Avoid business logic in controllers or routes — keep it in services/modules.
-    - Validation happens at the interface level.
-    - Use async/await consistently; avoid mixing with `.then()`.
-    - Each module exports a clear API surface (index.ts).
+  guidelines:
+    - Business logic never inside controllers.
+    - Validation in interfaces layer only.
+    - Use dependency inversion everywhere.
+    - async/await only.
+    - Each module exposes a clean API surface via index.ts.
 
   code-style:
-    - Use TypeScript types or interfaces consistently.
-    - Export only what’s necessary (avoid `export *`).
-    - Log meaningful context, not raw errors.
-    - Prefer custom error classes in `src/errors`.
+    - Strong typing consistently.
+    - Never use "any" or "unknown".
+    - Export only necessary elements.
+    - Prefer custom error classes.
+    - Log contextual information, not raw objects.
 
-# === FRONTEND RULES (if added later) ===
+# === FRONTEND (ANGULAR v20+) ===
 frontend:
-  - Use functional React components only.
-  - Keep components pure and stateless when possible.
-  - Move business logic to hooks or services, not inside components.
-  - Use TailwindCSS for UI, avoid inline styles.
-  - Folder structure should separate UI, state, and logic clearly.
-  - Don’t let UI components depend on API logic directly.
+  typescript:
+    - Strict typing always.
+    - Prefer inference when obvious.
+    - Never use "any" or "unknown".
+
+  angular:
+    - Use standalone components (default in v20+).
+    - Use signals for state.
+    - Lazy-load feature routes.
+    - Avoid @HostBinding / @HostListener; use host: {} in decorator.
+    - Use NgOptimizedImage for non-base64 images.
+    - Must satisfy AXE and WCAG AA.
+
+  components:
+    - Small, single responsibility.
+    - Use input(), output(), computed().
+    - ChangeDetection: OnPush.
+    - Inline templates preferred for small components.
+    - Use class/style bindings instead of ngClass/ngStyle.
+    - Relative paths for HTML/CSS files.
+
+  state:
+    - Use signals for local state.
+    - Use computed() for derived state.
+    - Use update() / set(), never mutate().
+
+  templates:
+    - Keep logic minimal.
+    - Use @if, @for, @switch.
+    - No arrow functions.
+    - Do not rely on globals like new Date().
+
+  services:
+    - Single responsibility.
+    - providedIn: "root".
+    - Use inject() over constructor injection.
 
 # === TESTING ===
 testing:
-  - Write unit tests for critical modules and utils.
-  - Use Jest for backend testing.
-  - Naming convention: `<filename>.spec.ts`
-  - Each test should verify one behavior.
-  - Prefer descriptive test names (“should return 404 if user not found”).
-  - Test edge cases and expected failures.
+  - Jest for backend.
+  - Tests mirror folder structure.
+  - Filename: "<file>.spec.ts".
+  - One behavior per test.
+  - Test edge cases and failure paths.
 
-# === ESLINT / CODE QUALITY ===
-eslint:
-  - Follow Airbnb + Prettier.
-  - Disable rules that conflict with TypeScript.
-  - Enforce 2-space indentation.
-  - Avoid console.log in production code (use logger).
+# === LINTING ===
+linting:
+  - Prettier.
+  - TS-friendly rules only.
+  - 2-space indentation.
+  - No console.log in production (use logger).
 
-# === GIT / PROJECT HYGIENE ===
+# === GIT HYGIENE ===
 git:
-  - Commit messages should follow Conventional Commits (`feat:`, `fix:`, `chore:`, `refactor:`).
-  - Never commit `.env` or credentials.
-  - Always include a meaningful PR description.
-  - Keep branches small and focused.
+  - Conventional commits.
+  - Never commit .env or secrets.
+  - PRs must have meaningful descriptions.
+  - Branches small and focused.
 
-# === DOCUMENTATION & COMMENTS ===
-documentation:
-  - Each module must have a brief `README.md` explaining its purpose.
-  - Use JSDoc-style comments for exported functions or complex logic.
-  - Avoid redundant comments (“increment counter” for `count++`).
-  - Document architectural decisions in a `/docs/architecture.md` file.
+# === DOCUMENTATION ===
+docs:
+  - Each module includes a README.md.
+  - JSDoc only for exported functions or complex logic.
+  - Architecture decisions in /docs/architecture.md.
 
-# === AI (Cursor) BEHAVIOR ===
+# === CURSOR AI BEHAVIOR ===
 cursor:
-  - Always respect the folder boundaries defined above.
-  - When generating code, use Clean Architecture layering.
-  - Avoid generating code in `dist/` or `node_modules/`.
-  - When unsure about structure, default to `src/modules` for domain logic.
-  - Prefer writing tests and docs automatically if asked.
-  - Suggest refactors aligned with SOLID and readability improvements.
+  - Respect folder boundaries strictly.
+  - Default domain logic to src/modules.
+  - Never generate into dist/ or node_modules/.
+  - Auto-generate tests and docs when asked.
+  - Suggest refactors aligned with SOLID + Clean Architecture.

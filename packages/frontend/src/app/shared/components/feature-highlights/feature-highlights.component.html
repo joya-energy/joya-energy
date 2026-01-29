@@ -1,0 +1,12 @@
+<section class="feature-highlights" aria-label="Avantages principaux">
+  <div class="container feature-highlights__grid">
+    @for (feature of features; track feature.title) {
+      <article class="feature-card text-center" aria-live="polite">
+        <app-feature-icon [name]="feature.icon" aria-hidden="true" />
+        <h3 class="text-nowrap">{{ feature.title }}</h3>
+        <p class="text-muted">{{ feature.description }}</p>
+      </article>
+    }
+  </div>
+</section>
+

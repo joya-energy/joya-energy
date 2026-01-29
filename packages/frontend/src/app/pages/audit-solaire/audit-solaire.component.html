@@ -1,0 +1,926 @@
+<div class="audit-solaire-page">
+  <section class="hero-panel" [class.full-width]="step() === AuditSolaireFormStep.REVIEW">
+    <div class="wizard-section" [class.centered]="step() === AuditSolaireFormStep.REVIEW">
+      <div class="wizard-header" *ngIf="step() !== AuditSolaireFormStep.REVIEW">
+        <p class="badge">En 2 minutes !</p>
+        @if (step() === AuditSolaireFormStep.INVOICE) {
+          <h1>Avez-vous une facture d'électricité récente ?</h1>
+          <p class="help-text">Votre facture nous permet de calculer vos économies avec précision</p>
+        }
+        @if (step() === AuditSolaireFormStep.BUILDING) {
+          <h1>Type de bâtiment</h1>
+          <p class="help-text">Sélectionnez le type qui correspond à votre activité</p>
+        }
+        @if (step() === AuditSolaireFormStep.LOCATION) {
+          <h1>Où se situe votre bâtiment ?</h1>
+          <p class="help-text">L'adresse nous permet d'estimer l'ensoleillement de votre région</p>
+        }
+        <button type="button" class="btn-back" *ngIf="step() > AuditSolaireFormStep.INVOICE" (click)="prevStep()">
+          <ng-icon name="lucideArrowLeft"></ng-icon> Précédent
+        </button>
+      </div>
+
+      <form [formGroup]="auditForm" class="wizard-form">
+        <ng-container [ngSwitch]="step()">
+          <!-- Step 1: Invoice -->
+          <div *ngSwitchCase="AuditSolaireFormStep.INVOICE" class="step-block">
+            <div class="invoice-choices">
+              <button
+                type="button"
+                class="choice-card"
+                [class.active]="invoiceChoice() === 'yes'"
+                (click)="handleInvoiceChoice('yes'); $event.stopPropagation()"
+              >
+                <p class="choice-title">Oui, j'en ai une</p>
+              </button>
+              <button
+                type="button"
+                class="choice-card"
+                [class.active]="invoiceChoice() === 'no'"
+                (click)="handleInvoiceChoice('no'); $event.stopPropagation()"
+              >
+                <p class="choice-title">Non, je n'en ai pas</p>
+              </button>
+            </div>
+
+            <!-- Show upload component when user selects "yes" -->
+            <div *ngIf="invoiceChoice() === 'yes'" class="upload-section">
+              <app-upload-card
+                [config]="uploadCardConfig"
+                [selectedFile]="auditForm.controls.consumption.controls.billAttachment.value"
+                (fileSelected)="onBillSelected($event)"
+                (extractClicked)="onExtractFromBill()"
+                (manualEntryClicked)="onManualEntry()">
+              </app-upload-card>
+            </div>
+
+            <!-- Show manual entry fields when user selects "no" -->
+            <div *ngIf="invoiceChoice() === 'no'" class="manual-entry-section">
+              <div class="manual-entry-header">
+                <ng-icon name="lucideZap" class="header-icon"></ng-icon>
+                <div class="header-content">
+                  <h3 class="section-title">Saisir votre montant</h3>
+                  <p class="section-description">Indiquez le montant de votre facture mensuelle et le mois de référence pour une estimation précise</p>
+                </div>
+              </div>
+
+              <div class="manual-entry-form" formGroupName="consumption">
+                <div class="form-grid">
+                  <!-- Monthly Consumption Field -->
+                  <div class="consumption-field-card" *ngFor="let field of consumptionFields; trackBy: trackByField">
+                    <div class="field-header">
+                      <ng-icon
+                        [name]="field.control === 'measuredAmountTnd' ? 'lucideDollarSign' : 'lucideCalendar'"
+                        class="field-icon"
+                      ></ng-icon>
+                      <label class="field-label">{{ field.label }}</label>
+                      <app-field-tooltip
+                        *ngIf="field.tooltip"
+                        [title]="(field.tooltip || {}).title || ''"
+                        [description]="(field.tooltip || {}).description || ''"
+                      ></app-field-tooltip>
+                    </div>
+
+                    <div class="field-input-wrapper">
+                      <ng-container *ngIf="!field.options?.length">
+                        <div class="input-group">
+                          <input
+                            [type]="field.type ?? 'text'"
+                            class="form-input"
+                            [placeholder]="getPlaceholder(field.control)"
+                            [formControlName]="field.control"
+                            [class.error]="auditForm.controls.consumption.get(field.control)?.invalid && auditForm.controls.consumption.get(field.control)?.touched"
+                          />
+                          <span class="input-unit" *ngIf="field.control === 'measuredAmountTnd'">TND</span>
+                        </div>
+                        <div class="field-error" *ngIf="auditForm.controls.consumption.get(field.control)?.invalid && auditForm.controls.consumption.get(field.control)?.touched">
+                          <span *ngIf="auditForm.controls.consumption.get(field.control)?.hasError('required')">
+                            Ce champ est obligatoire
+                          </span>
+                          <span *ngIf="auditForm.controls.consumption.get(field.control)?.hasError('min')">
+                            La valeur doit être positive
+                          </span>
+                        </div>
+                      </ng-container>
+
+                      <ng-container *ngIf="field.options?.length">
+                        <app-ui-select
+                          [options]="field.options ?? []"
+                          [formControlName]="field.control"
+                          [placeholder]="field.placeholderOption!"
+                          [class.error]="auditForm.controls.consumption.get(field.control)?.invalid && auditForm.controls.consumption.get(field.control)?.touched"
+                        ></app-ui-select>
+                        <div class="field-error" *ngIf="auditForm.controls.consumption.get(field.control)?.invalid && auditForm.controls.consumption.get(field.control)?.touched">
+                          <span>Ce champ est obligatoire</span>
+                        </div>
+                      </ng-container>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-tips">
+                  <div class="tip-item">
+                    <ng-icon name="lucideInfo" class="tip-icon"></ng-icon>
+                    <span>Le montant mensuel correspond au total en TND indiqué sur votre facture</span>
+                  </div>
+                  <div class="tip-item">
+                    <ng-icon name="lucideInfo" class="tip-icon"></ng-icon>
+                    <span>Choisissez le mois le plus représentatif de votre consommation annuelle</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button type="button" class="btn-next" (click)="nextStep()" [disabled]="!auditForm.controls.consumption.controls.hasInvoice.value">
+              Suivant <ng-icon name="lucideArrowRight"></ng-icon>
+            </button>
+          </div>
+
+          <!-- Step 2: Bill Upload -->
+          <div *ngSwitchCase="AuditSolaireFormStep.BILL_UPLOAD" class="step-block">
+            <app-upload-card
+              [config]="uploadCardConfig"
+              [selectedFile]="auditForm.controls.consumption.controls.billAttachment.value"
+              (fileSelected)="onBillSelected($event)"
+              (extractClicked)="onExtractFromBill()"
+              (manualEntryClicked)="onManualEntry()">
+            </app-upload-card>
+          </div>
+
+          <!-- Step 3: Building Type -->
+          <div *ngSwitchCase="AuditSolaireFormStep.BUILDING" class="step-block">
+            <div class="building-grid">
+              <button
+                type="button"
+                class="building-card"
+                *ngFor="let card of buildingTypeCards"
+                [class.selected]="auditForm.controls.building.controls.buildingType.value === card.id"
+                (click)="selectBuilding(card.id)"
+              >
+                <ng-icon [name]="card.icon" class="building-icon"></ng-icon>
+                <span class="building-label">{{ card.label }}</span>
+              </button>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Zone climatique</label>
+                <app-ui-select
+                  [options]="climateZones"
+                  placeholder="Sélectionnez la zone"
+                  [formControl]="auditForm.controls.building.controls.climateZone"
+                ></app-ui-select>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="btn-next"
+              (click)="nextStep()"
+              [disabled]="auditForm.controls.building.invalid"
+            >
+              Suivant <ng-icon name="lucideArrowRight"></ng-icon>
+            </button>
+          </div>
+
+          <!-- Step 3: Location -->
+          <div *ngSwitchCase="AuditSolaireFormStep.LOCATION" class="step-block">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Nom complet</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  placeholder="Nom et prénom"
+                  [formControl]="auditForm.controls.location.controls.fullName"
+                />
+              </div>
+              <div class="form-group">
+                <label>Nom de l’entreprise</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  placeholder="Entreprise"
+                  [formControl]="auditForm.controls.location.controls.companyName"
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Email</label>
+                <input
+                  type="email"
+                  class="form-input"
+                  placeholder="email@exemple.com"
+                  [formControl]="auditForm.controls.location.controls.email"
+                />
+              </div>
+              <div class="form-group">
+                <label>Téléphone</label>
+                <input
+                  type="tel"
+                  class="form-input"
+                  placeholder="+216 ..."
+                  [formControl]="auditForm.controls.location.controls.phoneNumber"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Adresse complète du bâtiment</label>
+              <app-google-maps-input
+                (addressSelected)="onAddressChange($event)"
+              ></app-google-maps-input>
+            </div>
+
+
+            <button
+              type="button"
+              class="btn-next"
+              (click)="nextStep()"
+              [disabled]="isSubmitting()"
+            >
+              <ng-icon name="lucideLoader" class="spinning" *ngIf="isSubmitting()"></ng-icon>
+              {{ isSubmitting() ? 'Calcul en cours...' : 'Lancer la simulation' }} <ng-icon name="lucideArrowRight" *ngIf="!isSubmitting()"></ng-icon>
+            </button>
+          </div>
+
+          <!-- Step 4: Results -->
+          <div *ngSwitchCase="AuditSolaireFormStep.REVIEW" class="step-block">
+            <div class="results-content" *ngIf="simulationResult() as simulation">
+              <!-- Professional Header -->
+              <div class="results-header">
+                <div class="header-icon">
+                  <ng-icon name="lucideSun" class="sun-icon"></ng-icon>
+                </div>
+                <div class="header-content">
+                  <h2 class="results-title">Rapport d'Audit Solaire</h2>
+                  <p class="results-subtitle">Analyse technique et économique de votre installation solaire</p>
+                  <div class="results-meta">
+                    <span class="meta-item">
+                      <ng-icon name="lucideCalendar" class="meta-icon"></ng-icon>
+                      {{ simulation.createdAt | date:'dd/MM/yyyy' }}
+                    </span>
+                    <span class="meta-item">
+                      <ng-icon name="lucideMapPin" class="meta-icon"></ng-icon>
+                      {{ auditForm.controls.location.value.address || 'Adresse non spécifiée' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+
+              <!-- Executive Summary Cards -->
+              <div class="executive-summary">
+                <div class="summary-card primary">
+                  <div class="card-header">
+                    <div class="card-icon">
+                      <ng-icon name="lucideZap"></ng-icon>
+                    </div>
+                    <div class="card-category">Système</div>
+                  </div>
+                  <div class="card-content">
+                    <div class="card-value">{{ simulation.systemSize_kWp.toFixed(1) }} <span class="unit">kWc</span></div>
+                    <div class="card-label">Puissance Installée</div>
+                    <div class="card-description">Capacité solaire optimale</div>
+                  </div>
+                  <div class="card-accent"></div>
+                </div>
+
+                <div class="summary-card success">
+                  <div class="card-header">
+                    <div class="card-icon">
+                      <ng-icon name="lucideSun"></ng-icon>
+                    </div>
+                    <div class="card-category">Production</div>
+                  </div>
+                  <div class="card-content">
+                    <div class="card-value">{{ (simulation.expectedProduction / 1000).toFixed(0) }} <span class="unit">MWh</span></div>
+                    <div class="card-label">Production Annuelle</div>
+                    <div class="card-description">{{ simulation.expectedProduction.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} kWh/an</div>
+                  </div>
+                  <div class="card-accent"></div>
+                </div>
+
+                <div class="summary-card info">
+                  <div class="card-header">
+            
+                    <div class="card-category">Économies</div>
+                  </div>
+                  <div class="card-content">
+                    <div class="card-value">{{ (simulation.annualSavings / 1000).toFixed(0) }} <span class="unit">k DT</span></div>
+                    <div class="card-label">Économies Annuelles</div>
+                    <div class="card-description">{{ simulation.annualSavings.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} DT/an</div>
+                  </div>
+                  <div class="card-accent"></div>
+                </div>
+
+                <div class="summary-card warning" [class]="simulation.paybackMonths <= 84 ? 'success' : simulation.paybackMonths <= 120 ? 'warning' : 'danger'">
+                  <div class="card-header">
+                    <div class="card-icon">
+                      <ng-icon name="lucideClock"></ng-icon>
+                    </div>
+                    <div class="card-category">Temps</div>
+                  </div>
+                  <div class="card-content">
+                    <div class="card-value">{{ formatPaybackPeriod(simulation.paybackMonths) }}</div>
+                    <div class="card-label">Retour sur Investissement</div>
+                    <div class="card-description">Période de remboursement</div>
+                  </div>
+                  <div class="card-accent"></div>
+                </div>
+              </div>
+
+              <!-- Cost Comparison Section -->
+              <div class="analysis-section">
+                <div class="section-header">
+                  <h3 class="section-title">
+                    <ng-icon name="lucideBarChart3" class="section-icon"></ng-icon>
+                    Comparaison des Coûts Annuels
+                  </h3>
+                  <p class="section-description">
+                    Impact sur votre facture d'électricité après installation solaire
+                  </p>
+                </div>
+
+                <div class="cost-comparison-grid">
+                  <!-- Situation Actuelle -->
+                  <div class="comparison-card current-situation">
+                    <div class="comparison-header">
+                      <div class="comparison-icon current">
+                        <ng-icon name="lucideZap"></ng-icon>
+                      </div>
+                      <div class="comparison-badge">Avant</div>
+                    </div>
+                    <div class="comparison-content">
+                      <div class="comparison-value warning">{{ simulation.annualBillWithoutPV.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} <span class="currency">DT</span></div>
+                      <div class="comparison-label">Situation Actuelle</div>
+                      <div class="comparison-subtitle">Coût annuel d'électricité</div>
+                      <div class="comparison-details">
+                        <div class="detail-item">
+                          <ng-icon name="lucideActivity" class="detail-icon"></ng-icon>
+                          <span>{{ simulation.annualConsumption.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} kWh/an</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="comparison-accent"></div>
+                  </div>
+
+                  <!-- Flèche animée -->
+                  <div class="comparison-transition">
+                    <div class="transition-arrow">
+                      <ng-icon name="lucideArrowRight" class="transition-icon"></ng-icon>
+                      <div class="transition-label">Installation Solaire</div>
+                    </div>
+                    <div class="savings-indicator">
+                      <div class="savings-amount">
+                        -{{ (simulation.annualBillWithoutPV - simulation.annualBillWithPV).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} DT
+                      </div>
+                      <div class="savings-label">Économies annuelles</div>
+                    </div>
+                  </div>
+
+                  <!-- Avec Panneaux Solaires -->
+                  <div class="comparison-card solar-situation">
+                    <div class="comparison-header">
+                      <div class="comparison-icon solar">
+                        <ng-icon name="lucideSun"></ng-icon>
+                      </div>
+                      <div class="comparison-badge">Après</div>
+                    </div>
+                    <div class="comparison-content">
+                      <div class="comparison-value success">{{ simulation.annualBillWithPV.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} <span class="currency">DT</span></div>
+                      <div class="comparison-label">Avec Panneaux Solaires</div>
+                      <div class="comparison-subtitle">Coût annuel restant</div>
+                      <div class="comparison-details">
+                        <div class="detail-item">
+                          <ng-icon name="lucideBattery" class="detail-icon"></ng-icon>
+                          <span>Couverture: {{ simulation.coverage }}%</span>
+                        </div>
+                        <div class="detail-item">
+                          <ng-icon name="lucideSun" class="detail-icon"></ng-icon>
+                          <span>{{ (simulation.expectedProduction / 1000).toFixed(1) }} MWh/an produits</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="comparison-accent"></div>
+                  </div>
+                </div>
+
+                <!-- Monthly Bills Chart -->
+                <div class="monthly-bills-chart" *ngIf="simulation.monthlyEconomics && simulation.monthlyEconomics.length > 0">
+                  <div class="chart-header">
+                    <h4 class="chart-title">Factures mensuelles – Avec / Sans solaire</h4>
+                    <div class="chart-unit">DT/MOIS</div>
+                  </div>
+                  <div class="chart-container">
+                    <div class="chart-y-axis">
+                      <div class="y-axis-label" *ngFor="let tick of getChartYAxisTicks()">
+                        {{ tick | number:'1.0-0' }}
+                      </div>
+                    </div>
+                    <div class="chart-bars-container">
+                      <div class="chart-bars-wrapper">
+                        <div class="chart-bars">
+                          <div class="chart-month" *ngFor="let month of simulation.monthlyEconomics; let i = index">
+                            <div class="chart-bars-pair">
+                              <div class="chart-bar chart-bar-without" 
+                                   [style.height.%]="getBarHeight(month.billWithoutPV)"
+                                   [class.chart-bar-zero]="month.billWithoutPV === 0">
+                                <span class="chart-bar-value">{{ month.billWithoutPV | number:'1.0-0' }}</span>
+                              </div>
+                              <div class="chart-bar chart-bar-with" 
+                                   [style.height.%]="getBarHeight(month.billWithPV)"
+                                   [class.chart-bar-zero]="month.billWithPV === 0">
+                                <span class="chart-bar-value">{{ month.billWithPV | number:'1.0-0' }}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <!-- Month labels row below the bars -->
+                        <div class="chart-labels-row">
+                          <div class="chart-month-label" *ngFor="let month of simulation.monthlyEconomics; let i = index">
+                            {{ getMonthLabel(i) }}
+                          </div>
+                        </div>
+                      </div>
+                      <div class="chart-legend">
+                        <div class="chart-legend-item">
+                          <span class="chart-swatch chart-swatch-without"></span>
+                          <span>Facture sans solaire</span>
+                        </div>
+                        <div class="chart-legend-item">
+                          <span class="chart-swatch chart-swatch-with"></span>
+                          <span>Facture avec solaire</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Economic Analysis -->
+              <div class="analysis-section">
+                <div class="section-header">
+                  <h3 class="section-title">
+                    <ng-icon name="lucideTrendingUp" class="section-icon"></ng-icon>
+                    Analyse Économique Détaillée
+                  </h3>
+                  <p class="section-description">
+                    Résultats financiers sur 25 ans d'exploitation solaire
+                  </p>
+                </div>
+
+                <div class="economic-metrics-grid">
+                  <!-- CAPEX -->
+                  <div class="metric-item capex-card">
+                    <div class="metric-header">
+                      <div class="metric-icon capex">
+                        <ng-icon name="lucideWallet"></ng-icon>
+                      </div>
+                      <div class="metric-badge">Investissement</div>
+                    </div>
+                    <div class="metric-content">
+                      <div class="metric-value primary">{{ simulation.installationCost.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}</div>
+                      <div class="metric-label">CAPEX</div>
+                      <div class="metric-subtitle">Coût d'investissement</div>
+                    </div>
+                  </div>
+
+                  <!-- OPEX -->
+                  <div class="metric-item opex-card">
+                    <div class="metric-header">
+                      <div class="metric-icon opex">
+                        <ng-icon name="lucideSettings"></ng-icon>
+                      </div>
+                      <div class="metric-badge">Maintenance</div>
+                    </div>
+                    <div class="metric-content">
+                      <div class="metric-value neutral">{{ simulation.annualOpex.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}</div>
+                      <div class="metric-label">OPEX</div>
+                      <div class="metric-subtitle">Coût de maintenance annuel</div>
+                    </div>
+                  </div>
+
+                  <!-- ROI -->
+                  <div class="metric-item roi-card">
+                    <div class="metric-header">
+                      <div class="metric-icon roi">
+                        <ng-icon name="lucideTrendingUp"></ng-icon>
+                      </div>
+                      <div class="metric-badge">ROI</div>
+                    </div>
+                    <div class="metric-content">
+                      <div class="metric-value success">{{ ((simulation.roi25Years || 0) * 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}%</div>
+                      <div class="metric-label">ROI</div>
+                      <div class="metric-subtitle">Rentabilité globale</div>
+                    </div>
+                  </div>
+
+                  <!-- Gain cumulé non actualisé -->
+                  <div class="metric-item gain-cumule-card" *ngIf="simulation.annualEconomics && simulation.annualEconomics.length > 0">
+                    <div class="metric-header">
+                      <div class="metric-icon gain-cumule">
+                        <ng-icon name="lucideBarChart3"></ng-icon>
+                      </div>
+                      <div class="metric-badge">Cumulé</div>
+                    </div>
+                    <div class="metric-content">
+                      <div class="metric-value success">{{ simulation.annualEconomics[simulation.annualEconomics.length - 1]!.cumulativeNetGain.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}</div>
+                      <div class="metric-label">Gain cumulé</div>
+                      <div class="metric-subtitle">Non actualisé (25 ans)</div>
+                    </div>
+                  </div>
+
+                  <!-- TRI (Internal Rate of Return) -->
+                  <div class="metric-item tri-card">
+                    <div class="metric-header">
+                      <div class="metric-icon tri">
+                        <ng-icon name="lucidePercent"></ng-icon>
+                      </div>
+                      <div class="metric-badge">TRI</div>
+                    </div>
+                    <div class="metric-content">
+                      <div class="metric-value success">{{ simulation.irr.toFixed(1) }}<span class="unit">%</span></div>
+                      <div class="metric-label">Taux de Rendement Interne</div>
+                      <div class="metric-subtitle">Retour sur investissement annuel</div>
+                    </div>
+                  </div>
+
+
+                 
+                </div>
+              </div>
+
+              <!-- Cumulative Gains vs CAPEX Chart -->
+              <div class="analysis-section" *ngIf="simulation.annualEconomics && simulation.annualEconomics.length > 0">
+                <div class="cumulative-gains-chart">
+                  <div class="chart-header">
+                    <div class="chart-title">Gains nets cumulés vs CAPEX</div>
+                    <div class="chart-unit">DT</div>
+                  </div>
+                  <div class="line-chart-container">
+                    <div class="line-chart-y-axis">
+                      <div class="y-axis-label" *ngFor="let tick of getLineChartYAxisTicks(); let i = index">
+                        {{ tick | number:'1.0-0' }}
+                      </div>
+                    </div>
+                    <div class="line-chart-content">
+                      <div class="line-chart-svg-container">
+                        <svg class="line-chart-svg" viewBox="0 0 1000 400" preserveAspectRatio="none">
+                          <!-- Grid lines are now created by CSS gradient background -->
+                          
+                          <!-- CAPEX line (dashed orange) -->
+                          <polyline 
+                            class="line-capex"
+                            [attr.points]="getCapexLinePoints()"
+                            fill="none"
+                            stroke="rgba(248, 113, 113, 0.8)"
+                            stroke-width="3"
+                            stroke-dasharray="8,4"/>
+                          <circle *ngFor="let point of getCapexLinePointsArray(); trackBy: trackByIndex" 
+                                  [attr.cx]="point.x" 
+                                  [attr.cy]="point.y" 
+                                  r="4" 
+                                  fill="rgba(248, 113, 113, 0.8)"/>
+
+                          <!-- Cumulative Net Gains line (solid blue) -->
+                          <polyline 
+                            class="line-gains"
+                            [attr.points]="getGainsLinePoints()"
+                            fill="none"
+                            stroke="rgba(59, 130, 246, 0.8)"
+                            stroke-width="3"/>
+                          <circle *ngFor="let point of getGainsLinePointsArray(); trackBy: trackByIndex" 
+                                  [attr.cx]="point.x" 
+                                  [attr.cy]="point.y" 
+                                  r="4" 
+                                  fill="rgba(59, 130, 246, 0.8)"/>
+
+                          <!-- Intersection annotation -->
+                          <g *ngIf="getIntersectionPoint()">
+                            <circle 
+                              [attr.cx]="getIntersectionPoint()!.x" 
+                              [attr.cy]="getIntersectionPoint()!.y" 
+                              r="8" 
+                              fill="#10b981"
+                              stroke="white"
+                              stroke-width="3"/>
+                            <rect 
+                              [attr.x]="getIntersectionBubbleX()" 
+                              [attr.y]="getIntersectionPoint()!.y - 45" 
+                              [attr.width]="getIntersectionBubbleWidth()" 
+                              height="35" 
+                              rx="10" 
+                              fill="#ffffff" 
+                              stroke="#10b981" 
+                              stroke-width="3"
+                              opacity="0.95"
+                              filter="url(#shadow)"/>
+                            <text 
+                              [attr.x]="getIntersectionPoint()!.x" 
+                              [attr.y]="getIntersectionPoint()!.y - 25" 
+                              text-anchor="middle" 
+                              font-size="14" 
+                              font-weight="bold" 
+                              fill="#047857">
+                              {{ getIntersectionPoint()!.year | number:'1.1-1' }} ans
+                            </text>
+                          </g>
+
+                          <!-- Final value annotation (blue bubble at end of blue curve) -->
+                          <g *ngIf="getFinalGainsPoint() && getFinalGainsValue() !== null && getFinalGainsValue()! > 0">
+                            <circle
+                              [attr.cx]="getFinalGainsPoint()!.x"
+                              [attr.cy]="getFinalGainsPoint()!.y"
+                              r="8"
+                              fill="#3b82f6"
+                              stroke="white"
+                              stroke-width="3"/>
+
+                            <!-- Leader line (from last point to bubble) -->
+                            <line
+                              [attr.x1]="getFinalGainsPoint()!.x"
+                              [attr.y1]="getFinalGainsPoint()!.y"
+                              [attr.x2]="getFinalGainsPoint()!.x - 95"
+                              [attr.y2]="getFinalGainsPoint()!.y + 50"
+                              stroke="rgba(59, 130, 246, 0.9)"
+                              stroke-width="3"
+                              stroke-linecap="round"/>
+
+                            <rect
+                              [attr.x]="getFinalGainsBubbleX()"
+                              [attr.y]="getFinalGainsPoint()!.y + 20"
+                              [attr.width]="getFinalGainsBubbleWidth()"
+                              height="40"
+                              rx="12"
+                              fill="#ffffff"
+                              stroke="#3b82f6"
+                              stroke-width="3"
+                              opacity="0.97"
+                              filter="url(#shadow)"/>
+                            <text
+                              [attr.x]="getFinalGainsTextX()"
+                              [attr.y]="getFinalGainsPoint()!.y + 46"
+                              text-anchor="middle"
+                              font-size="14"
+                              font-weight="bold"
+                              fill="#1e40af">
+                              {{ getFinalGainsValue() | number:'1.0-0' }} DT
+                            </text>
+                          </g>
+
+                          <!-- Final CAPEX value annotation (orange bubble at end of orange curve) -->
+                          <g *ngIf="getFinalCapexPoint() && getFinalCapexValue() !== null && getFinalCapexValue()! > 0">
+                            <circle
+                              [attr.cx]="getFinalCapexPoint()!.x"
+                              [attr.cy]="getFinalCapexPoint()!.y"
+                              r="8"
+                              fill="#f87171"
+                              stroke="white"
+                              stroke-width="3"/>
+
+                            <!-- Leader line (from last point to bubble) -->
+                            <line
+                              [attr.x1]="getFinalCapexPoint()!.x"
+                              [attr.y1]="getFinalCapexPoint()!.y"
+                              [attr.x2]="getFinalCapexPoint()!.x - 95"
+                              [attr.y2]="getFinalCapexPoint()!.y - 28"
+                              stroke="rgba(248, 113, 113, 0.9)"
+                              stroke-width="3"
+                              stroke-linecap="round"/>
+
+                            <rect
+                              [attr.x]="getFinalCapexBubbleX()"
+                              [attr.y]="getFinalCapexPoint()!.y - 50"
+                              [attr.width]="getFinalCapexBubbleWidth()"
+                              height="40"
+                              rx="12"
+                              fill="#ffffff"
+                              stroke="#f87171"
+                              stroke-width="3"
+                              opacity="0.97"
+                              filter="url(#shadow)"/>
+                            <text
+                              [attr.x]="getFinalCapexTextX()"
+                              [attr.y]="getFinalCapexPoint()!.y - 24"
+                              text-anchor="middle"
+                              font-size="14"
+                              font-weight="bold"
+                              fill="#c2410c">
+                              {{ getFinalCapexValue() | number:'1.0-0' }} DT
+                            </text>
+                          </g>
+                          
+                          <!-- Shadow filter for bubbles -->
+                          <defs>
+                            <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                              <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+                              <feOffset dx="2" dy="2" result="offsetblur"/>
+                              <feComponentTransfer>
+                                <feFuncA type="linear" slope="0.3"/>
+                              </feComponentTransfer>
+                              <feMerge>
+                                <feMergeNode/>
+                                <feMergeNode in="SourceGraphic"/>
+                              </feMerge>
+                            </filter>
+                          </defs>
+                        </svg>
+                      </div>
+                      <div class="line-chart-x-axis line-chart-x-axis-sparse">
+                        <div class="x-axis-label" *ngFor="let year of getSparseChartYears(); trackBy: trackByIndex">
+                          Année {{ year }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="line-chart-legend">
+                    <div class="legend-item">
+                      <div class="legend-line legend-line-gains"></div>
+                      <span>Gains nets cumulés</span>
+                    </div>
+                    <div class="legend-item">
+                      <div class="legend-line legend-line-capex"></div>
+                      <span>CAPEX</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Environmental Impact -->
+              <div class="analysis-section">
+                <div class="section-header">
+                  <h3 class="section-title">
+                    <ng-icon name="lucideLeaf" class="section-icon"></ng-icon>
+                    Impact Environnemental
+                  </h3>
+                  <p class="section-description">
+                    Réduction des émissions de CO₂ grâce à votre installation solaire
+                  </p>
+                </div>
+
+                <div class="environmental-metrics-grid">
+                  <!-- CO2 annuel évité -->
+                  <div class="environmental-item co2-annual-card">
+                    <div class="environmental-header">
+                      <div class="environmental-icon co2-annual">
+                        <ng-icon name="lucideCloud"></ng-icon>
+                      </div>
+                      <div class="environmental-badge">Annuel</div>
+                    </div>
+                    <div class="environmental-content">
+                      <div class="environmental-value success">{{ simulation.annualCo2Avoided.toFixed(1) }} <span class="unit">tonnes</span></div>
+                      <div class="environmental-label">CO₂ évité</div>
+                      <div class="environmental-subtitle">Émissions de carbone réduites par an</div>
+                    </div>
+                  </div>
+
+                  <!-- CO2 total évité sur 25 ans -->
+                  <div class="environmental-item co2-total-card">
+                    <div class="environmental-header">
+                      <div class="environmental-icon co2-total">
+                        <ng-icon name="lucideTreePine"></ng-icon>
+                      </div>
+                      <div class="environmental-badge">25 ans</div>
+                    </div>
+                    <div class="environmental-content">
+                      <div class="environmental-value success">{{ simulation.totalCo2Avoided25Years.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} <span class="unit">tonnes</span></div>
+                      <div class="environmental-label">CO₂ évité total</div>
+                      <div class="environmental-subtitle">Émissions cumulées sur la durée de vie</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Recommendations -->
+              <div class="analysis-section">
+                <h3 class="section-title">
+                  <ng-icon name="lucideLightbulb" class="section-icon"></ng-icon>
+                  Prochaines Étapes Recommandées
+                </h3>
+
+                <div class="recommendations">
+                  <div class="recommendation-item">
+                    <div class="recommendation-icon">
+                      <ng-icon name="lucidePhone"></ng-icon>
+                    </div>
+                    <div class="recommendation-content">
+                      <h4>Contactez notre équipe</h4>
+                      <p>Obtenez un devis personnalisé et détaillé pour votre installation</p>
+                    </div>
+                  </div>
+
+                  <div class="recommendation-item">
+                    <div class="recommendation-icon">
+                      <ng-icon name="lucideFileText"></ng-icon>
+                    </div>
+                    <div class="recommendation-content">
+                      <h4>Étude de faisabilité</h4>
+                      <p>Visite technique gratuite pour valider l'installation sur site</p>
+                    </div>
+                  </div>
+
+                  <div class="recommendation-item">
+                    <div class="recommendation-icon">
+                      <ng-icon name="lucideCreditCard"></ng-icon>
+                    </div>
+                    <div class="recommendation-content">
+                      <h4>Options de financement</h4>
+                      <p>Solutions de paiement échelonnées et aides financières disponibles</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="results-actions">
+                <button type="button" class="btn-secondary" (click)="step.set(AuditSolaireFormStep.INVOICE)">
+                  <ng-icon name="lucideArrowLeft"></ng-icon>
+                  Nouvelle Simulation
+                </button>
+                <button 
+                  type="button" 
+                  class="btn-primary"
+                  (click)="downloadPVReport()"
+                  [disabled]="isGeneratingPDF() || !simulationResult()?.id">
+                  <ng-container *ngIf="!isGeneratingPDF(); else generatingLabel">
+                    <ng-icon name="lucideDownload"></ng-icon>
+                    Télécharger le Rapport
+                  </ng-container>
+                  <ng-template #generatingLabel>
+                    <ng-icon name="lucideLoader" class="spinning"></ng-icon>
+                    Génération en cours...
+                  </ng-template>
+                </button>
+                <button type="button" class="btn-primary">
+                  <ng-icon name="lucidePhone"></ng-icon>
+                  Contactez-nous
+                </button>
+              </div>
+            </div>
+
+            <div class="loading-state" *ngIf="!simulationResult()">
+              <div class="loading-content">
+                <div class="loading-spinner">
+                  <ng-icon name="lucideLoader" class="spinning"></ng-icon>
+                </div>
+                <h3>Analyse en cours...</h3>
+                <p>Nous calculons votre solution solaire optimale</p>
+
+                <!-- Simulation Progress Logs -->
+                <div class="simulation-logs" *ngIf="simulationLogs().length > 0">
+                  <h4>Détails de l'analyse :</h4>
+                  <div class="logs-container">
+                    <div
+                      class="log-entry"
+                      *ngFor="let log of simulationLogs(); trackBy: trackByIndex"
+                      [class.current]="log === currentSimulationStep()"
+                    >
+                      <ng-icon name="lucideCheckCircle" class="log-icon" *ngIf="log.includes('✅')"></ng-icon>
+                      <ng-icon name="lucideXCircle" class="log-icon error" *ngIf="log.includes('❌')"></ng-icon>
+                      <ng-icon name="lucideLoader" class="log-icon spinning" *ngIf="!log.includes('✅') && !log.includes('❌') && log === currentSimulationStep()"></ng-icon>
+                      <span class="log-text">{{ log.replace('✅', '').replace('❌', '').trim() }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+      </form>
+    </div>
+
+    <div class="hero-image-section" *ngIf="step() !== AuditSolaireFormStep.REVIEW">
+      <div class="hero-image-container">
+        <app-ui-image
+          src="/audit-solaire-hero.png"
+          alt="Panneaux solaires"
+          [height]="600"
+        ></app-ui-image>
+        <div class="hero-badge">
+          <ng-icon name="lucideSun"></ng-icon>
+          Excellent ★★★★★
+        </div>
+      </div>
+      
+      <div class="hero-info-card">
+        <h3>Votre installation solaire en 2 étapes</h3>
+        <p>
+          Adoptez l'énergie solaire et réduisez vos factures jusqu'à 40%, sans avancer un centime avec notre modèle ESCO.
+        </p>
+        <div class="stats-row">
+          <div class="stat-item">
+            <span class="stat-value">3-4 ans</span>
+            <span class="stat-label">Retour sur investissement</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">+72%</span>
+            <span class="stat-label">Économies à 25 ans</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

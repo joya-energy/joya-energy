@@ -4,16 +4,17 @@ export enum LightingTypes {
   LED = 'Éclairage LED'
 }
 export enum ExistingMeasures {
-  LED = 'Éclairage LED déjà installé',
-  SOLAR_PV = 'Panneaux photovoltaïques',
-  VARIATORS = 'Variateurs de vitesse',
-  MONITORING = 'Système de suivi énergétique',
-  INSULATION = 'Isolation renforcée',
-  OTHER = 'Autres actions d\'efficacité'
+
+  LED = 'Éclairage à haute efficacité',
+  SOLAR_PV = 'Installation solaire photovoltaïque existante',
+  VARIATORS = 'Variateurs de vitesse sur moteurs /compresseurs',
+  MONITORING = 'Système de suivi des consommations (monitoring)',
+  INSULATION = 'Climatisation / chauffage à haute efficacité',
+  OTHER = 'Autres dispositifs d’efficacité énergétique'
 }
 
 export enum EquipmentCategories {
-  LIGHTING = 'Éclairage (ampoules LED, tubes fluorescents, halogènes)',
+  LIGHTING = 'Éclairage (ampoules LED , tubes fluorescents, halogènes)',
   OFFICE = 'Bureautique (ordinateurs, imprimantes, photocopieuses, caisses, etc.)',
   COMMERCIAL_COOLING = 'Froid commercial / Réfrigération (réfrigérateurs, congélateurs, vitrines froides, etc.)',
   KITCHEN = 'Cuisine / Cuisson (fours, plaques de cuisson, hottes, friteuses, etc.)',

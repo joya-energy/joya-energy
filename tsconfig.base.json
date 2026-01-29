@@ -1,9 +1,9 @@
 {
-  "extends": "./tsconfig.paths.json",
   "compilerOptions": {
     "target": "ES2020",
     "lib": ["ES2020"],
     "outDir": "./dist",
+    "rootDir": "./",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -16,7 +16,13 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["packages/*/src"],
+      "@shared/*": ["packages/shared/src/*"],
+      "@shared": ["packages/shared/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "dist"]
 }

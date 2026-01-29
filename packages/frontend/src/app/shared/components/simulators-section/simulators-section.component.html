@@ -1,0 +1,39 @@
+<section class="simulators" aria-labelledby="simulators-title">
+  <div class="container">
+    <div class="simulators-container">
+      <div class="simulators-header text-center d-flex flex-col items-center">
+        <p class="simulators-eyebrow">Simulateurs</p>
+        <h2 id="simulators-title" class="simulators-title">Simulateurs JOYA</h2>
+        <p class="simulators-subtitle">
+          Explorez nos outils pour projeter vos économies et accélérer vos décisions.
+        </p>
+      </div>
+
+      <div class="simulators-grid">
+        @for (card of cards(); track card.title; let i = $index) {
+        <article class="simulator-card" [class.simulator-card-featured]="card.featured" [style.--card-index]="i"
+          aria-label="{{ card.title }}">
+          <div *ngIf="card.label" class="d-flex align-items-center justify-center justify-between">
+            <span class="simulator-card-label">{{ card.label }}</span>
+            <app-feature-icon class="simulator-card-icon" [name]="card.icon" [noBackground]="true" aria-hidden="true" />
+          </div>
+
+          <div class="simulator-card-body">
+            <h3 class="simulator-card-title">{{ card.title }}</h3>
+            <p class="simulator-card-description">
+              {{ card.description }}
+            </p>
+          </div>
+
+          @if (card.route) {
+          <a class="simulator-card-link" [routerLink]="card.route">
+            {{ card.cta }}
+            <ng-icon name="lucideArrowRight" size="16" aria-hidden="true"></ng-icon>
+          </a>
+          }
+        </article>
+        }
+      </div>
+    </div>
+  </div>
+</section>

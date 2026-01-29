@@ -2,6 +2,7 @@ import { type Request, type Response } from 'express';
 import { HttpStatusCode } from '@shared';
 import { HTTP400Error } from '@backend/errors/http.error';
 import { Logger } from '@backend/middlewares';
+import { billExtractionService } from './bill-extraction.service';
 
 export class BillExtractionController {
   
@@ -10,29 +11,21 @@ export class BillExtractionController {
    */
   public extractBillData = async (req: Request, res: Response): Promise<void> => {
     try {
+      
       if (!req.file) {
         throw new HTTP400Error('No file uploaded. Please provide an image file.');
       }
 
-      const { mimetype } = req.file;
+      const { mimetype, buffer } = req.file;
 
       // Validate file type
       if (!mimetype.startsWith('image/') && mimetype !== 'application/pdf') {
-         throw new HTTP400Error('Invalid file type. Only images and PDFs are allowed.');
+        throw new HTTP400Error('Invalid file type. Only images (JPG/PNG) or PDFs are allowed.');
       }
 
-      // Note: For PDFs, we might need an extra step to convert to image or extract text
-      // GPT-4o vision currently works best with images. 
-      // For MVP, we'll assume image uploads or convert first page of PDF if needed (omitted for brevity)
+      // PDF conversion handled downstream inside the service
       
-  //    const extractedData = await billExtractionService.extractDataFromImage(buffer, mimetype);
-      const extractedData = {
-        monthlyBillAmount: 100,
-        recentBillConsumption: 100,
-        periodStart: new Date(),
-        periodEnd: new Date(),
-        tariffType: 'Basse Tension',
-      };
+      const extractedData = await billExtractionService.extractDataFromImage(buffer, mimetype);
       
       res.status(HttpStatusCode.OK).json({
         success: true,
