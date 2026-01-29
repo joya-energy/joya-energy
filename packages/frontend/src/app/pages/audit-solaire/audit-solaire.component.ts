@@ -190,17 +190,18 @@ export class AuditSolaireComponent {
 
   protected buildingTypeCards: BuildingTypeCard[] = [
     { id: BuildingTypes.CAFE_RESTAURANT, label: 'Café / Restaurant', icon: 'lucideUtensilsCrossed' },
-    { id: BuildingTypes.OFFICE_ADMIN_BANK, label: 'Bureau / Banque', icon: 'lucideBuilding2' },
-    { id: BuildingTypes.LIGHT_WORKSHOP, label: 'Atelier', icon: 'lucideHammer' },
+    { id: BuildingTypes.BEAUTY_CENTER, label: 'Centre esthétique', icon: 'lucideSparkles' },
     { id: BuildingTypes.HOTEL_GUESTHOUSE, label: 'Hôtel', icon: 'lucideHotel' },
     { id: BuildingTypes.CLINIC_MEDICAL, label: 'Clinique', icon: 'lucideStethoscope' },
+    { id: BuildingTypes.SERVICE, label: 'Service tertiaire', icon: 'lucideBuilding2' },
+    { id: BuildingTypes.OFFICE_ADMIN_BANK, label: 'Bureau / Banque', icon: 'lucideBuilding2' },
+    { id: BuildingTypes.LIGHT_WORKSHOP, label: 'Atelier', icon: 'lucideHammer' },
     { id: BuildingTypes.HEAVY_FACTORY, label: 'Usine', icon: 'lucideFactory' },
-    { id: BuildingTypes.SCHOOL_TRAINING, label: 'École', icon: 'lucideGraduationCap' },
-    { id: BuildingTypes.BEAUTY_CENTER, label: 'Centre esthétique', icon: 'lucideSparkles' },
     { id: BuildingTypes.TEXTILE_PACKAGING, label: 'Ind. textile', icon: 'lucideShirt' },
     { id: BuildingTypes.FOOD_INDUSTRY, label: 'Ind. alimentaire', icon: 'lucideDrumstick' },
     { id: BuildingTypes.PLASTIC_INJECTION, label: 'Ind. plastique', icon: 'lucideBox' },
-    { id: BuildingTypes.COLD_AGRO_INDUSTRY, label: 'Ind. froid', icon: 'lucideSnowflake' }
+    { id: BuildingTypes.COLD_AGRO_INDUSTRY, label: 'Ind. froid', icon: 'lucideSnowflake' },
+    { id: BuildingTypes.SCHOOL_TRAINING, label: 'École', icon: 'lucideGraduationCap' }
   ];
 
   protected heroStats = [

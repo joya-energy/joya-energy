@@ -149,9 +149,7 @@ export interface ElectricityForm {
 
 export interface HeatForm {
   hasHeatUsages: FormControl<boolean>;
-  /** Single selection for heat usage (dropdown) — sent as [value] to API */
   selectedHeatUsage: FormControl<string | null>;
-  /** Single selection for heat energy (dropdown) — sent as [value] to API */
   selectedHeatEnergy: FormControl<string | null>;
 }
 

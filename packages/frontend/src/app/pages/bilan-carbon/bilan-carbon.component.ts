@@ -135,7 +135,7 @@ export class BilanCarbonComponent {
       },
       thermal: {
         hasHeatUsages: h.hasHeatUsages ?? false,
-        annualElectricityKwh: 0, // backend fills from electricity result
+        annualElectricityKwh: 0,
         buildingType: sector as never,
         selectedHeatUsages: (h.selectedHeatUsage ? [h.selectedHeatUsage] : []) as ('DOMESTIC_HOT_WATER' | 'COOKING_KITCHEN' | 'INDUSTRIAL_PROCESS' | 'SPACE_HEATING')[],
         selectedHeatEnergies: (h.selectedHeatEnergy ? [h.selectedHeatEnergy] : []) as ('NATURAL_GAS' | 'DIESEL_FUEL' | 'LPG' | 'UNKNOWN')[],
