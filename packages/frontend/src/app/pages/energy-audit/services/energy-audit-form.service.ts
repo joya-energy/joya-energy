@@ -76,6 +76,7 @@ export class EnergyAuditFormService {
     BuildingTypes.FOOD_INDUSTRY,
     BuildingTypes.PLASTIC_INJECTION,
     BuildingTypes.SERVICE,
+    BuildingTypes.COLD_AGRO_INDUSTRY,
   ];
 
   readonly buildingCategories = BUILDING_CARD_CONFIG.filter((config) =>
