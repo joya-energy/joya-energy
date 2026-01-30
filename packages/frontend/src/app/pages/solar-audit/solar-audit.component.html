@@ -672,7 +672,7 @@
                             [class.building-card--active]="form.get('building.buildingType')?.value === card.id"
                             (click)="form.get('building.buildingType')?.setValue(card.id)">
                             <div class="building-card-icon">
-                              <ng-icon [name]="card.icon"></ng-icon>
+                              <ng-icon [name]="card.icon" size="20"></ng-icon>
                             </div>
                             <span>{{ card.label }}</span>
                           </button>

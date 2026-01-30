@@ -60,6 +60,8 @@ import { IAuditSolaireSimulation } from '@shared/interfaces';
 import { BuildingTypes } from '@shared';
 import { SimulatorStep, StepField } from '../energy-audit/types/energy-audit.types';
 
+import { BUILDING_CARD_CONFIG, BUILDING_ICON_REGISTRY } from '../../shared/icons/audit-building-icons';
+
 interface BuildingTypeCard {
   id: BuildingTypes;
   label: string;
@@ -103,6 +105,7 @@ interface BuildingTypeCard {
   ],
   providers: [
     provideIcons({
+      ...BUILDING_ICON_REGISTRY,
       lucideArrowRight,
       lucideArrowLeft,
       lucideSun,
@@ -246,22 +249,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     { label: 'Non, je souhaite saisir manuellement', value: 'no' }
   ];
 
-  protected readonly buildingTypeCards: BuildingTypeCard[] = [
-    { id: BuildingTypes.CAFE_RESTAURANT, label: 'Café / Restaurant', icon: 'lucideZap' },
-    { id: BuildingTypes.OFFICE_ADMIN_BANK, label: 'Bureau / Banque', icon: 'lucideBuilding2' },
-    { id: BuildingTypes.LIGHT_WORKSHOP, label: 'Atelier', icon: 'lucideZap' },
-    { id: BuildingTypes.HOTEL_GUESTHOUSE, label: 'Hôtel / Maison d’hôtes', icon: 'lucideBuilding2' },
-    { id: BuildingTypes.CLINIC_MEDICAL, label: 'Clinique / Médical', icon: 'lucideBuilding2' },
-    { id: BuildingTypes.HEAVY_FACTORY, label: 'Usine', icon: 'lucideZap' },
-    { id: BuildingTypes.SCHOOL_TRAINING, label: 'École / Formation', icon: 'lucideBuilding2' },
-    { id: BuildingTypes.BEAUTY_CENTER, label: 'Centre esthétique / Spa', icon: 'lucideZap' },
-    { id: BuildingTypes.TEXTILE_PACKAGING, label: 'Ind. textile', icon: 'lucideZap' },
-    { id: BuildingTypes.FOOD_INDUSTRY, label: 'Ind. alimentaire', icon: 'lucideZap' },
-    { id: BuildingTypes.PLASTIC_INJECTION, label: 'Ind. plastique', icon: 'lucideZap' },
-    //{ id: BuildingTypes.COLD_AGRO_INDUSTRY, label: 'Ind. froid', icon: 'lucideZap' }
-    { id: BuildingTypes.SERVICE, label: 'Commerce / Retail', icon: 'lucideZap' }
-  ];
-
+  protected readonly buildingTypeCards: BuildingTypeCard[] = BUILDING_CARD_CONFIG;
   protected readonly uploadCardConfig: UploadCardConfig = {
     title: 'Téléchargez votre facture d\'électricité',
     subtitle: 'ou cliquez pour sélectionner un fichier',

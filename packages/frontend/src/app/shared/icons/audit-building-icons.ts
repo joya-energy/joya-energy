@@ -51,7 +51,8 @@ export const BUILDING_CARD_CONFIG: BuildingCardConfig[] = [
   { id: BuildingTypes.TEXTILE_PACKAGING, label: BuildingTypes.TEXTILE_PACKAGING, icon: 'lucideShirt' },
   { id: BuildingTypes.FOOD_INDUSTRY, label: BuildingTypes.FOOD_INDUSTRY, icon: 'lucideDrumstick' },
   { id: BuildingTypes.PLASTIC_INJECTION, label: BuildingTypes.PLASTIC_INJECTION, icon: 'lucideBox' },
-  { id: BuildingTypes.COLD_AGRO_INDUSTRY, label: BuildingTypes.COLD_AGRO_INDUSTRY, icon: 'lucideSnowflake' }
+  // { id: BuildingTypes.COLD_AGRO_INDUSTRY, label: BuildingTypes.COLD_AGRO_INDUSTRY, icon: 'lucideSnowflake' },
+  { id: BuildingTypes.SERVICE, label: BuildingTypes.SERVICE, icon: 'lucideUtensilsCrossed' }
 ];
 
 
