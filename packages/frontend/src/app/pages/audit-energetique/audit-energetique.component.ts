@@ -93,7 +93,6 @@ export class AuditEnergetiqueComponent {
 
   private static readonly FEATURED_BUILDING_TYPES: BuildingTypes[] = [
     BuildingTypes.CAFE_RESTAURANT,
-    BuildingTypes.OFFICE_ADMIN_BANK,
     BuildingTypes.LIGHT_WORKSHOP,
     BuildingTypes.HOTEL_GUESTHOUSE,
     BuildingTypes.CLINIC_MEDICAL,

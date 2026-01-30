@@ -1,0 +1,322 @@
+<div class="bilan-page">
+  <main class="bilan-main">
+    <section class="bilan-hero">
+      <h1>Bilan Carbone</h1>
+      <p>Estimez votre empreinte carbone à partir des informations de votre site.</p>
+    </section>
+
+    @if (result(); as r) {
+      <section class="form-sheet results-sheet">
+        <h2 class="results-title">Résultats du Bilan Carbone</h2>
+        <div class="results-categories">
+          <div class="result-card result-card--thermal">
+            <h3>Scope 1</h3>
+            <span class="result-value">{{ r.co2Scope1Kg | number:'1.0-0' }} <span class="unit">kg CO₂e/an</span></span>
+            <p class="result-tonnes">{{ r.co2Scope1Tonnes | number:'1.2-2' }} t CO₂e/an</p>
+          </div>
+          <div class="result-card result-card--electricity">
+            <h3>Scope 2</h3>
+            <span class="result-value">{{ r.co2Scope2Kg | number:'1.0-0' }} <span class="unit">kg CO₂e/an</span></span>
+            <p class="result-tonnes">{{ r.co2Scope2Tonnes | number:'1.2-2' }} t CO₂e/an</p>
+          </div>
+          <div class="result-card result-card--travel">
+            <h3>Scope 3</h3>
+            <span class="result-value">{{ r.co2Scope3Kg | number:'1.0-0' }} <span class="unit">kg CO₂e/an</span></span>
+            <p class="result-tonnes">{{ r.co2Scope3Tonnes | number:'1.2-2' }} t CO₂e/an</p>
+          </div>
+        </div>
+        <div class="result-total">
+          <h3 class="result-total__label">Empreinte carbone totale</h3>
+          <div class="result-total__value">
+            <span class="result-total__kg">{{ r.co2TotalKg | number:'1.0-0' }}</span>
+            <span class="result-total__unit">kg CO₂e/an</span>
+          </div>
+          <p class="result-total__tonnes">{{ r.co2TotalTonnes | number:'1.2-2' }} t CO₂e/an</p>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="pill-button pill-button--secondary" (click)="reset()">
+            Nouvelle simulation
+          </button>
+        </div>
+      </section>
+    } @else {
+      <form [formGroup]="form" (ngSubmit)="submit()" class="form-sheet">
+        <!-- A. Secteur + Informations générales -->
+        <div class="form-section" formGroupName="general">
+          <div class="form-section-header">Secteur d'activité *</div>
+          <div class="building-grid">
+            @for (card of sectorCards; track card.id) {
+              <button type="button" class="building-card"
+                [class.building-card--active]="form.controls.general.controls.sector.value === card.id"
+                (click)="selectSector(card.id)">
+                <div class="building-card-icon">
+                  <ng-icon [name]="card.icon" size="20"></ng-icon>
+                </div>
+                <span>{{ card.label }}</span>
+              </button>
+            }
+          </div>
+          <div class="form-section-header mt-6">Informations générales (obligatoires)</div>
+          <div class="form-grid form-grid--aligned-inputs">
+            <span class="form-grid__label r1 c1-2">Nom de l'entreprise / site</span>
+            <span class="form-grid__label r1 c3">Ville / Gouvernorat</span>
+            <span class="form-grid__label r1 c4">Zone *</span>
+            <div class="form-grid__input r2 c1-2">
+              <input type="text" formControlName="companyName" placeholder="Nom du site" />
+            </div>
+            <div class="form-grid__input r2 c3">
+              <select formControlName="cityGovernorate">
+                <option value="">Sélectionnez...</option>
+                @for (opt of governorateOptions; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="form-grid__input r2 c4">
+              <select formControlName="zone" required>
+                <option value="">Sélectionnez...</option>
+                @for (opt of zoneOptions; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+            <span class="form-grid__label r3 c1">Année de référence *</span>
+            <span class="form-grid__label r3 c2">Surface du site (m²) *</span>
+            <span class="form-grid__label r3 c3">Nombre d'employés sur site</span>
+            <div class="form-grid__input r4 c1">
+              <input type="number" formControlName="referenceYear" placeholder="Ex: 2024" min="2000" max="2030" />
+            </div>
+            <div class="form-grid__input r4 c2">
+              <input type="number" formControlName="surfaceM2" placeholder="m²" min="1" />
+            </div>
+            <div class="form-grid__input r4 c3">
+              <input type="number" formControlName="numberOfEmployees" placeholder="Nombre" min="0" />
+            </div>
+          </div>
+        </div>
+
+        <!-- B. Électricité -->
+        <div class="form-section" formGroupName="electricity">
+          <div class="form-section-header">Électricité (obligatoire)</div>
+          <div class="form-grid form-grid--aligned-inputs">
+            <span class="form-grid__label r1 c1">Montant moyen mensuel de la facture d'électricité (DT / mois) *</span>
+            <span class="form-grid__label r1 c2">Type de raccordement</span>
+            <span class="form-grid__label r1 c3">Mois de référence de la facture *</span>
+            <div class="form-grid__input r2 c1">
+              <input type="number" formControlName="monthlyBillAmountDt" placeholder="DT / mois" min="0" step="0.01" />
+            </div>
+            <div class="form-grid__input r2 c2">
+              <select formControlName="tariffType">
+                @for (opt of tariffOptions; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="form-grid__input r2 c3">
+              <select formControlName="referenceMonth" required>
+                <option [ngValue]="null">Sélectionnez...</option>
+                @for (opt of monthOptions; track opt.value) {
+                  <option [ngValue]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- C. Chaleur / énergie thermique -->
+        <div class="form-section" formGroupName="heat">
+          <div class="form-section-header">Chaleur / énergie thermique (sans factures)</div>
+          <div class="yes-no-question mb-4">
+            <span class="yes-no-label">Des usages de chaleur sont-ils présents sur le site ?</span>
+            <div class="radio-group">
+              <label>
+                <input type="radio" [value]="true" formControlName="hasHeatUsages" />
+                Oui
+              </label>
+              <label>
+                <input type="radio" [value]="false" formControlName="hasHeatUsages" />
+                Non
+              </label>
+            </div>
+          </div>
+          @if (form.controls.heat.controls.hasHeatUsages.value) {
+            <div class="form-grid form-grid--aligned-inputs">
+              <span class="form-grid__label form-section-sub r1 c1">Quels usages de chaleur sont présents ?</span>
+              <span class="form-grid__label form-section-sub r1 c2">Quelles énergies sont utilisées ? (si connu)</span>
+              <div class="form-grid__input r2 c1">
+                <select formControlName="selectedHeatUsage">
+                  <option [ngValue]="null">Sélectionnez...</option>
+                  @for (opt of heatUsageOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-grid__input r2 c2">
+                <select formControlName="selectedHeatEnergy">
+                  <option [ngValue]="null">Sélectionnez...</option>
+                  @for (opt of heatEnergyOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- D. Climatisation & froid -->
+        <div class="form-section" formGroupName="cold">
+          <div class="form-section-header">Climatisation & froid</div>
+          <div class="yes-no-question mb-4">
+            <span class="yes-no-label">Le site dispose-t-il de climatisation ou de systèmes de froid ?</span>
+            <div class="radio-group">
+              <label>
+                <input type="radio" [value]="true" formControlName="hasCold" />
+                Oui
+              </label>
+              <label>
+                <input type="radio" [value]="false" formControlName="hasCold" />
+                Non
+              </label>
+            </div>
+          </div>
+          @if (form.controls.cold.controls.hasCold.value) {
+            <div class="form-grid form-grid--aligned-inputs">
+              <span class="form-grid__label form-section-sub r1 c1">Intensité d'utilisation</span>
+              <span class="form-grid__label form-section-sub r1 c2">Âge approximatif des équipements</span>
+              <span class="form-grid__label form-section-sub r1 c3">Une maintenance régulière est-elle réalisée ?</span>
+              <div class="form-grid__input r2 c1">
+                <select formControlName="intensity">
+                  @for (opt of intensityOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-grid__input r2 c2">
+                <select formControlName="equipmentAge">
+                  @for (opt of ageOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-grid__input r2 c3">
+                <select formControlName="maintenance">
+                  @for (opt of maintenanceOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- E. Véhicules professionnels -->
+        <div class="form-section" formGroupName="vehicles">
+          <div class="form-section-header">Véhicules professionnels</div>
+          <div class="yes-no-question mb-4">
+            <span class="yes-no-label">L'entreprise utilise-t-elle des véhicules professionnels ?</span>
+            <div class="radio-group">
+              <label>
+                <input type="radio" [value]="true" formControlName="hasVehicles" />
+                Oui
+              </label>
+              <label>
+                <input type="radio" [value]="false" formControlName="hasVehicles" />
+                Non
+              </label>
+            </div>
+          </div>
+          @if (form.controls.vehicles.controls.hasVehicles.value) {
+            <div class="form-grid form-grid--aligned-inputs">
+              <span class="form-grid__label r1 c1">Nombre approximatif de véhicules</span>
+              <span class="form-grid__label r1 c2">Kilométrage annuel moyen par véhicule (km / véhicule / an)</span>
+              <span class="form-grid__label r1 c3">Carburant principal utilisé</span>
+              <span class="form-grid__label r1 c4">À quoi servent principalement ces véhicules ?</span>
+              <div class="form-grid__input r2 c1">
+                <input type="number" formControlName="numberOfVehicles" placeholder="Nombre" min="0" />
+              </div>
+              <div class="form-grid__input r2 c2">
+                <input type="number" formControlName="kmPerVehiclePerYear" placeholder="km" min="0" />
+              </div>
+              <div class="form-grid__input r2 c3">
+                <select formControlName="fuelType">
+                  @for (opt of fuelOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-grid__input r2 c4">
+                <select formControlName="usageType">
+                  @for (opt of vehicleUsageOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- G. Déplacements professionnels -->
+        <div class="form-section" formGroupName="travel">
+          <div class="form-section-header">Déplacements professionnels</div>
+          <div class="form-grid form-grid--aligned-inputs">
+            <span class="form-grid__label r1 c1">Avion – Fréquence approximative</span>
+            <span class="form-grid__label r1 c2">Train – Fréquence approximative</span>
+            <div class="form-grid__input r2 c1">
+              <select formControlName="planeFrequency">
+                <option [ngValue]="null">Aucun</option>
+                @for (opt of travelFrequencyOptions; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="form-grid__input r2 c2">
+              <select formControlName="trainFrequency">
+                <option [ngValue]="null">Aucun</option>
+                @for (opt of travelFrequencyOptions; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- H. Équipements informatiques -->
+        <div class="form-section" formGroupName="itEquipment">
+          <div class="form-section-header">Équipements informatiques</div>
+          <div class="form-grid form-grid--aligned-inputs">
+            <span class="form-grid__label r1 c1">Ordinateurs portables</span>
+            <span class="form-grid__label r1 c2">Ordinateurs fixes</span>
+            <span class="form-grid__label r1 c3">Écrans</span>
+            <span class="form-grid__label r1 c4">Téléphones professionnels</span>
+            <div class="form-grid__input r2 c1">
+              <input type="number" formControlName="laptopCount" placeholder="0" min="0" />
+            </div>
+            <div class="form-grid__input r2 c2">
+              <input type="number" formControlName="desktopCount" placeholder="0" min="0" />
+            </div>
+            <div class="form-grid__input r2 c3">
+              <input type="number" formControlName="screenCount" placeholder="0" min="0" />
+            </div>
+            <div class="form-grid__input r2 c4">
+              <input type="number" formControlName="proPhoneCount" placeholder="0" min="0" />
+            </div>
+          </div>
+        </div>
+
+        @if (submitError()) {
+          <p class="errors">{{ submitError() }}</p>
+        }
+        <div class="form-actions">
+          <button type="submit" class="pill-button pill-button--primary" [disabled]="form.invalid || loading()">
+            @if (loading()) {
+              <span>Calcul en cours...</span>
+            } @else {
+              <span>Calculer le bilan carbone</span>
+              <ng-icon name="lucideArrowRight" size="16"></ng-icon>
+            }
+          </button>
+        </div>
+      </form>
+    }
+  </main>
+</div>
