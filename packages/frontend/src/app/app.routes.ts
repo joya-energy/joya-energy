@@ -47,8 +47,9 @@ export const routes: Routes = [
   },
   {
     path: 'comparaison-financements',
-    loadComponent: () => import('./features/financing-comparison/financing-comparison.component').then(m => m.FinancingComparisonComponent),
-    title: 'Comparateur de Financements | JOYA Energy'
+    loadComponent: () => import('./pages/comparaison-financements/comparaison-financements.component').then(m => m.ComparaisonFinancementsComponent),
+    title: 'Comparateur de Financements | JOYA Energy',
+    data: { hideFooter: true }
   },
   {
     path: 'bilan-carbon',
