@@ -1,0 +1,50 @@
+<div class="notre-solution-page">
+  <main class="notre-solution-page__main">
+    <section class="hero">
+      <div class="hero__container">
+        <div class="hero__grid">
+          <div class="hero__left">
+            <p class="hero__badge">NOTRE SOLUTION</p>
+            <h1 class="hero__title">
+              Nous gérons votre énergie.<br />
+              Vous en voyez les résultats.
+            </h1>
+            <p class="hero__subtitle">
+              Joya agit comme un opérateur énergétique et prend la responsabilité de la performance énergétique de votre site, de bout en bout.
+            </p>
+          </div>
+
+          <div class="hero__right">
+            <div class="hero__image-wrap">
+              <img
+                src="/Solution_Hero_Img.webp"
+                alt="Notre solution Joya – gestion de l'énergie de bout en bout"
+                class="hero__image"
+                width="800"
+                height="600"
+                loading="eager"
+                fetchpriority="high"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="solution-cards">
+      <div class="solution-cards__container">
+        <div class="solution-cards__grid">
+          @for (card of cards; track card.id) {
+            <div class="solution-card">
+              <div class="solution-card__icon-wrapper">
+                <ng-icon [name]="card.icon" class="solution-card__icon" />
+              </div>
+              <h3 class="solution-card__title">{{ card.title }}</h3>
+              <p class="solution-card__description">{{ card.description }}</p>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+  </main>
+</div>

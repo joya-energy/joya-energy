@@ -20,6 +20,11 @@ export const routes: Routes = [
     data: { hideFooter: false }
   },
   {
+    path: 'notre-solution',
+    loadComponent: () => import('./pages/notre-solution/notre-solution.component').then(m => m.NotreSolutionComponent),
+    title: 'Notre solution | JOYA Energy'
+  },
+  {
     path: '',
     loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent),
     title: 'JOYA Energy - Passez au solaire'

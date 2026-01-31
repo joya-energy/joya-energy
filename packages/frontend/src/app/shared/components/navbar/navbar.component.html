@@ -20,14 +20,25 @@
       <ul class="navbar-links" role="list">
         @for (link of navLinks; track link.id) {
           <li>
-            <a 
-              href="#"
-              class="navbar-link"
-              [attr.aria-label]="link.label"
-              [attr.data-link-id]="link.id"
-            >
-              {{ link.label }}
-            </a>
+            @if (link.path === '#') {
+              <a 
+                href="#"
+                class="navbar-link"
+                [attr.aria-label]="link.label"
+                [attr.data-link-id]="link.id"
+              >
+                {{ link.label }}
+              </a>
+            } @else {
+              <a 
+                [routerLink]="link.path"
+                class="navbar-link"
+                [attr.aria-label]="link.label"
+                [attr.data-link-id]="link.id"
+              >
+                {{ link.label }}
+              </a>
+            }
           </li>
         }
       </ul>
@@ -77,15 +88,27 @@
         <ul class="navbar-mobile-links" role="list">
           @for (link of navLinks; track link.id) {
             <li>
-              <a 
-                href="#"
-                class="navbar-mobile-link"
-                (click)="closeMobileMenu()"
-                [attr.aria-label]="link.label"
-                [attr.data-link-id]="link.id"
-              >
-                {{ link.label }}
-              </a>
+              @if (link.path === '#') {
+                <a 
+                  href="#"
+                  class="navbar-mobile-link"
+                  (click)="closeMobileMenu()"
+                  [attr.aria-label]="link.label"
+                  [attr.data-link-id]="link.id"
+                >
+                  {{ link.label }}
+                </a>
+              } @else {
+                <a 
+                  [routerLink]="link.path"
+                  class="navbar-mobile-link"
+                  (click)="closeMobileMenu()"
+                  [attr.aria-label]="link.label"
+                  [attr.data-link-id]="link.id"
+                >
+                  {{ link.label }}
+                </a>
+              }
             </li>
           }
         </ul>
