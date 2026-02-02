@@ -34,9 +34,9 @@ export const HEAT_USAGE_COEFFICIENTS: Record<string, number> = {
 // ─── Carbon emission factors (kgCO2e per unit) ──────────────────────────────
 export const CARBON_EMISSION_FACTORS = {
   /** Electricity (kgCO2e/kWh) */
-  ELECTRICITY: 0.36,
+  ELECTRICITY: 0.463,
   /** Natural gas (kgCO2e/kWh) */
-  NATURAL_GAS: 0.206,
+  NATURAL_GAS: 0.185,
   /** LPG (kgCO2e/kWh) */
   LPG: 0.234,
   /** Thermal mix / diesel proxy (kgCO2e/kWh) */

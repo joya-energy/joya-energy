@@ -847,7 +847,7 @@ export class AuditPDFService {
           
           // Generate CAPEX circles HTML
           const capexCirclesHTML = capexPointsArray.map((p) => 
-            `<circle cx="${p.x.toFixed(2)}" cy="${p.y.toFixed(2)}" r="4" fill="rgba(248, 113, 113, 0.8)"/>`
+            `<circle cx="${p.x.toFixed(2)}" cy="${p.y.toFixed(2)}" r="4" fill="rgba(249, 115, 22, 0.9)"/>`
           ).join('\n              ');
           
           flattened.lineChartGainsCirclesHTML = gainsCirclesHTML;

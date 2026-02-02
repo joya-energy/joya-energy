@@ -6,16 +6,16 @@
  * and assigns carbon classification according to Tunisia's carbon intensity thresholds
  * 
  * Emission factors (kg CO₂/kWh):
- * - Electricity (STEG grid): 0.512 kg CO₂/kWh
- * - Natural Gas: 0.202 kg CO₂/kWh
+ * - Electricity (STEG grid): 0.463 kg CO₂/kWh
+ * - Natural Gas: 0.185 kg CO₂/kWh
  */
 
 import { BuildingTypes } from '@shared/enums/audit-general.enum';
 import { ClassificationGrade, EmissionUnit } from '@shared/enums/classification.enum';
 import { computeCarbonClass } from './carbon-class.calculator';
 
-const DEFAULT_EMISSION_FACTOR_ELEC = 0.512;     
-const DEFAULT_EMISSION_FACTOR_GAS = 0.202;     
+const DEFAULT_EMISSION_FACTOR_ELEC = 0.463;     
+const DEFAULT_EMISSION_FACTOR_GAS = 0.185;     
 
 export interface EmissionsInput {
   electricityConsumption: number; 
@@ -42,8 +42,8 @@ export interface EmissionsResult {
  * Computes annual CO₂ emissions and carbon classification
  * 
  * Formulas:
- * - CO₂_elec = E_elec × 0.512 kg/kWh
- * - CO₂_gaz = E_gaz × 0.202 kg/kWh
+ * - CO₂_elec = E_elec × 0.463 kg/kWh
+ * - CO₂_gaz = E_gaz × 0.185 kg/kWh
  * - CO₂_total = CO₂_elec + CO₂_gaz
  * - CI (Carbon Intensity) = CO₂_total / Surface (kg CO₂/m².an)
  */

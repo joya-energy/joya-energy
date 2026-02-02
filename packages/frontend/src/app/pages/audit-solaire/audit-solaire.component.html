@@ -577,38 +577,96 @@
                       </div>
                     </div>
                     <div class="line-chart-content">
-                      <div class="line-chart-svg-container">
-                        <svg class="line-chart-svg" viewBox="0 0 1000 400" preserveAspectRatio="none">
-                          <!-- Grid lines are now created by CSS gradient background -->
-                          
-                          <!-- CAPEX line (dashed orange) -->
+                      <div #lineChartSvgContainer class="line-chart-svg-container" (mouseleave)="onChartMouseLeave()">
+                        <!-- Interactive tooltip: bubble inside the chart, between the two curves (position relative to container) -->
+                        <ng-container *ngIf="chartTooltip() as tt">
+                          <div
+                            class="chart-tooltip chart-tooltip-stacked"
+                            [style.left.px]="tt.bubbleLocalX"
+                            [style.top.px]="tt.bubbleLocalY"
+                            style="transform: translate(-50%, -50%);">
+                            <div class="chart-tooltip-year">Année {{ tt.year }}</div>
+                            <div class="chart-tooltip-bubble chart-tooltip-bubble-gains">
+                              {{ tt.gains | number:'1.0-0' }} DT
+                            </div>
+                            <div class="chart-tooltip-bubble chart-tooltip-bubble-capex">
+                              {{ tt.capex | number:'1.0-0' }} DT
+                            </div>
+                          </div>
+                        </ng-container>
+                        <svg
+                          #lineChartSvg
+                          class="line-chart-svg"
+                          viewBox="0 0 1000 400"
+                          preserveAspectRatio="none"
+                          style="overflow: visible;"
+                          (mousemove)="onChartMouseMove($event)">
+                          <defs>
+                            <!-- Soft gradient under gains line (blue → transparent) -->
+                            <linearGradient id="chartGradientGains" x1="0" x2="0" y1="1" y2="0">
+                              <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.22"/>
+                              <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
+                            </linearGradient>
+                            <!-- Soft gradient under CAPEX line (orange → transparent) -->
+                            <linearGradient id="chartGradientCapex" x1="0" x2="0" y1="1" y2="0">
+                              <stop offset="0%" stop-color="#f97316" stop-opacity="0.2"/>
+                              <stop offset="100%" stop-color="#f97316" stop-opacity="0"/>
+                            </linearGradient>
+                            <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                              <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+                              <feOffset dx="2" dy="2" result="offsetblur"/>
+                              <feComponentTransfer>
+                                <feFuncA type="linear" slope="0.3"/>
+                              </feComponentTransfer>
+                              <feMerge>
+                                <feMergeNode/>
+                                <feMergeNode in="SourceGraphic"/>
+                              </feMerge>
+                            </filter>
+                          </defs>
+                          <!-- Gradient areas under curves (drawn first for soft layered look) -->
+                          <path
+                            *ngIf="getGainsAreaPath()"
+                            [attr.d]="getGainsAreaPath()"
+                            fill="url(#chartGradientGains)"
+                            class="chart-area-gains"/>
+                          <path
+                            *ngIf="getCapexAreaPath()"
+                            [attr.d]="getCapexAreaPath()"
+                            fill="url(#chartGradientCapex)"
+                            class="chart-area-capex"/>
+                          <!-- CAPEX line (dashed, orange) -->
                           <polyline 
                             class="line-capex"
                             [attr.points]="getCapexLinePoints()"
                             fill="none"
-                            stroke="rgba(248, 113, 113, 0.8)"
-                            stroke-width="3"
+                            stroke="rgba(249, 115, 22, 0.9)"
+                            stroke-width="2.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
                             stroke-dasharray="8,4"/>
                           <circle *ngFor="let point of getCapexLinePointsArray(); trackBy: trackByIndex" 
+                                  class="chart-marker chart-marker-capex"
                                   [attr.cx]="point.x" 
                                   [attr.cy]="point.y" 
-                                  r="4" 
-                                  fill="rgba(248, 113, 113, 0.8)"/>
+                                  r="3.5"/>
 
-                          <!-- Cumulative Net Gains line (solid blue) -->
+                          <!-- Cumulative Net Gains line (smooth blue) -->
                           <polyline 
                             class="line-gains"
                             [attr.points]="getGainsLinePoints()"
                             fill="none"
-                            stroke="rgba(59, 130, 246, 0.8)"
-                            stroke-width="3"/>
+                            stroke="rgba(59, 130, 246, 0.9)"
+                            stroke-width="2.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"/>
                           <circle *ngFor="let point of getGainsLinePointsArray(); trackBy: trackByIndex" 
+                                  class="chart-marker chart-marker-gains"
                                   [attr.cx]="point.x" 
                                   [attr.cy]="point.y" 
-                                  r="4" 
-                                  fill="rgba(59, 130, 246, 0.8)"/>
+                                  r="3.5"/>
 
-                          <!-- Intersection annotation -->
+                          <!-- Intersection annotation (break-even: green) -->
                           <g *ngIf="getIntersectionPoint()">
                             <circle 
                               [attr.cx]="getIntersectionPoint()!.x" 
@@ -681,13 +739,13 @@
                             </text>
                           </g>
 
-                          <!-- Final CAPEX value annotation (orange bubble at end of orange curve) -->
+                          <!-- Final CAPEX value annotation (orange bubble at end of orange line) -->
                           <g *ngIf="getFinalCapexPoint() && getFinalCapexValue() !== null && getFinalCapexValue()! > 0">
                             <circle
                               [attr.cx]="getFinalCapexPoint()!.x"
                               [attr.cy]="getFinalCapexPoint()!.y"
                               r="8"
-                              fill="#f87171"
+                              fill="#f97316"
                               stroke="white"
                               stroke-width="3"/>
 
@@ -697,7 +755,7 @@
                               [attr.y1]="getFinalCapexPoint()!.y"
                               [attr.x2]="getFinalCapexPoint()!.x - 95"
                               [attr.y2]="getFinalCapexPoint()!.y - 28"
-                              stroke="rgba(248, 113, 113, 0.9)"
+                              stroke="rgba(249, 115, 22, 0.9)"
                               stroke-width="3"
                               stroke-linecap="round"/>
 
@@ -708,7 +766,7 @@
                               height="40"
                               rx="12"
                               fill="#ffffff"
-                              stroke="#f87171"
+                              stroke="#f97316"
                               stroke-width="3"
                               opacity="0.97"
                               filter="url(#shadow)"/>
@@ -722,21 +780,6 @@
                               {{ getFinalCapexValue() | number:'1.0-0' }} DT
                             </text>
                           </g>
-                          
-                          <!-- Shadow filter for bubbles -->
-                          <defs>
-                            <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-                              <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
-                              <feOffset dx="2" dy="2" result="offsetblur"/>
-                              <feComponentTransfer>
-                                <feFuncA type="linear" slope="0.3"/>
-                              </feComponentTransfer>
-                              <feMerge>
-                                <feMergeNode/>
-                                <feMergeNode in="SourceGraphic"/>
-                              </feMerge>
-                            </filter>
-                          </defs>
                         </svg>
                       </div>
                       <div class="line-chart-x-axis line-chart-x-axis-sparse">

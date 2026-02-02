@@ -12,10 +12,10 @@ describe('CO₂ Emissions Calculator', () => {
         conditionedSurface: 100
       });
 
-      expect(result.co2FromElectricity).toBe(5120);
-      expect(result.co2FromGas).toBe(1010);
-      expect(result.totalCo2).toBe(6130);
-      expect(result.totalCo2Tons).toBe(6.13);
+      expect(result.co2FromElectricity).toBe(4630);
+      expect(result.co2FromGas).toBe(925);
+      expect(result.totalCo2).toBe(5555);
+      expect(result.totalCo2Tons).toBe(5.56);
     });
 
     it('should compute CO₂ emissions with custom emission factors', () => {
@@ -41,7 +41,7 @@ describe('CO₂ Emissions Calculator', () => {
         conditionedSurface: 100
       });
 
-      expect(result.carbonIntensity).toBe(61.3);
+      expect(result.carbonIntensity).toBe(55.55);
       expect(result.carbonIntensityUnit).toBe(EmissionUnit.KG_CO2_PER_M2_YEAR);
       expect(result.carbonClass).toBe(ClassificationGrade.E);
       expect(result.carbonDescription).toBe('Très émissif');
@@ -57,8 +57,8 @@ describe('CO₂ Emissions Calculator', () => {
       });
 
       expect(result.co2FromGas).toBe(0);
-      expect(result.totalCo2).toBe(2560);
-      expect(result.carbonIntensity).toBe(25.6);
+      expect(result.totalCo2).toBe(2315);
+      expect(result.carbonIntensity).toBe(23.15);
     });
 
     it('should handle zero electricity consumption', () => {
@@ -70,8 +70,8 @@ describe('CO₂ Emissions Calculator', () => {
       });
 
       expect(result.co2FromElectricity).toBe(0);
-      expect(result.totalCo2).toBe(1010);
-      expect(result.carbonIntensity).toBe(10.1);
+      expect(result.totalCo2).toBe(925);
+      expect(result.carbonIntensity).toBe(9.25);
     });
 
     it('should classify carbon as NOT_APPLICABLE for invalid surface', () => {
@@ -96,7 +96,7 @@ describe('CO₂ Emissions Calculator', () => {
         conditionedSurface: 100
       });
 
-      expect(resultOffice.carbonIntensity).toBe(17.38);
+      expect(resultOffice.carbonIntensity).toBe(15.74);
       expect(resultOffice.carbonClass).toBe(ClassificationGrade.B);
 
       const resultHotel = computeCo2Emissions({
@@ -106,7 +106,7 @@ describe('CO₂ Emissions Calculator', () => {
         conditionedSurface: 100
       });
 
-      expect(resultHotel.carbonIntensity).toBe(17.38);
+      expect(resultHotel.carbonIntensity).toBe(15.74);
       expect(resultHotel.carbonClass).toBe(ClassificationGrade.A);
     });
 
@@ -118,10 +118,10 @@ describe('CO₂ Emissions Calculator', () => {
         conditionedSurface: 123
       });
 
-      expect(result.co2FromElectricity).toBe(1706.5);
-      expect(result.co2FromGas).toBe(897.69);
-      expect(result.totalCo2).toBeCloseTo(2604.19, 1); // Allow 0.1 tolerance for floating-point arithmetic
-      expect(result.carbonIntensity).toBeCloseTo(21.17, 2);
+      expect(result.co2FromElectricity).toBe(1543.48);
+      expect(result.co2FromGas).toBe(822.14);
+      expect(result.totalCo2).toBeCloseTo(2365.62, 1); // Allow 0.1 tolerance for floating-point arithmetic
+      expect(result.carbonIntensity).toBeCloseTo(19.23, 2);
     });
   });
 });
