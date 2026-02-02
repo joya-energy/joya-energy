@@ -222,7 +222,7 @@
   </div>
 
   <div class="page-content">
-    <h1 class="section-title">Impact sur la facture</h1>
+    <h1 class="section-title impact-section-title">Impact sur la facture</h1>
 
 
     <div class="old-compare-grid">
@@ -283,12 +283,8 @@
     <!-- ===============================
          FACTURES MENSUELLES – AVEC / SANS SOLAIRE (ANNÉE 1)
     ================================ -->
+    <h1 class="section-title pv-monthly-bills-section-title">Factures mensuelles – Avec / Sans solaire</h1>
     <div class="pv-monthly-bills">
-      <div class="pv-monthly-bills-header">
-        <h2 class="pv-monthly-bills-title">Factures mensuelles – Avec / Sans solaire</h2>
-        <div class="pv-monthly-bills-unit">DT/MOIS</div>
-      </div>
-
       <div class="pv-monthly-bills-chart">
         <div class="pv-monthly-bills-y-axis">
           <div class="pv-y-axis-label">{{pvChartTick1}}</div>
@@ -527,11 +523,8 @@
     <!-- ===============================
          GAINS NETS CUMULÉS VS CAPEX CHART
     ================================ -->
+    <h1 class="section-title">Gains nets cumulés vs CAPEX</h1>
     <div class="pv-cumulative-gains-chart">
-      <div class="pv-chart-header">
-        <h2 class="pv-chart-title">Gains nets cumulés vs CAPEX</h2>
-        <div class="pv-chart-unit">DT</div>
-      </div>
       <div class="pv-line-chart-container">
         <div class="pv-line-chart-y-axis">
           <div class="pv-y-axis-label">{{lineChartTick1}}</div>
@@ -551,7 +544,7 @@
                 class="pv-line-capex"
                 points="{{lineChartCapexPoints}}"
                 fill="none"
-                stroke="rgba(248, 113, 113, 0.8)"
+                stroke="rgba(249, 115, 22, 0.9)"
                 stroke-width="3"
                 stroke-dasharray="8,4"/>
               
@@ -584,7 +577,7 @@
                 </filter>
               </defs>
 
-              <!-- Intersection annotation -->
+              <!-- Intersection annotation (break-even: green) -->
               <g id="intersection-annotation" style="display: {{lineChartIntersectionDisplay}};">
                 <circle 
                   cx="{{lineChartIntersectionX}}" 
@@ -665,7 +658,7 @@
                   cx="{{lineChartFinalCapexX}}" 
                   cy="{{lineChartFinalCapexY}}" 
                   r="8" 
-                  fill="#f87171"
+                  fill="#f97316"
                   stroke="white"
                   stroke-width="3"/>
 
@@ -675,7 +668,7 @@
                   y1="{{lineChartFinalCapexY}}"
                   x2="{{lineChartFinalCapexXMinus95}}"
                   y2="{{lineChartFinalCapexYMinus28}}"
-                  stroke="rgba(248, 113, 113, 0.9)"
+                  stroke="rgba(249, 115, 22, 0.9)"
                   stroke-width="3"
                   stroke-linecap="round"/>
 
@@ -686,7 +679,7 @@
                   height="40" 
                   rx="12" 
                   fill="#ffffff" 
-                  stroke="#f87171" 
+                  stroke="#f97316" 
                   stroke-width="3"
                   opacity="0.97"
                   filter="url(#pv-shadow)"/>

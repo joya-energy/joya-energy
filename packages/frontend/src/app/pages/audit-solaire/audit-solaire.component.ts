@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, inject, signal, ViewChild } from '@angular/core';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
@@ -132,6 +132,23 @@ export class AuditSolaireComponent {
   protected invoiceChoice = signal<'yes' | 'no' | null>(null);
   protected simulationLogs = signal<string[]>([]);
   protected currentSimulationStep = signal<string>('');
+  /** Tooltip for "Gains nets cumulés vs CAPEX" chart: bubble position is relative to chart container so it stays inside */
+  protected chartTooltip = signal<{
+    year: number;
+    gains: number;
+    capex: number;
+    x: number;
+    y: number;
+    curveScreenX: number;
+    curveScreenY: number;
+    bubbleScreenX: number;
+    bubbleScreenY: number;
+    bubbleLocalX: number;
+    bubbleLocalY: number;
+  } | null>(null);
+
+  @ViewChild('lineChartSvg') private lineChartSvg?: ElementRef<SVGSVGElement>;
+  @ViewChild('lineChartSvgContainer') private lineChartSvgContainer?: ElementRef<HTMLElement>;
 
   protected readonly simulationSteps = [
     'Initialisation de la simulation',
@@ -720,6 +737,26 @@ export class AuditSolaireComponent {
     });
   }
 
+  /** SVG path "d" for area under the gains curve (viewBox 0 0 1000 400, bottom at y=400) */
+  protected getGainsAreaPath(): string {
+    const points = this.getGainsLinePointsArray();
+    if (points.length === 0) return '';
+    const first = points[0];
+    const last = points[points.length - 1];
+    const line = points.map(p => `${p.x},${p.y}`).join(' L ');
+    return `M ${first.x},400 L ${line} L ${last.x},400 Z`;
+  }
+
+  /** SVG path "d" for area under the CAPEX line */
+  protected getCapexAreaPath(): string {
+    const points = this.getCapexLinePointsArray();
+    if (points.length === 0) return '';
+    const first = points[0];
+    const last = points[points.length - 1];
+    const line = points.map(p => `${p.x},${p.y}`).join(' L ');
+    return `M ${first.x},400 L ${line} L ${last.x},400 Z`;
+  }
+
   // Calculate intersection point (where cumulative gains = CAPEX)
   protected getIntersectionPoint(): {x: number, y: number, year: number, capex: number} | null {
     const simulation = this.simulationResult();
@@ -888,6 +925,103 @@ export class AuditSolaireComponent {
     return this.getFinalCapexBubbleX() + width / 2;
   }
 
+  /** Convert mouse position to SVG viewBox coordinates and show tooltip for that year */
+  protected onChartMouseMove(event: MouseEvent): void {
+    const svg = this.lineChartSvg?.nativeElement;
+    const simulation = this.simulationResult();
+    if (!svg || !simulation?.annualEconomics?.length) {
+      this.chartTooltip.set(null);
+      return;
+    }
+    const pt = svg.createSVGPoint();
+    pt.x = event.clientX;
+    pt.y = event.clientY;
+    const ctm = svg.getScreenCTM();
+    if (!ctm) {
+      this.chartTooltip.set(null);
+      return;
+    }
+    const svgP = pt.matrixTransform(ctm.inverse());
+    const years = this.getChartYears();
+    const n = years.length;
+    if (n <= 0) {
+      this.chartTooltip.set(null);
+      return;
+    }
+    // viewBox is 0 0 1000 400; x maps index 0..n-1 to 0..1000
+    const rawIndex = (svgP.x / 1000) * (n - 1);
+    const index = Math.max(0, Math.min(n - 1, Math.round(rawIndex)));
+    const data = simulation.annualEconomics[index];
+    const capex = simulation.installationCost ?? 0;
+    if (!data) {
+      this.chartTooltip.set(null);
+      return;
+    }
+    // Only show tooltip when cursor is near one of the curves (in viewBox units)
+    const maxValue = this.getLineChartMaxValue();
+    const minValue = this.getLineChartMinValue();
+    const range = maxValue - minValue;
+    if (range <= 0) {
+      this.chartTooltip.set(null);
+      return;
+    }
+    const gainsY = 400 - ((data.cumulativeNetGain ?? 0) - minValue) / range * 400;
+    const capexY = 400 - (capex - minValue) / range * 400;
+    const distGains = Math.abs(svgP.y - gainsY);
+    const distCapex = Math.abs(svgP.y - capexY);
+    const curveHitRadius = 28; // viewBox units – cursor must be this close to a curve
+    if (distGains > curveHitRadius && distCapex > curveHitRadius) {
+      this.chartTooltip.set(null);
+      return;
+    }
+    // Position bubble between the two curves (midpoint vertically at this year)
+    const midY = (gainsY + capexY) / 2;
+    const bubblePt = svg.createSVGPoint();
+    bubblePt.x = svgP.x;
+    bubblePt.y = midY;
+    const bubbleScreen = bubblePt.matrixTransform(ctm);
+    // Keep curve point for optional line; bubble sits between curves
+    const gainsPoints = this.getGainsLinePointsArray();
+    const capexPoints = this.getCapexLinePointsArray();
+    const curvePoint = distGains <= distCapex
+      ? gainsPoints[index]
+      : capexPoints[index];
+    if (!curvePoint) {
+      this.chartTooltip.set(null);
+      return;
+    }
+    const curvePt = svg.createSVGPoint();
+    curvePt.x = curvePoint.x;
+    curvePt.y = curvePoint.y;
+    const curveScreen = curvePt.matrixTransform(ctm);
+    // Position bubble relative to chart container so it stays inside the chart (avoids fixed + transform issues)
+    const container = this.lineChartSvgContainer?.nativeElement;
+    const containerRect = container?.getBoundingClientRect();
+    const bubbleLocalX = containerRect
+      ? bubbleScreen.x - containerRect.left
+      : bubbleScreen.x;
+    const bubbleLocalY = containerRect
+      ? bubbleScreen.y - containerRect.top
+      : bubbleScreen.y;
+    this.chartTooltip.set({
+      year: data.year,
+      gains: data.cumulativeNetGain ?? 0,
+      capex,
+      x: event.clientX,
+      y: event.clientY,
+      curveScreenX: curveScreen.x,
+      curveScreenY: curveScreen.y,
+      bubbleScreenX: bubbleScreen.x,
+      bubbleScreenY: bubbleScreen.y,
+      bubbleLocalX,
+      bubbleLocalY
+    });
+  }
+
+  protected onChartMouseLeave(): void {
+    this.chartTooltip.set(null);
+  }
+
   protected downloadPVReport(): void {
     const result = this.simulationResult();
     if (!result?.id) {
@@ -901,20 +1035,47 @@ export class AuditSolaireComponent {
 
     this.isGeneratingPDF.set(true);
     this.auditSolaireService
-      // Same behavior as audit énergétique: generate PV PDF, save it to GCS, and send it by email
-      .sendPVReportByEmail(result.id)
+      .downloadPVReport(result.id)
       .pipe(finalize(() => this.isGeneratingPDF.set(false)))
       .subscribe({
-        next: (response) => {
+        next: (blob: Blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `rapport-pv-joya-${result.id.substring(0, 8)}.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+
           this.notificationStore.addNotification({
             type: 'success',
-            title: 'Rapport envoyé',
-            message: `Le rapport PV a été généré, sauvegardé dans le cloud et envoyé à ${response.email}.`
+            title: 'PDF téléchargé',
+            message: 'Le rapport PV a été téléchargé sur votre PC. L\'envoi par email est en cours en arrière-plan.'
+          });
+
+          // Send by email in background (for testing / production)
+          this.auditSolaireService.sendPVReportByEmail(result.id).subscribe({
+            next: (response) => {
+              this.notificationStore.addNotification({
+                type: 'success',
+                title: 'Rapport envoyé par email',
+                message: `Le rapport PV a également été envoyé à ${response.email}.`
+              });
+            },
+            error: (err) => {
+              console.warn('PV report email send failed:', err);
+              this.notificationStore.addNotification({
+                type: 'info',
+                title: 'Téléchargement réussi',
+                message: 'Le PDF a été téléchargé. L\'envoi par email n\'a pas abouti (vérifiez la config Postmark).'
+              });
+            }
           });
         },
         error: (error) => {
-          console.error('Error sending PV PDF:', error);
-          const errorMessage = error?.error?.error || error?.error?.message || 'Impossible d\'envoyer le rapport PV. Veuillez réessayer.';
+          console.error('Error downloading PV PDF:', error);
+          const errorMessage = error?.error?.error || error?.error?.message || 'Impossible de télécharger le rapport PV. Veuillez réessayer.';
           this.notificationStore.addNotification({
             type: 'error',
             title: 'Erreur',
