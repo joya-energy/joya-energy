@@ -1,7 +1,15 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
-import { lucideBarChart2, lucideSun, lucideLineChart } from '@ng-icons/lucide';
+import {
+  lucideBarChart2,
+  lucideSun,
+  lucideLineChart,
+  lucideCheck,
+  lucideCheckCircle,
+} from '@ng-icons/lucide';
+import { LandingBadgeComponent } from '../landing/components/landing-badge/landing-badge.component';
 
 interface SolutionCard {
   id: string;
@@ -13,7 +21,7 @@ interface SolutionCard {
 @Component({
   selector: 'app-notre-solution',
   standalone: true,
-  imports: [CommonModule, NgIconComponent],
+  imports: [CommonModule, RouterLink, NgIconComponent, LandingBadgeComponent],
   templateUrl: './notre-solution.component.html',
   styleUrl: './notre-solution.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -22,6 +30,7 @@ interface SolutionCard {
       lucideBarChart2,
       lucideSun,
       lucideLineChart,
+      lucideCheckCircle,
     }),
   ],
 })
@@ -31,7 +40,7 @@ export class NotreSolutionComponent {
       id: 'comprendre',
       title: 'Comprendre votre énergie',
       description:
-        "Analyse de votre consommation, de vos usages et de votre site pour identifier les leviers réels de performance énergétique.",
+        'Analyse de votre consommation, de vos usages et de votre site pour identifier les leviers réels de performance énergétique.',
       icon: 'lucideBarChart2',
     },
     {
@@ -45,7 +54,7 @@ export class NotreSolutionComponent {
       id: 'piloter',
       title: 'Piloter la performance',
       description:
-        "Suivi continu de la consommation, de la production et des économies via la plateforme digitale Joya.",
+        'Suivi continu de la consommation, de la production et des économies via la plateforme digitale Joya.',
       icon: 'lucideLineChart',
     },
   ];
