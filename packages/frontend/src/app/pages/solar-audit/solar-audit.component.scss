@@ -1234,8 +1234,9 @@
 
     .chart-header {
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
+      position: relative;
       margin-bottom: 1.5rem;
 
       .chart-title {
@@ -1243,9 +1244,12 @@
         font-weight: 700;
         color: var(--text-primary);
         margin: 0;
+        text-align: center;
       }
 
       .chart-unit {
+        position: absolute;
+        right: 0;
         font-size: 1rem;
         font-weight: 700;
         color: #2563eb;
@@ -1314,12 +1318,14 @@
           border-radius: 0.625rem 0.625rem 0 0;
           background:
             linear-gradient(to top,
-              rgba(229, 231, 235, 0.8) 0%, transparent 0.5%, transparent 19.5%, rgba(229, 231, 235, 0.8) 20%,
-              transparent 20.5%, transparent 39.5%, rgba(229, 231, 235, 0.8) 40%, transparent 40.5%, transparent 59.5%,
-              rgba(229, 231, 235, 0.8) 60%, transparent 60.5%, transparent 79.5%, rgba(229, 231, 235, 0.8) 80%,
-              transparent 80.5%, transparent 99.5%, rgba(229, 231, 235, 0.8) 100%),
-            #fafafa;
-          border: 1px solid #eef2f7;
+              rgba(226, 232, 240, 0.45) 0%, rgba(226, 232, 240, 0.45) 0.4%, transparent 0.4%, transparent 20%,
+              rgba(226, 232, 240, 0.45) 20%, rgba(226, 232, 240, 0.45) 20.4%, transparent 20.4%, transparent 40%,
+              rgba(226, 232, 240, 0.45) 40%, rgba(226, 232, 240, 0.45) 40.4%, transparent 40.4%, transparent 60%,
+              rgba(226, 232, 240, 0.45) 60%, rgba(226, 232, 240, 0.45) 60.4%, transparent 60.4%, transparent 80%,
+              rgba(226, 232, 240, 0.45) 80%, rgba(226, 232, 240, 0.45) 80.4%, transparent 80.4%, transparent 100%,
+              rgba(226, 232, 240, 0.45) 100%, rgba(226, 232, 240, 0.45) 100.4%, transparent 100.4%),
+            #ffffff;
+          border: 1px solid #f1f5f9;
           border-bottom: none;
 
           .chart-month {
@@ -1329,6 +1335,50 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-end;
+            position: relative;
+            cursor: default;
+
+            .monthly-bills-tooltip.monthly-bills-tooltip-stacked {
+              position: absolute;
+              bottom: 0;
+              left: 50%;
+              transform: translate(-50%, calc(-100% - 8px));
+              z-index: 50;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 0.35rem;
+              padding: 0;
+              background: transparent;
+              border: none;
+              box-shadow: none;
+              pointer-events: none;
+
+              .monthly-bills-tooltip-month {
+                font-size: 0.8125rem;
+                font-weight: 700;
+                color: #64748b;
+                white-space: nowrap;
+              }
+
+              .monthly-bills-tooltip-bubble {
+                padding: 0.5rem 0.85rem;
+                border-radius: 0.5rem;
+                font-size: 0.9375rem;
+                font-weight: 700;
+                color: #fff;
+                white-space: nowrap;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+                &.monthly-bills-tooltip-bubble-sans {
+                  background: #3b82f6;
+                }
+
+                &.monthly-bills-tooltip-bubble-avec {
+                  background: #f97316;
+                }
+              }
+            }
 
             .chart-bars-pair {
               width: 100%;
@@ -1390,8 +1440,8 @@
           gap: 0.75rem;
           justify-content: space-between;
           padding: 0.5rem 1rem 0;
-          background: #fafafa;
-          border: 1px solid #eef2f7;
+          background: #ffffff;
+          border: 1px solid #f1f5f9;
           border-top: none;
           border-radius: 0 0 0.625rem 0.625rem;
 
@@ -1450,32 +1500,36 @@
   .cumulative-gains-chart {
     margin-top: 3rem;
     padding: 2rem;
-    background: white;
-    border-radius: 1.25rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border: 1px solid #f1f5f9;
     animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 1.2s both;
 
     .chart-header {
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
-      margin-bottom: 1.5rem;
+      position: relative;
+      margin-bottom: 1.25rem;
 
       .chart-title {
         font-size: var(--font-size-lg);
         font-weight: 700;
-        color: var(--text-primary);
+        color: #334155;
         margin: 0;
+        text-align: center;
       }
 
       .chart-unit {
-        font-size: var(--font-size-xs);
-        font-weight: 700;
-        color: #2563eb;
-        background: #eef2ff;
+        position: absolute;
+        right: 0;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #64748b;
+        background: #f8fafc;
         border-radius: 999px;
-        padding: 0.25rem 0.75rem;
+        padding: 0.4rem 0.9rem;
       }
     }
 
@@ -1501,11 +1555,11 @@
           font-weight: 600;
           text-align: right;
           &:nth-child(1) { top: 0; }
-          &:nth-child(2) { top: 5rem; }
-          &:nth-child(3) { top: 10rem; }
-          &:nth-child(4) { top: 16rem; }
-          &:nth-child(5) { top: 21rem; }
-          &:nth-child(6) { top: 26rem; }
+          &:nth-child(2) { top: 6rem; }
+          &:nth-child(3) { top: 12rem; }
+          &:nth-child(4) { top: 18rem; }
+          &:nth-child(5) { top: 24rem; }
+          &:nth-child(6) { top: 30rem; }
 
           @media (max-width: 640px) {
             font-size: 0.8rem;
@@ -1520,37 +1574,95 @@
         gap: 0.5rem;
 
         .line-chart-svg-container {
-          height: 27rem;
+          height: 30rem;
           width: 100%;
           position: relative;
           padding: 1rem;
+          cursor: default;
+
+          .chart-tooltip-stacked {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.35rem;
+            min-width: auto;
+            padding: 0;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+
+            .chart-tooltip-year {
+              font-size: 0.8125rem;
+              font-weight: 700;
+              color: #64748b;
+              white-space: nowrap;
+            }
+
+            .chart-tooltip-bubble {
+              padding: 0.5rem 0.85rem;
+              border-radius: 0.5rem;
+              font-size: 0.9375rem;
+              font-weight: 700;
+              color: #fff;
+              white-space: nowrap;
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+              &.chart-tooltip-bubble-gains {
+                background: #3b82f6;
+              }
+
+              &.chart-tooltip-bubble-capex {
+                background: #f97316;
+              }
+            }
+          }
+
           background:
             linear-gradient(to top,
-              rgba(229, 231, 235, 0.8) 0%, rgba(229, 231, 235, 0.8) 0.5%, transparent 0.5%, transparent 20%,
-              rgba(229, 231, 235, 0.8) 20%, rgba(229, 231, 235, 0.8) 20.5%, transparent 20.5%, transparent 40%,
-              rgba(229, 231, 235, 0.8) 40%, rgba(229, 231, 235, 0.8) 40.5%, transparent 40.5%, transparent 60%,
-              rgba(229, 231, 235, 0.8) 60%, rgba(229, 231, 235, 0.8) 60.5%, transparent 60.5%, transparent 80%,
-              rgba(229, 231, 235, 0.8) 80%, rgba(229, 231, 235, 0.8) 80.5%, transparent 80.5%, transparent 100%,
-              rgba(229, 231, 235, 0.8) 100%, rgba(229, 231, 235, 0.8) 100.5%, transparent 100.5%),
-            #fafafa;
-          border: 1px solid #eef2f7;
-          border-radius: 0.625rem;
+              rgba(226, 232, 240, 0.45) 0%, rgba(226, 232, 240, 0.45) 0.4%, transparent 0.4%, transparent 20%,
+              rgba(226, 232, 240, 0.45) 20%, rgba(226, 232, 240, 0.45) 20.4%, transparent 20.4%, transparent 40%,
+              rgba(226, 232, 240, 0.45) 40%, rgba(226, 232, 240, 0.45) 40.4%, transparent 40.4%, transparent 60%,
+              rgba(226, 232, 240, 0.45) 60%, rgba(226, 232, 240, 0.45) 60.4%, transparent 60.4%, transparent 80%,
+              rgba(226, 232, 240, 0.45) 80%, rgba(226, 232, 240, 0.45) 80.4%, transparent 80.4%, transparent 100%,
+              rgba(226, 232, 240, 0.45) 100%, rgba(226, 232, 240, 0.45) 100.4%, transparent 100.4%),
+            #ffffff;
+          border: 1px solid #f1f5f9;
+          border-radius: 0.75rem;
           overflow: visible;
 
           .line-chart-svg {
             width: 100%;
             height: 100%;
             display: block;
+            overflow: visible;
+
+            .chart-area-gains,
+            .chart-area-capex {
+              pointer-events: none;
+            }
+
+            .chart-marker-gains {
+              fill: #2563eb;
+              stroke: #fff;
+              stroke-width: 1.5;
+            }
+
+            .chart-marker-capex {
+              fill: #f97316;
+              stroke: #fff;
+              stroke-width: 1.5;
+            }
 
             .line-gains {
-              stroke: rgba(59, 130, 246, 0.8);
-              stroke-width: 3;
+              stroke: rgba(59, 130, 246, 0.9);
+              stroke-width: 2.5;
               fill: none;
             }
 
             .line-capex {
-              stroke: rgba(248, 113, 113, 0.8);
-              stroke-width: 3;
+              stroke: rgba(249, 115, 22, 0.9);
+              stroke-width: 2.5;
               stroke-dasharray: 8, 4;
               fill: none;
             }
@@ -1597,9 +1709,9 @@
       display: flex;
       justify-content: center;
       gap: 2rem;
-      margin-top: 1rem;
-      font-size: 1.2rem;
-      color: #374151;
+      margin-top: 1.25rem;
+      font-size: 0.8125rem;
+      color: #64748b;
 
       .legend-item {
         display: flex;
@@ -1607,22 +1719,22 @@
         gap: 0.5rem;
 
         .legend-line {
-          width: 2rem;
+          width: 1.5rem;
           height: 3px;
           border-radius: 2px;
 
           &.legend-line-gains {
-            background: rgba(59, 130, 246, 0.8);
+            background: #3b82f6;
           }
 
           &.legend-line-capex {
-            background: rgba(248, 113, 113, 0.8);
+            background: #f97316;
             background-image: repeating-linear-gradient(
               to right,
-              rgba(248, 113, 113, 0.8) 0,
-              rgba(248, 113, 113, 0.8) 8px,
-              transparent 8px,
-              transparent 12px
+              #f97316 0,
+              #f97316 6px,
+              transparent 6px,
+              transparent 10px
             );
           }
         }

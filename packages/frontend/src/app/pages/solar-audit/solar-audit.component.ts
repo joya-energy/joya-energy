@@ -2,12 +2,14 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  ElementRef,
   OnDestroy,
   OnInit,
   PLATFORM_ID,
   computed,
   inject,
-  signal
+  signal,
+  ViewChild
 } from '@angular/core';
 import { CommonModule, DatePipe, isPlatformBrowser } from '@angular/common';
 import { ReactiveFormsModule, FormGroup } from '@angular/forms';
@@ -266,6 +268,27 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   protected readonly isSubmitting = signal(false);
   protected readonly isGeneratingPDF = signal(false);
   protected readonly simulationResult = signal<IAuditSolaireSimulation | null>(null);
+
+  /** Tooltip for monthly bills chart: one bubble at a time (sans or avec) on bar hover */
+  protected monthlyBillsTooltip = signal<{
+    monthIndex: number;
+    monthLabel: string;
+    billWithoutPV: number;
+    billWithPV: number;
+    bar: 'sans' | 'avec';
+  } | null>(null);
+
+  /** Tooltip for "Gains nets cumulés vs CAPEX" chart: bubble position between curves (relative to container) */
+  protected chartTooltip = signal<{
+    year: number;
+    gains: number;
+    capex: number;
+    bubbleLocalX: number;
+    bubbleLocalY: number;
+  } | null>(null);
+
+  @ViewChild('lineChartSvg') private lineChartSvg?: ElementRef<SVGSVGElement>;
+  @ViewChild('lineChartSvgContainer') private lineChartSvgContainer?: ElementRef<HTMLElement>;
 
   // Invoice choice mirror for easier template binding
   protected readonly invoiceChoice = signal<'yes' | 'no' | null>(null);
@@ -880,6 +903,20 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     return months[index] ?? '';
   }
 
+  protected onMonthlyBarHover(monthIndex: number, month: { billWithoutPV: number; billWithPV: number }, bar: 'sans' | 'avec'): void {
+    this.monthlyBillsTooltip.set({
+      monthIndex,
+      monthLabel: this.getMonthLabel(monthIndex),
+      billWithoutPV: month.billWithoutPV ?? 0,
+      billWithPV: month.billWithPV ?? 0,
+      bar
+    });
+  }
+
+  protected onMonthlyBarLeave(): void {
+    this.monthlyBillsTooltip.set(null);
+  }
+
   protected getChartYears(): number[] {
     const simulation = this.simulationResult();
     if (!simulation?.annualEconomics) return [];
@@ -1020,6 +1057,24 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     });
   }
 
+  protected getGainsAreaPath(): string {
+    const points = this.getGainsLinePointsArray();
+    if (points.length === 0) return '';
+    const first = points[0];
+    const last = points[points.length - 1];
+    const line = points.map(p => `${p.x},${p.y}`).join(' L ');
+    return `M ${first.x},400 L ${line} L ${last.x},400 Z`;
+  }
+
+  protected getCapexAreaPath(): string {
+    const points = this.getCapexLinePointsArray();
+    if (points.length === 0) return '';
+    const first = points[0];
+    const last = points[points.length - 1];
+    const line = points.map(p => `${p.x},${p.y}`).join(' L ');
+    return `M ${first.x},400 L ${line} L ${last.x},400 Z`;
+  }
+
   protected getIntersectionPoint(): { x: number; y: number; year: number; capex: number } | null {
     const simulation = this.simulationResult();
     if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) return null;
@@ -1147,6 +1202,74 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     const charWidth = 7;
     const padding = 30;
     return Math.max(80, text.length * charWidth + padding);
+  }
+
+  protected onChartMouseMove(event: MouseEvent): void {
+    const svg = this.lineChartSvg?.nativeElement;
+    const simulation = this.simulationResult();
+    if (!svg || !simulation?.annualEconomics?.length) {
+      this.chartTooltip.set(null);
+      return;
+    }
+    const pt = svg.createSVGPoint();
+    pt.x = event.clientX;
+    pt.y = event.clientY;
+    const ctm = svg.getScreenCTM();
+    if (!ctm) {
+      this.chartTooltip.set(null);
+      return;
+    }
+    const svgP = pt.matrixTransform(ctm.inverse());
+    const years = this.getChartYears();
+    const n = years.length;
+    if (n <= 0) {
+      this.chartTooltip.set(null);
+      return;
+    }
+    const rawIndex = (svgP.x / 1000) * (n - 1);
+    const index = Math.max(0, Math.min(n - 1, Math.round(rawIndex)));
+    const data = simulation.annualEconomics[index];
+    const capex = simulation.installationCost ?? 0;
+    if (!data) {
+      this.chartTooltip.set(null);
+      return;
+    }
+    const maxValue = this.getLineChartMaxValue();
+    const minValue = this.getLineChartMinValue();
+    const range = maxValue - minValue;
+    if (range <= 0) {
+      this.chartTooltip.set(null);
+      return;
+    }
+    const gainsY = 400 - ((data.cumulativeNetGain ?? 0) - minValue) / range * 400;
+    const capexY = 400 - (capex - minValue) / range * 400;
+    const distGains = Math.abs(svgP.y - gainsY);
+    const distCapex = Math.abs(svgP.y - capexY);
+    const curveHitRadius = 28;
+    if (distGains > curveHitRadius && distCapex > curveHitRadius) {
+      this.chartTooltip.set(null);
+      return;
+    }
+    const midY = (gainsY + capexY) / 2;
+    const bubblePt = svg.createSVGPoint();
+    bubblePt.x = svgP.x;
+    bubblePt.y = midY;
+    const bubbleScreen = bubblePt.matrixTransform(ctm);
+    const container = this.lineChartSvgContainer?.nativeElement;
+    const containerRect = container?.getBoundingClientRect();
+    const bubbleLocalX = containerRect ? bubbleScreen.x - containerRect.left : bubbleScreen.x;
+    const bubbleLocalY = containerRect ? bubbleScreen.y - containerRect.top : bubbleScreen.y;
+    this.chartTooltip.set({
+      year: data.year,
+      gains: data.cumulativeNetGain ?? 0,
+      capex,
+      bubbleLocalX,
+      bubbleLocalY
+    });
+  }
+
+  protected onChartMouseLeave(): void {
+    this.chartTooltip.set(null);
   }
 }
 

@@ -487,10 +487,16 @@ h3 {
    PV – MONTHLY BILLS CHART
 ========================== */
 
-/* Title above chart (same treatment as "Gains nets cumulés vs CAPEX") */
+/* Chart titles centered */
 .pv-monthly-bills-section-title {
   margin-top: 32px;
   margin-bottom: 20px;
+  text-align: center;
+}
+
+.pv-cumulative-gains-section-title {
+  margin-bottom: 20px;
+  text-align: center;
 }
 
 .pv-monthly-bills {
@@ -552,9 +558,9 @@ h3 {
   padding: 12px 12px 0;
   border-radius: 10px 10px 0 0;
   background:
-    linear-gradient(to top, rgba(229,231,235,0.8) 1px, transparent 1px) 0 0 / 100% 20%,
-    #fafafa;
-  border: 1px solid #eef2f7;
+    linear-gradient(to top, rgba(226, 232, 240, 0.45) 1px, transparent 1px) 0 0 / 100% 20%,
+    #ffffff;
+  border: 1px solid #f1f5f9;
   border-bottom: none;
 }
 
@@ -594,8 +600,7 @@ h3 {
 }
 
 .pv-bar-zero .pv-bar-value {
-  display: block;
-  opacity: 1;
+  display: none;
 }
 
 .pv-bar-with.pv-bar-zero {
@@ -616,14 +621,7 @@ h3 {
 }
 
 .pv-bar-value {
-  position: absolute;
-  top: -18px;
-  font-size: 8px;
-  font-weight: 700;
-  color: #374151;
-  white-space: nowrap;
-  text-align: center;
-  line-height: 1;
+  display: none; /* Numbers on bars hidden to match /solar-audit chart */
 }
 
 .pv-monthly-bills-labels-row {
@@ -631,8 +629,8 @@ h3 {
   gap: 8px;
   justify-content: space-between;
   padding: 8px 14px 0;
-  background: #fafafa;
-  border: 1px solid #eef2f7;
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
   border-top: none;
   border-radius: 0 0 10px 10px;
 }
@@ -735,9 +733,15 @@ h3 {
   position: relative;
   padding: 10px;
   background:
-    linear-gradient(to top, rgba(229,231,235,0.8) 1px, transparent 1px) 0 0 / 100% 20%,
-    #fafafa;
-  border: 1px solid #eef2f7;
+    linear-gradient(to top,
+      rgba(226, 232, 240, 0.45) 0%, rgba(226, 232, 240, 0.45) 0.4%, transparent 0.4%, transparent 20%,
+      rgba(226, 232, 240, 0.45) 20%, rgba(226, 232, 240, 0.45) 20.4%, transparent 20.4%, transparent 40%,
+      rgba(226, 232, 240, 0.45) 40%, rgba(226, 232, 240, 0.45) 40.4%, transparent 40.4%, transparent 60%,
+      rgba(226, 232, 240, 0.45) 60%, rgba(226, 232, 240, 0.45) 60.4%, transparent 60.4%, transparent 80%,
+      rgba(226, 232, 240, 0.45) 80%, rgba(226, 232, 240, 0.45) 80.4%, transparent 80.4%, transparent 100%,
+      rgba(226, 232, 240, 0.45) 100%, rgba(226, 232, 240, 0.45) 100.4%, transparent 100.4%),
+    #ffffff;
+  border: 1px solid #f1f5f9;
   border-radius: 10px;
   overflow: visible;
 }

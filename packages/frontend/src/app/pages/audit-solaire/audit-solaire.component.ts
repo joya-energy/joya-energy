@@ -150,6 +150,15 @@ export class AuditSolaireComponent {
   @ViewChild('lineChartSvg') private lineChartSvg?: ElementRef<SVGSVGElement>;
   @ViewChild('lineChartSvgContainer') private lineChartSvgContainer?: ElementRef<HTMLElement>;
 
+  /** Tooltip for monthly bills chart: one bubble at a time (sans or avec) on bar hover */
+  protected monthlyBillsTooltip = signal<{
+    monthIndex: number;
+    monthLabel: string;
+    billWithoutPV: number;
+    billWithPV: number;
+    bar: 'sans' | 'avec';
+  } | null>(null);
+
   protected readonly simulationSteps = [
     'Initialisation de la simulation',
     'Conversion du montant en consommation',
@@ -564,6 +573,20 @@ export class AuditSolaireComponent {
   protected getMonthLabel(index: number): string {
     const months = ['Janv', 'Févr', 'Mars', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
     return months[index] || '';
+  }
+
+  protected onMonthlyBarHover(monthIndex: number, month: { billWithoutPV: number; billWithPV: number }, bar: 'sans' | 'avec'): void {
+    this.monthlyBillsTooltip.set({
+      monthIndex,
+      monthLabel: this.getMonthLabel(monthIndex),
+      billWithoutPV: month.billWithoutPV ?? 0,
+      billWithPV: month.billWithPV ?? 0,
+      bar
+    });
+  }
+
+  protected onMonthlyBarLeave(): void {
+    this.monthlyBillsTooltip.set(null);
   }
 
   protected getLineChartMaxValue(): number {
