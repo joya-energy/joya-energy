@@ -523,7 +523,7 @@
     <!-- ===============================
          GAINS NETS CUMULÉS VS CAPEX CHART
     ================================ -->
-    <h1 class="section-title">Gains nets cumulés vs CAPEX</h1>
+    <h1 class="section-title pv-cumulative-gains-section-title">Gains nets cumulés vs CAPEX</h1>
     <div class="pv-cumulative-gains-chart">
       <div class="pv-line-chart-container">
         <div class="pv-line-chart-y-axis">
@@ -577,7 +577,7 @@
                 </filter>
               </defs>
 
-              <!-- Intersection annotation (break-even: green) -->
+              <!-- Intersection annotation (break-even: green, filled style) -->
               <g id="intersection-annotation" style="display: {{lineChartIntersectionDisplay}};">
                 <circle 
                   cx="{{lineChartIntersectionX}}" 
@@ -592,9 +592,9 @@
                   width="{{lineChartIntersectionBubbleWidth}}" 
                   height="35" 
                   rx="10" 
-                  fill="#ffffff" 
-                  stroke="#10b981" 
-                  stroke-width="3"
+                  fill="#10b981" 
+                  stroke="#059669" 
+                  stroke-width="2"
                   opacity="0.95"
                   filter="url(#pv-shadow)"
                   transform="translate(0, -45)"/>
@@ -604,7 +604,7 @@
                   text-anchor="middle" 
                   font-size="14" 
                   font-weight="bold" 
-                  fill="#047857"
+                  fill="#ffffff"
                   transform="translate(0, -25)">
                   {{lineChartIntersectionYear}} ans
                 </text>

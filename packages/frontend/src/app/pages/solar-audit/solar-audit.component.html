@@ -331,20 +331,38 @@
                         <div class="chart-bars-container">
                           <div class="chart-bars-wrapper">
                             <div class="chart-bars">
-                              @for (month of simulation.monthlyEconomics; track month.month) {
+                              @for (month of simulation.monthlyEconomics; track month.month; let i = $index) {
                                 <div class="chart-month">
                                   <div class="chart-bars-pair">
+                                    @if (monthlyBillsTooltip()?.monthIndex === i && monthlyBillsTooltip()?.bar === 'sans') {
+                                      <div class="monthly-bills-tooltip monthly-bills-tooltip-stacked">
+                                        <div class="monthly-bills-tooltip-month">{{ monthlyBillsTooltip()!.monthLabel }}</div>
+                                        <div class="monthly-bills-tooltip-bubble monthly-bills-tooltip-bubble-sans">
+                                          Sans solaire: {{ monthlyBillsTooltip()!.billWithoutPV | number:'1.0-0' }} DT
+                                        </div>
+                                      </div>
+                                    }
+                                    @if (monthlyBillsTooltip()?.monthIndex === i && monthlyBillsTooltip()?.bar === 'avec') {
+                                      <div class="monthly-bills-tooltip monthly-bills-tooltip-stacked">
+                                        <div class="monthly-bills-tooltip-month">{{ monthlyBillsTooltip()!.monthLabel }}</div>
+                                        <div class="monthly-bills-tooltip-bubble monthly-bills-tooltip-bubble-avec">
+                                          Avec solaire: {{ monthlyBillsTooltip()!.billWithPV | number:'1.0-0' }} DT
+                                        </div>
+                                      </div>
+                                    }
                                     <div
                                       class="chart-bar chart-bar-without"
                                       [class.chart-bar-zero]="month.billWithoutPV === 0"
-                                      [style.height.%]="getBarHeight(month.billWithoutPV)">
-                                      <span class="chart-bar-value">{{ month.billWithoutPV | number:'1.0-0' }}</span>
+                                      [style.height.%]="getBarHeight(month.billWithoutPV)"
+                                      (mouseenter)="onMonthlyBarHover(i, month, 'sans')"
+                                      (mouseleave)="onMonthlyBarLeave()">
                                     </div>
                                     <div
                                       class="chart-bar chart-bar-with"
                                       [class.chart-bar-zero]="month.billWithPV === 0"
-                                      [style.height.%]="getBarHeight(month.billWithPV)">
-                                      <span class="chart-bar-value">{{ month.billWithPV | number:'1.0-0' }}</span>
+                                      [style.height.%]="getBarHeight(month.billWithPV)"
+                                      (mouseenter)="onMonthlyBarHover(i, month, 'avec')"
+                                      (mouseleave)="onMonthlyBarLeave()">
                                     </div>
                                   </div>
                                 </div>
@@ -386,32 +404,75 @@
                             }
                           </div>
                           <div class="line-chart-content">
-                            <div class="line-chart-svg-container">
-                              <svg class="line-chart-svg" viewBox="0 0 1000 400" preserveAspectRatio="none">
+                            <div #lineChartSvgContainer class="line-chart-svg-container" (mouseleave)="onChartMouseLeave()">
+                              @if (chartTooltip(); as tt) {
+                                <div
+                                  class="chart-tooltip chart-tooltip-stacked"
+                                  [style.left.px]="tt.bubbleLocalX"
+                                  [style.top.px]="tt.bubbleLocalY"
+                                  style="transform: translate(-50%, -50%);">
+                                  <div class="chart-tooltip-year">Année {{ tt.year }}</div>
+                                  <div class="chart-tooltip-bubble chart-tooltip-bubble-gains">{{ tt.gains | number:'1.0-0' }} DT</div>
+                                  <div class="chart-tooltip-bubble chart-tooltip-bubble-capex">{{ tt.capex | number:'1.0-0' }} DT</div>
+                                </div>
+                              }
+                              <svg
+                                #lineChartSvg
+                                class="line-chart-svg"
+                                viewBox="0 0 1000 400"
+                                preserveAspectRatio="none"
+                                style="overflow: visible;"
+                                (mousemove)="onChartMouseMove($event)">
+                                <defs>
+                                  <linearGradient id="chartGradientGains" x1="0" x2="0" y1="1" y2="0">
+                                    <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.22"/>
+                                    <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
+                                  </linearGradient>
+                                  <linearGradient id="chartGradientCapex" x1="0" x2="0" y1="1" y2="0">
+                                    <stop offset="0%" stop-color="#f97316" stop-opacity="0.2"/>
+                                    <stop offset="100%" stop-color="#f97316" stop-opacity="0"/>
+                                  </linearGradient>
+                                  <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                                    <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+                                    <feOffset dx="2" dy="2" result="offsetblur"/>
+                                    <feComponentTransfer><feFuncA type="linear" slope="0.3"/></feComponentTransfer>
+                                    <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+                                  </filter>
+                                </defs>
+                                @if (getGainsAreaPath()) {
+                                  <path [attr.d]="getGainsAreaPath()" fill="url(#chartGradientGains)" class="chart-area-gains"/>
+                                }
+                                @if (getCapexAreaPath()) {
+                                  <path [attr.d]="getCapexAreaPath()" fill="url(#chartGradientCapex)" class="chart-area-capex"/>
+                                }
                                 <polyline
                                   class="line-capex"
                                   [attr.points]="getCapexLinePoints()"
                                   fill="none"
-                                  stroke="rgba(248, 113, 113, 0.8)"
-                                  stroke-width="3"
+                                  stroke="rgba(249, 115, 22, 0.9)"
+                                  stroke-width="2.5"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
                                   stroke-dasharray="8,4"/>
                                 @for (point of getCapexLinePointsArray(); track $index) {
-                                  <circle [attr.cx]="point.x" [attr.cy]="point.y" r="4" fill="rgba(248, 113, 113, 0.8)"/>
+                                  <circle class="chart-marker chart-marker-capex" [attr.cx]="point.x" [attr.cy]="point.y" r="3.5"/>
                                 }
                                 <polyline
                                   class="line-gains"
                                   [attr.points]="getGainsLinePoints()"
                                   fill="none"
-                                  stroke="rgba(59, 130, 246, 0.8)"
-                                  stroke-width="3"/>
+                                  stroke="rgba(59, 130, 246, 0.9)"
+                                  stroke-width="2.5"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"/>
                                 @for (point of getGainsLinePointsArray(); track $index) {
-                                  <circle [attr.cx]="point.x" [attr.cy]="point.y" r="4" fill="rgba(59, 130, 246, 0.8)"/>
+                                  <circle class="chart-marker chart-marker-gains" [attr.cx]="point.x" [attr.cy]="point.y" r="3.5"/>
                                 }
                                 @if (getIntersectionPoint(); as pt) {
                                   <g>
                                     <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="8" fill="#10b981" stroke="white" stroke-width="3"/>
-                                    <rect [attr.x]="getIntersectionBubbleX()" [attr.y]="pt.y - 45" [attr.width]="getIntersectionBubbleWidth()" height="35" rx="10" fill="#ffffff" stroke="#10b981" stroke-width="3" opacity="0.95" filter="url(#shadow)"/>
-                                    <text [attr.x]="pt.x" [attr.y]="pt.y - 25" text-anchor="middle" class="chart-inside-text"  fill="#047857">{{ pt.year | number:'1.1-1' }} ans</text>
+                                    <rect [attr.x]="getIntersectionBubbleX()" [attr.y]="pt.y - 45" [attr.width]="getIntersectionBubbleWidth()" height="35" rx="10" fill="#10b981" stroke="#059669" stroke-width="2" opacity="0.95" filter="url(#shadow)"/>
+                                    <text [attr.x]="pt.x" [attr.y]="pt.y - 25" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff">{{ pt.year | number:'1.1-1' }} ans</text>
                                   </g>
                                 }
                                 @if (getFinalGainsPoint(); as fp) {
@@ -420,28 +481,20 @@
                                       <circle [attr.cx]="fp.x" [attr.cy]="fp.y" r="8" fill="#3b82f6" stroke="white" stroke-width="3"/>
                                       <line [attr.x1]="fp.x" [attr.y1]="fp.y" [attr.x2]="fp.x - 95" [attr.y2]="fp.y + 50" stroke="rgba(59, 130, 246, 0.9)" stroke-width="3" stroke-linecap="round"/>
                                       <rect [attr.x]="getFinalGainsBubbleX()" [attr.y]="fp.y + 20" [attr.width]="getFinalGainsBubbleWidth()" height="40" rx="12" fill="#ffffff" stroke="#3b82f6" stroke-width="3" opacity="0.97" filter="url(#shadow)"/>
-                                      <text [attr.x]="getFinalGainsTextX()" [attr.y]="fp.y + 46" text-anchor="middle" class="chart-inside-text"  fill="#1e40af">{{ getFinalGainsValue() | number:'1.0-0' }} DT</text>
+                                      <text [attr.x]="getFinalGainsTextX()" [attr.y]="fp.y + 46" text-anchor="middle" font-size="14" font-weight="bold" fill="#1e40af">{{ getFinalGainsValue() | number:'1.0-0' }} DT</text>
                                     </g>
                                   }
                                 }
                                 @if (getFinalCapexPoint(); as cp) {
                                   @if (getFinalCapexValue() !== null && getFinalCapexValue()! > 0) {
                                     <g>
-                                      <circle [attr.cx]="cp.x" [attr.cy]="cp.y" r="8" fill="#f87171" stroke="white" stroke-width="3"/>
-                                      <line [attr.x1]="cp.x" [attr.y1]="cp.y" [attr.x2]="cp.x - 95" [attr.y2]="cp.y - 28" stroke="rgba(248, 113, 113, 0.9)" stroke-width="3" stroke-linecap="round"/>
-                                      <rect [attr.x]="getFinalCapexBubbleX()" [attr.y]="cp.y - 50" [attr.width]="getFinalCapexBubbleWidth()" height="40" rx="12" fill="#ffffff" stroke="#f87171" stroke-width="3" opacity="0.97" filter="url(#shadow)"/>
-                                      <text [attr.x]="getFinalCapexTextX()" [attr.y]="cp.y - 24" text-anchor="middle" class="chart-inside-text"  fill="#c2410c">{{ getFinalCapexValue() | number:'1.0-0' }} DT</text>
+                                      <circle [attr.cx]="cp.x" [attr.cy]="cp.y" r="8" fill="#f97316" stroke="white" stroke-width="3"/>
+                                      <line [attr.x1]="cp.x" [attr.y1]="cp.y" [attr.x2]="cp.x - 95" [attr.y2]="cp.y - 28" stroke="rgba(249, 115, 22, 0.9)" stroke-width="3" stroke-linecap="round"/>
+                                      <rect [attr.x]="getFinalCapexBubbleX()" [attr.y]="cp.y - 50" [attr.width]="getFinalCapexBubbleWidth()" height="40" rx="12" fill="#ffffff" stroke="#f97316" stroke-width="3" opacity="0.97" filter="url(#shadow)"/>
+                                      <text [attr.x]="getFinalCapexTextX()" [attr.y]="cp.y - 24" text-anchor="middle" font-size="14" font-weight="bold" fill="#c2410c">{{ getFinalCapexValue() | number:'1.0-0' }} DT</text>
                                     </g>
                                   }
                                 }
-                                <defs>
-                                  <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-                                    <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
-                                    <feOffset dx="2" dy="2" result="offsetblur"/>
-                                    <feComponentTransfer><feFuncA type="linear" slope="0.3"/></feComponentTransfer>
-                                    <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
-                                  </filter>
-                                </defs>
                               </svg>
                             </div>
                             <div class="line-chart-x-axis line-chart-x-axis-sparse">

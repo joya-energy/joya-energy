@@ -433,17 +433,37 @@
                     <div class="chart-bars-container">
                       <div class="chart-bars-wrapper">
                         <div class="chart-bars">
-                          <div class="chart-month" *ngFor="let month of simulation.monthlyEconomics; let i = index">
+                          <div
+                            class="chart-month"
+                            *ngFor="let month of simulation.monthlyEconomics; let i = index">
                             <div class="chart-bars-pair">
+                              @if (monthlyBillsTooltip()?.monthIndex === i && monthlyBillsTooltip()?.bar === 'sans') {
+                                <div class="monthly-bills-tooltip monthly-bills-tooltip-stacked">
+                                  <div class="monthly-bills-tooltip-month">{{ monthlyBillsTooltip()!.monthLabel }}</div>
+                                  <div class="monthly-bills-tooltip-bubble monthly-bills-tooltip-bubble-sans">
+                                    Sans solaire: {{ monthlyBillsTooltip()!.billWithoutPV | number:'1.0-0' }} DT
+                                  </div>
+                                </div>
+                              }
+                              @if (monthlyBillsTooltip()?.monthIndex === i && monthlyBillsTooltip()?.bar === 'avec') {
+                                <div class="monthly-bills-tooltip monthly-bills-tooltip-stacked">
+                                  <div class="monthly-bills-tooltip-month">{{ monthlyBillsTooltip()!.monthLabel }}</div>
+                                  <div class="monthly-bills-tooltip-bubble monthly-bills-tooltip-bubble-avec">
+                                    Avec solaire: {{ monthlyBillsTooltip()!.billWithPV | number:'1.0-0' }} DT
+                                  </div>
+                                </div>
+                              }
                               <div class="chart-bar chart-bar-without" 
                                    [style.height.%]="getBarHeight(month.billWithoutPV)"
-                                   [class.chart-bar-zero]="month.billWithoutPV === 0">
-                                <span class="chart-bar-value">{{ month.billWithoutPV | number:'1.0-0' }}</span>
+                                   [class.chart-bar-zero]="month.billWithoutPV === 0"
+                                   (mouseenter)="onMonthlyBarHover(i, month, 'sans')"
+                                   (mouseleave)="onMonthlyBarLeave()">
                               </div>
                               <div class="chart-bar chart-bar-with" 
                                    [style.height.%]="getBarHeight(month.billWithPV)"
-                                   [class.chart-bar-zero]="month.billWithPV === 0">
-                                <span class="chart-bar-value">{{ month.billWithPV | number:'1.0-0' }}</span>
+                                   [class.chart-bar-zero]="month.billWithPV === 0"
+                                   (mouseenter)="onMonthlyBarHover(i, month, 'avec')"
+                                   (mouseleave)="onMonthlyBarLeave()">
                               </div>
                             </div>
                           </div>
@@ -666,7 +686,7 @@
                                   [attr.cy]="point.y" 
                                   r="3.5"/>
 
-                          <!-- Intersection annotation (break-even: green) -->
+                          <!-- Intersection annotation (break-even: green, filled style) -->
                           <g *ngIf="getIntersectionPoint()">
                             <circle 
                               [attr.cx]="getIntersectionPoint()!.x" 
@@ -681,9 +701,9 @@
                               [attr.width]="getIntersectionBubbleWidth()" 
                               height="35" 
                               rx="10" 
-                              fill="#ffffff" 
-                              stroke="#10b981" 
-                              stroke-width="3"
+                              fill="#10b981" 
+                              stroke="#059669" 
+                              stroke-width="2"
                               opacity="0.95"
                               filter="url(#shadow)"/>
                             <text 
@@ -692,7 +712,7 @@
                               text-anchor="middle" 
                               font-size="14" 
                               font-weight="bold" 
-                              fill="#047857">
+                              fill="#ffffff">
                               {{ getIntersectionPoint()!.year | number:'1.1-1' }} ans
                             </text>
                           </g>

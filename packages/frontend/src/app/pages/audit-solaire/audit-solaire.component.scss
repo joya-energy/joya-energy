@@ -708,8 +708,9 @@
 
               .chart-header {
                 display: flex;
-                justify-content: space-between;
+                justify-content: center;
                 align-items: center;
+                position: relative;
                 margin-bottom: 1.5rem;
 
                 .chart-title {
@@ -717,9 +718,12 @@
                   font-weight: 700;
                   color: var(--text-primary);
                   margin: 0;
+                  text-align: center;
                 }
 
                 .chart-unit {
+                  position: absolute;
+                  right: 0;
                   font-size: var(--font-size-xs);
                   font-weight: 700;
                   color: #2563eb;
@@ -803,25 +807,14 @@
                     border-radius: 0.625rem 0.625rem 0 0;
                     background:
                       linear-gradient(to top,
-                        rgba(229, 231, 235, 0.8) 0%,
-                        transparent 0.5%,
-                        transparent 19.5%,
-                        rgba(229, 231, 235, 0.8) 20%,
-                        transparent 20.5%,
-                        transparent 39.5%,
-                        rgba(229, 231, 235, 0.8) 40%,
-                        transparent 40.5%,
-                        transparent 59.5%,
-                        rgba(229, 231, 235, 0.8) 60%,
-                        transparent 60.5%,
-                        transparent 79.5%,
-                        rgba(229, 231, 235, 0.8) 80%,
-                        transparent 80.5%,
-                        transparent 99.5%,
-                        rgba(229, 231, 235, 0.8) 100%
-                      ),
-                      #fafafa;
-                    border: 1px solid #eef2f7;
+                        rgba(226, 232, 240, 0.45) 0%, rgba(226, 232, 240, 0.45) 0.4%, transparent 0.4%, transparent 20%,
+                        rgba(226, 232, 240, 0.45) 20%, rgba(226, 232, 240, 0.45) 20.4%, transparent 20.4%, transparent 40%,
+                        rgba(226, 232, 240, 0.45) 40%, rgba(226, 232, 240, 0.45) 40.4%, transparent 40.4%, transparent 60%,
+                        rgba(226, 232, 240, 0.45) 60%, rgba(226, 232, 240, 0.45) 60.4%, transparent 60.4%, transparent 80%,
+                        rgba(226, 232, 240, 0.45) 80%, rgba(226, 232, 240, 0.45) 80.4%, transparent 80.4%, transparent 100%,
+                        rgba(226, 232, 240, 0.45) 100%, rgba(226, 232, 240, 0.45) 100.4%, transparent 100.4%),
+                      #ffffff;
+                    border: 1px solid #f1f5f9;
                     border-bottom: none;
 
                     .chart-month {
@@ -831,6 +824,50 @@
                       flex-direction: column;
                       align-items: center;
                       justify-content: flex-end;
+                      position: relative;
+                      cursor: default;
+
+                      .monthly-bills-tooltip.monthly-bills-tooltip-stacked {
+                        position: absolute;
+                        bottom: 0;
+                        left: 50%;
+                        transform: translate(-50%, calc(-100% - 8px));
+                        z-index: 50;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        gap: 0.35rem;
+                        padding: 0;
+                        background: transparent;
+                        border: none;
+                        box-shadow: none;
+                        pointer-events: none;
+
+                        .monthly-bills-tooltip-month {
+                          font-size: 0.8125rem;
+                          font-weight: 700;
+                          color: #64748b;
+                          white-space: nowrap;
+                        }
+
+                        .monthly-bills-tooltip-bubble {
+                          padding: 0.5rem 0.85rem;
+                          border-radius: 0.5rem;
+                          font-size: 0.9375rem;
+                          font-weight: 700;
+                          color: #fff;
+                          white-space: nowrap;
+                          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+                          &.monthly-bills-tooltip-bubble-sans {
+                            background: #3b82f6;
+                          }
+
+                          &.monthly-bills-tooltip-bubble-avec {
+                            background: #f97316;
+                          }
+                        }
+                      }
 
                       .chart-bars-pair {
                         width: 100%;
@@ -888,8 +925,8 @@
                     gap: 0.75rem;
                     justify-content: space-between;
                     padding: 0.5rem 1rem 0;
-                    background: #fafafa;
-                    border: 1px solid #eef2f7;
+                    background: #ffffff;
+                    border: 1px solid #f1f5f9;
                     border-top: none;
                     border-radius: 0 0 0.625rem 0.625rem;
 
@@ -949,8 +986,9 @@
 
               .chart-header {
                 display: flex;
-                justify-content: space-between;
+                justify-content: center;
                 align-items: center;
+                position: relative;
                 margin-bottom: 1.25rem;
 
                 .chart-title {
@@ -958,15 +996,18 @@
                   font-weight: 700;
                   color: #334155;
                   margin: 0;
+                  text-align: center;
                 }
 
                 .chart-unit {
-                  font-size: 0.6875rem;
+                  position: absolute;
+                  right: 0;
+                  font-size: 0.875rem;
                   font-weight: 600;
                   color: #64748b;
                   background: #f8fafc;
                   border-radius: 999px;
-                  padding: 0.25rem 0.625rem;
+                  padding: 0.4rem 0.9rem;
                 }
               }
 
@@ -979,7 +1020,7 @@
                 .line-chart-y-axis {
                   position: relative;
                   min-width: 4rem;
-                  height: 20rem; // Same height as .line-chart-svg-container
+                  height: 30rem; // Same height as .line-chart-svg-container
                   padding: 1rem 0.75rem 1rem 0; // Match padding of .line-chart-svg-container
                   font-size: 0.75rem;
                   color: #6b7280;
@@ -990,16 +1031,13 @@
                     line-height: 1;
                     font-weight: 600;
                     text-align: right;
-                    // Position labels to match grid lines exactly (from top of container)
-                    // Grid lines are at: 0%, 20%, 40%, 60%, 80%, 100% from BOTTOM of 20rem
-                    // Converting to distance from TOP: 20rem, 16rem, 12rem, 8rem, 4rem, 0
-                    // Both containers have padding: 1rem top, so labels align with grid lines
-                    &:nth-child(1) { top: 0; }      // Top line (100% from bottom = 0 from top)
-                    &:nth-child(2) { top: 4rem; }   // 80% from bottom = 4rem from top
-                    &:nth-child(3) { top: 8rem; }   // 60% from bottom = 8rem from top
-                    &:nth-child(4) { top: 12rem; }   // 40% from bottom = 12rem from top
-                    &:nth-child(5) { top: 16rem; }   // 20% from bottom = 16rem from top
-                    &:nth-child(6) { top: 20rem; }  // 0% from bottom = 20rem from top
+                    // Position labels to match grid lines (0%, 20%, 40%, 60%, 80%, 100% from bottom of 30rem)
+                    &:nth-child(1) { top: 0; }
+                    &:nth-child(2) { top: 6rem; }
+                    &:nth-child(3) { top: 12rem; }
+                    &:nth-child(4) { top: 18rem; }
+                    &:nth-child(5) { top: 24rem; }
+                    &:nth-child(6) { top: 30rem; }
                   }
                 }
 
@@ -1010,7 +1048,7 @@
                   gap: 0.5rem;
 
                   .line-chart-svg-container {
-                    height: 20rem;
+                    height: 30rem;
                     width: 100%;
                     position: relative;
                     padding: 1rem;
@@ -1027,18 +1065,18 @@
                       border-radius: 0.5rem;
                       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
                       font-size: 0.8125rem;
+                      font-weight: 600;
                       line-height: 1.5;
 
                       .chart-tooltip-row {
                         white-space: nowrap;
+                        font-weight: 700;
 
                         &.gains {
                           color: #1e40af;
-                          font-weight: 500;
                         }
                         &.capex {
                           color: #c2410c;
-                          font-weight: 500;
                         }
                       }
                     }
@@ -1057,7 +1095,7 @@
                       display: flex;
                       flex-direction: column;
                       align-items: center;
-                      gap: 0.25rem;
+                      gap: 0.35rem;
                       min-width: auto;
                       padding: 0;
                       background: transparent;
@@ -1065,17 +1103,17 @@
                       box-shadow: none;
 
                       .chart-tooltip-year {
-                        font-size: 0.6875rem;
-                        font-weight: 600;
+                        font-size: 0.8125rem;
+                        font-weight: 700;
                         color: #64748b;
                         white-space: nowrap;
                       }
 
                       .chart-tooltip-bubble {
-                        padding: 0.35rem 0.65rem;
+                        padding: 0.5rem 0.85rem;
                         border-radius: 0.5rem;
-                        font-size: 0.8125rem;
-                        font-weight: 600;
+                        font-size: 0.9375rem;
+                        font-weight: 700;
                         color: #fff;
                         white-space: nowrap;
                         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
