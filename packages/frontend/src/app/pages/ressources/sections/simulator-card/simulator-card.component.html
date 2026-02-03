@@ -1,4 +1,8 @@
-<div class="sc-card" [class.sc-card--teal]="accentColor() === 'teal'">
+<div
+  class="sc-card"
+  [class.sc-card--teal]="accentColor() === 'teal'"
+  [class.sc-card--first]="isFirst()"
+>
   <div class="sc-card__border"></div>
   <div class="sc-card__glow"></div>
 
@@ -13,7 +17,7 @@
     <h3 class="sc-card__title">{{ title() }}</h3>
     <p class="sc-card__desc">{{ description() }}</p>
 
-    <ul class="sc-card__features">
+    <!-- <ul class="sc-card__features">
       @for (f of features(); track f.bold) {
       <li class="sc-card__feature">
         <span class="sc-card__check" [class.sc-card__check--teal]="accentColor() === 'teal'">
@@ -24,7 +28,7 @@
         </span>
       </li>
       }
-    </ul>
+    </ul> -->
 
     <a [routerLink]="routerLink()" class="sc-card__btn">
       {{ buttonText() }}

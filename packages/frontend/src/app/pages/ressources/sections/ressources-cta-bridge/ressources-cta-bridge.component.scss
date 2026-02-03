@@ -64,7 +64,7 @@
 .rcb__container {
   position: relative;
   z-index: 1;
-  max-width: 56rem;
+  max-width: 120rem;
   margin: 0 auto;
   padding: 0 1.5rem;
   text-align: center;
@@ -94,7 +94,7 @@
 
 .rcb__title {
   font-family: var(--landing-font-heading);
-  font-size: clamp(1.875rem, 4vw, 3rem);
+  font-size: clamp(1.875rem, 4vw, 4rem);
   font-weight: 700;
   color: #fff;
   margin-bottom: 1.5rem;
@@ -109,10 +109,10 @@
 }
 
 .rcb__subtitle {
-  font-size: 1.125rem;
+  font-size: 2rem !important;
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.85);
-  max-width: 48rem;
+  max-width: 70rem;
   margin: 0 auto 2.5rem;
 
   @media (min-width: 1024px) {
@@ -129,7 +129,7 @@
   background: linear-gradient(to right, var(--landing-primary), var(--landing-primary-dark));
   color: #fff;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 1.5rem;
   text-decoration: none;
   border-radius: var(--landing-radius-md);
   box-shadow: 0 10px 22px rgba(227, 112, 81, 0.3);

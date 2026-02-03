@@ -4,18 +4,14 @@ import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/
 import { provideAnimations } from '@angular/platform-browser/animations';
 
 import { routes } from './app.routes';
-import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { httpErrorInterceptor } from './core/interceptors/http-error.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
-    provideClientHydration(withEventReplay()),
+    // Hydration disabled to avoid duplicated content when prerendered page is loaded in the browser
     provideAnimations(), // Required for @slideIn animation
-    provideHttpClient(
-      withFetch(),
-      withInterceptors([httpErrorInterceptor])
-    )
-  ]
+    provideHttpClient(withFetch(), withInterceptors([httpErrorInterceptor])),
+  ],
 };

@@ -14,7 +14,7 @@
     </div>
 
     <div class="rss__grid">
-      @for (sim of simulators; track sim.title) {
+      @for (sim of simulators; track sim.title; let i = $index) {
       <app-simulator-card
         [icon]="sim.icon"
         [title]="sim.title"
@@ -23,6 +23,7 @@
         [buttonText]="sim.buttonText"
         [routerLink]="sim.routerLink"
         [accentColor]="sim.accentColor"
+        [isFirst]="i === 0"
       />
       }
     </div>

@@ -26,7 +26,7 @@
 
 .rws__container {
   position: relative;
-  max-width: 80rem;
+  max-width: 120rem;
   width: 100%;
   margin: 0 auto;
   padding: 0 1.5rem;
@@ -38,7 +38,7 @@
 
 .rws__header {
   text-align: center;
-  max-width: 48rem;
+  max-width: 70rem;
   margin: 0 auto 4rem;
 
   @media (min-width: 1024px) {
@@ -58,7 +58,7 @@
 
 .rws__title {
   font-family: var(--landing-font-heading);
-  font-size: clamp(1.875rem, 4vw, 3rem);
+  font-size: clamp(1.875rem, 4vw, 4rem);
   font-weight: 700;
   color: var(--landing-secondary);
   margin-bottom: 1.5rem;
@@ -73,7 +73,7 @@
 }
 
 .rws__subtitle {
-  font-size: var(--landing-text-lg);
+  font-size: 2rem !important  ;
   line-height: 1.6;
   color: var(--teal-soft);
 }
@@ -137,10 +137,9 @@
 
 .rws__icon-bg {
   position: relative;
-  width: 6rem;
-  height: 6rem;
+  width: 12rem;
+  height: 12rem;
   border-radius: var(--landing-radius-xl);
-  background: var(--landing-card-bg);
   border: 1px solid var(--landing-card-border);
   display: flex;
   align-items: center;
@@ -150,21 +149,21 @@
 }
 
 .rws__icon {
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 8rem;
+  height: 8rem;
   color: var(--landing-primary);
 }
 
 .rws__icon-ring {
   position: absolute;
   inset: -0.75rem;
-  border: 2px dashed color-mix(in srgb, var(--landing-primary) 20%, transparent);
+  border: 3px dashed color-mix(in srgb, var(--landing-primary) 50%, transparent);
   border-radius: 1.5rem;
   transition: border-color var(--landing-transition-slow), transform var(--landing-transition-slow);
 }
 
 .rws__item-title {
-  font-size: 1.25rem;
+  font-size: 2rem !important;
   font-weight: 600;
   color: var(--landing-secondary);
   margin-bottom: 1rem;
@@ -179,6 +178,6 @@
   font-size: var(--landing-text-base);
   line-height: 1.6;
   color: color-mix(in srgb, var(--text-body) 80%, white);
-  max-width: 20rem;
+  font-weight: 400;
   margin: 0;
 }

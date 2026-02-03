@@ -16,6 +16,14 @@
   overflow: hidden;
   transition: transform var(--landing-transition-base), box-shadow var(--landing-transition-base);
 
+  &--first {
+    background: linear-gradient(
+      135deg,
+      var(--landing-primary-lightest) 0%,
+      var(--landing-secondary-lightest) 100%
+    );
+  }
+
   &:hover {
     transform: translateY(var(--landing-hover-lift));
     box-shadow: var(--landing-hover-shadow);
@@ -114,11 +122,13 @@
 
 .sc-card__title {
   font-family: var(--landing-font-heading);
-  font-size: 1.25rem;
+  font-size: 2rem !important;
   font-weight: 700;
   color: var(--landing-secondary);
   margin-bottom: 1rem;
   transition: color var(--landing-transition-base);
+  padding-left: 1rem;
+  padding-right: 1rem;
 
   .sc-card:hover & {
     color: var(--teal-soft);
@@ -134,6 +144,8 @@
   line-height: 1.6;
   color: color-mix(in srgb, var(--text-body) 80%, white);
   margin-bottom: 1.5rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 .sc-card__features {
@@ -194,7 +206,7 @@
   background: linear-gradient(to right, var(--landing-primary), var(--landing-primary-dark));
   color: #fff;
   font-weight: 600;
-  font-size: var(--landing-text-base);
+  font-size: 14px;
   text-decoration: none;
   border-radius: var(--landing-radius-md);
   transition: transform var(--landing-transition-fast), box-shadow var(--landing-transition-fast);

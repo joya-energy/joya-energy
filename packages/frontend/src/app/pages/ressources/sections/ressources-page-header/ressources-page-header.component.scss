@@ -70,7 +70,7 @@
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 64rem;
+  max-width: 120rem;
   margin: 0 auto;
   padding: 5rem 1.5rem 4rem;
   text-align: center;
@@ -141,10 +141,10 @@
 }
 
 .rph__subtitle {
-  font-size: 1.125rem;
+  font-size: 1.7rem !important;
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.8);
-  max-width: 48rem;
+  max-width: 70rem;
   margin: 0 auto 0;
 
   @media (min-width: 640px) {
@@ -158,7 +158,7 @@
 
 .rph__scroll {
   position: absolute;
-  bottom: 2.5rem;
+  margin-top: 2rem;
   left: 50%;
   transform: translateX(-50%);
   display: flex;

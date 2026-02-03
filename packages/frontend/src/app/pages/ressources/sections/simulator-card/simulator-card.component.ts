@@ -30,4 +30,5 @@ export class SimulatorCardComponent {
   readonly buttonText = input.required<string>();
   readonly routerLink = input.required<string>();
   readonly accentColor = input<SimulatorAccentColor>('orange');
+  readonly isFirst = input<boolean>(false);
 }
