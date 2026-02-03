@@ -36,6 +36,12 @@ export const routes: Routes = [
     title: 'Plateforme digitale | JOYA Energy',
   },
   {
+    path: 'ressources',
+    loadComponent: () =>
+      import('./pages/ressources/ressources.component').then((m) => m.RessourcesComponent),
+    title: 'Ressources | JOYA Energy',
+  },
+  {
     path: '',
     loadComponent: () => import('./pages/home/home.component').then((m) => m.HomeComponent),
     title: 'JOYA Energy - Passez au solaire',

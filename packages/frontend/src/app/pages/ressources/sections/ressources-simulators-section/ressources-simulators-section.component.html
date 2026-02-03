@@ -1,0 +1,30 @@
+<section class="rss">
+  <div class="rss__pattern"></div>
+
+  <div class="rss__container">
+    <div class="rss__header">
+      <span class="rss__badge">Nos Simulateurs</span>
+      <h2 class="rss__title">
+        Des Outils Puissants à Votre <span class="rss__title-accent">Disposition</span>
+      </h2>
+      <p class="rss__subtitle">
+        Chaque simulateur est conçu pour vous donner une vision claire et actionnable de votre
+        projet.
+      </p>
+    </div>
+
+    <div class="rss__grid">
+      @for (sim of simulators; track sim.title) {
+      <app-simulator-card
+        [icon]="sim.icon"
+        [title]="sim.title"
+        [description]="sim.description"
+        [features]="sim.features"
+        [buttonText]="sim.buttonText"
+        [routerLink]="sim.routerLink"
+        [accentColor]="sim.accentColor"
+      />
+      }
+    </div>
+  </div>
+</section>

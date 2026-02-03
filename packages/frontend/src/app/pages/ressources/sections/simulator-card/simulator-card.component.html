@@ -1,0 +1,34 @@
+<div class="sc-card" [class.sc-card--teal]="accentColor() === 'teal'">
+  <div class="sc-card__border"></div>
+  <div class="sc-card__glow"></div>
+
+  <div class="sc-card__content">
+    <div class="sc-card__icon-wrap">
+      <div class="sc-card__icon-bg" [class.sc-card__icon-bg--teal]="accentColor() === 'teal'">
+        <app-ressources-performance-icon [name]="icon()" class="sc-card__icon" />
+      </div>
+      <span class="sc-card__dot" [class.sc-card__dot--teal]="accentColor() === 'teal'"></span>
+    </div>
+
+    <h3 class="sc-card__title">{{ title() }}</h3>
+    <p class="sc-card__desc">{{ description() }}</p>
+
+    <ul class="sc-card__features">
+      @for (f of features(); track f.bold) {
+      <li class="sc-card__feature">
+        <span class="sc-card__check" [class.sc-card__check--teal]="accentColor() === 'teal'">
+          <ng-icon name="lucideCheck" class="sc-card__check-icon" />
+        </span>
+        <span class="sc-card__feature-text">
+          <strong class="sc-card__feature-bold">{{ f.bold }}</strong> {{ f.text }}
+        </span>
+      </li>
+      }
+    </ul>
+
+    <a [routerLink]="routerLink()" class="sc-card__btn">
+      {{ buttonText() }}
+      <ng-icon name="lucideArrowRight" class="sc-card__btn-icon" />
+    </a>
+  </div>
+</div>

@@ -1,8 +1,10 @@
 /**
  * Navbar Component Styles
- * Sticky navbar: always visible at top when scrolling.
- * Mobile: < 1024px (sticky with hamburger menu)
- * Desktop: >= 1024px (sticky, transparent until scroll then solid)
+ * Redesigned to match React component with logo, centered nav links, and CTA buttons
+ * 
+ * STRICT RESPONSIVE AUDIT - FIXED VERSION
+ * Mobile: < 1024px (sticky navbar with hamburger menu)
+ * Desktop: >= 1024px (fixed transparent navbar)
  */
 
 :host {
@@ -14,11 +16,9 @@
   box-sizing: border-box;
 }
 
+// Ensure navbar-wrapper class doesn't interfere
 :host.navbar-wrapper {
-  position: sticky;
-  top: 0;
-  left: 0;
-  right: 0;
+  position: static;
   overflow: visible;
 }
 
@@ -29,7 +29,8 @@
   overflow-x: hidden;
   overflow-y: visible;
 
-  position: sticky;
+  // MOBILE (< 1024px): Fixed navbar that hides on scroll down, shows on scroll up
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
@@ -37,12 +38,22 @@
   background: rgba(255, 255, 255, 0.98);
   border-bottom: 1px solid var(--neutral-200);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  transform: translateY(0);
+  transition: transform 0.3s ease;
 
+  // Hide navbar on mobile when scrolling down
+  &--hidden {
+    @media (max-width: 1023px) {
+      transform: translateY(-100%);
+    }
+  }
+
+  // DESKTOP (>= 1024px): Fixed transparent navbar that changes on scroll
   @media (min-width: 1024px) {
     background: transparent;
     border-bottom: none;
     box-shadow: none;
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     z-index: 100;
   }
 
