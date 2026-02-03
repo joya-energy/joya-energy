@@ -1,0 +1,31 @@
+<section class="pd-section pd-section--alt">
+  <div class="pd-section__container">
+    <div class="pd-monitoring__inner">
+      <h2 class="pd-monitoring__title">Suivi, alertes et amélioration continue</h2>
+
+      <div class="pd-monitoring__grid">
+        @for (feature of features; track feature.text) {
+        <div class="pd-monitoring__card">
+          <div class="pd-monitoring__icon-wrap">
+            <ng-icon [name]="feature.icon" class="pd-monitoring__icon" />
+          </div>
+          <p class="pd-monitoring__text">{{ feature.text }}</p>
+        </div>
+        }
+      </div>
+
+      <div class="pd-monitoring__callout">
+        <div class="pd-monitoring__callout-icon">👉</div>
+        <div>
+          <p class="pd-monitoring__callout-title">
+            La plateforme n'est pas un simple outil de visualisation
+          </p>
+          <p class="pd-monitoring__callout-desc">
+            Elle accompagne la performance dans la durée, avec un suivi actif et des recommandations
+            personnalisées.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

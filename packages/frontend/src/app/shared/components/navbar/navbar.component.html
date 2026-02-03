@@ -1,59 +1,54 @@
-<nav 
-  class="navbar" 
+<nav
+  class="navbar"
   [class.navbar--scrolled]="shouldShowScrolled()"
-  [class.navbar--hidden]="isNavbarHidden()"
-  role="navigation" 
+  role="navigation"
   aria-label="Main navigation"
 >
   <div class="navbar-container">
     <div class="navbar-content">
       <!-- Logo -->
       <a routerLink="/" class="navbar-logo">
-        <img 
-          src="/logo_big.webp" 
-          alt="JOYA Energy" 
-          class="navbar-logo-image"
-        />
+        <img src="/logo_big.webp" alt="JOYA Energy" class="navbar-logo-image" />
       </a>
 
       <!-- Desktop Navigation Links -->
       <ul class="navbar-links" role="list">
         @for (link of navLinks; track link.id) {
-          <li>
-            @if (link.path === '#') {
-              <a 
-                href="#"
-                class="navbar-link"
-                [attr.aria-label]="link.label"
-                [attr.data-link-id]="link.id"
-              >
-                {{ link.label }}
-              </a>
-            } @else {
-              <a 
-                [routerLink]="link.path"
-                class="navbar-link"
-                [attr.aria-label]="link.label"
-                [attr.data-link-id]="link.id"
-              >
-                {{ link.label }}
-              </a>
-            }
-          </li>
+        <li>
+          @if (link.path === '#') {
+          <a
+            href="#"
+            class="navbar-link"
+            [attr.aria-label]="link.label"
+            [attr.data-link-id]="link.id"
+          >
+            {{ link.label }}
+          </a>
+          } @else {
+          <a
+            [routerLink]="link.path"
+            class="navbar-link"
+            [attr.aria-label]="link.label"
+            [attr.data-link-id]="link.id"
+          >
+            {{ link.label }}
+          </a>
+          }
+        </li>
         }
       </ul>
 
       <!-- CTA Buttons -->
       <div class="navbar-ctas">
-        <a 
-          routerLink="/comparaison-financements" 
+        <a
+          routerLink="/comparaison-financements"
           class="navbar-cta navbar-cta--primary"
           aria-label="Demande de financement"
         >
           Demande de financement
         </a>
-        <a 
-          routerLink="/audit-energetique" 
+        <a
+          routerLink="/audit-energetique"
           class="navbar-cta navbar-cta--secondary"
           aria-label="Audit Énergétique"
         >
@@ -79,58 +74,53 @@
 
     <!-- Mobile Navigation -->
     @if (isMobileMenuOpen()) {
-      <div 
-        id="mobile-menu"
-        class="navbar-mobile"
-        role="navigation"
-        aria-label="Mobile navigation"
-      >
-        <ul class="navbar-mobile-links" role="list">
-          @for (link of navLinks; track link.id) {
-            <li>
-              @if (link.path === '#') {
-                <a 
-                  href="#"
-                  class="navbar-mobile-link"
-                  (click)="closeMobileMenu()"
-                  [attr.aria-label]="link.label"
-                  [attr.data-link-id]="link.id"
-                >
-                  {{ link.label }}
-                </a>
-              } @else {
-                <a 
-                  [routerLink]="link.path"
-                  class="navbar-mobile-link"
-                  (click)="closeMobileMenu()"
-                  [attr.aria-label]="link.label"
-                  [attr.data-link-id]="link.id"
-                >
-                  {{ link.label }}
-                </a>
-              }
-            </li>
+    <div id="mobile-menu" class="navbar-mobile" role="navigation" aria-label="Mobile navigation">
+      <ul class="navbar-mobile-links" role="list">
+        @for (link of navLinks; track link.id) {
+        <li>
+          @if (link.path === '#') {
+          <a
+            href="#"
+            class="navbar-mobile-link"
+            (click)="closeMobileMenu()"
+            [attr.aria-label]="link.label"
+            [attr.data-link-id]="link.id"
+          >
+            {{ link.label }}
+          </a>
+          } @else {
+          <a
+            [routerLink]="link.path"
+            class="navbar-mobile-link"
+            (click)="closeMobileMenu()"
+            [attr.aria-label]="link.label"
+            [attr.data-link-id]="link.id"
+          >
+            {{ link.label }}
+          </a>
           }
-        </ul>
-        <div class="navbar-mobile-ctas">
-          <a 
-            routerLink="/comparaison-financements" 
-            class="navbar-mobile-cta navbar-mobile-cta--primary"
-            (click)="closeMobileMenu()"
-            aria-label="Demande de financement"
-          >
-            Demande de financement
-          </a>
-          <a 
-            routerLink="/audit-energetique" 
-            class="navbar-mobile-cta navbar-mobile-cta--secondary"
-            (click)="closeMobileMenu()"
-            aria-label="Audit Énergétique"
-          >
-            Audit Énergétique
-          </a>
-        </div>
+        </li>
+        }
+      </ul>
+      <div class="navbar-mobile-ctas">
+        <a
+          routerLink="/comparaison-financements"
+          class="navbar-mobile-cta navbar-mobile-cta--primary"
+          (click)="closeMobileMenu()"
+          aria-label="Demande de financement"
+        >
+          Demande de financement
+        </a>
+        <a
+          routerLink="/audit-energetique"
+          class="navbar-mobile-cta navbar-mobile-cta--secondary"
+          (click)="closeMobileMenu()"
+          aria-label="Audit Énergétique"
+        >
+          Audit Énergétique
+        </a>
       </div>
+    </div>
     }
   </div>
 </nav>

@@ -1,0 +1,124 @@
+<div class="content-page">
+  <main class="content-page__main">
+    <nav class="content-page__sidebar" aria-label="Sommaire">
+      <p class="content-page__sidebar-title">Sur cette page</p>
+      <ul class="content-page__nav">
+        <li>
+          <a href="#types-donnees" (click)="scrollToSection($event, 'types-donnees')"
+            >1. Types de données traitées</a
+          >
+        </li>
+        <li>
+          <a href="#origine" (click)="scrollToSection($event, 'origine')">2. Origine des données</a>
+        </li>
+        <li>
+          <a href="#utilisation" (click)="scrollToSection($event, 'utilisation')"
+            >3. Utilisation des données</a
+          >
+        </li>
+        <li>
+          <a href="#duree-conservation" (click)="scrollToSection($event, 'duree-conservation')"
+            >4. Durée de conservation</a
+          >
+        </li>
+        <li>
+          <a
+            href="#securite-sous-traitants"
+            (click)="scrollToSection($event, 'securite-sous-traitants')"
+            >5. Sécurité et sous-traitants</a
+          >
+        </li>
+        <li>
+          <a href="#droits-contact" (click)="scrollToSection($event, 'droits-contact')"
+            >6. Vos droits et contact</a
+          >
+        </li>
+      </ul>
+    </nav>
+    <div class="content-page__content">
+      <div class="content-page__container">
+        <nav class="content-page__top">
+          <a routerLink="/" class="content-page__back-link">
+            <span class="content-page__back-arrow" aria-hidden="true">←</span>
+            Retour à l'accueil
+          </a>
+        </nav>
+        <header class="content-page__header">
+          <h1 class="content-page__title">Politique de données</h1>
+          <p class="content-page__meta">Traitement des données – JOYA Energy</p>
+          <p class="content-page__updated">Dernière mise à jour : à définir</p>
+        </header>
+
+        <div class="content-page__body prose">
+          <p>
+            Cette politique décrit comment JOYA Energy traite les données collectées via son site et
+            ses services (simulations solaires, audits énergétiques, plateforme digitale, contact).
+            Elle complète la politique de confidentialité et précise les engagements en matière de
+            données.
+          </p>
+
+          <h2 id="types-donnees">1. Types de données traitées</h2>
+          <p>Nous traitons notamment :</p>
+          <ul>
+            <li>
+              Données à caractère personnel : identification, coordonnées, informations relatives à
+              votre entreprise et à votre projet énergétique
+            </li>
+            <li>
+              Données techniques : consommation, production solaire, indicateurs de performance
+              lorsque vous utilisez notre plateforme ou nos simulations
+            </li>
+            <li>
+              Données de connexion et de navigation : logs, cookies (selon vos choix), pages
+              visitées, pour le bon fonctionnement du site et des analyses agrégées
+            </li>
+          </ul>
+
+          <h2 id="origine">2. Origine des données</h2>
+          <p>
+            Les données proviennent directement de vous (formulaires de contact, simulations,
+            inscription à la newsletter) ou sont générées par l’utilisation de nos services
+            (plateforme digitale, rapports d’audit). Nous ne revendons pas vos données personnelles
+            à des tiers à des fins commerciales.
+          </p>
+
+          <h2 id="utilisation">3. Utilisation des données</h2>
+          <p>Les données sont utilisées pour :</p>
+          <ul>
+            <li>Fournir et améliorer nos services (solaire, audit, plateforme, support)</li>
+            <li>
+              Vous envoyer des résultats de simulation, des rapports et des communications liées à
+              votre projet
+            </li>
+            <li>Assurer la sécurité, la disponibilité et l’évolution technique de nos outils</li>
+            <li>Respecter nos obligations légales et réglementaires</li>
+          </ul>
+
+          <h2 id="duree-conservation">4. Durée de conservation</h2>
+          <p>
+            Les données sont conservées pendant la durée nécessaire à la fourniture des services et
+            au respect de nos obligations (comptabilité, litiges, réglementation). Au-delà, elles
+            sont anonymisées ou supprimées selon nos procédures internes et la réglementation
+            applicable.
+          </p>
+
+          <h2 id="securite-sous-traitants">5. Sécurité et sous-traitants</h2>
+          <p>
+            Nous mettons en œuvre des mesures techniques et organisationnelles adaptées pour
+            protéger vos données. Les sous-traitants (hébergement, emails, outils métier) sont
+            choisis avec soin et liés par des engagements de confidentialité et de sécurité. Les
+            données peuvent être hébergées dans l’Union européenne ou dans des pays reconnus comme
+            offrant un niveau de protection adéquat.
+          </p>
+
+          <h2 id="droits-contact">6. Vos droits et contact</h2>
+          <p>
+            Vous disposez des droits prévus par la réglementation en vigueur (accès, rectification,
+            effacement, limitation, portabilité, opposition). Pour les exercer ou pour toute
+            question sur le traitement de vos données, contactez-nous via la page Contact du site.
+          </p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

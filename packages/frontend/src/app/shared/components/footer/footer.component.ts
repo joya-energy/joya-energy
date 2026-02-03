@@ -26,17 +26,19 @@ interface NavigationGroup {
   templateUrl: './footer.component.html',
   styleUrl: './footer.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [provideIcons({ lucideLinkedin })]
+  providers: [provideIcons({ lucideLinkedin })],
 })
 export class FooterComponent {
   private readonly footerVisibilityService = inject(FooterVisibilityService);
-  
+
   // Expose visibility signal
   readonly isVisible = this.footerVisibilityService.isVisible;
 
   protected readonly email = signal('');
   protected readonly isSubmitting = signal(false);
-  protected readonly submitStatus = signal<{ type: 'success' | 'error'; message: string } | null>(null);
+  protected readonly submitStatus = signal<{ type: 'success' | 'error'; message: string } | null>(
+    null
+  );
 
   protected readonly navigation: NavigationGroup = {
     solutions: [
@@ -45,7 +47,7 @@ export class FooterComponent {
       { name: 'Audit Énergétique', href: '/audit-energetique' },
     ],
     support: [
-      { name: 'FAQ', href: '#' },
+      { name: 'FAQ', href: '/faq' },
       { name: 'Contact', href: '/contact' },
     ],
     company: [
@@ -62,7 +64,7 @@ export class FooterComponent {
       {
         name: 'LinkedIn',
         href: 'https://www.linkedin.com/company/juya-energy/?viewAsMember=true',
-        icon: 'lucideLinkedin'
+        icon: 'lucideLinkedin',
       },
     ],
   };
@@ -71,24 +73,24 @@ export class FooterComponent {
 
   protected handleSubmit(event: Event): void {
     event.preventDefault();
-    
+
     if (!this.email()) {
-      this.submitStatus.set({ 
-        type: 'error', 
-        message: 'Veuillez entrer votre email.' 
+      this.submitStatus.set({
+        type: 'error',
+        message: 'Veuillez entrer votre email.',
       });
       return;
     }
-    
+
     this.isSubmitting.set(true);
     this.submitStatus.set(null);
-    
+
     // TODO: Replace with actual API endpoint
     // For now, simulate API call
     setTimeout(() => {
-      this.submitStatus.set({ 
-        type: 'success', 
-        message: 'Merci pour votre inscription !' 
+      this.submitStatus.set({
+        type: 'success',
+        message: 'Merci pour votre inscription !',
       });
       this.email.set('');
       this.isSubmitting.set(false);

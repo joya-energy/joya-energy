@@ -4,7 +4,7 @@
   display: flex;
   align-items: center; /* Center vertically */
   padding: 40px 0;
-  background-image: url('./Hero_bg.webp');
+  // background-image: url('./Hero_bg.webp');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -94,7 +94,6 @@
   }
 }
 
-
 .hero__title {
   font-size: 38px; // Smaller on mobile
   line-height: 1.2;
@@ -148,10 +147,12 @@
 }
 
 @keyframes blink {
-  0%, 50% {
+  0%,
+  50% {
     opacity: 1;
   }
-  51%, 100% {
+  51%,
+  100% {
     opacity: 0;
   }
 }
@@ -511,4 +512,3 @@
   opacity: 0.5;
   z-index: 0;
 }
-

@@ -548,7 +548,162 @@
     background: var(--landing-primary-lightest);
   }
 }
-
 .how-it-works__left {
   margin-left: 60px !important;
+}
+
+/* ========== RESPONSIVE ONLY: max-width overrides, desktop structure unchanged ========== */
+
+@media (max-width: 1023px) {
+  .hero__container {
+    padding: 0 16px;
+  }
+
+  .how-it-works__container {
+    padding: 2rem 16px 2rem;
+  }
+
+  .how-it-works__header {
+    margin-bottom: 2.5rem;
+  }
+
+  .how-it-works__grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .how-it-works__img-wrapper {
+    width: 100%;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+
+    img {
+      margin-left: 0 !important;
+      height: auto;
+      max-width: 100%;
+      object-fit: contain;
+    }
+  }
+
+  .how-it-works__img {
+    height: auto;
+    max-width: 100%;
+    object-fit: contain;
+  }
+
+  .how-it-works__left {
+    margin-left: 0 !important;
+  }
+
+  .how-it-works__step-description {
+    margin-left: 0;
+    margin-bottom: 2rem;
+    max-width: 100%;
+  }
+
+  .how-it-works__list-item {
+    margin-left: 0;
+  }
+
+  .how-it-works__list {
+    margin-top: 2rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .hero__container {
+    padding: 0 12px;
+  }
+
+  .hero__image {
+    min-height: 0;
+  }
+
+  .solution-cards__container {
+    padding: 0 16px;
+  }
+
+  .how-it-works__container {
+    padding: 1.5rem 12px 1.5rem;
+    border-radius: 16px;
+  }
+
+  .how-it-works__container + .how-it-works__container {
+    margin-top: 2rem;
+  }
+
+  .how-it-works__header {
+    margin-bottom: 1.5rem;
+  }
+
+  .how-it-works__title {
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+
+  .how-it-works__subtitle {
+    font-size: 14px;
+  }
+
+  .how-it-works__step-title {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  .how-it-works__step-description {
+    font-size: 14px;
+    margin-bottom: 1.5rem;
+  }
+
+  .how-it-works__list-item {
+    font-size: 14px;
+    margin-bottom: 0.75rem;
+  }
+
+  .how-it-works__list-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .how-it-works__list {
+    margin-top: 1.5rem;
+  }
+
+  .Transition-plateforme {
+    padding: 2rem 0;
+  }
+
+  .solution-card__grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    width: 100%;
+  }
+
+  .cta-card {
+    padding: 1.5rem 1rem;
+    margin-top: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .cta-card__phrase {
+    font-size: 15px;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .cta-card__actions {
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+
+  .cta-card__btn {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  .solution-card__cta-btn {
+    margin-top: 1.5rem;
+    font-size: 14px;
+  }
 }
