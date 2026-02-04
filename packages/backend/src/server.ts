@@ -72,16 +72,24 @@ const createApp = async (): Promise<http.Server> => {
 
   // 1. CORS - Allow frontend domains
   app.use(cors({
-    origin: [
-      'http://localhost:4200',
-      'https://joya-energy.com',
-      'https://www.joya-energy.com',
-      'https://*.vercel.app',
-      /\.vercel\.app$/
-    ],
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        'http://localhost:4200',
+        'https://joya-energy.com',
+        'https://www.joya-energy.com'
+      ];
+      
+      // Allow Vercel preview deployments (*.vercel.app)
+      if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    optionsSuccessStatus: 200
   }));
 
   // 3. Swagger Documentation
