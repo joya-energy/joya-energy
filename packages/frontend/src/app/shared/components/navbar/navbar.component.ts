@@ -134,9 +134,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   protected readonly navLinks: NavLink[] = [
     { label: 'Notre solution', path: '/notre-solution', id: 'nav-solution' },
-    { label: 'Notre approche', path: '#', id: 'nav-approche' },
     { label: 'Plateforme digitale', path: '/plateforme-digitale', id: 'nav-plateforme' },
     { label: 'Ressources', path: '/ressources', id: 'nav-ressources' },
-    { label: 'À propos', path: '#', id: 'nav-about' },
   ];
 }

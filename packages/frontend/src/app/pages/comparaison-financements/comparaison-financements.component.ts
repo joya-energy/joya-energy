@@ -7,7 +7,7 @@ import {
   OnDestroy,
   OnInit,
   PLATFORM_ID,
-  signal
+  signal,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -20,7 +20,7 @@ import {
   lucideZap,
   lucideMapPin,
   lucideSun,
-  lucideInfo
+  lucideInfo,
 } from '@ng-icons/lucide';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { finalize } from 'rxjs/operators';
@@ -29,10 +29,12 @@ import { UiStepTimelineComponent } from '../../shared/components/ui-step-timelin
 import { UiProgressBarComponent } from '../../shared/components/ui-progress-bar/ui-progress-bar.component';
 import { UiSelectComponent } from '../../shared/components/ui-select/ui-select.component';
 import { UiInputComponent } from '../../shared/components/ui-input/ui-input.component';
-import { FieldTooltipComponent } from '../../shared/components/field-tooltip/field-tooltip.component';
 import { RouterLink } from '@angular/router';
 
-import { FinancingComparisonService, ProjectInput } from '../../features/financing-comparison/services/financing-comparison.service';
+import {
+  FinancingComparisonService,
+  ProjectInput,
+} from '../../features/financing-comparison/services/financing-comparison.service';
 import { Governorates } from '@shared';
 import { NotificationStore } from '../../core/notifications/notification.store';
 
@@ -53,8 +55,7 @@ interface SimulatorStep {
     UiProgressBarComponent,
     UiSelectComponent,
     UiInputComponent,
-    FieldTooltipComponent,
-    RouterLink
+    RouterLink,
   ],
   templateUrl: './comparaison-financements.component.html',
   styleUrls: ['./comparaison-financements.component.scss'],
@@ -63,18 +64,18 @@ interface SimulatorStep {
     trigger('stepTransition', [
       transition(':enter', [
         style({ opacity: 0, transform: 'translateX(20px)' }),
-        animate('300ms ease-out', style({ opacity: 1, transform: 'translateX(0)' }))
+        animate('300ms ease-out', style({ opacity: 1, transform: 'translateX(0)' })),
       ]),
       transition(':leave', [
-        animate('200ms ease-in', style({ opacity: 0, transform: 'translateX(-20px)' }))
-      ])
+        animate('200ms ease-in', style({ opacity: 0, transform: 'translateX(-20px)' })),
+      ]),
     ]),
     trigger('resultCards', [
       transition(':enter', [
         style({ opacity: 0, transform: 'translateY(20px)' }),
-        animate('400ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
-      ])
-    ])
+        animate('400ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
+      ]),
+    ]),
   ],
   providers: [
     provideIcons({
@@ -85,9 +86,9 @@ interface SimulatorStep {
       lucideZap,
       lucideMapPin,
       lucideSun,
-      lucideInfo
-    })
-  ]
+      lucideInfo,
+    }),
+  ],
 })
 export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
@@ -98,7 +99,7 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
   protected readonly steps: SimulatorStep[] = [
     { number: 1, title: 'Introduction', isResult: false },
     { number: 2, title: 'Données du projet', isResult: false },
-    { number: 3, title: 'Résultats', isResult: true }
+    { number: 3, title: 'Résultats', isResult: true },
   ];
 
   protected readonly currentStep = signal(1);
@@ -117,7 +118,12 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
   protected readonly displaySolutions = computed(() => {
     const list = this.solutions();
     if (list.length === 0) return [];
-    const order: Array<'esco' | 'credit' | 'leasing' | 'cash'> = ['esco', 'credit', 'leasing', 'cash'];
+    const order: Array<'esco' | 'credit' | 'leasing' | 'cash'> = [
+      'esco',
+      'credit',
+      'leasing',
+      'cash',
+    ];
     return order
       .map((type) => list.find((s) => s.type === type))
       .filter((s): s is (typeof list)[0] => s != null);
@@ -130,7 +136,7 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
 
   protected readonly inputTypeOptions: { value: string; label: string }[] = [
     { value: 'size', label: "Taille de l'installation (kWp)" },
-    { value: 'amount', label: "Budget d'investissement (DT)" }
+    { value: 'amount', label: "Budget d'investissement (DT)" },
   ];
 
   constructor() {
@@ -143,7 +149,7 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
           type: 'warning',
           title: 'Solution ESCO non viable',
           message: esco.viabilityError,
-          duration: 8000
+          duration: 8000,
         });
       }
     });
@@ -170,10 +176,13 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
       location: ['', Validators.required],
       inputType: ['size'],
       installationSizeKwp: [null as number | null],
-      investmentAmountDt: [null as number | null]
+      investmentAmountDt: [null as number | null],
     });
     this.form.get('inputType')?.valueChanges.subscribe((type) => {
-      this.form.patchValue({ installationSizeKwp: null, investmentAmountDt: null }, { emitEvent: false });
+      this.form.patchValue(
+        { installationSizeKwp: null, investmentAmountDt: null },
+        { emitEvent: false }
+      );
     });
   }
 
@@ -185,7 +194,11 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
     this.formUpdateTrigger();
     const current = this.currentStep();
     const result = this.comparisonResult();
-    const progress: Record<number, number> = { 1: current >= 1 ? 100 : 0, 2: 0, 3: result && current === 3 ? 100 : 0 };
+    const progress: Record<number, number> = {
+      1: current >= 1 ? 100 : 0,
+      2: 0,
+      3: result && current === 3 ? 100 : 0,
+    };
 
     if (this.form) {
       const loc = this.form.get('location')?.value;
@@ -264,7 +277,7 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: () => this.currentStep.set(3),
-        error: () => {}
+        error: () => {},
       });
   }
 
@@ -275,7 +288,10 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
   }
 
   protected formatCurrency(value: number): string {
-    return new Intl.NumberFormat('fr-TN', { style: 'decimal', maximumFractionDigits: 0 }).format(value) + ' DT';
+    return (
+      new Intl.NumberFormat('fr-TN', { style: 'decimal', maximumFractionDigits: 0 }).format(value) +
+      ' DT'
+    );
   }
 
   protected getSolutionTitle(type: string): string {
@@ -283,7 +299,7 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
       cash: 'Comptant',
       credit: 'Crédit bancaire',
       leasing: 'Leasing',
-      esco: 'ESCO JOYA'
+      esco: 'ESCO JOYA',
     };
     return titles[type] ?? type;
   }
@@ -293,7 +309,7 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
       cash: '#2196F3',
       credit: '#FF9800',
       leasing: '#9C27B0',
-      esco: 'var(--success-500, #22c55e)'
+      esco: 'var(--success-500, #22c55e)',
     };
     return colors[type] ?? '#64748b';
   }

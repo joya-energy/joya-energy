@@ -42,9 +42,12 @@ export class FooterComponent {
 
   protected readonly navigation: NavigationGroup = {
     solutions: [
-      { name: 'Financement Solaire', href: '/financement' },
-      { name: 'Estimation Solaire', href: '/estimation-solaire' },
+      { name: 'Ressources', href: '/ressources' },
+      { name: 'Audit Solaire', href: '/audit-solaire' },
       { name: 'Audit Énergétique', href: '/audit-energetique' },
+
+      { name: 'Comparateur de financement', href: '/comparaison-financements' },
+      { name: 'Bilan Carbone', href: '/bilan-carbon' },
     ],
     support: [
       { name: 'FAQ', href: '/faq' },

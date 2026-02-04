@@ -46,7 +46,7 @@ export class LandingJoyaPresentationComponent {
         "Joya prend en charge l'ensemble de votre projet énergétique, de l'analyse initiale jusqu'au suivi de la performance dans le temps.",
       icon: 'lucideZap',
       ctaText: 'Lancer une étude énergétique',
-      ctaLink: '#estimation',
+      ctaLink: '/audit-solaire',
       isFeatured: true,
     },
     {
@@ -56,7 +56,7 @@ export class LandingJoyaPresentationComponent {
         "Analyse de votre consommation, de vos usages et de votre facture énergétique afin d'identifier les leviers d'optimisation les plus pertinents.",
       icon: 'lucideFileSearch',
       ctaText: 'En savoir plus',
-      ctaLink: '#audit',
+      ctaLink: '/audit-energetique',
     },
     {
       id: 'production',
@@ -65,7 +65,7 @@ export class LandingJoyaPresentationComponent {
         "Conception et déploiement d'une solution énergétique adaptée à votre site pour réduire durablement votre dépendance au réseau.",
       icon: 'lucideSun',
       ctaText: 'En savoir plus',
-      ctaLink: '#production',
+      ctaLink: '/notre-solution',
     },
     {
       id: 'suivi',
@@ -74,7 +74,7 @@ export class LandingJoyaPresentationComponent {
         'Suivi continu de la consommation, de la production et des économies réalisées grâce à une plateforme digitale dédiée.',
       icon: 'lucideBarChart3',
       ctaText: 'En savoir plus',
-      ctaLink: '#suivi',
+      ctaLink: '/plateforme-digitale',
     },
   ];
 }

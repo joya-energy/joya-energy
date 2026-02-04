@@ -13,7 +13,7 @@ import { Routes } from '@angular/router';
 
 export const routes: Routes = [
   {
-    path: 'landing',
+    path: '',
     loadComponent: () =>
       import('./pages/landing/landing.component').then((m) => m.LandingComponent),
     title: 'Landing | JOYA Energy',
@@ -41,33 +41,33 @@ export const routes: Routes = [
       import('./pages/ressources/ressources.component').then((m) => m.RessourcesComponent),
     title: 'Ressources | JOYA Energy',
   },
-  {
-    path: '',
-    loadComponent: () => import('./pages/home/home.component').then((m) => m.HomeComponent),
-    title: 'JOYA Energy - Passez au solaire',
-  },
+  // {
+  //   path: '',
+  //   loadComponent: () => import('./pages/home/home.component').then((m) => m.HomeComponent),
+  //   title: 'JOYA Energy - Passez au solaire',
+  // },
   {
     path: 'contact',
     loadComponent: () =>
       import('./pages/contact/contact.component').then((m) => m.ContactComponent),
     title: 'Contactez-nous | JOYA Energy',
   },
-  {
-    path: 'audit-energetique',
-    loadComponent: () =>
-      import('./pages/audit-energetique/audit-energetique.component').then(
-        (m) => m.AuditEnergetiqueComponent
-      ),
-    title: 'Simulation audit énergétique | JOYA Energy',
-  },
+  // {
+  //   path: 'audit-energetique',
+  //   loadComponent: () =>
+  //     import('./pages/audit-energetique/audit-energetique.component').then(
+  //       (m) => m.AuditEnergetiqueComponent
+  //     ),
+  //   title: 'Simulation audit énergétique | JOYA Energy',
+  // },
+  // {
+  //   path: 'audit-solaire',
+  //   loadComponent: () =>
+  //     import('./pages/audit-solaire/audit-solaire.component').then((m) => m.AuditSolaireComponent),
+  //   title: 'Simulation audit solaire | JOYA Energy',
+  // },
   {
     path: 'audit-solaire',
-    loadComponent: () =>
-      import('./pages/audit-solaire/audit-solaire.component').then((m) => m.AuditSolaireComponent),
-    title: 'Simulation audit solaire | JOYA Energy',
-  },
-  {
-    path: 'solar-audit',
     loadComponent: () =>
       import('./pages/solar-audit/solar-audit.component').then((m) => m.SolarAuditComponent),
     title: 'Audit Solaire | JOYA Energy',
@@ -89,7 +89,7 @@ export const routes: Routes = [
     title: 'Bilan Carbone | JOYA Energy',
   },
   {
-    path: 'energy-audit',
+    path: 'audit-energetique',
     loadComponent: () =>
       import('./pages/energy-audit/energy-audit.component').then((m) => m.EnergyAuditComponent),
     title: 'Audit Énergétique | JOYA Energy',
@@ -115,6 +115,14 @@ export const routes: Routes = [
     path: 'faq',
     loadComponent: () => import('./pages/faq/faq.component').then((m) => m.FaqComponent),
     title: 'FAQ | JOYA Energy',
+  },
+  {
+    path: 'prendre-rendez-vous',
+    loadComponent: () =>
+      import('./pages/prendre-rendez-vous/prendre-rendez-vous.component').then(
+        (m) => m.PrendreRendezVousComponent
+      ),
+    title: 'Prendre rendez-vous | JOYA Energy',
   },
   {
     path: '**',

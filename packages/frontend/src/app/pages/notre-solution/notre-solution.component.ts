@@ -9,7 +9,6 @@ import {
   lucideCheck,
   lucideCheckCircle,
 } from '@ng-icons/lucide';
-import { LandingBadgeComponent } from '../landing/components/landing-badge/landing-badge.component';
 
 interface SolutionCard {
   id: string;
@@ -21,7 +20,7 @@ interface SolutionCard {
 @Component({
   selector: 'app-notre-solution',
   standalone: true,
-  imports: [CommonModule, RouterLink, NgIconComponent, LandingBadgeComponent],
+  imports: [CommonModule, RouterLink, NgIconComponent],
   templateUrl: './notre-solution.component.html',
   styleUrl: './notre-solution.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

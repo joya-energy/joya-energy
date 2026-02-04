@@ -3,6 +3,8 @@
 .content-page {
   min-height: 100vh;
   background: var(--neutral-50, #f8fafc);
+  /* Offset fixed navbar so content is not hidden underneath */
+  margin-top: 5rem;
   padding: 2rem 0 4rem;
 
   @media (min-width: 768px) {
