@@ -6,7 +6,7 @@
     "dev": "ng serve --configuration development",
     "start": "ng serve",
     "build": "ng build",
-    "build:production": "node scripts/generate-env.js && node ../../node_modules/@angular/cli/bin/ng.js build --configuration production",
+    "build:production": "node scripts/generate-env.js && (node node_modules/@angular/cli/bin/ng.js build --configuration production 2>/dev/null || node ../../node_modules/@angular/cli/bin/ng.js build --configuration production)",
     "build:development": "ng build --configuration development",
     "test": "ng test",
     "serve:ssr:joya-frontend": "node dist/joya-frontend/server/server.mjs"
