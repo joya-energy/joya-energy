@@ -1,8 +1,16 @@
 .rkh {
   position: relative;
-  padding: var(--landing-spacing-4xl) 0;
+  padding: 2rem 0;
   background: var(--bg-page);
   overflow: hidden;
+
+  @media (min-width: 768px) {
+    padding: 3rem 0;
+  }
+
+  @media (min-width: 1024px) {
+    padding: var(--landing-spacing-4xl) 0;
+  }
 }
 
 .rkh__gradient {
@@ -20,9 +28,13 @@
   max-width: 80rem;
   width: 100%;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 1rem;
 
   @media (min-width: 768px) {
+    padding: 0 1.5rem;
+  }
+
+  @media (min-width: 1024px) {
     padding: 0 2rem;
   }
 }
@@ -39,12 +51,18 @@
 
 .rkh__badge {
   display: inline-block;
-  font-size: var(--landing-text-sm);
+  font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.15em;
   color: var(--landing-primary);
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
+
+  @media (min-width: 768px) {
+    font-size: var(--landing-text-sm);
+    letter-spacing: 0.2em;
+    margin-bottom: 1rem;
+  }
 }
 
 .rkh__title {
@@ -64,20 +82,26 @@
 }
 
 .rkh__subtitle {
-  font-size: var(--landing-text-lg);
-  line-height: 1.6;
+  font-size: clamp(0.875rem, 2vw, 1.125rem);
+  line-height: 1.5;
   color: var(--teal-soft);
+  text-align: center;
+
+  @media (min-width: 768px) {
+    font-size: var(--landing-text-lg);
+  }
 }
 
 .rkh__grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.5rem;
+  gap: 1rem;
   align-items: stretch;
+  margin: 0 auto;
 
   @media (min-width: 768px) {
     grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
+    gap: 1.25rem;
   }
 
   @media (min-width: 1024px) {

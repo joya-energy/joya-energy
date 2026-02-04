@@ -63,6 +63,10 @@
   color: var(--landing-secondary);
   margin-bottom: 1.5rem;
   line-height: 1.2;
+
+  @media (max-width: 500px) {
+    font-size: 3rem;
+  }
 }
 
 .rws__title-accent {

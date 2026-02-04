@@ -8,14 +8,15 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 1.5rem;
+  padding: 1rem;
   background: var(--landing-card-bg);
   border: 1px solid var(--landing-card-border);
-  border-radius: var(--landing-radius-xl);
+  border-radius: var(--landing-radius-lg);
   box-shadow: var(--landing-shadow-md);
   text-decoration: none;
   overflow: hidden;
   transition: transform var(--landing-transition-base), box-shadow var(--landing-transition-base);
+  text-align: center;
 
   &:hover {
     transform: translateY(var(--landing-hover-lift));
@@ -41,6 +42,12 @@
 
   &:hover .kc-card__link {
     gap: 0.75rem;
+  }
+
+  @media (min-width: 768px) {
+    padding: 1.25rem;
+    text-align: left;
+    border-radius: var(--landing-radius-xl);
   }
 
   @media (min-width: 1024px) {
@@ -86,8 +93,8 @@
 }
 
 .kc-card__icon-bg {
-  width: 3rem;
-  height: 3rem;
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: var(--landing-radius-md);
   background: color-mix(in srgb, var(--teal-deep) 5%, transparent);
   color: var(--teal-deep);
@@ -95,6 +102,11 @@
   align-items: center;
   justify-content: center;
   transition: background var(--landing-transition-base), color var(--landing-transition-base);
+
+  @media (min-width: 768px) {
+    width: 3rem;
+    height: 3rem;
+  }
 }
 
 .kc-card__icon {
@@ -103,14 +115,19 @@
 }
 
 .kc-card__badge {
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--landing-primary);
   background: color-mix(in srgb, var(--landing-primary) 10%, transparent);
-  padding: 0.25rem 0.75rem;
+  padding: 0.2rem 0.5rem;
   border-radius: var(--landing-radius-full);
+
+  @media (min-width: 768px) {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+  }
 }
 
 .kc-card__title {
@@ -127,20 +144,32 @@
 }
 
 .kc-card__desc {
-  font-size: var(--landing-text-base);
-  line-height: 1.6;
+  font-size: clamp(0.8rem, 2vw, 1rem);
+  line-height: 1.5;
   color: color-mix(in srgb, var(--text-body) 70%, white);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   flex-grow: 1;
+
+  @media (min-width: 768px) {
+    font-size: var(--landing-text-base);
+    margin-bottom: 1.5rem;
+  }
 }
 
 .kc-card__link {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   font-weight: 600;
+  font-size: clamp(0.8rem, 2vw, 0.9rem);
   color: var(--landing-primary);
   transition: gap var(--landing-transition-base);
+
+  @media (min-width: 768px) {
+    justify-content: flex-start;
+    font-size: inherit;
+  }
 }
 
 .kc-card__link-icon {
