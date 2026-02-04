@@ -12,7 +12,7 @@ import {
   PLATFORM_ID,
   Output,
   EventEmitter,
-  Input
+  Input,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { isPlatformBrowser } from '@angular/common';
@@ -75,16 +75,16 @@ export interface SolarInfo {
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => GoogleMapsInputComponent),
-      multi: true
+      multi: true,
     },
-    provideIcons({ lucideMapPin, lucideLoader })
-  ]
+    provideIcons({ lucideMapPin, lucideLoader }),
+  ],
 })
 export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, AfterViewInit {
   @ViewChild('addressInput', { static: false }) addressInput!: ElementRef<HTMLInputElement>;
   @ViewChild('mapContainer', { static: false }) mapContainer!: ElementRef<HTMLDivElement>;
   @Output() addressSelected = new EventEmitter<AddressData>();
-  
+
   @Input() label: string = '';
   @Input() placeholder: string = 'Tapez une adresse...';
   @Input() required: boolean = false;
@@ -138,7 +138,6 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
 
   private loadGoogleMapsScript(): void {
     if (typeof google !== 'undefined' && google.maps) {
-      console.log('Google Maps already loaded');
       this.googleMapsLoaded = true;
       if (this.addressInput?.nativeElement) {
         this.initializeAutocomplete();
@@ -146,14 +145,12 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
       return;
     }
 
-    console.log('Loading Google Maps script...');
     const script = document.createElement('script');
     script.src = `https://maps.googleapis.com/maps/api/js?key=${environment.googleMapsApiKey}&libraries=places&callback=initGoogleMaps`;
     script.async = true;
     script.defer = true;
 
     (window as any).initGoogleMaps = () => {
-      console.log('Google Maps loaded successfully');
       this.googleMapsLoaded = true;
       if (this.addressInput?.nativeElement) {
         this.initializeAutocomplete();
@@ -175,16 +172,13 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
     }
 
     try {
-      console.log('Initializing autocomplete...');
       this.autocomplete = new google.maps.places.Autocomplete(this.addressInput.nativeElement, {
-        fields: ['formatted_address', 'geometry', 'name', 'address_components']
+        fields: ['formatted_address', 'geometry', 'name', 'address_components'],
       });
 
       this.autocomplete.addListener('place_changed', () => {
         this.onPlaceChanged();
       });
-      
-      console.log('Autocomplete initialized successfully');
     } catch (error) {
       console.error('Error initializing autocomplete:', error);
     }
@@ -199,12 +193,12 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
     const addressData: AddressData = {
       address: place.formatted_address || place.name || '',
       latitude: place.geometry.location.lat(),
-      longitude: place.geometry.location.lng()
+      longitude: place.geometry.location.lng(),
     };
 
     this.selectedAddress.set(addressData);
     this.solarInfo.set(null); // Reset solar info when new address is selected
-    
+
     // Emit both AddressData (for event) and string (for form control)
     this.onChange(addressData.address); // For formControlName compatibility
     this.onTouchedCallback();
@@ -271,39 +265,49 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
 
           // Format address from components if formatted_address contains Plus Code
           let formattedAddress = bestResult.formatted_address || '';
-          
+
           // If address contains Plus Code (like "JVRR+397"), try to build a better address
           if (formattedAddress.includes('+') && formattedAddress.match(/[A-Z0-9]+\+[0-9]+/)) {
             const components = bestResult.address_components || [];
             const addressParts: string[] = [];
-            
+
             // Extract street number and route
-            const streetNumber = components.find((c: google.maps.GeocoderAddressComponent) => c.types.includes('street_number'))?.long_name;
-            const route = components.find((c: google.maps.GeocoderAddressComponent) => c.types.includes('route'))?.long_name;
+            const streetNumber = components.find((c: google.maps.GeocoderAddressComponent) =>
+              c.types.includes('street_number')
+            )?.long_name;
+            const route = components.find((c: google.maps.GeocoderAddressComponent) =>
+              c.types.includes('route')
+            )?.long_name;
             if (streetNumber && route) {
               addressParts.push(`${streetNumber} ${route}`);
             } else if (route) {
               addressParts.push(route);
             }
-            
+
             // Extract locality (city)
-            const locality = components.find((c: google.maps.GeocoderAddressComponent) => c.types.includes('locality'))?.long_name;
+            const locality = components.find((c: google.maps.GeocoderAddressComponent) =>
+              c.types.includes('locality')
+            )?.long_name;
             if (locality) {
               addressParts.push(locality);
             }
-            
+
             // Extract postal code
-            const postalCode = components.find((c: google.maps.GeocoderAddressComponent) => c.types.includes('postal_code'))?.long_name;
+            const postalCode = components.find((c: google.maps.GeocoderAddressComponent) =>
+              c.types.includes('postal_code')
+            )?.long_name;
             if (postalCode) {
               addressParts.push(postalCode);
             }
-            
+
             // Extract country
-            const country = components.find((c: google.maps.GeocoderAddressComponent) => c.types.includes('country'))?.long_name;
+            const country = components.find((c: google.maps.GeocoderAddressComponent) =>
+              c.types.includes('country')
+            )?.long_name;
             if (country) {
               addressParts.push(country);
             }
-            
+
             // Use constructed address if we have meaningful parts, otherwise use original
             if (addressParts.length > 0) {
               formattedAddress = addressParts.join(', ');
@@ -313,7 +317,7 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
           const addressData: AddressData = {
             address: formattedAddress,
             latitude: lat,
-            longitude: lng
+            longitude: lng,
           };
           this.selectedAddress.set(addressData);
           this.solarInfo.set(null);
@@ -354,14 +358,14 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
       mapTypeId: 'satellite',
       tilt: 45,
       mapId: 'SOLAR_AUDIT_MAP',
-      draggableCursor: 'crosshair' // Show crosshair cursor for manual positioning
+      draggableCursor: 'crosshair', // Show crosshair cursor for manual positioning
     } as google.maps.MapOptions);
 
     this.marker = new google.maps.Marker({
       position: center,
       map: this.map,
       animation: google.maps.Animation.DROP,
-      draggable: true // Allow dragging the marker
+      draggable: true, // Allow dragging the marker
     });
 
     // Add click listener to map for manual positioning
@@ -395,7 +399,7 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
     const position = { lat: address.latitude, lng: address.longitude };
     this.map.setCenter(position);
     this.marker.setPosition(position);
-    
+
     // Ensure marker is draggable
     this.marker.setDraggable(true);
   }
@@ -404,14 +408,14 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
     // Solar API analysis disabled - causing 404 errors
     // This feature can be re-enabled when Solar API is properly configured
     // if (!this.selectedAddress()) return;
-    // 
+    //
     // this.isAnalyzingSolar.set(true);
     // this.solarAnalysisError.set(null);
     // const address = this.selectedAddress()!;
-    // 
+    //
     // // Use Google Solar API REST endpoint
     // const solarApiUrl = `https://solar.googleapis.com/v1/buildingInsights:findClosest?location.latitude=${address.latitude}&location.longitude=${address.longitude}&key=${environment.googleMapsApiKey}`;
-    // 
+    //
     // fetch(solarApiUrl)
     //   .then(response => {
     //     if (!response.ok) {
@@ -422,17 +426,17 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
     //   .then((result: SolarBuildingInsightsResponse) => {
     //     this.isAnalyzingSolar.set(false);
     //     this.solarAnalysisError.set(null);
-    // 
+    //
     //     if (result && result.solarPotential) {
     //       const solarData = result.solarPotential;
-    // 
+    //
     //       this.solarInfo.set({
     //         maxSolarPanelCount: solarData.maxSolarPanelCount ?? 0,
     //         maxArrayAreaMeters2: solarData.maxArrayAreaMeters2 ?? 0,
     //         maxArrayPanelsCount: solarData.maxArrayPanelsCount ?? 0,
     //         roofSegmentStats: solarData.roofSegmentStats ?? []
     //       });
-    // 
+    //
     //       console.log('Solar analysis completed:', this.solarInfo());
     //     } else {
     //       this.solarAnalysisError.set('No solar potential data available for this location');
@@ -445,7 +449,6 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
     //     this.solarAnalysisError.set('Solar analysis is currently unavailable. Please try again later.');
     //   });
   }
-
 
   writeValue(value: AddressData | string | null): void {
     if (value) {
@@ -486,4 +489,3 @@ export class GoogleMapsInputComponent implements ControlValueAccessor, OnInit, A
     this.isDisabled = isDisabled;
   }
 }
-

@@ -136,5 +136,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
     { label: 'Notre solution', path: '/notre-solution', id: 'nav-solution' },
     { label: 'Plateforme digitale', path: '/plateforme-digitale', id: 'nav-plateforme' },
     { label: 'Ressources', path: '/ressources', id: 'nav-ressources' },
+    { label: 'Contact', path: '/contact', id: 'nav-contact' },
   ];
 }

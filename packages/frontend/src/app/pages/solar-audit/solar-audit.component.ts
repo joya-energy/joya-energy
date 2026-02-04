@@ -9,7 +9,7 @@ import {
   computed,
   inject,
   signal,
-  ViewChild
+  ViewChild,
 } from '@angular/core';
 import { CommonModule, DatePipe, isPlatformBrowser } from '@angular/common';
 import { ReactiveFormsModule, FormGroup } from '@angular/forms';
@@ -36,7 +36,7 @@ import {
   lucidePhone,
   lucideFileText,
   lucideCreditCard,
-  lucideActivity
+  lucideActivity,
 } from '@ng-icons/lucide';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { finalize } from 'rxjs/operators';
@@ -49,12 +49,18 @@ import { UiProgressBarComponent } from '../../shared/components/ui-progress-bar/
 import { UiSelectComponent } from '../../shared/components/ui-select/ui-select.component';
 import { UiInputComponent } from '../../shared/components/ui-input/ui-input.component';
 import { FieldTooltipComponent } from '../../shared/components/field-tooltip/field-tooltip.component';
-import { GoogleMapsInputComponent, AddressData } from '../../shared/components/google-maps-input/google-maps-input.component';
+import {
+  GoogleMapsInputComponent,
+  AddressData,
+} from '../../shared/components/google-maps-input/google-maps-input.component';
 import { UploadCardComponent, UploadCardConfig } from '../../shared/components/upload-card';
 
 // Services and Types
 import { NotificationStore } from '../../core/notifications/notification.store';
-import { AuditSolaireService, CreateSimulationPayload } from '../../core/services/audit-solaire.service';
+import {
+  AuditSolaireService,
+  CreateSimulationPayload,
+} from '../../core/services/audit-solaire.service';
 import { AuditEnergetiqueService } from '../../core/services/audit-energetique.service';
 import { AuditSolaireFormService } from '../audit-solaire/audit-solaire.form.service';
 import { AuditSolaireFormStep } from '../audit-solaire/audit-solaire.types';
@@ -62,7 +68,10 @@ import { IAuditSolaireSimulation } from '@shared/interfaces';
 import { BuildingTypes } from '@shared';
 import { SimulatorStep, StepField } from '../energy-audit/types/energy-audit.types';
 
-import { BUILDING_CARD_CONFIG, BUILDING_ICON_REGISTRY } from '../../shared/icons/audit-building-icons';
+import {
+  BUILDING_CARD_CONFIG,
+  BUILDING_ICON_REGISTRY,
+} from '../../shared/icons/audit-building-icons';
 
 interface BuildingTypeCard {
   id: BuildingTypes;
@@ -83,7 +92,7 @@ interface BuildingTypeCard {
     UiInputComponent,
     FieldTooltipComponent,
     GoogleMapsInputComponent,
-    DatePipe
+    DatePipe,
   ],
   templateUrl: './solar-audit.component.html',
   styleUrls: ['./solar-audit.component.scss'],
@@ -92,18 +101,18 @@ interface BuildingTypeCard {
     trigger('stepTransition', [
       transition(':enter', [
         style({ opacity: 0, transform: 'translateX(20px)' }),
-        animate('300ms ease-out', style({ opacity: 1, transform: 'translateX(0)' }))
+        animate('300ms ease-out', style({ opacity: 1, transform: 'translateX(0)' })),
       ]),
       transition(':leave', [
-        animate('200ms ease-in', style({ opacity: 0, transform: 'translateX(-20px)' }))
-      ])
+        animate('200ms ease-in', style({ opacity: 0, transform: 'translateX(-20px)' })),
+      ]),
     ]),
     trigger('resultCards', [
       transition(':enter', [
         style({ opacity: 0, transform: 'translateY(20px)' }),
-        animate('400ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
-      ])
-    ])
+        animate('400ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
+      ]),
+    ]),
   ],
   providers: [
     provideIcons({
@@ -129,9 +138,9 @@ interface BuildingTypeCard {
       lucidePhone,
       lucideFileText,
       lucideCreditCard,
-      lucideActivity
-    })
-  ]
+      lucideActivity,
+    }),
+  ],
 })
 export class SolarAuditComponent implements OnInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
@@ -149,7 +158,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     {
       number: 1,
       title: 'Facture & consommation',
-      description: 'Indiquez le montant de votre facture mensuelle d\'électricité.',
+      description: "Indiquez le montant de votre facture mensuelle d'électricité.",
       fields: [
         // Bill upload feature temporarily disabled
         // { name: 'consumption.hasInvoice', label: 'Facture disponible', type: 'select', required: true },
@@ -157,17 +166,17 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
           name: 'consumption.measuredAmountTnd',
           label: 'Montant mensuel (TND)',
           type: 'number',
-          required: true
+          required: true,
           // condition: (value) => value?.consumption?.hasInvoice === 'no' // Temporarily disabled
         } as StepField,
         {
           name: 'consumption.referenceMonth',
           label: 'Mois de référence',
           type: 'select',
-          required: true
+          required: true,
           // condition: (value) => value?.consumption?.hasInvoice === 'no' // Temporarily disabled
-        } as StepField
-      ]
+        } as StepField,
+      ],
     },
     {
       number: 2,
@@ -178,15 +187,15 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
           name: 'building.buildingType',
           label: 'Type de bâtiment',
           type: 'select',
-          required: true
+          required: true,
         },
         {
           name: 'building.climateZone',
           label: 'Zone climatique',
           type: 'select',
-          required: true
-        }
-      ]
+          required: true,
+        },
+      ],
     },
     {
       number: 3,
@@ -197,41 +206,41 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
           name: 'personal.fullName',
           label: 'Nom complet',
           type: 'text',
-          required: true
+          required: true,
         },
         {
           name: 'personal.companyName',
           label: 'Entreprise',
           type: 'text',
-          required: true
+          required: true,
         },
         {
           name: 'personal.email',
           label: 'Email',
           type: 'text',
-          required: true
+          required: true,
         },
         {
           name: 'personal.phoneNumber',
           label: 'Téléphone',
           type: 'text',
-          required: true
+          required: true,
         },
         {
           name: 'location.address',
           label: 'Adresse complète du bâtiment',
           type: 'text',
-          required: true
-        }
-      ]
+          required: true,
+        },
+      ],
     },
     {
       number: 4,
       title: 'Résultats',
       description: 'Analyse technique et économique de votre installation solaire.',
       fields: [],
-      isResult: true
-    }
+      isResult: true,
+    },
   ];
 
   // Expose original field configs from old form service for richer UI
@@ -242,25 +251,25 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
 
   // Month labels for ui-select (computed to avoid template arrow functions)
   protected readonly monthLabels = computed(() => {
-    return this.months.map(m => m.label);
+    return this.months.map((m) => m.label);
   });
 
   // Invoice choice options for ui-select
   protected readonly invoiceOptions = [
-    { label: 'Oui, j\'ai une facture récente', value: 'yes' },
-    { label: 'Non, je souhaite saisir manuellement', value: 'no' }
+    { label: "Oui, j'ai une facture récente", value: 'yes' },
+    { label: 'Non, je souhaite saisir manuellement', value: 'no' },
   ];
 
   protected readonly buildingTypeCards: BuildingTypeCard[] = BUILDING_CARD_CONFIG;
   protected readonly uploadCardConfig: UploadCardConfig = {
-    title: 'Téléchargez votre facture d\'électricité',
+    title: "Téléchargez votre facture d'électricité",
     subtitle: 'ou cliquez pour sélectionner un fichier',
     acceptedTypes: 'image/*,application/pdf',
     maxSizeText: 'Formats: PDF, JPG, PNG (max 10MB)',
     extractButtonText: 'Continuer',
     manualEntryButtonText: 'Saisir manuellement',
     selectedFileText: 'Facture sélectionnée',
-    changeFileText: 'Changer de fichier'
+    changeFileText: 'Changer de fichier',
   };
 
   // Wizard state
@@ -303,28 +312,29 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     const progress: Record<number, number> = {};
     const formValue = this.form.value;
 
-    this.steps.forEach(step => {
+    this.steps.forEach((step) => {
       if (step.isResult) {
         progress[step.number] = 0;
         return;
       }
 
-      const visibleFields = step.fields.filter(field => this.isFieldVisible(field));
+      const visibleFields = step.fields.filter((field) => this.isFieldVisible(field));
       if (visibleFields.length === 0) {
         progress[step.number] = 0;
         return;
       }
 
-      const filledFields = visibleFields.filter(field => {
+      const filledFields = visibleFields.filter((field) => {
         const control = this.form.get(field.name);
         if (!control) return false;
 
         const value = control.value;
         // Check if value is actually filled (not empty object, empty string, null, undefined)
-        const isFilled = value !== null && 
-                        value !== '' && 
-                        value !== undefined &&
-                        !(typeof value === 'object' && Object.keys(value).length === 0);
+        const isFilled =
+          value !== null &&
+          value !== '' &&
+          value !== undefined &&
+          !(typeof value === 'object' && Object.keys(value).length === 0);
         const isValid = control.valid;
         return isFilled && isValid;
       });
@@ -336,7 +346,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   });
 
   protected readonly currentStepData = computed(() => {
-    return this.steps.find(s => s.number === this.currentStep()) || this.steps[0];
+    return this.steps.find((s) => s.number === this.currentStep()) || this.steps[0];
   });
 
   protected readonly overallProgress = computed(() => {
@@ -355,7 +365,6 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
 
   protected readonly lastFormStepNumber = 3;
 
-
   ngOnDestroy(): void {
     if (isPlatformBrowser(this.platformId)) {
       document.body.style.overflow = '';
@@ -369,7 +378,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   }
 
   protected isStepClickable(stepNumber: number): boolean {
-    const step = this.steps.find(s => s.number === stepNumber);
+    const step = this.steps.find((s) => s.number === stepNumber);
     if (!step || step.isResult) return false;
     const current = this.currentStep();
     return stepNumber < current;
@@ -392,15 +401,19 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       // Check only the fields we care about (ignore hasInvoice)
       const measuredAmountControl = this.form.get('consumption.measuredAmountTnd');
       const referenceMonthControl = this.form.get('consumption.referenceMonth');
-      
-      if (!measuredAmountControl?.value || !referenceMonthControl?.value || 
-          measuredAmountControl.invalid || referenceMonthControl.invalid) {
+
+      if (
+        !measuredAmountControl?.value ||
+        !referenceMonthControl?.value ||
+        measuredAmountControl.invalid ||
+        referenceMonthControl.invalid
+      ) {
         measuredAmountControl?.markAsTouched();
         referenceMonthControl?.markAsTouched();
         this.notificationStore.addNotification({
           type: 'warning',
           title: 'Informations manquantes',
-          message: 'Veuillez saisir votre montant mensuel et le mois de référence.'
+          message: 'Veuillez saisir votre montant mensuel et le mois de référence.',
         });
         return;
       }
@@ -409,7 +422,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     // For step 1, we already validated above, so skip canProceed check
     if (stepNumber !== 1 && !this.canProceed()) {
       const currentStep = this.currentStepData();
-      currentStep.fields.forEach(field => {
+      currentStep.fields.forEach((field) => {
         const control = this.form.get(field.name);
         if (control) {
           control.markAsTouched();
@@ -419,7 +432,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       this.notificationStore.addNotification({
         type: 'warning',
         title: 'Étape incomplète',
-        message: 'Veuillez remplir tous les champs avant de continuer.'
+        message: 'Veuillez remplir tous les champs avant de continuer.',
       });
       return;
     }
@@ -477,10 +490,10 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
 
     this.form.valueChanges.subscribe(() => {
       // Update validity for all controls
-      Object.keys(this.form.controls).forEach(key => {
+      Object.keys(this.form.controls).forEach((key) => {
         const groupOrControl = (this.form as FormGroup).get(key);
         if (groupOrControl instanceof FormGroup) {
-          Object.keys(groupOrControl.controls).forEach(nestedKey => {
+          Object.keys(groupOrControl.controls).forEach((nestedKey) => {
             const nestedControl = groupOrControl.get(nestedKey);
             if (nestedControl) {
               nestedControl.updateValueAndValidity({ emitEvent: false });
@@ -491,7 +504,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
         }
       });
 
-      this.formUpdateTrigger.update(v => v + 1);
+      this.formUpdateTrigger.update((v) => v + 1);
       this.cdr.markForCheck();
     });
   }
@@ -506,19 +519,19 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       this.notificationStore.addNotification({
         type: 'info',
         title: 'Facture sélectionnée',
-        message: file.name
+        message: file.name,
       });
     }
   }
 
   protected onExtractFromBill(): void {
     const billFile = this.form.get('consumption.billAttachment')?.value as File | null;
-    
+
     if (!billFile) {
       this.notificationStore.addNotification({
         type: 'warning',
         title: 'Aucun fichier',
-        message: 'Veuillez d\'abord sélectionner un fichier de facture.'
+        message: "Veuillez d'abord sélectionner un fichier de facture.",
       });
       return;
     }
@@ -537,15 +550,17 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
         next: (response) => {
           if (response.success && response.data) {
             const extracted = response.data;
-            
+
             // Populate form fields with extracted data
             const consumptionControl = this.form.get('consumption');
             if (consumptionControl) {
               // Map monthlyBillAmount to measuredAmountTnd
               if (extracted.monthlyBillAmount?.value !== undefined) {
-                consumptionControl.get('measuredAmountTnd')?.setValue(extracted.monthlyBillAmount.value);
+                consumptionControl
+                  .get('measuredAmountTnd')
+                  ?.setValue(extracted.monthlyBillAmount.value);
               }
-              
+
               // Derive referenceMonth from periodEnd or periodStart
               // Note: referenceMonth field expects month label (string), not number
               if (extracted.periodEnd?.value) {
@@ -553,7 +568,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
                   const periodEndDate = new Date(extracted.periodEnd.value);
                   const monthNumber = periodEndDate.getMonth() + 1; // getMonth() returns 0-11
                   if (monthNumber >= 1 && monthNumber <= 12) {
-                    const monthLabel = this.months.find(m => m.value === monthNumber)?.label;
+                    const monthLabel = this.months.find((m) => m.value === monthNumber)?.label;
                     if (monthLabel) {
                       consumptionControl.get('referenceMonth')?.setValue(monthLabel);
                     }
@@ -566,7 +581,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
                   const periodStartDate = new Date(extracted.periodStart.value);
                   const monthNumber = periodStartDate.getMonth() + 1;
                   if (monthNumber >= 1 && monthNumber <= 12) {
-                    const monthLabel = this.months.find(m => m.value === monthNumber)?.label;
+                    const monthLabel = this.months.find((m) => m.value === monthNumber)?.label;
                     if (monthLabel) {
                       consumptionControl.get('referenceMonth')?.setValue(monthLabel);
                     }
@@ -580,7 +595,8 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
             this.notificationStore.addNotification({
               type: 'success',
               title: 'Données extraites',
-              message: 'Les données de votre facture ont été extraites avec succès. Veuillez vérifier et continuer.'
+              message:
+                'Les données de votre facture ont été extraites avec succès. Veuillez vérifier et continuer.',
             });
 
             // Proceed to next step
@@ -591,10 +607,12 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
           console.error('Error extracting bill data:', error);
           this.notificationStore.addNotification({
             type: 'error',
-            title: 'Erreur d\'extraction',
-            message: error.error?.message || 'Impossible d\'extraire les données de la facture. Veuillez saisir les informations manuellement.'
+            title: "Erreur d'extraction",
+            message:
+              error.error?.message ||
+              "Impossible d'extraire les données de la facture. Veuillez saisir les informations manuellement.",
           });
-        }
+        },
       });
   }
 
@@ -620,14 +638,14 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     // Check form validity and mark all fields as touched
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      
+
       // Debug: Log invalid fields
       const invalidFields: string[] = [];
-      Object.keys(this.form.controls).forEach(key => {
+      Object.keys(this.form.controls).forEach((key) => {
         const control = this.form.get(key);
         if (control && control.invalid) {
           if (control instanceof FormGroup) {
-            Object.keys(control.controls).forEach(nestedKey => {
+            Object.keys(control.controls).forEach((nestedKey) => {
               const nestedControl = control.get(nestedKey);
               if (nestedControl && nestedControl.invalid) {
                 invalidFields.push(`${key}.${nestedKey}`);
@@ -638,13 +656,11 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
           }
         }
       });
-      
-      console.log('Invalid form fields:', invalidFields);
-      
+
       this.notificationStore.addNotification({
         type: 'warning',
         title: 'Formulaire incomplet',
-        message: 'Veuillez remplir tous les champs obligatoires.'
+        message: 'Veuillez remplir tous les champs obligatoires.',
       });
       return;
     }
@@ -664,7 +680,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     if (typeof rawReferenceMonth === 'number') {
       referenceMonth = rawReferenceMonth || 1;
     } else if (typeof rawReferenceMonth === 'string') {
-      const month = this.months.find(m => m.label === rawReferenceMonth);
+      const month = this.months.find((m) => m.label === rawReferenceMonth);
       referenceMonth = month ? month.value : 1;
     }
 
@@ -675,21 +691,21 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     const payload: CreateSimulationPayload = {
       // Location
       address: value.location?.address ?? '',
-      
+
       // Consumption
       measuredAmountTnd: value.consumption?.measuredAmountTnd ?? 0,
       referenceMonth,
-      
+
       // Building
       buildingType: value.building?.buildingType ?? '',
       climateZone: value.building?.climateZone ?? this.climateZones[0] ?? '',
-      
+
       // Personal Info (ready for backend integration)
       // TODO: Backend will accept these fields soon - they're already being sent
       fullName: value.personal?.fullName ?? '',
       companyName: value.personal?.companyName ?? '',
       email: value.personal?.email ?? '',
-      phoneNumber: value.personal?.phoneNumber ?? ''
+      phoneNumber: value.personal?.phoneNumber ?? '',
     };
 
     this.isSubmitting.set(true);
@@ -700,14 +716,14 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (result: IAuditSolaireSimulation) => {
           this.simulationResult.set(result);
-          const resultStep = this.steps.find(s => s.isResult);
+          const resultStep = this.steps.find((s) => s.isResult);
           if (resultStep) {
             this.currentStep.set(resultStep.number);
           }
           this.notificationStore.addNotification({
             type: 'success',
             title: 'Simulation terminée',
-            message: 'Voici les résultats de votre audit solaire.'
+            message: 'Voici les résultats de votre audit solaire.',
           });
         },
         error: (error) => {
@@ -715,9 +731,11 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
           this.notificationStore.addNotification({
             type: 'error',
             title: 'Erreur',
-            message: error.error?.message || 'Une erreur est survenue lors de la création de la simulation.'
+            message:
+              error.error?.message ||
+              'Une erreur est survenue lors de la création de la simulation.',
           });
-        }
+        },
       });
   }
 
@@ -730,7 +748,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     if (typeof rawReferenceMonth === 'number') {
       referenceMonth = rawReferenceMonth || undefined;
     } else if (typeof rawReferenceMonth === 'string') {
-      const month = this.months.find(m => m.label === rawReferenceMonth);
+      const month = this.months.find((m) => m.label === rawReferenceMonth);
       referenceMonth = month ? month.value : undefined;
     }
 
@@ -740,17 +758,17 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     formData.append('address', value.location?.address ?? '');
     formData.append('buildingType', value.building?.buildingType ?? '');
     formData.append('climateZone', value.building?.climateZone ?? this.climateZones[0] ?? '');
-    
+
     // Add measuredAmountTnd if provided (will be overridden by extracted value if present)
     if (value.consumption?.measuredAmountTnd) {
       formData.append('measuredAmountTnd', value.consumption.measuredAmountTnd.toString());
     }
-    
+
     // Add referenceMonth if provided (will be overridden by extracted value if present)
     if (referenceMonth) {
       formData.append('referenceMonth', referenceMonth.toString());
     }
-    
+
     // Personal Info
     formData.append('fullName', value.personal?.fullName ?? '');
     formData.append('companyName', value.personal?.companyName ?? '');
@@ -765,14 +783,14 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (result: IAuditSolaireSimulation) => {
           this.simulationResult.set(result);
-          const resultStep = this.steps.find(s => s.isResult);
+          const resultStep = this.steps.find((s) => s.isResult);
           if (resultStep) {
             this.currentStep.set(resultStep.number);
           }
           this.notificationStore.addNotification({
             type: 'success',
             title: 'Simulation terminée',
-            message: 'Les données de votre facture ont été extraites et la simulation a été créée.'
+            message: 'Les données de votre facture ont été extraites et la simulation a été créée.',
           });
         },
         error: (error) => {
@@ -780,9 +798,11 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
           this.notificationStore.addNotification({
             type: 'error',
             title: 'Erreur',
-            message: error.error?.message || 'Une erreur est survenue lors de l\'extraction des données de la facture ou de la création de la simulation.'
+            message:
+              error.error?.message ||
+              "Une erreur est survenue lors de l'extraction des données de la facture ou de la création de la simulation.",
           });
-        }
+        },
       });
   }
 
@@ -792,7 +812,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       this.notificationStore.addNotification({
         type: 'error',
         title: 'Erreur',
-        message: 'Aucune simulation trouvée. Veuillez d\'abord compléter l\'audit solaire.'
+        message: "Aucune simulation trouvée. Veuillez d'abord compléter l'audit solaire.",
       });
       return;
     }
@@ -815,16 +835,16 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
           this.notificationStore.addNotification({
             type: 'success',
             title: 'PDF téléchargé',
-            message: 'Le rapport PV a été téléchargé.'
+            message: 'Le rapport PV a été téléchargé.',
           });
         },
         error: () => {
           this.notificationStore.addNotification({
             type: 'error',
             title: 'Erreur',
-            message: 'Impossible de générer le PDF. Veuillez réessayer.'
+            message: 'Impossible de générer le PDF. Veuillez réessayer.',
           });
-        }
+        },
       });
   }
 
@@ -836,7 +856,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     this.notificationStore.addNotification({
       type: 'info',
       title: 'Formulaire réinitialisé',
-      message: 'Vous pouvez commencer une nouvelle simulation.'
+      message: 'Vous pouvez commencer une nouvelle simulation.',
     });
   }
 
@@ -872,9 +892,10 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
 
   protected getChartYAxisTicks(): number[] {
     const simulation = this.simulationResult();
-    const maxBill = simulation?.monthlyEconomics?.reduce((max, m) => {
-      return Math.max(max, m.billWithoutPV || 0, m.billWithPV || 0);
-    }, 0) ?? 0;
+    const maxBill =
+      simulation?.monthlyEconomics?.reduce((max, m) => {
+        return Math.max(max, m.billWithoutPV || 0, m.billWithPV || 0);
+      }, 0) ?? 0;
     const { ticks } = this.getMonthlyBillsYAxisTicks(maxBill);
     return ticks;
   }
@@ -899,17 +920,34 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   }
 
   protected getMonthLabel(index: number): string {
-    const months = ['Janv', 'Févr', 'Mars', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
+    const months = [
+      'Janv',
+      'Févr',
+      'Mars',
+      'Avr',
+      'Mai',
+      'Juin',
+      'Juil',
+      'Août',
+      'Sept',
+      'Oct',
+      'Nov',
+      'Déc',
+    ];
     return months[index] ?? '';
   }
 
-  protected onMonthlyBarHover(monthIndex: number, month: { billWithoutPV: number; billWithPV: number }, bar: 'sans' | 'avec'): void {
+  protected onMonthlyBarHover(
+    monthIndex: number,
+    month: { billWithoutPV: number; billWithPV: number },
+    bar: 'sans' | 'avec'
+  ): void {
     this.monthlyBillsTooltip.set({
       monthIndex,
       monthLabel: this.getMonthLabel(monthIndex),
       billWithoutPV: month.billWithoutPV ?? 0,
       billWithPV: month.billWithPV ?? 0,
-      bar
+      bar,
     });
   }
 
@@ -920,7 +958,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   protected getChartYears(): number[] {
     const simulation = this.simulationResult();
     if (!simulation?.annualEconomics) return [];
-    return simulation.annualEconomics.map(e => e.year).slice(0, 25);
+    return simulation.annualEconomics.map((e) => e.year).slice(0, 25);
   }
 
   protected getSparseChartYears(): number[] {
@@ -930,10 +968,10 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   protected getLineChartMaxValue(): number {
     const simulation = this.simulationResult();
     if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) return 500000;
-    const maxGain = Math.max(...simulation.annualEconomics.map(e => e.cumulativeNetGain ?? 0));
+    const maxGain = Math.max(...simulation.annualEconomics.map((e) => e.cumulativeNetGain ?? 0));
     const capex = simulation.installationCost ?? 0;
     const maxValue = Math.max(maxGain, capex);
-    const minGain = Math.min(...simulation.annualEconomics.map(e => e.cumulativeNetGain ?? 0));
+    const minGain = Math.min(...simulation.annualEconomics.map((e) => e.cumulativeNetGain ?? 0));
     const minValue = Math.min(minGain, capex);
     const { topTick } = this.calculateLineChartYAxisTicks(minValue, maxValue);
     return topTick;
@@ -942,7 +980,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   protected getLineChartMinValue(): number {
     const simulation = this.simulationResult();
     if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) return -50000;
-    const minGain = Math.min(...simulation.annualEconomics.map(e => e.cumulativeNetGain ?? 0));
+    const minGain = Math.min(...simulation.annualEconomics.map((e) => e.cumulativeNetGain ?? 0));
     const capex = simulation.installationCost ?? 0;
     const minValue = Math.min(minGain, capex);
     const { bottomTick } = this.calculateLineChartYAxisTicks(minValue, Math.max(minValue, capex));
@@ -954,16 +992,19 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) {
       return [500000, 400000, 300000, 200000, 100000, 0];
     }
-    const maxGain = Math.max(...simulation.annualEconomics.map(e => e.cumulativeNetGain ?? 0));
+    const maxGain = Math.max(...simulation.annualEconomics.map((e) => e.cumulativeNetGain ?? 0));
     const capex = simulation.installationCost ?? 0;
     const maxValue = Math.max(maxGain, capex);
-    const minGain = Math.min(...simulation.annualEconomics.map(e => e.cumulativeNetGain ?? 0));
+    const minGain = Math.min(...simulation.annualEconomics.map((e) => e.cumulativeNetGain ?? 0));
     const minValue = Math.min(minGain, capex);
     const { ticks } = this.calculateLineChartYAxisTicks(minValue, maxValue);
     return ticks;
   }
 
-  private calculateLineChartYAxisTicks(minValue: number, maxValue: number): { topTick: number; bottomTick: number; ticks: number[] } {
+  private calculateLineChartYAxisTicks(
+    minValue: number,
+    maxValue: number
+  ): { topTick: number; bottomTick: number; ticks: number[] } {
     const tickCount = 5;
     const range = maxValue - minValue;
     const safeRange = Number.isFinite(range) && range > 0 ? range : 1;
@@ -976,7 +1017,10 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     const topTick = Math.ceil(maxValue / step) * step;
     const actualRange = topTick - bottomTick;
     const actualStep = actualRange / tickCount;
-    const ticksAscending = Array.from({ length: tickCount + 1 }, (_, i) => bottomTick + i * actualStep);
+    const ticksAscending = Array.from(
+      { length: tickCount + 1 },
+      (_, i) => bottomTick + i * actualStep
+    );
     return { topTick, bottomTick, ticks: ticksAscending.reverse() };
   }
 
@@ -998,7 +1042,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
         const y = (400 - ((value - minValue) / range) * 400).toFixed(2);
         return `${x},${y}`;
       })
-      .filter(p => p !== '')
+      .filter((p) => p !== '')
       .join(' ');
   }
 
@@ -1062,7 +1106,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     if (points.length === 0) return '';
     const first = points[0];
     const last = points[points.length - 1];
-    const line = points.map(p => `${p.x},${p.y}`).join(' L ');
+    const line = points.map((p) => `${p.x},${p.y}`).join(' L ');
     return `M ${first.x},400 L ${line} L ${last.x},400 Z`;
   }
 
@@ -1071,7 +1115,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     if (points.length === 0) return '';
     const first = points[0];
     const last = points[points.length - 1];
-    const line = points.map(p => `${p.x},${p.y}`).join(' L ');
+    const line = points.map((p) => `${p.x},${p.y}`).join(' L ');
     return `M ${first.x},400 L ${line} L ${last.x},400 Z`;
   }
 
@@ -1086,7 +1130,10 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     if (range === 0) return null;
     for (let i = 0; i < simulation.annualEconomics.length && i < years.length; i++) {
       const currentGain = simulation.annualEconomics[i].cumulativeNetGain ?? 0;
-      const nextGain = i + 1 < simulation.annualEconomics.length ? (simulation.annualEconomics[i + 1].cumulativeNetGain ?? 0) : currentGain;
+      const nextGain =
+        i + 1 < simulation.annualEconomics.length
+          ? simulation.annualEconomics[i + 1].cumulativeNetGain ?? 0
+          : currentGain;
       if (currentGain <= capex && nextGain >= capex) {
         const year1 = years[i];
         const year2 = i + 1 < years.length ? years[i + 1] : year1;
@@ -1139,7 +1186,9 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   protected getFinalGainsBubbleWidth(): number {
     const value = this.getFinalGainsValue();
     if (value === null) return 180;
-    return this.calculateBubbleWidth(Math.round(value).toLocaleString('fr-FR').replace(/\s/g, ' ') + ' DT');
+    return this.calculateBubbleWidth(
+      Math.round(value).toLocaleString('fr-FR').replace(/\s/g, ' ') + ' DT'
+    );
   }
 
   protected getFinalGainsBubbleX(): number {
@@ -1158,7 +1207,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
 
   protected getFinalCapexValue(): number | null {
     const simulation = this.simulationResult();
-    return simulation ? (simulation.installationCost ?? null) : null;
+    return simulation ? simulation.installationCost ?? null : null;
   }
 
   protected getFinalCapexPoint(): { x: number; y: number } | null {
@@ -1181,7 +1230,9 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   protected getFinalCapexBubbleWidth(): number {
     const value = this.getFinalCapexValue();
     if (value === null || value === 0) return 180;
-    return this.calculateBubbleWidth(Math.round(value).toLocaleString('fr-FR').replace(/\s/g, ' ') + ' DT');
+    return this.calculateBubbleWidth(
+      Math.round(value).toLocaleString('fr-FR').replace(/\s/g, ' ') + ' DT'
+    );
   }
 
   protected getFinalCapexBubbleX(): number {
@@ -1241,8 +1292,8 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       this.chartTooltip.set(null);
       return;
     }
-    const gainsY = 400 - ((data.cumulativeNetGain ?? 0) - minValue) / range * 400;
-    const capexY = 400 - (capex - minValue) / range * 400;
+    const gainsY = 400 - (((data.cumulativeNetGain ?? 0) - minValue) / range) * 400;
+    const capexY = 400 - ((capex - minValue) / range) * 400;
     const distGains = Math.abs(svgP.y - gainsY);
     const distCapex = Math.abs(svgP.y - capexY);
     const curveHitRadius = 28;
@@ -1264,7 +1315,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       gains: data.cumulativeNetGain ?? 0,
       capex,
       bubbleLocalX,
-      bubbleLocalY
+      bubbleLocalY,
     });
   }
 
@@ -1272,4 +1323,3 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     this.chartTooltip.set(null);
   }
 }
-

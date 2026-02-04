@@ -1,5 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, inject, signal, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  inject,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
@@ -39,19 +47,25 @@ import {
   lucideCreditCard,
   lucideDownload,
   lucideLoader,
-  lucideMapPin
+  lucideMapPin,
 } from '@ng-icons/lucide';
 import { IAuditSolaireSimulation } from '@shared/interfaces';
 import { finalize } from 'rxjs/operators';
 import { NotificationStore } from '../../core/notifications/notification.store';
-import { AuditSolaireService, CreateSimulationPayload } from '../../core/services/audit-solaire.service';
+import {
+  AuditSolaireService,
+  CreateSimulationPayload,
+} from '../../core/services/audit-solaire.service';
 import { AuditSolaireFormService } from './audit-solaire.form.service';
 import { AuditSolaireFormStep, AuditSolaireFormGroup } from './audit-solaire.types';
 import { BuildingTypes } from '@shared';
 import { UiSelectComponent } from '../../shared/components/ui-select/ui-select.component';
 import { UiImageComponent } from '../../shared/components/ui-image/ui-image.component';
 import { FieldTooltipComponent } from '../../shared/components/field-tooltip/field-tooltip.component';
-import { GoogleMapsInputComponent, AddressData } from '../../shared/components/google-maps-input/google-maps-input.component';
+import {
+  GoogleMapsInputComponent,
+  AddressData,
+} from '../../shared/components/google-maps-input/google-maps-input.component';
 import { UploadCardComponent, UploadCardConfig } from '../../shared/components/upload-card';
 
 interface BuildingTypeCard {
@@ -71,7 +85,7 @@ interface BuildingTypeCard {
     UiImageComponent,
     FieldTooltipComponent,
     GoogleMapsInputComponent,
-    UploadCardComponent
+    UploadCardComponent,
   ],
   templateUrl: './audit-solaire.component.html',
   styleUrl: './audit-solaire.component.scss',
@@ -114,9 +128,9 @@ interface BuildingTypeCard {
       lucideCreditCard,
       lucideDownload,
       lucideLoader,
-      lucideMapPin
-    })
-  ]
+      lucideMapPin,
+    }),
+  ],
 })
 export class AuditSolaireComponent {
   private notificationStore = inject(NotificationStore);
@@ -167,22 +181,22 @@ export class AuditSolaireComponent {
     'Extrapolation du profil de consommation',
     'Dimensionnement du système PV',
     'Analyse économique (25 ans)',
-    'Sauvegarde de la simulation'
+    'Sauvegarde de la simulation',
   ];
 
   private readonly monthMap: Record<string, number> = {
-    'Janvier': 1,
-    'Février': 2,
-    'Mars': 3,
-    'Avril': 4,
-    'Mai': 5,
-    'Juin': 6,
-    'Juillet': 7,
-    'Août': 8,
-    'Septembre': 9,
-    'Octobre': 10,
-    'Novembre': 11,
-    'Décembre': 12
+    Janvier: 1,
+    Février: 2,
+    Mars: 3,
+    Avril: 4,
+    Mai: 5,
+    Juin: 6,
+    Juillet: 7,
+    Août: 8,
+    Septembre: 9,
+    Octobre: 10,
+    Novembre: 11,
+    Décembre: 12,
   };
 
   protected readonly AuditSolaireFormStep = AuditSolaireFormStep;
@@ -195,27 +209,30 @@ export class AuditSolaireComponent {
     });
   }
 
-
   protected readonly locationFields = this.formService.locationFields;
   protected readonly consumptionFields = this.formService.consumptionFields;
   protected readonly buildingFields = this.formService.buildingFields;
   protected readonly climateZones = this.formService.climateZones;
   protected readonly months = this.formService.months;
-  protected readonly monthLabels = this.months.map(m => m.label);
+  protected readonly monthLabels = this.months.map((m) => m.label);
 
   protected uploadCardConfig: UploadCardConfig = {
-    title: 'Téléchargez votre facture d\'électricité',
+    title: "Téléchargez votre facture d'électricité",
     subtitle: 'ou cliquez pour sélectionner un fichier',
     acceptedTypes: 'image/*,application/pdf',
     maxSizeText: 'Formats: PDF, JPG, PNG (max 10MB)',
     extractButtonText: 'Continuer',
     manualEntryButtonText: 'Saisir manuellement',
     selectedFileText: 'Facture sélectionnée',
-    changeFileText: 'Changer de fichier'
+    changeFileText: 'Changer de fichier',
   };
 
   protected buildingTypeCards: BuildingTypeCard[] = [
-    { id: BuildingTypes.CAFE_RESTAURANT, label: 'Café / Restaurant', icon: 'lucideUtensilsCrossed' },
+    {
+      id: BuildingTypes.CAFE_RESTAURANT,
+      label: 'Café / Restaurant',
+      icon: 'lucideUtensilsCrossed',
+    },
     { id: BuildingTypes.OFFICE_ADMIN_BANK, label: 'Bureau / Banque', icon: 'lucideBuilding2' },
     { id: BuildingTypes.LIGHT_WORKSHOP, label: 'Atelier', icon: 'lucideHammer' },
     { id: BuildingTypes.HOTEL_GUESTHOUSE, label: 'Hôtel', icon: 'lucideHotel' },
@@ -226,13 +243,13 @@ export class AuditSolaireComponent {
     { id: BuildingTypes.TEXTILE_PACKAGING, label: 'Ind. textile', icon: 'lucideShirt' },
     { id: BuildingTypes.FOOD_INDUSTRY, label: 'Ind. alimentaire', icon: 'lucideDrumstick' },
     { id: BuildingTypes.PLASTIC_INJECTION, label: 'Ind. plastique', icon: 'lucideBox' },
-    { id: BuildingTypes.COLD_AGRO_INDUSTRY, label: 'Ind. froid', icon: 'lucideSnowflake' }
+    { id: BuildingTypes.COLD_AGRO_INDUSTRY, label: 'Ind. froid', icon: 'lucideSnowflake' },
   ];
 
   protected heroStats = [
     { label: 'Retour sur investissement', value: '3-4 ans' },
     { label: 'Économies projetées', value: '+72% à 25 ans' },
-    { label: 'Taux couverture solaire', value: '≈ 85%' }
+    { label: 'Taux couverture solaire', value: '≈ 85%' },
   ];
 
   protected selectBuilding(buildingType: BuildingTypes): void {
@@ -246,67 +263,47 @@ export class AuditSolaireComponent {
   }
 
   protected onMonthChange(monthLabel: string): void {
-    const month = this.months.find(m => m.label === monthLabel);
+    const month = this.months.find((m) => m.label === monthLabel);
     if (month) {
       this.auditForm.controls.consumption.controls.referenceMonth.setValue(month.value);
     }
   }
 
   protected handleInvoiceChoice(choice: 'yes' | 'no'): void {
-    console.log('🔵 [AuditSolaire] handleInvoiceChoice called with:', choice);
-    console.log('🔵 [AuditSolaire] Before - invoiceChoice signal:', this.invoiceChoice());
-    console.log('🔵 [AuditSolaire] Before - form value:', this.auditForm.controls.consumption.controls.hasInvoice.value);
-    
     this.invoiceChoice.set(choice);
     this.auditForm.controls.consumption.controls.hasInvoice.setValue(choice);
-    
-    console.log('🔵 [AuditSolaire] After - invoiceChoice signal:', this.invoiceChoice());
-    console.log('🔵 [AuditSolaire] After - form value:', this.auditForm.controls.consumption.controls.hasInvoice.value);
   }
 
   protected onBillSelected(file: File | null): void {
-    console.log('🔵 [AuditSolaire] onBillSelected called with file:', file);
     if (file) {
       this.auditForm.controls.consumption.controls.billAttachment.setValue(file);
       this.notificationStore.addNotification({
         type: 'info',
         title: 'Facture sélectionnée',
-        message: file.name
+        message: file.name,
       });
-      console.log('🔵 [AuditSolaire] File set in form:', this.auditForm.controls.consumption.controls.billAttachment.value);
     } else {
       this.auditForm.controls.consumption.controls.billAttachment.setValue(null);
-      console.log('🔵 [AuditSolaire] File cleared from form');
     }
   }
 
   protected onExtractFromBill(): void {
-    console.log('🔵 [AuditSolaire] onExtractFromBill called');
-    // For now, just proceed to the next step
-    // Later this could extract data from the bill
     this.nextStep();
   }
 
   protected onManualEntry(): void {
-    console.log('🔵 [AuditSolaire] onManualEntry called');
     this.auditForm.controls.consumption.controls.billAttachment.setValue(null);
     this.handleInvoiceChoice('no');
   }
 
   protected nextStep(): void {
-    console.log('🔵 [AuditSolaire] nextStep called - current step:', this.step());
-    console.log('🔵 [AuditSolaire] invoiceChoice:', this.invoiceChoice());
-    
     if (this.step() === AuditSolaireFormStep.INVOICE) {
       const hasInvoice = this.invoiceChoice();
-      console.log('🔵 [AuditSolaire] hasInvoice value:', hasInvoice);
-      
       if (!hasInvoice) {
-        console.log('⚠️ [AuditSolaire] No invoice choice selected');
         this.notificationStore.addNotification({
           type: 'warning',
           title: 'Sélectionnez une option',
-          message: "Veuillez indiquer si vous disposez d'une facture récente."
+          message: "Veuillez indiquer si vous disposez d'une facture récente.",
         });
         return;
       }
@@ -314,12 +311,15 @@ export class AuditSolaireComponent {
       // If user selected "no", validate consumption fields
       if (hasInvoice === 'no') {
         const consumptionControls = this.auditForm.controls.consumption.controls;
-        if (consumptionControls.measuredAmountTnd.invalid || consumptionControls.referenceMonth.invalid) {
+        if (
+          consumptionControls.measuredAmountTnd.invalid ||
+          consumptionControls.referenceMonth.invalid
+        ) {
           this.auditForm.controls.consumption.markAllAsTouched();
           this.notificationStore.addNotification({
             type: 'warning',
             title: 'Informations manquantes',
-            message: 'Veuillez saisir votre montant mensuel et le mois de référence.'
+            message: 'Veuillez saisir votre montant mensuel et le mois de référence.',
           });
           return;
         }
@@ -346,7 +346,7 @@ export class AuditSolaireComponent {
         this.notificationStore.addNotification({
           type: 'warning',
           title: 'Adresse requise',
-          message: 'Veuillez saisir l\'adresse complète du bâtiment.'
+          message: "Veuillez saisir l'adresse complète du bâtiment.",
         });
         return;
       }
@@ -355,7 +355,7 @@ export class AuditSolaireComponent {
         this.notificationStore.addNotification({
           type: 'warning',
           title: 'Informations manquantes',
-          message: 'Veuillez compléter toutes les informations requises.'
+          message: 'Veuillez compléter toutes les informations requises.',
         });
         return;
       }
@@ -386,7 +386,10 @@ export class AuditSolaireComponent {
     }
 
     // Consumption fields are required
-    if (consumption.controls.measuredAmountTnd.invalid || consumption.controls.referenceMonth.invalid) {
+    if (
+      consumption.controls.measuredAmountTnd.invalid ||
+      consumption.controls.referenceMonth.invalid
+    ) {
       return false;
     }
 
@@ -399,21 +402,15 @@ export class AuditSolaireComponent {
   }
 
   protected submitSimulation(): void {
-    console.log('🚀 submitSimulation called');
-    console.log('Form valid:', this.auditForm.valid);
-    console.log('Form value:', this.auditForm.value);
-    console.log('isSubmitting:', this.isSubmitting());
-    
-    // Don't block on form validation - just proceed
     if (this.isSubmitting()) {
-      console.log('Already submitting, ignoring click');
       return;
     }
-    
+
     const referenceMonthLabel = this.auditForm.controls.consumption.value.referenceMonth;
-    const referenceMonth = typeof referenceMonthLabel === 'string'
-      ? this.monthMap[referenceMonthLabel] ?? 1
-      : referenceMonthLabel ?? 1;
+    const referenceMonth =
+      typeof referenceMonthLabel === 'string'
+        ? this.monthMap[referenceMonthLabel] ?? 1
+        : referenceMonthLabel ?? 1;
 
     const payload: CreateSimulationPayload = {
       // Location
@@ -424,10 +421,10 @@ export class AuditSolaireComponent {
       phoneNumber: this.auditForm.controls.location.value.phoneNumber ?? '',
       measuredAmountTnd: this.auditForm.controls.consumption.value.measuredAmountTnd ?? 0,
       referenceMonth,
-      
+
       // Building
       buildingType: this.auditForm.controls.building.value.buildingType ?? '',
-      climateZone: this.auditForm.controls.building.value.climateZone ?? this.climateZones[0] ?? ''
+      climateZone: this.auditForm.controls.building.value.climateZone ?? this.climateZones[0] ?? '',
     };
 
     this.isSubmitting.set(true);
@@ -440,44 +437,39 @@ export class AuditSolaireComponent {
       stepIndex++;
       if (stepIndex < this.simulationSteps.length) {
         this.currentSimulationStep.set(this.simulationSteps[stepIndex]);
-        this.simulationLogs.update(logs => [...logs, this.simulationSteps[stepIndex]]);
+        this.simulationLogs.update((logs) => [...logs, this.simulationSteps[stepIndex]]);
       }
     }, 800); // Update every 800ms to simulate progress
 
     this.auditSolaireService
       .createSimulation(payload)
-      .pipe(finalize(() => {
-        clearInterval(progressInterval);
-        this.isSubmitting.set(false);
-      }))
+      .pipe(
+        finalize(() => {
+          clearInterval(progressInterval);
+          this.isSubmitting.set(false);
+        })
+      )
       .subscribe({
         next: (result: IAuditSolaireSimulation) => {
-          console.log('✅ Simulation completed with economic metrics:', {
-            simplePaybackYears: result.simplePaybackYears,
-            discountedPaybackYears: result.discountedPaybackYears,
-            roi25Years: result.roi25Years,
-            npv: result.npv
-          });
-
           this.simulationResult.set(result);
           this.step.set(AuditSolaireFormStep.REVIEW);
-          this.simulationLogs.update(logs => [...logs, 'Simulation terminée avec succès ✅']);
+          this.simulationLogs.update((logs) => [...logs, 'Simulation terminée avec succès ✅']);
           this.notificationStore.addNotification({
             type: 'success',
             title: 'Simulation prête',
-            message: 'Votre audit solaire a été généré avec succès.'
+            message: 'Votre audit solaire a été généré avec succès.',
           });
         },
         error: (error: unknown) => {
           clearInterval(progressInterval);
           console.error(error);
-          this.simulationLogs.update(logs => [...logs, 'Erreur lors de la simulation ❌']);
+          this.simulationLogs.update((logs) => [...logs, 'Erreur lors de la simulation ❌']);
           this.notificationStore.addNotification({
             type: 'error',
             title: 'Erreur',
-            message: 'Impossible de générer la simulation. Veuillez réessayer.'
+            message: 'Impossible de générer la simulation. Veuillez réessayer.',
           });
-        }
+        },
       });
   }
 
@@ -538,9 +530,10 @@ export class AuditSolaireComponent {
    */
   protected getChartYAxisTicks(): number[] {
     const simulation = this.simulationResult();
-    const maxBill = simulation?.monthlyEconomics?.reduce((max, m) => {
-      return Math.max(max, m.billWithoutPV || 0, m.billWithPV || 0);
-    }, 0) ?? 0;
+    const maxBill =
+      simulation?.monthlyEconomics?.reduce((max, m) => {
+        return Math.max(max, m.billWithoutPV || 0, m.billWithPV || 0);
+      }, 0) ?? 0;
 
     const { ticks } = this.getMonthlyBillsYAxisTicks(maxBill);
     return ticks;
@@ -571,17 +564,34 @@ export class AuditSolaireComponent {
   }
 
   protected getMonthLabel(index: number): string {
-    const months = ['Janv', 'Févr', 'Mars', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
+    const months = [
+      'Janv',
+      'Févr',
+      'Mars',
+      'Avr',
+      'Mai',
+      'Juin',
+      'Juil',
+      'Août',
+      'Sept',
+      'Oct',
+      'Nov',
+      'Déc',
+    ];
     return months[index] || '';
   }
 
-  protected onMonthlyBarHover(monthIndex: number, month: { billWithoutPV: number; billWithPV: number }, bar: 'sans' | 'avec'): void {
+  protected onMonthlyBarHover(
+    monthIndex: number,
+    month: { billWithoutPV: number; billWithPV: number },
+    bar: 'sans' | 'avec'
+  ): void {
     this.monthlyBillsTooltip.set({
       monthIndex,
       monthLabel: this.getMonthLabel(monthIndex),
       billWithoutPV: month.billWithoutPV ?? 0,
       billWithPV: month.billWithPV ?? 0,
-      bar
+      bar,
     });
   }
 
@@ -594,10 +604,10 @@ export class AuditSolaireComponent {
     if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) {
       return 500000;
     }
-    const maxGain = Math.max(...simulation.annualEconomics.map(e => e.cumulativeNetGain || 0));
+    const maxGain = Math.max(...simulation.annualEconomics.map((e) => e.cumulativeNetGain || 0));
     const capex = simulation.installationCost || 0;
     const maxValue = Math.max(maxGain, capex);
-    const minGain = Math.min(...simulation.annualEconomics.map(e => e.cumulativeNetGain || 0));
+    const minGain = Math.min(...simulation.annualEconomics.map((e) => e.cumulativeNetGain || 0));
     const minValue = Math.min(minGain, capex);
     // Use nice tick calculation for consistent Y-axis
     const { topTick } = this.calculateLineChartYAxisTicks(minValue, maxValue);
@@ -609,10 +619,10 @@ export class AuditSolaireComponent {
     if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) {
       return -50000;
     }
-    const minGain = Math.min(...simulation.annualEconomics.map(e => e.cumulativeNetGain || 0));
+    const minGain = Math.min(...simulation.annualEconomics.map((e) => e.cumulativeNetGain || 0));
     const capex = simulation.installationCost || 0;
     const minValue = Math.min(minGain, capex);
-    const maxGain = Math.max(...simulation.annualEconomics.map(e => e.cumulativeNetGain || 0));
+    const maxGain = Math.max(...simulation.annualEconomics.map((e) => e.cumulativeNetGain || 0));
     const maxValue = Math.max(maxGain, capex);
     // Use nice tick calculation for consistent Y-axis
     const { bottomTick } = this.calculateLineChartYAxisTicks(minValue, maxValue);
@@ -624,21 +634,24 @@ export class AuditSolaireComponent {
     if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) {
       return [500000, 400000, 300000, 200000, 100000, 0];
     }
-    const maxGain = Math.max(...simulation.annualEconomics.map(e => e.cumulativeNetGain || 0));
+    const maxGain = Math.max(...simulation.annualEconomics.map((e) => e.cumulativeNetGain || 0));
     const capex = simulation.installationCost || 0;
     const maxValue = Math.max(maxGain, capex);
-    const minGain = Math.min(...simulation.annualEconomics.map(e => e.cumulativeNetGain || 0));
+    const minGain = Math.min(...simulation.annualEconomics.map((e) => e.cumulativeNetGain || 0));
     const minValue = Math.min(minGain, capex);
-    
+
     const { ticks } = this.calculateLineChartYAxisTicks(minValue, maxValue);
     return ticks;
   }
 
-  private calculateLineChartYAxisTicks(minValue: number, maxValue: number): { topTick: number; bottomTick: number; ticks: number[] } {
+  private calculateLineChartYAxisTicks(
+    minValue: number,
+    maxValue: number
+  ): { topTick: number; bottomTick: number; ticks: number[] } {
     const tickCount = 5; // 0%, 20%, 40%, 60%, 80%, 100% (6 positions = 5 intervals)
     const range = maxValue - minValue;
     const safeRange = Number.isFinite(range) && range > 0 ? range : 1;
-    
+
     // Calculate a "nice" step size
     const rawStep = safeRange / tickCount;
     const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
@@ -649,19 +662,22 @@ export class AuditSolaireComponent {
     else if (normalized <= 5) stepBase = 5;
     else stepBase = 10;
     const step = stepBase * magnitude;
-    
+
     // Round min and max to nice values
     const bottomTick = Math.floor(minValue / step) * step;
     const topTick = Math.ceil(maxValue / step) * step;
     const actualRange = topTick - bottomTick;
     const actualStep = actualRange / tickCount;
-    
+
     // Generate ticks from bottom to top (ascending: min to max)
-    const ticksAscending = Array.from({ length: tickCount + 1 }, (_, i) => bottomTick + i * actualStep);
-    
+    const ticksAscending = Array.from(
+      { length: tickCount + 1 },
+      (_, i) => bottomTick + i * actualStep
+    );
+
     // Reverse to get descending order (max to min) for display (top to bottom in chart)
     const ticks = ticksAscending.reverse();
-    
+
     return { topTick, bottomTick, ticks };
   }
 
@@ -670,7 +686,7 @@ export class AuditSolaireComponent {
     if (!simulation?.annualEconomics) {
       return [];
     }
-    return simulation.annualEconomics.map(e => e.year).slice(0, 25); // All 25 years
+    return simulation.annualEconomics.map((e) => e.year).slice(0, 25); // All 25 years
   }
 
   // Get sparse X-axis labels (only years 1, 5, 10, 15, 20, 25) like in PDF
@@ -689,18 +705,21 @@ export class AuditSolaireComponent {
     if (range === 0) return '';
     const years = this.getChartYears();
     if (years.length === 0) return '';
-    const points = years.map((year, index) => {
-      const data = simulation.annualEconomics[index];
-      if (!data) return '';
-      const value = data.cumulativeNetGain || 0;
-      const x = years.length > 1 ? ((index / (years.length - 1)) * 1000).toFixed(2) : '500';
-      const y = (400 - ((value - minValue) / range) * 400).toFixed(2);
-      return `${x},${y}`;
-    }).filter(p => p !== '').join(' ');
+    const points = years
+      .map((year, index) => {
+        const data = simulation.annualEconomics[index];
+        if (!data) return '';
+        const value = data.cumulativeNetGain || 0;
+        const x = years.length > 1 ? ((index / (years.length - 1)) * 1000).toFixed(2) : '500';
+        const y = (400 - ((value - minValue) / range) * 400).toFixed(2);
+        return `${x},${y}`;
+      })
+      .filter((p) => p !== '')
+      .join(' ');
     return points;
   }
 
-  protected getGainsLinePointsArray(): Array<{x: number, y: number}> {
+  protected getGainsLinePointsArray(): Array<{ x: number; y: number }> {
     const simulation = this.simulationResult();
     if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) {
       return [];
@@ -733,15 +752,17 @@ export class AuditSolaireComponent {
     if (range === 0) return '';
     const years = this.getChartYears();
     if (years.length === 0) return '';
-    const points = years.map((year, index) => {
-      const x = years.length > 1 ? ((index / (years.length - 1)) * 1000).toFixed(2) : '500';
-      const y = (400 - ((capex - minValue) / range) * 400).toFixed(2);
-      return `${x},${y}`;
-    }).join(' ');
+    const points = years
+      .map((year, index) => {
+        const x = years.length > 1 ? ((index / (years.length - 1)) * 1000).toFixed(2) : '500';
+        const y = (400 - ((capex - minValue) / range) * 400).toFixed(2);
+        return `${x},${y}`;
+      })
+      .join(' ');
     return points;
   }
 
-  protected getCapexLinePointsArray(): Array<{x: number, y: number}> {
+  protected getCapexLinePointsArray(): Array<{ x: number; y: number }> {
     const simulation = this.simulationResult();
     if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) {
       return [];
@@ -766,7 +787,7 @@ export class AuditSolaireComponent {
     if (points.length === 0) return '';
     const first = points[0];
     const last = points[points.length - 1];
-    const line = points.map(p => `${p.x},${p.y}`).join(' L ');
+    const line = points.map((p) => `${p.x},${p.y}`).join(' L ');
     return `M ${first.x},400 L ${line} L ${last.x},400 Z`;
   }
 
@@ -776,12 +797,12 @@ export class AuditSolaireComponent {
     if (points.length === 0) return '';
     const first = points[0];
     const last = points[points.length - 1];
-    const line = points.map(p => `${p.x},${p.y}`).join(' L ');
+    const line = points.map((p) => `${p.x},${p.y}`).join(' L ');
     return `M ${first.x},400 L ${line} L ${last.x},400 Z`;
   }
 
   // Calculate intersection point (where cumulative gains = CAPEX)
-  protected getIntersectionPoint(): {x: number, y: number, year: number, capex: number} | null {
+  protected getIntersectionPoint(): { x: number; y: number; year: number; capex: number } | null {
     const simulation = this.simulationResult();
     if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) {
       return null;
@@ -796,10 +817,11 @@ export class AuditSolaireComponent {
     // Find the year where cumulative gains crosses CAPEX
     for (let i = 0; i < simulation.annualEconomics.length && i < years.length; i++) {
       const currentGain = simulation.annualEconomics[i].cumulativeNetGain || 0;
-      const nextGain = i + 1 < simulation.annualEconomics.length 
-        ? (simulation.annualEconomics[i + 1].cumulativeNetGain || 0)
-        : currentGain;
-      
+      const nextGain =
+        i + 1 < simulation.annualEconomics.length
+          ? simulation.annualEconomics[i + 1].cumulativeNetGain || 0
+          : currentGain;
+
       // Check if CAPEX is between current and next year
       if (currentGain <= capex && nextGain >= capex) {
         // Linear interpolation to find exact intersection
@@ -807,10 +829,10 @@ export class AuditSolaireComponent {
         const year2 = i + 1 < years.length ? years[i + 1] : year1;
         const ratio = (capex - currentGain) / (nextGain - currentGain);
         const exactYear = year1 + (year2 - year1) * ratio;
-        
+
         const x = years.length > 1 ? ((i + ratio) / (years.length - 1)) * 1000 : 500;
         const y = 400 - ((capex - minValue) / range) * 400;
-        
+
         return { x, y, year: exactYear, capex };
       }
     }
@@ -829,14 +851,14 @@ export class AuditSolaireComponent {
   }
 
   // Get final point position for annotation
-  protected getFinalGainsPoint(): {x: number, y: number} | null {
+  protected getFinalGainsPoint(): { x: number; y: number } | null {
     const simulation = this.simulationResult();
     if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) {
       return null;
     }
     const years = this.getChartYears();
     if (years.length === 0) return null;
-    
+
     const maxValue = this.getLineChartMaxValue();
     const minValue = this.getLineChartMinValue();
     const range = maxValue - minValue;
@@ -848,7 +870,7 @@ export class AuditSolaireComponent {
 
     const x = years.length > 1 ? (year25Index / (years.length - 1)) * 1000 : 500;
     const y = 400 - ((finalGain - minValue) / range) * 400;
-    
+
     return { x, y };
   }
 
@@ -860,14 +882,14 @@ export class AuditSolaireComponent {
   }
 
   // Get final CAPEX point position for annotation (at year 25)
-  protected getFinalCapexPoint(): {x: number, y: number} | null {
+  protected getFinalCapexPoint(): { x: number; y: number } | null {
     const simulation = this.simulationResult();
     if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) {
       return null;
     }
     const years = this.getChartYears();
     if (years.length === 0) return null;
-    
+
     const maxValue = this.getLineChartMaxValue();
     const minValue = this.getLineChartMinValue();
     const range = maxValue - minValue;
@@ -879,7 +901,7 @@ export class AuditSolaireComponent {
     const year25Index = Math.min(24, years.length - 1);
     const x = years.length > 1 ? (year25Index / (years.length - 1)) * 1000 : 500;
     const y = 400 - ((capex - minValue) / range) * 400;
-    
+
     return { x, y };
   }
 
@@ -988,8 +1010,8 @@ export class AuditSolaireComponent {
       this.chartTooltip.set(null);
       return;
     }
-    const gainsY = 400 - ((data.cumulativeNetGain ?? 0) - minValue) / range * 400;
-    const capexY = 400 - (capex - minValue) / range * 400;
+    const gainsY = 400 - (((data.cumulativeNetGain ?? 0) - minValue) / range) * 400;
+    const capexY = 400 - ((capex - minValue) / range) * 400;
     const distGains = Math.abs(svgP.y - gainsY);
     const distCapex = Math.abs(svgP.y - capexY);
     const curveHitRadius = 28; // viewBox units – cursor must be this close to a curve
@@ -1006,9 +1028,7 @@ export class AuditSolaireComponent {
     // Keep curve point for optional line; bubble sits between curves
     const gainsPoints = this.getGainsLinePointsArray();
     const capexPoints = this.getCapexLinePointsArray();
-    const curvePoint = distGains <= distCapex
-      ? gainsPoints[index]
-      : capexPoints[index];
+    const curvePoint = distGains <= distCapex ? gainsPoints[index] : capexPoints[index];
     if (!curvePoint) {
       this.chartTooltip.set(null);
       return;
@@ -1020,12 +1040,8 @@ export class AuditSolaireComponent {
     // Position bubble relative to chart container so it stays inside the chart (avoids fixed + transform issues)
     const container = this.lineChartSvgContainer?.nativeElement;
     const containerRect = container?.getBoundingClientRect();
-    const bubbleLocalX = containerRect
-      ? bubbleScreen.x - containerRect.left
-      : bubbleScreen.x;
-    const bubbleLocalY = containerRect
-      ? bubbleScreen.y - containerRect.top
-      : bubbleScreen.y;
+    const bubbleLocalX = containerRect ? bubbleScreen.x - containerRect.left : bubbleScreen.x;
+    const bubbleLocalY = containerRect ? bubbleScreen.y - containerRect.top : bubbleScreen.y;
     this.chartTooltip.set({
       year: data.year,
       gains: data.cumulativeNetGain ?? 0,
@@ -1037,7 +1053,7 @@ export class AuditSolaireComponent {
       bubbleScreenX: bubbleScreen.x,
       bubbleScreenY: bubbleScreen.y,
       bubbleLocalX,
-      bubbleLocalY
+      bubbleLocalY,
     });
   }
 
@@ -1051,7 +1067,7 @@ export class AuditSolaireComponent {
       this.notificationStore.addNotification({
         type: 'error',
         title: 'Erreur',
-        message: 'Aucune simulation trouvée. Veuillez d\'abord compléter l\'audit solaire.'
+        message: "Aucune simulation trouvée. Veuillez d'abord compléter l'audit solaire.",
       });
       return;
     }
@@ -1074,7 +1090,8 @@ export class AuditSolaireComponent {
           this.notificationStore.addNotification({
             type: 'success',
             title: 'PDF téléchargé',
-            message: 'Le rapport PV a été téléchargé sur votre PC. L\'envoi par email est en cours en arrière-plan.'
+            message:
+              "Le rapport PV a été téléchargé sur votre PC. L'envoi par email est en cours en arrière-plan.",
           });
 
           // Send by email in background (for testing / production)
@@ -1083,7 +1100,7 @@ export class AuditSolaireComponent {
               this.notificationStore.addNotification({
                 type: 'success',
                 title: 'Rapport envoyé par email',
-                message: `Le rapport PV a également été envoyé à ${response.email}.`
+                message: `Le rapport PV a également été envoyé à ${response.email}.`,
               });
             },
             error: (err) => {
@@ -1091,20 +1108,24 @@ export class AuditSolaireComponent {
               this.notificationStore.addNotification({
                 type: 'info',
                 title: 'Téléchargement réussi',
-                message: 'Le PDF a été téléchargé. L\'envoi par email n\'a pas abouti (vérifiez la config Postmark).'
+                message:
+                  "Le PDF a été téléchargé. L'envoi par email n'a pas abouti (vérifiez la config Postmark).",
               });
-            }
+            },
           });
         },
         error: (error) => {
           console.error('Error downloading PV PDF:', error);
-          const errorMessage = error?.error?.error || error?.error?.message || 'Impossible de télécharger le rapport PV. Veuillez réessayer.';
+          const errorMessage =
+            error?.error?.error ||
+            error?.error?.message ||
+            'Impossible de télécharger le rapport PV. Veuillez réessayer.';
           this.notificationStore.addNotification({
             type: 'error',
             title: 'Erreur',
-            message: errorMessage
+            message: errorMessage,
           });
-        }
+        },
       });
   }
 }

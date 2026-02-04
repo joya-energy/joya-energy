@@ -41,31 +41,12 @@ export const routes: Routes = [
       import('./pages/ressources/ressources.component').then((m) => m.RessourcesComponent),
     title: 'Ressources | JOYA Energy',
   },
-  // {
-  //   path: '',
-  //   loadComponent: () => import('./pages/home/home.component').then((m) => m.HomeComponent),
-  //   title: 'JOYA Energy - Passez au solaire',
-  // },
   {
     path: 'contact',
     loadComponent: () =>
       import('./pages/contact/contact.component').then((m) => m.ContactComponent),
     title: 'Contactez-nous | JOYA Energy',
   },
-  // {
-  //   path: 'audit-energetique',
-  //   loadComponent: () =>
-  //     import('./pages/audit-energetique/audit-energetique.component').then(
-  //       (m) => m.AuditEnergetiqueComponent
-  //     ),
-  //   title: 'Simulation audit énergétique | JOYA Energy',
-  // },
-  // {
-  //   path: 'audit-solaire',
-  //   loadComponent: () =>
-  //     import('./pages/audit-solaire/audit-solaire.component').then((m) => m.AuditSolaireComponent),
-  //   title: 'Simulation audit solaire | JOYA Energy',
-  // },
   {
     path: 'audit-solaire',
     loadComponent: () =>
@@ -85,7 +66,7 @@ export const routes: Routes = [
   {
     path: 'bilan-carbon',
     loadComponent: () =>
-      import('./pages/bilan-carbon/bilan-carbon.component.js').then((m) => m.BilanCarbonComponent),
+      import('./pages/bilan-carbon/bilan-carbon.component').then((m) => m.BilanCarbonComponent),
     title: 'Bilan Carbone | JOYA Energy',
   },
   {
