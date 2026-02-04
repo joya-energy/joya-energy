@@ -16,6 +16,7 @@
     "test:backend:w": "npm run test:w --workspace joya-backend",
     "test": "npm run test:backend",
     "build:backend": "npm run build --workspace joya-backend",
+    "build:production": "npm run build:production --workspace joya-frontend",
     "setup-email": "npm run setup-email --workspace joya-backend"
   },
   "workspaces": [

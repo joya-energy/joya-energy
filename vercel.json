@@ -1,0 +1,15 @@
+{
+  "buildCommand": "npm run build:production --workspace joya-frontend",
+  "outputDirectory": "packages/frontend/dist/joya-frontend/browser",
+  "installCommand": "npm install",
+  "rewrites": [{ "source": "/((?!.*\\.).*$)", "destination": "/index.html" }],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" }
+      ]
+    }
+  ]
+}
