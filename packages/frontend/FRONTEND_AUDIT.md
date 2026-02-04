@@ -46,26 +46,33 @@
 
 ---
 
-## 4. Optional / Future Cleanup
+## 4. Env & Vercel (post-audit)
 
-### 4.1 Home page and related shared components
+- **`.env.example`** in `packages/frontend`: Template with `NG_APP_API_URL` and `NG_APP_GOOGLE_MAPS_API_KEY`. Copy to `.env` locally; in Vercel use the same names in Environment Variables.
+- **`scripts/generate-env.js`**: Runs before production build; reads `process.env` (and optional `.env` via dotenv) and writes `src/environments/environment.prod.generated.ts`. Committed default has safe values; script overwrites at build time.
+- **`environment.prod.ts`**: Imports `generatedEnv` from `environment.prod.generated.ts` and spreads it. Production build uses these values.
+- **Commented blocks** in templates were left as requested.
 
-- **pages/home** is not in `app.routes.ts` (landing is the default route).
-- Only **home** uses: `HeroComponent`, `FeatureHighlightsComponent`, `FaqSectionComponent`, `SimulatorsSectionComponent` (shared `app-simulators-section`).
-- **Recommendation:** If you do not plan to re-enable a “home” route, you can remove `pages/home` and then remove the shared components that become unused: `hero`, `feature-highlights`, `faq-section`. Keep `simulators-section` only if another page uses it (currently only home used it; `ressources` uses `RessourcesSimulatorsSectionComponent`, which is a different component).
+## 5. Home & old audit pages removed (post-audit)
 
-### 4.2 Old audit pages (kept on purpose)
+- **pages/home** removed (replaced by landing).
+- **Shared components only used by home** removed: `hero`, `feature-highlights`, `faq-section`, `simulators-section`, `feature-icon`.
+- **pages/audit-energetique** removed entirely (route uses `energy-audit`).
+- **pages/audit-solaire** component files removed (`.component.ts`, `.html`, `.scss`); **kept** `audit-solaire.form.service.ts` and `audit-solaire.types.ts` because `solar-audit` imports them.
 
-- **pages/audit-solaire** (old Audit Solaire UI) is still in the repo; route `/audit-solaire` now points to **solar-audit**. Kept in case you need reference or a rollback; safe to delete later if not needed.
-- **pages/audit-energetique** (old Audit Énergétique UI) is still in the repo; route `/audit-energetique` points to **energy-audit**. Same as above.
+## 6. Financing prerender fix (post-audit)
 
-### 4.3 Commented block in landing
+- **comparaison-financements.component.ts**: `fetchLocations()` and `fetchAdvantages()` were called in the constructor (ran during SSR/prerender and hit the API). Moved to `ngOnInit()` and only run when `isPlatformBrowser(this.platformId)`, so prerender no longer triggers `/api/financing-comparisons/locations` or `/advantages`.
 
-- **landing.component.html:** Large commented block for `<app-landing-simple-section>` (estimation form + map placeholder). Remove the block if you do not plan to use it.
+## 7. Optional / future
+
+### 7.1 Commented block in landing
+
+- **landing.component.html:** Large commented block for `<app-landing-simple-section>` (estimation form + map placeholder). Left as requested; remove the block if you do not plan to use it.
 
 ---
 
-## 5. Console usage left on purpose
+## 8. Console usage left on purpose
 
 - **main.ts:** `console.error(err)` in bootstrap catch — keep for startup failures.
 - **server.ts:** `console.log` for “Node Express server listening…” — acceptable for SSR startup.
@@ -79,7 +86,7 @@
 
 - **landing.component.ts:** `LandingSimpleSectionComponent` was imported and in `imports` but the only use in the template is inside a commented block. Removed the import so the build no longer warns (NG8113). The section folder `landing-simple-section` is still in the repo; re-add the import if you uncomment the estimation block in `landing.component.html`.
 
-## 7. Build & sanity check
+## 10. Build & sanity check
 
 Run before merge:
 
@@ -98,16 +105,19 @@ npm run test
 
 ---
 
-## 8. Summary
+## 11. Summary
 
-| Category                 | Action                                                     |
-| ------------------------ | ---------------------------------------------------------- |
-| Route bug                | Fixed (bilan-carbon `.js` → no extension)                  |
-| Debug console            | Removed from audit-solaire, solar-audit, google-maps-input |
-| Routes comments          | Removed obsolete commented routes                          |
-| Environment              | Documented; no secrets in prod file                        |
-| Unused components        | Removed approach-section, solar-simulator-section          |
-| TODOs                    | Left as-is (footer API, backend fields)                    |
-| Home + shared components | Documented as optional cleanup                             |
+| Category            | Action                                                                                |
+| ------------------- | ------------------------------------------------------------------------------------- |
+| Route bug           | Fixed (bilan-carbon `.js` → no extension)                                             |
+| Debug console       | Removed from audit-solaire, solar-audit, google-maps-input                            |
+| Routes comments     | Removed obsolete commented routes                                                     |
+| Environment         | .env + generate-env.js; Vercel uses NG*APP*\*                                         |
+| Unused components   | Removed approach-section, solar-simulator-section                                     |
+| Home + related      | Removed home, hero, feature-highlights, faq-section, simulators-section, feature-icon |
+| Old audit pages     | Removed audit-energetique; audit-solaire component (kept form.service + types)        |
+| Financing prerender | fetchLocations/fetchAdvantages only in browser                                        |
+| Commented blocks    | Left as requested                                                                     |
+| TODOs               | Left as-is (footer API, backend fields)                                               |
 
 The frontend is in a good state for merge and production deployment after you run a production build and any test suite you use.

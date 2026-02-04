@@ -140,7 +140,6 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
   ];
 
   constructor() {
-    this.financingService.fetchLocations().subscribe();
     effect(() => {
       const result = this.comparisonResult();
       const esco = result?.esco;
@@ -159,6 +158,8 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
     if (isPlatformBrowser(this.platformId)) {
       document.body.style.overflow = 'hidden';
       document.documentElement.style.overflow = 'hidden';
+      this.financingService.fetchLocations().subscribe();
+      this.financingService.fetchAdvantages().subscribe();
     }
     this.buildForm();
     this.form.valueChanges.subscribe(() => this.formUpdateTrigger.update((v) => v + 1));

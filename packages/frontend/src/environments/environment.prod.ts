@@ -1,6 +1,6 @@
+import { generatedEnv } from './environment.prod.generated';
+
 export const environment = {
   production: true,
-  apiUrl: '/api',
-  googleMapsApiKey: ''
+  ...generatedEnv,
 };
-

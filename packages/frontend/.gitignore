@@ -42,6 +42,10 @@ testem.log
 /typings
 __screenshots__/
 
+# Environment (use .env.example as template; Vercel uses same var names)
+.env
+.env.local
+
 # System files
 .DS_Store
 Thumbs.db
