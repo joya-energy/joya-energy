@@ -21,6 +21,16 @@ COPY tsconfig.base.json ./
 # Build backend (compiles backend + shared into packages/backend/dist)
 RUN npm run build:backend
 
+# Copy static assets (templates, CSS, images, JSON configs) that TypeScript doesn't copy
+WORKDIR /app/packages/backend
+RUN mkdir -p dist/packages/backend/src/modules/audit-energetique/template && \
+    mkdir -p dist/packages/backend/src/modules/audit-energetique/uploads && \
+    mkdir -p dist/packages/backend/src/modules/audit-solaire/config && \
+    cp -r src/modules/audit-energetique/template/* dist/packages/backend/src/modules/audit-energetique/template/ && \
+    cp -r src/modules/audit-energetique/uploads/* dist/packages/backend/src/modules/audit-energetique/uploads/ && \
+    cp src/modules/audit-solaire/config/*.json dist/packages/backend/src/modules/audit-solaire/config/ 2>/dev/null || true
+WORKDIR /app
+
 # --- Production stage ---
 FROM node:20-alpine AS runner
 
