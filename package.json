@@ -4,7 +4,7 @@
   "description": "JOYA Application Monorepo",
   "private": true,
   "engines": {
-    "node": ">=20.10.0",
+    "node": "20.x",
     "npm": ">=9.7.2"
   },
   "scripts": {
