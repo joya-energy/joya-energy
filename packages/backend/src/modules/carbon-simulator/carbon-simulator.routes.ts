@@ -5,10 +5,13 @@ import type { CarbonFootprintSummaryInput } from './helpers/carbon-footprint-sum
 
 export const carbonSimulatorRoutes = Router();
 
-/** Map sector key (e.g. OFFICE_ADMIN_BANK) to BuildingTypes value (label) for electricity extrapolation */
+/** Map sector key (e.g. OFFICE_ADMIN_BANK) to BuildingTypes value (label) for electricity extrapolation. Throws if unknown. */
 function sectorKeyToBuildingTypeLabel(key: string): string {
   const label = (BuildingTypes as Record<string, string>)[key];
-  return label ?? key;
+  if (label !== undefined) return label;
+  // Already a label (enum value)?
+  if (Object.values(BuildingTypes).includes(key as BuildingTypes)) return key;
+  throw new Error(`Unknown building type or sector key: ${key}`);
 }
 
 /**

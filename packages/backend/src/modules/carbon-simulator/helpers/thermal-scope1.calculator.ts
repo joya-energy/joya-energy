@@ -97,12 +97,15 @@ export interface ThermalScope1Result {
 
 /**
  * Helper: get r_th for a given building type
- * Falls back to a reasonable default if missing.
+ * Throws if building type is unknown (no default).
  */
 function getThermalRatio(buildingType: BuildingTypes): number {
-  // THERMAL_RATIO_BY_SECTOR keys match BuildingTypes keys
   const key = buildingType as unknown as keyof typeof THERMAL_RATIO_BY_SECTOR;
-  return THERMAL_RATIO_BY_SECTOR[key] ?? 0.15; // default similar to office
+  const value = THERMAL_RATIO_BY_SECTOR[key];
+  if (value === undefined) {
+    throw new Error(`Unknown building type for thermal ratio: buildingType=${buildingType}`);
+  }
+  return value;
 }
 
 /**

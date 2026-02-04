@@ -10,43 +10,32 @@
 
 
 
-<!-- ================= PAGE 1 — COVER ================= -->
+<!-- ================= PAGE 1 — COVER (full-page image as background, white text) ================= -->
 <div class="page cover-page">
 
-  <!-- HEADER / LOGO -->
+  <!-- FULL-PAGE BACKGROUND IMAGE -->
+  <div class="cover-bg">
+    <img src="data:image/jpeg;base64,{{pvcoverBase64}}" alt="" />
+  </div>
+
+  <!-- HEADER: logo + text left-aligned (white on image) -->
   <div class="cover-header">
-    <img
-      class="cover-logo"
-      src="data:image/png;base64,{{joyaLogoBase64}}"
-      alt="Joya"
-    />
+    <img class="cover-logo" src="data:image/png;base64,{{joyaLogoBase64}}" alt="Joya" />
     <div class="cover-meta">
-      <strong>Rapport photovoltaïque</strong><br />
-        {{companyName}}<br />
-         {{fullName}}
+      <span class="cover-tagline">Rapport photovoltaïque</span><br />
+      <strong class="cover-company">{{companyName}}</strong><br />
+      <span class="cover-fullname">{{fullName}}</span>
     </div>
   </div>
 
-  <!-- CENTER TITLE -->
-  <div class="cover-center">
-    <h1>Rapport d’étude technico-financière d’une installation photovoltaïque</h1>
-    <p>Rapport généré par JOYA Energy</p>
-    <p></p>
+  <!-- TITLE OVERLAY on the left -->
+  <div class="cover-title-overlay">
+    <h1 class="cover-title">Rapport d’étude technico-financière d’une installation photovoltaïque</h1>
   </div>
 
-
-
-  <!-- BIG IMAGE 
-  <div class="cover-image-big">
-    <img
-      src="data:image/jpeg;base64,{{pvcoverBase64}}"
-      alt="cover"
-    />
-  </div>
--->
-  <!-- FOOTER DATE -->
+  <!-- FOOTER: date text (white on image) -->
   <div class="cover-footer">
-    Rapport généré le {{auditDate}}
+    <span class="cover-footer-text">Rapport généré par JOYA Energy le {{auditDate}}</span>
   </div>
 
 </div>
@@ -105,12 +94,6 @@
 
       <div class="investment-header">
         <h3>Investissement</h3>
-
-        <img
-          class="investment-icon"
-          src="data:image/png;base64,{{investIconBase64}}"
-          alt="Investissement"
-        />
       </div>
       <span style="font-size: 1.2em; font-weight: bold; color: #021022;">{{capexTotal}} DT</span>
 
@@ -132,15 +115,8 @@
     <!-- RIGHT : MAINTENANCE -->
     <div class="investment-col maintenance">
             <div class="investment-header">
-
       <h3>Frais de maintenance</h3>
-              <img
-          class="investment-icon"
-          src="data:image/png;base64,{{iconEquipmentBase64}}"
-          alt="Investissement"
-        />
-        
- </div>
+      </div>
 
       <div class="maintenance-box">
         <div style="font-size: 1.2em; font-weight: bold; color: #021022; margin-top: 10px;">{{opexAnnual}} DT / an</div>
@@ -224,7 +200,7 @@
   <div class="page-content">
     <h1 class="section-title impact-section-title">Impact sur la facture</h1>
 
-
+    <div class="impact-bill-card">
     <div class="old-compare-grid">
 
       <!-- LEFT BLOCK -->
@@ -278,6 +254,7 @@
 
       </div>
 
+    </div>
     </div>
 
     <!-- ===============================

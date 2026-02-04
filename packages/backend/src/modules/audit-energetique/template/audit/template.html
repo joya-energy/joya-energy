@@ -11,49 +11,32 @@
 <body>
 
 
-<!-- ================= PAGE 1 — COVER ================= -->
+<!-- ================= PAGE 1 — COVER (full-page image as background, white text) ================= -->
 <div class="page cover-page">
 
-  <!-- HEADER / LOGO -->
+  <!-- FULL-PAGE BACKGROUND IMAGE -->
+  <div class="cover-bg">
+    <img src="data:image/jpeg;base64,{{heroImageBase64}}" alt="" />
+  </div>
+
+  <!-- HEADER: logo + text left-aligned (white on image) -->
   <div class="cover-header">
-    <img
-      class="cover-logo"
-      src="data:image/png;base64,{{joyaLogoBase64}}"
-      alt="Joya"
-    />
+    <img class="cover-logo" src="data:image/png;base64,{{joyaLogoBase64}}" alt="Joya" />
     <div class="cover-meta">
-      <strong>Rapport d’audit énergétique</strong><br />
-        {{companyName}}<br />
-         {{fullName}}
+      <span class="cover-tagline">Rapport d’audit énergétique</span><br />
+      <strong class="cover-company">{{companyName}}</strong><br />
+      <span class="cover-fullname">{{fullName}}</span>
     </div>
   </div>
 
-  <!-- CENTER TITLE -->
-  <div class="cover-center">
-    <h1>Simulation de votre Diagnostic de Performance Énergétique</h1>
-    <p>Rapport généré par JOYA Energy</p>
-    <p></p>
+  <!-- TITLE OVERLAY on the left -->
+  <div class="cover-title-overlay">
+    <h1 class="cover-title">Simulation de votre Diagnostic de Performance Énergétique</h1>
   </div>
 
-      <!-- METHODOLOGY -->
-      <div class="dpe-methodology">
-        Cette estimation repose sur un diagnostic préliminaire basé sur les
-        caractéristiques du bâtiment, son usage et les systèmes énergétiques
-        déclarés. Elle fournit une estimation fiable du niveau de performance
-        énergétique à partir des données recueillies.
-      </div>
-
-  <!-- BIG IMAGE -->
-  <div class="cover-image-big">
-    <img
-      src="data:image/jpeg;base64,{{heroImageBase64}}"
-      alt="Installation solaire"
-    />
-  </div>
-
-  <!-- FOOTER DATE -->
+  <!-- FOOTER: date text (white on image) -->
   <div class="cover-footer">
-    Rapport généré le {{auditDate}}
+    <span class="cover-footer-text">Rapport généré par JOYA Energy le {{auditDate}}</span>
   </div>
 
 </div>
