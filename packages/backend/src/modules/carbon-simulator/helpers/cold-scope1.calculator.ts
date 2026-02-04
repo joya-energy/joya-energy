@@ -94,10 +94,15 @@ export interface ColdScope1Result {
 
 /**
  * Helper: deduce ColdType from building type
+ * Throws if building type is unknown (no default).
  */
 function deduceColdType(buildingType: BuildingTypes): ColdType {
   const key = buildingType as unknown as keyof typeof COLD_TYPE_BY_SECTOR;
-  return COLD_TYPE_BY_SECTOR[key] ?? ColdType.COMFORT;
+  const value = COLD_TYPE_BY_SECTOR[key];
+  if (value === undefined) {
+    throw new Error(`Unknown building type for cold type: buildingType=${buildingType}`);
+  }
+  return value;
 }
 
 /**
@@ -129,9 +134,18 @@ export function calculateColdScope1(input: ColdScope1Input): ColdScope1Result {
 
   // D3 — Fuite annuelle estimée
   const baseLeakRate = params.annualLeakRate;
-  const cInt = INTENSITY_COEFFICIENTS[input.intensityLevel] ?? 1.0;
-  const cAge = AGE_COEFFICIENTS[input.equipmentAge] ?? 1.0;
-  const cMaint = MAINTENANCE_COEFFICIENTS[input.maintenanceStatus] ?? 1.0;
+  const cInt = INTENSITY_COEFFICIENTS[input.intensityLevel];
+  const cAge = AGE_COEFFICIENTS[input.equipmentAge];
+  const cMaint = MAINTENANCE_COEFFICIENTS[input.maintenanceStatus];
+  if (cInt === undefined) {
+    throw new Error(`Unknown intensity level: intensityLevel=${input.intensityLevel}`);
+  }
+  if (cAge === undefined) {
+    throw new Error(`Unknown equipment age: equipmentAge=${input.equipmentAge}`);
+  }
+  if (cMaint === undefined) {
+    throw new Error(`Unknown maintenance status: maintenanceStatus=${input.maintenanceStatus}`);
+  }
 
   const annualLeakKg = Number(
     (totalChargeKg * baseLeakRate * cInt * cAge * cMaint).toFixed(3),

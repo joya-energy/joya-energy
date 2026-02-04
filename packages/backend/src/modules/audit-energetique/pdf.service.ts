@@ -27,6 +27,9 @@ const IMAGE_COMPRESSION_QUALITY = 60;
 const MAX_IMAGE_WIDTH = 800;
 const MAX_IMAGE_HEIGHT = 600;
 
+/** Cover images are loaded at full quality (no compression or resize) */
+const COVER_IMAGE_FILES = ['cover.png', 'pv-cover.png'];
+
 type PDFInputDto =
   | AuditEnergetiqueResponseDto
   | AuditSolaireResponseDto;
@@ -63,6 +66,15 @@ export class AuditPDFService {
       images: new Map(),
     };
     this.assetsCacheReady = this.initializeAssetsCache();
+  }
+
+  /**
+   * Load a cover image at full quality (no compression or resize).
+   * Used for report cover images so they stay sharp in the PDF.
+   */
+  private loadCoverImage(imagePath: string): string {
+    const buffer = fs.readFileSync(imagePath);
+    return `data:image/png;base64,${buffer.toString('base64')}`;
   }
 
   /**
@@ -187,20 +199,24 @@ export class AuditPDFService {
         { file: 'invest.png', category: 'financial' },
       ];
 
-      // Compress all images in parallel for faster startup
+      // Load images: cover images at full quality, others compressed
       const compressionPromises = imageMapping.map(async ({ file, category }) => {
         const imagePath = path.join(uploadsDir, category, file);
-        if (fs.existsSync(imagePath)) {
+        if (!fs.existsSync(imagePath)) {
+          Logger.warn(`⚠️ Image file not found: ${category}/${file}`);
+          return;
+        }
+        if (COVER_IMAGE_FILES.includes(file)) {
+          this.assetsCache.images.set(file, this.loadCoverImage(imagePath));
+        } else {
           const compressedDataUri = await this.compressImage(imagePath);
           this.assetsCache.images.set(file, compressedDataUri);
-        } else {
-          Logger.warn(`⚠️ Image file not found: ${category}/${file}`);
         }
       });
 
       await Promise.all(compressionPromises);
 
-      Logger.info(`✅ Static assets cache initialized: ${this.assetsCache.templates.size} templates, ${this.assetsCache.css.size} CSS files, ${this.assetsCache.images.size} images (compressed)`);
+      Logger.info(`✅ Static assets cache initialized: ${this.assetsCache.templates.size} templates, ${this.assetsCache.css.size} CSS files, ${this.assetsCache.images.size} images (covers full quality, others compressed)`);
     } catch (error) {
       Logger.error(`❌ Failed to initialize static assets cache: ${String(error)}`);
       // Continue execution - will fall back to reading files on demand

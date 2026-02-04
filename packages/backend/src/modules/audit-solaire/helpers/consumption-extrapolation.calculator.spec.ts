@@ -1,12 +1,11 @@
 import { describe, it, expect } from '@jest/globals';
+import { BuildingTypes, ClimateZones } from '@shared/enums/audit-general.enum';
 import {
   extrapolateConsumption,
   calculateEffectiveCoefficient,
   calculateEnergyBase,
   extrapolateMonthlyConsumption,
   calculateAnnualConsumption,
-  BuildingTypes,
-  ClimateZones
 } from './consumption-extrapolation.calculator';
 
 describe('ConsumptionExtrapolationCalculator', () => {
@@ -18,7 +17,7 @@ describe('ConsumptionExtrapolationCalculator', () => {
 
     it('should calculate correct effective coefficient for cafe in center zone', () => {
       const result = calculateEffectiveCoefficient(7, BuildingTypes.CAFE_RESTAURANT, ClimateZones.CENTER);
-      expect(result).toBeCloseTo(1.96, 4); // 1.4 * 1.4 = 1.96
+      expect(result).toBeCloseTo(1.568, 4); // buildingCoeff(July,cafe) * climaticCoeff(July,center) = 1.4 * 1.12
     });
   });
 
@@ -74,7 +73,10 @@ describe('ConsumptionExtrapolationCalculator', () => {
       }
 
       const result = calculateAnnualConsumption(monthlyConsumptions);
-      const expected = monthlyConsumptions.reduce((sum, month) => sum + month.estimatedConsumption, 0);
+      const expected = monthlyConsumptions.reduce(
+        (sum: number, month: { estimatedConsumption: number }) => sum + month.estimatedConsumption,
+        0
+      );
       expect(result).toBeCloseTo(expected, 2);
     });
   });

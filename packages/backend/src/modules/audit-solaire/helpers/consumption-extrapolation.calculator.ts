@@ -26,9 +26,15 @@ export interface ConsumptionExtrapolationResult {
 }
 
 export function calculateEffectiveCoefficient(month: number, buildingType: BuildingTypes, climateZone: ClimateZones): number {
-    const monthName = SOLAR_SIMULATION_MONTHS[month - 1]; 
-    const buildingCoeff = BUILDING_TYPE_COEFFICIENTS[buildingType]?.[monthName] ?? 1;
-    const climaticCoeff = CLIMATIC_COEFFICIENTS[climateZone]?.[monthName] ?? 1;
+    const monthName = SOLAR_SIMULATION_MONTHS[month - 1];
+    const buildingCoeff = BUILDING_TYPE_COEFFICIENTS[buildingType]?.[monthName];
+    const climaticCoeff = CLIMATIC_COEFFICIENTS[climateZone]?.[monthName];
+    if (buildingCoeff === undefined) {
+        throw new Error(`Unknown building type or month: buildingType=${buildingType}, month=${month}`);
+    }
+    if (climaticCoeff === undefined) {
+        throw new Error(`Unknown climate zone or month: climateZone=${climateZone}, month=${month}`);
+    }
     return buildingCoeff * climaticCoeff;
 }
 
@@ -62,8 +68,14 @@ export function extrapolateMonthlyConsumption(
         const monthName = SOLAR_SIMULATION_MONTHS[monthIndex];
         Logger.info(`Month name: ${monthName}`);
 
-        const buildingCoeff = BUILDING_TYPE_COEFFICIENTS[buildingType]?.[monthName] ?? 1;
-        const climaticCoeff = CLIMATIC_COEFFICIENTS[climateZone]?.[monthName] ?? 1;
+        const buildingCoeff = BUILDING_TYPE_COEFFICIENTS[buildingType]?.[monthName];
+        const climaticCoeff = CLIMATIC_COEFFICIENTS[climateZone]?.[monthName];
+        if (buildingCoeff === undefined) {
+            throw new Error(`Unknown building type or month: buildingType=${buildingType}, month=${month}`);
+        }
+        if (climaticCoeff === undefined) {
+            throw new Error(`Unknown climate zone or month: climateZone=${climateZone}, month=${month}`);
+        }
         const effectiveCoeff = buildingCoeff * climaticCoeff;
         const estimatedConsumption = baseConsumption * effectiveCoeff;
 

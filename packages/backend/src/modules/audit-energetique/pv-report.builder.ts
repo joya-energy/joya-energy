@@ -40,7 +40,7 @@ export type PvReportData = {
 };
 
 // Constants
-const DEFAULT_CAPEX_PER_KWP = 2000;
+const DEFAULT_CAPEX_PER_KWP = 2250;
 const DEFAULT_ANNUAL_OPEX_RATE = 4;
 
 const round = (n: number, d = 2) =>
