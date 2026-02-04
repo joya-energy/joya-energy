@@ -70,8 +70,19 @@ const createApp = async (): Promise<http.Server> => {
     );
   });
 
-  // 1. CORS - Simplest permissive config for debugging
-  app.use(cors());
+  // 1. CORS - Allow frontend domains
+  app.use(cors({
+    origin: [
+      'http://localhost:4200',
+      'https://joya-energy.com',
+      'https://www.joya-energy.com',
+      'https://*.vercel.app',
+      /\.vercel\.app$/
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  }));
 
   // 3. Swagger Documentation
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
