@@ -1,0 +1,17 @@
+# Railway config for Joya Backend
+# https://docs.railway.app/reference/config-as-code
+
+[build]
+# Use Dockerfile for backend (monorepo root)
+builder = "dockerfile"
+dockerfilePath = "Dockerfile.backend"
+# Build context is repo root
+watchPatterns = ["packages/backend/**", "packages/shared/**", "package.json", "package-lock.json"]
+
+[deploy]
+# Railway sets PORT automatically; no need to override
+# Healthcheck: Railway probes the service; ensure your app listens on 0.0.0.0
+startCommand = ""
+# Restart policy is managed by Railway
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10

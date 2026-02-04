@@ -8,6 +8,7 @@
     "start": "npm run start:ts ./src/index.ts",
     "start:ts": "node -r ts-node/register -r tsconfig-paths/register",
     "build": "tsc -b ./tsconfig.app.json",
+    "start:prod": "node -r tsconfig-paths/register dist/packages/backend/src/index.js",
     "test": "jest --runInBand",
     "test:coverage": "jest --runInBand --coverage",
     "test:w": "jest --runInBand --detectOpenHandles --watch",
