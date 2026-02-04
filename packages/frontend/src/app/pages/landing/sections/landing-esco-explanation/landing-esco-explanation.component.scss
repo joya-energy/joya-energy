@@ -1,0 +1,500 @@
+// Exact match to React component: py-20 bg-white relative overflow-hidden esco-gradient-bg
+.esco-section {
+  position: relative;
+  padding: 80px 0; // py-20 = 5rem = 80px
+  background: #fff; // bg-white
+  overflow-x: hidden; // Prevent horizontal overflow
+  overflow-y: visible;
+  width: 100%;
+  max-width: 100vw; // Prevent overflow
+  box-sizing: border-box;
+}
+
+.esco-gradient-bg {
+  // Background gradient if needed - can be added here
+  // The React component uses this class but may not have visible gradient
+}
+
+// Decorative elements - exact match
+.esco-section__deco-1 {
+  position: absolute;
+  left: -128px; // -left-32 = -8rem = -128px
+  top: 25%; // top-1/4
+  width: 256px; // w-64 = 16rem = 256px
+  height: 256px; // h-64
+  border-radius: 999px; // rounded-full
+  background: var(--landing-primary-lightest); // bg-primary-lightest
+  opacity: 0.2; // opacity-20
+}
+
+.esco-section__deco-2 {
+  position: absolute;
+  right: -192px; // -right-48 = -12rem = -192px
+  bottom: 33.333%; // bottom-1/3
+  width: 384px; // w-96 = 24rem = 384px
+  height: 384px; // h-96
+  border-radius: 999px;
+  background: var(--landing-secondary-lightest); // bg-secondary-lightest
+  opacity: 0.3; // opacity-30
+}
+
+// container mx-auto px-4 relative z-10
+.esco-section__container {
+  max-width: 1400px; // Increased from 1280px for wider content
+  width: 100%;
+  margin: 0 auto; // mx-auto
+  padding: 0 12px; // Reduced from 16px (px-4) to 12px for less side margin
+  position: relative;
+  z-index: 10;
+  box-sizing: border-box;
+  overflow-x: hidden; // Prevent horizontal overflow
+
+  @media (min-width: 768px) {
+    padding: 0 20px; // Slightly more padding on tablets
+  }
+
+  @media (min-width: 1536px) {
+    max-width: 1500px; // Even wider on very large screens
+    padding: 0 24px; // More padding on very large screens
+  }
+}
+
+// text-center max-w-2xl mx-auto mb-16
+.esco-section__header {
+  text-align: center;
+  max-width: 1000px; // max-w-2xl = 42rem = 672px
+  margin: 0 auto 64px; // mx-auto mb-16 = 4rem = 64px
+}
+
+// text-3xl md:text-4xl font-bold mb-4 text-secondary-main
+.esco-section__title {
+  font-size: var(--landing-title-size-mobile); // Smaller on mobile
+  font-weight: var(--landing-font-bold); // font-bold
+  font-family: var(--landing-font-heading);
+  color: var(--landing-secondary); // text-secondary-main
+  margin-bottom: var(--landing-spacing-md); // mb-4 = 1rem = 16px
+
+  @media (min-width: 1024px) {
+    font-size: var(--landing-title-size); // 45px on desktop
+  }
+}
+.esco-section__title span {
+  color: var(--landing-primary);
+}
+
+// text-gray-600 text-lg mb-6
+.esco-section__subtitle {
+  color: var(--neutral-600); // text-gray-600 = #525252
+  font-size: var(--landing-text-lg); // text-lg = 1.125rem = 18px
+  font-family: var(--landing-font-body);
+  margin-bottom: var(--landing-spacing-lg); // mb-6 = 1.5rem = 24px
+}
+
+// esco-divider class - exact match
+.esco-section__divider {
+  width: 80px; // Match React divider width
+  height: 2px; // Match React divider height
+  background: linear-gradient(to right, var(--landing-primary-light), var(--landing-primary));
+  margin: 0 auto;
+  border-radius: 1px;
+}
+
+// grid grid-cols-1 lg:grid-cols-2 gap-12 items-center
+.esco-section__grid {
+  display: grid;
+  grid-template-columns: 1fr; // grid-cols-1
+  gap: 48px; // gap-12 = 3rem = 48px
+  align-items: center; // items-center
+
+  @media (min-width: 1024px) { // lg:
+    grid-template-columns: repeat(2, 1fr); // lg:grid-cols-2
+  }
+}
+
+// space-y-6
+.esco-section__text {
+  display: flex;
+  flex-direction: column;
+  gap: 24px; // space-y-6 = 1.5rem = 24px
+}
+
+// p-6 bg-gray-50 rounded-xl border border-gray-100 esco-card
+.esco-card {
+  // Card base styles (from global _cards.scss - card--landing-gray)
+  padding: var(--card-padding-md); // p-6 = 1.5rem = 24px
+  background: var(--neutral-50); // bg-gray-50 = #fafafa
+  border-radius: var(--landing-radius-lg); // rounded-xl = 0.75rem = 12px
+  border: 1px solid var(--neutral-100); // border border-gray-100 = #f5f5f5
+  box-shadow: var(--landing-shadow-md);
+  transition: transform var(--landing-transition-base), 
+              box-shadow var(--landing-transition-base),
+              background-color var(--landing-transition-base),
+              border-color var(--landing-transition-base);
+  
+  &:hover {
+    transform: translateY(var(--landing-hover-lift));
+    box-shadow: var(--landing-hover-shadow);
+    background: #fff;
+    border-color: var(--neutral-200);
+  }
+}
+
+// flex items-center text-xl font-semibold text-secondary-dark mb-3
+.esco-card__title {
+  display: flex;
+  align-items: center;
+  font-size: var(--landing-text-xl); // text-xl = 1.25rem = 20px
+  font-weight: var(--landing-font-semibold); // font-semibold
+  font-family: var(--landing-font-heading);
+  color: var(--landing-secondary-dark); // text-secondary-dark
+  margin-bottom: var(--landing-spacing-sm); // mb-3 = 0.75rem = 12px
+}
+
+.esco-card__icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 8px; // mr-2 = 0.5rem = 8px
+  color: var(--landing-primary);
+}
+
+// text-gray-600
+.esco-card__text {
+  color: var(--neutral-600); // text-gray-600
+  font-family: var(--landing-font-body);
+  font-size: var(--landing-text-base);
+  line-height: var(--line-height-relaxed);
+}
+
+.esco-highlight {
+  color: var(--landing-secondary);
+  font-weight: 600;
+}
+
+// text-gray-600 space-y-2
+.esco-card__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  color: var(--neutral-600);
+  display: flex;
+  flex-direction: column;
+  gap: 8px; // space-y-2 = 0.5rem = 8px
+}
+
+// flex items-start
+.esco-card__list-item {
+  display: flex;
+  align-items: flex-start;
+}
+
+.esco-card__check-icon {
+  width: 16px; // 1rem
+  height: 16px;
+  margin-top: 4px; // mt-1 = 0.25rem = 4px
+  margin-right: 8px; // mr-2
+  flex-shrink: 0;
+  color: var(--landing-primary);
+}
+
+// relative
+.esco-section__diagram {
+  position: relative;
+}
+
+.esco-chart-container {
+  // Card base styles (from global _cards.scss)
+  background: var(--landing-card-bg);
+  border: 1px solid var(--landing-card-border);
+  border-radius: var(--landing-radius-lg); // rounded-xl = 0.75rem = 12px
+  padding: var(--card-padding-md); // p-6 = 1.5rem = 24px
+  box-shadow: var(--landing-shadow-md);
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--landing-transition-base), 
+              box-shadow var(--landing-transition-base);
+  
+  &:hover {
+    transform: translateY(var(--landing-hover-lift));
+    box-shadow: var(--landing-hover-shadow);
+  }
+}
+
+// text-center text-lg font-semibold text-secondary-dark mb-4
+.esco-chart-title {
+  text-align: center;
+  font-size: 18px; // text-lg
+  font-weight: 600; // font-semibold
+  color: var(--landing-secondary-dark);
+  margin-bottom: 16px; // mb-4
+}
+
+.esco-chart-content {
+  display: flex;
+  gap: 12px; // gap-3 = 0.75rem = 12px
+  margin-bottom: 24px; // mb-6 = 1.5rem = 24px
+  flex-wrap: wrap; // Allow wrapping on smaller screens
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+
+  @media (min-width: 1024px) {
+    flex-wrap: nowrap; // Don't wrap on large screens - show all 4 items in a row
+  }
+}
+
+.esco-chart-column {
+  flex: 1 1 0; // Equal flex basis, can grow/shrink
+  min-width: 120px;
+  max-width: 180px;
+  width: auto;
+  
+  @media (min-width: 1024px) {
+    flex: 1 1 auto; // Equal distribution on large screens
+  }
+}
+
+// Exact match to React styles
+.esco-chart-header {
+  text-align: center;
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--landing-secondary-dark);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.esco-chart-graphic {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; // gap-2 = 0.5rem = 8px
+  width: 100%;
+}
+
+.esco-chart-section {
+  padding: 12px 8px;
+  border-radius: 8px; // rounded-lg = 0.5rem = 8px
+  text-align: center;
+  position: relative;
+  min-height: 65px; // Slightly taller for better proportions
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.esco-chart-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.esco-chart-sublabel {
+  display: block;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.esco-chart-bills-before {
+  background: #1e3a5f; // Dark blue - Facture initiale
+  color: #fff;
+}
+
+.esco-chart-installation-cost {
+  background: #10b981; // Green - Coût installation (0%)
+  color: #fff;
+}
+
+.esco-cost-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--landing-primary);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.esco-chart-esco {
+  background: #e37051; // Coral - ESCo finance 100%
+  color: #fff;
+  font-weight: 600;
+}
+
+.esco-chart-your-savings {
+  background: #e37051; // Coral - Vos économies
+  color: #fff;
+}
+
+.esco-chart-esco-share {
+  background: #f0a68a; // Lighter coral - Part ESCo
+  color: var(--landing-secondary-dark);
+}
+
+.esco-chart-bills-after {
+  background: #9ca3af; // Gray - Facture réduite (0%)
+  color: #fff;
+}
+
+.esco-chart-zero-bill {
+  position: relative;
+}
+
+.esco-reduction-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #10b981;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.esco-chart-your-savings-after {
+  background: #e37051; // Coral - Vos économies 100%
+  color: #fff;
+}
+
+.esco-chart-arrows {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px; // Spacing between arrows
+  padding: 20px 12px;
+  min-width: 140px;
+  max-width: 180px;
+  flex: 0 1 auto; // Can shrink but don't grow
+  align-self: stretch; // Match height of columns
+  
+  @media (min-width: 1024px) {
+    flex: 0 0 auto; // Fixed width on large screens
+    min-width: 150px;
+  }
+}
+
+.esco-chart-arrow-top,
+.esco-chart-arrow-middle,
+.esco-chart-arrow-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.esco-chart-svg {
+  width: 100%;
+  height: 24px;
+}
+
+.esco-chart-arrow-text {
+  font-size: 11px;
+  text-align: center;
+  color: var(--landing-secondary-dark);
+  line-height: 1.3;
+
+  p {
+    margin: 0;
+  }
+}
+
+.esco-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+  padding-top: 16px;
+  border-top: 1px solid var(--neutral-200);
+}
+
+.esco-chart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--neutral-600);
+}
+
+.esco-chart-legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+.esco-chart-bills-before-color {
+  background: #1e3a5f; // Dark blue
+}
+
+.esco-chart-installation-cost-color {
+  background: #10b981; // Green
+}
+
+.esco-chart-your-savings-color {
+  background: #e37051; // Coral
+}
+
+.esco-chart-esco-share-color {
+  background: #f0a68a; // Lighter coral
+}
+
+.esco-chart-bills-after-color {
+  background: #9ca3af; // Gray
+}
+
+// CTA integrated in chart card (similar to hero card)
+.esco-chart__cta {
+  border-top: 1px solid var(--neutral-200);
+  padding: 12px 20px;
+  background: var(--neutral-50);
+  margin-top: 24px;
+}
+
+.esco-chart__cta-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 16px;
+  font-family: var(--landing-font-body);
+  font-size: 14px;
+  font-weight: var(--landing-font-medium);
+  color: #fff;
+  background: linear-gradient(to right, var(--landing-primary), var(--landing-primary-dark));
+  border-radius: var(--landing-radius-md);
+  box-shadow: var(--landing-shadow-md);
+  transition: all var(--landing-transition-base);
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(to right, var(--landing-primary-dark), #c55537);
+    box-shadow: var(--landing-shadow-lg);
+    transform: translateY(-2px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--landing-primary);
+    outline-offset: 2px;
+  }
+}
+
+.esco-chart__cta-icon {
+  width: 16px;
+  height: 16px;
+}

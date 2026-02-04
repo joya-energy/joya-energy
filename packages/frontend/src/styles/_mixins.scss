@@ -1,0 +1,121 @@
+/**
+ * JOYA Design System - SCSS Mixins
+ */
+
+//   Responsive Breakpoints   
+
+@mixin mobile {
+  @media (max-width: 639px) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (min-width: 640px) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: 1024px) {
+    @content;
+  }
+}
+
+@mixin wide {
+  @media (min-width: 1280px) {
+    @content;
+  }
+}
+
+// --------------- Accessibility - Focus Visible ---------------
+
+@mixin focus-ring {
+  outline: 2px solid var(--teal-deep);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+@mixin focus-visible {
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// --------------- Layout - Flex Centering ---------------
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+//   Typography   
+
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin line-clamp($lines: 2) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: $lines;
+  overflow: hidden;
+}
+
+// Layout - Container
+
+@mixin container {
+  width: 100%;
+  max-width: 1600px; /* Changed from 1200px to 1600px */
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+
+  @include tablet {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  @include desktop {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+// Visual - Card
+
+@mixin card {
+  background: var(--bg-card);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  padding: 1.5rem;
+}
+
+// Animation - Transitions
+
+@mixin transition-all {
+  transition: all 0.2s ease-in-out;
+}
+
+@mixin transition-colors {
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+// Visual - Glassmorphism
+
+@mixin glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+

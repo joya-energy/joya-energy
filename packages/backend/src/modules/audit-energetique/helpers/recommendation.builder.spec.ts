@@ -6,7 +6,7 @@ import {
     DomesticHotWaterTypes
   } from '@shared/enums/audit-batiment.enum';
   import { EquipmentCategories, ExistingMeasures, LightingTypes } from '@shared/enums/audit-usage.enum';
-  import { EnergyTariffTypes } from '@shared/enums/audit-energetique.enum';
+  import { EnergyTariffTypes } from '@shared/enums/audit-energy-tariff';
   import {
     buildRecommendations,
     estimateSavingsPotential

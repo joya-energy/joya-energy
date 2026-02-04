@@ -6,7 +6,7 @@ import {
   CoolingSystemTypes
 } from '@shared/enums/audit-batiment.enum';
 import { EquipmentCategories, ExistingMeasures, LightingTypes } from '@shared/enums/audit-usage.enum';
-import { EnergyTariffTypes } from '@shared/enums/audit-energetique.enum';
+import { EnergyTariffTypes } from '@shared/enums/audit-energy-tariff';
 
 export interface RecommendationInput {
   lightingType: LightingTypes;

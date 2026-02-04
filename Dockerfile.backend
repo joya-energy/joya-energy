@@ -1,0 +1,47 @@
+# Joya Backend - Production image for Railway (or any Docker host)
+# Build from repo root: docker build -f Dockerfile.backend -t joya-backend .
+
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy workspace and package files
+COPY package.json package-lock.json* ./
+COPY packages/backend/package*.json packages/backend/
+COPY packages/shared/package*.json packages/shared/
+
+# Install all dependencies (including dev for build)
+RUN npm ci
+
+# Copy source
+COPY packages/shared packages/shared
+COPY packages/backend packages/backend
+COPY tsconfig.base.json ./
+
+# Build backend (compiles backend + shared into packages/backend/dist)
+RUN npm run build:backend
+
+# --- Production stage ---
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+# Path resolution for @shared and @backend at runtime
+ENV TS_NODE_PROJECT=tsconfig.runtime.json
+
+# Copy root package files and node_modules (includes tsconfig-paths for path resolution)
+COPY --from=builder /app/package.json /app/package-lock.json* ./
+COPY --from=builder /app/node_modules ./node_modules
+
+# Copy built backend (dist + runtime config) and shared package
+COPY --from=builder /app/packages/backend packages/backend
+COPY --from=builder /app/packages/shared packages/shared
+
+# Railway sets PORT; default for local Docker
+EXPOSE 3000
+
+WORKDIR /app/packages/backend
+
+# Run compiled backend with path resolution for @shared
+CMD ["node", "-r", "tsconfig-paths/register", "dist/packages/backend/src/index.js"]

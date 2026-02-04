@@ -1,0 +1,198 @@
+/**
+ * JOYA Design System - Card Components
+ * Global card styles for consistent UI across the application
+ */
+
+:root {
+  // Card spacing
+  --card-padding-sm: 16px;
+  --card-padding-md: 24px;
+  --card-padding-lg: 32px;
+  
+  // Card border radius
+  --card-radius-sm: 8px;
+  --card-radius-md: 12px;
+  --card-radius-lg: 16px;
+  
+  // Card shadows
+  --card-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --card-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --card-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --card-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  
+  // Card hover elevation
+  --card-hover-elevation: 8px;
+  --card-hover-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04);
+}
+
+// ========================================
+// Base Card
+// ========================================
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--card-radius-md);
+  padding: var(--card-padding-md);
+  box-shadow: var(--card-shadow-md);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--card-hover-shadow);
+  }
+}
+
+// ========================================
+// Card Variants
+// ========================================
+
+.card--elevated {
+  box-shadow: var(--card-shadow-lg);
+  
+  &:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--card-shadow-xl);
+  }
+}
+
+.card--flat {
+  box-shadow: none;
+  border: 1px solid var(--neutral-200);
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-shadow-sm);
+  }
+}
+
+.card--bordered {
+  border-width: 2px;
+  box-shadow: none;
+  
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--card-shadow-md);
+  }
+}
+
+// ========================================
+// Card Sizes
+// ========================================
+
+.card--sm {
+  padding: var(--card-padding-sm);
+  border-radius: var(--card-radius-sm);
+}
+
+.card--md {
+  padding: var(--card-padding-md);
+  border-radius: var(--card-radius-md);
+}
+
+.card--lg {
+  padding: var(--card-padding-lg);
+  border-radius: var(--card-radius-lg);
+}
+
+// ========================================
+// Card Content Areas
+// ========================================
+
+.card__header {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--neutral-200);
+}
+
+.card__title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.card__subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.card__body {
+  margin-bottom: 16px;
+}
+
+.card__footer {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--neutral-200);
+}
+
+// ========================================
+// Landing Page Specific Cards
+// ========================================
+
+.card--landing {
+  background: var(--landing-card-bg);
+  border-color: var(--landing-card-border);
+  border-radius: var(--card-radius-md);
+  padding: var(--card-padding-md);
+  box-shadow: var(--card-shadow-md);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--card-hover-shadow);
+  }
+}
+
+.card--landing-gray {
+  background: var(--neutral-50);
+  border-color: var(--neutral-100);
+  
+  &:hover {
+    background: #fff;
+    border-color: var(--neutral-200);
+  }
+}
+
+// ========================================
+// Card Icon Wrapper
+// ========================================
+
+.card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--landing-primary-lightest);
+  color: var(--landing-primary-dark);
+  margin-bottom: 12px;
+  transition: transform 0.3s ease;
+  
+  .card:hover & {
+    transform: scale(1.1);
+  }
+}
+
+// ========================================
+// Card List Items
+// ========================================
+
+.card__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  
+  .card__list-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 0;
+    
+    &:not(:last-child) {
+      border-bottom: 1px solid var(--neutral-100);
+    }
+  }
+}

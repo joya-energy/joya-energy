@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@backend/*": ["./dist/packages/backend/src/*"],
+      "@backend": ["./dist/packages/backend/src/index.js"],
+      "@backend/interfaces/*": ["./dist/packages/backend/src/interfaces/*"],
+      "@backend/interfaces": ["./dist/packages/backend/src/interfaces/index.js"],
+      "@shared/*": ["./dist/packages/shared/src/*"],
+      "@shared": ["./dist/packages/shared/src/index.js"]
+    }
+  },
+  "include": []
+}

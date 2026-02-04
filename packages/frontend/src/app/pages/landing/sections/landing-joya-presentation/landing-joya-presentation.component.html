@@ -1,0 +1,32 @@
+<section class="joya-presentation">
+  <div class="joya-presentation__container">
+    <div class="joya-presentation__header">
+      <app-landing-badge text="Présentation de la solution Joya" variant="secondary" />
+      <h2 class="joya-presentation__title">Toute votre transition solaire, en un <span>seul contrat</span></h2>
+    </div>
+
+    <div class="joya-presentation__cards">
+      @for (card of cards; track card.id) {
+        <div class="joya-card" [class.joya-card--featured]="card.isFeatured">
+          <div class="joya-card__icon-wrapper">
+            <ng-icon [name]="card.icon" class="joya-card__icon" />
+          </div>
+
+          <h3 class="joya-card__title">{{ card.title }}</h3>
+          <p class="joya-card__description">{{ card.description }}</p>
+
+          @if (card.isFeatured) {
+            <a [href]="card.ctaLink" class="joya-card__cta-btn joya-card__cta-btn--primary">
+              {{ card.ctaText }}
+            </a>
+          } @else {
+            <a [href]="card.ctaLink" class="joya-card__cta-link">
+              {{ card.ctaText }}
+              <ng-icon name="lucideArrowRight" class="joya-card__cta-icon" />
+            </a>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</section>

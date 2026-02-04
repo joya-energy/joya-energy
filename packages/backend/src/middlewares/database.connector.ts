@@ -17,11 +17,24 @@ export const dbConnectToPlatform = async (uri?: string): Promise<void> => {
     const regexResults = uri.match(/mongodb\+srv:\/\/[^:]+:([a-zA-Z0-9]+)@/);
     const password = regexResults != null && regexResults.length === 2 ? regexResults[1] : '';
     Logger.debug(`Database uri used: ${String(uri).replace(password, '********')}`);
+    Logger.debug(`running on port ${process.env.PORT}`);
   }
-  mongoose.connection.once('open', () => {});
+  mongoose.connection.once('open', () => {
+    Logger.info('Database connection opened');
+  });
   mongoose.connection.on('disconnected', () => Logger.info(`Disconnected`));
   mongoose.connection.on('connected', () => Logger.info(`Connected to database !`));
-  await mongoose.connect(uri).catch((err) => Logger.error(err));
+  mongoose.connection.on('error', (err) => {
+    Logger.error(`Database connection error: ${String(err)}`);
+  });
+  
+  try {
+    await mongoose.connect(uri);
+    Logger.info('Database connection established successfully');
+  } catch (err) {
+    Logger.error(`Failed to connect to database: ${String(err)}`);
+    throw err;
+  }
 };
 
 export const handleDataBaseConnection = async (router: Router): Promise<void> => {

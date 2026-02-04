@@ -1,16 +1,18 @@
-import { Router } from 'express';
+import asyncRouter from 'express-promise-router';
 import multer from 'multer';
 import { auditEnergetiqueSimulationController } from './audit-energetique.controller';
 import { billExtractionController } from './bill-extraction.controller';
+import { auditReportController } from './audit-report.controller';
+import { pvReportController } from './pv-report.controller';
 
-export const auditEnergetiqueSimulationRoutes = Router();
+export const auditEnergetiqueSimulationRoutes = asyncRouter();
 
 // Configure multer for memory storage (buffer access)
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  }
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
 });
 
 /**
@@ -21,39 +23,95 @@ const upload = multer({
  *       type: object
  *       properties:
  *         monthlyBillAmount:
- *           type: number
- *           description: Total amount to pay in TND
+ *           type: object
+ *           properties:
+ *             value:
+ *               type: number
+ *               description: Total amount to pay in TND
+ *             explanation:
+ *               type: string
+ *               description: Explanation of the value
  *         recentBillConsumption:
- *           type: number
- *           description: Total energy consumption in kWh
+ *           type: object
+ *           properties:
+ *             value:
+ *               type: number
+ *               description: Total energy consumption in kWh
+ *             explanation:
+ *               type: string
+ *               description: Explanation of the value
  *         periodStart:
- *           type: string
- *           format: date
- *           description: Start date of billing period
+ *           type: object
+ *           properties:
+ *             value:
+ *               type: string
+ *               format: date
+ *               description: Start date of billing period
+ *             explanation:
+ *               type: string
+ *               description: Explanation of the value
  *         periodEnd:
- *           type: string
- *           format: date
- *           description: End date of billing period
+ *           type: object
+ *           properties:
+ *             value:
+ *               type: string
+ *               format: date
+ *               description: End date of billing period
+ *             explanation:
+ *               type: string
+ *               description: Explanation of the value
  *         tariffType:
- *           type: string
- *           enum: [Basse Tension, Moyenne Tension, Haute Tension]
+ *           type: object
+ *           properties:
+ *             value:
+ *               type: string
+ *               enum: [Basse Tension, Moyenne Tension, Haute Tension]
+ *             explanation:
+ *               type: string
+ *               description: Explanation of the value
  *         contractedPower:
- *           type: number
- *           description: Contracted power in kVA
+ *           type: object
+ *           properties:
+ *             value:
+ *               type: number
+ *               description: Contracted power in kVA
+ *             explanation:
+ *               type: string
+ *               description: Explanation of the value
  *         address:
- *           type: string
- *           description: Extracted address
+ *           type: object
+ *           properties:
+ *             value:
+ *               type: string
+ *               description: Extracted address
+ *             explanation:
+ *               type: string
+ *               description: Explanation of the value
  *         clientName:
- *           type: string
- *           description: Extracted client name
+ *           type: object
+ *           properties:
+ *             value:
+ *               type: string
+ *               description: Extracted client name
+ *             explanation:
+ *               type: string
+ *               description: Explanation of the value
+ *         governorate:
+ *           type: object
+ *           properties:
+ *             value:
+ *               type: string
+ *               description: Extracted governorate
+ *             explanation:
+ *               type: string
+ *               description: Explanation of the value
  *         confidence:
  *           type: number
  *           description: Confidence score (0-1)
  *     CreateAuditEnergetiqueInput:
  *       type: object
  *       required:
- *         - firstName
- *         - lastName
+ *         - fullName
  *         - companyName
  *         - email
  *         - phoneNumber
@@ -77,19 +135,16 @@ const upload = multer({
  *         - hasRecentBill
  *         - lightingType
  *       properties:
- *         firstName:
+ *         fullName:
  *           type: string
- *           example: "Mohamed"
- *         lastName:
- *           type: string
- *           example: "Ben Ali"
+ *           example: "Mohamed Ben Ali"
  *         companyName:
  *           type: string
- *           example: "Pharmacie Centrale"
+ *           example: "Office Central"
  *         email:
  *           type: string
  *           format: email
- *           example: "contact@pharmacie.tn"
+ *           example: "contact@office.tn"
  *         phoneNumber:
  *           type: string
  *           example: "20123456"
@@ -102,8 +157,8 @@ const upload = multer({
  *           example: "Tunis"
  *         buildingType:
  *           type: string
- *           enum: ['Pharmacie', 'Café / Restaurant', 'Centre esthétique / Spa', 'Hôtel / Maison d’hôtes', 'Clinique / Centre médical', 'Bureau / Administration / Banque', 'Atelier léger / Artisanat / Menuiserie', 'Usine lourde / Mécanique / Métallurgie', 'Industrie textile / Emballage', 'Industrie alimentaire', 'Industrie plastique / Injection', 'Industrie agroalimentaire réfrigérée', 'École / Centre de formation']
- *           example: "Pharmacie"
+ *           enum: ['Café / Restaurant', 'Centre esthétique / Spa', 'Hôtel', 'Service Tertiaire', 'Clinique / Centre médical', 'Bureau / Administration / Banque', 'Atelier léger / Artisanat / Menuiserie', 'Usine lourde / Mécanique / Métallurgie', 'Industrie textile / Emballage', 'Industrie alimentaire', 'Industrie plastique / Injection', 'Industrie agroalimentaire réfrigérée', 'École / Centre de formation']
+ *           example: "Café / Restaurant"
  *         surfaceArea:
  *           type: number
  *           description: Surface area in m²
@@ -144,7 +199,7 @@ const upload = multer({
  *           example: "Nord"
  *         heatingSystem:
  *           type: string
- *           enum: ['Aucun chauffage', 'Chauffage électrique individuel', 'Chauffage par climatisation réversible', 'Chaudière gaz', 'Autre système de chauffage']
+ *           enum: ['Aucun chauffage', 'Chauffage électrique individuel', 'Chauffage par climatisation réversible', 'Chaudière gaz', 'Chaudiere électrique', 'Autre système de chauffage']
  *           example: "Chauffage par climatisation réversible"
  *         coolingSystem:
  *           type: string
@@ -166,8 +221,8 @@ const upload = multer({
  *           example: ["Éclairage", "Bureautique", "Froid commercial"]
  *         tariffType:
  *           type: string
- *           enum: ['Tarif basse tension', 'Tarif moyenne tension', 'Tarif haute tension']
- *           example: "Tarif basse tension"
+ *           enum: ['Basse Tension', 'Moyenne Tension', 'Haute Tension']
+ *           example: "Basse Tension"
  *         contractedPower:
  *           type: number
  *           description: Contracted power in kVA
@@ -195,8 +250,8 @@ const upload = multer({
  *           example: ["LED"]
  *         lightingType:
  *           type: string
- *           enum: ['LED', 'Fluocompacte', 'Halogène', 'Incandescent']
- *           example: "Fluocompacte"
+ *           enum: ['Éclairage LED', 'Tubes fluorescents', 'Ampoules classiques']
+ *           example: "Éclairage LED"
  *
  *     AuditEnergetiqueResponse:
  *       type: object
@@ -261,6 +316,27 @@ const upload = multer({
  *                     becth:
  *                       type: number
  *                       example: 85
+ *                 carbonClassification:
+ *                   type: object
+ *                   properties:
+ *                     class:
+ *                       type: string
+ *                       example: "B"
+ *                     intensity:
+ *                       type: number
+ *                       example: 22.5
+ *                     unit:
+ *                       type: string
+ *                       example: "kgCO2/m².an"
+ *                     totalElecKg:
+ *                       type: number
+ *                       example: 3200.5
+ *                     totalGasKg:
+ *                       type: number
+ *                       example: 1200.3
+ *                     totalKg:
+ *                       type: number
+ *                       example: 4400.8
  */
 
 /**
@@ -306,10 +382,111 @@ const upload = multer({
  *       500:
  *         description: Extraction failed
  */
+// Remove inline logs to keep code clean after debugging
 auditEnergetiqueSimulationRoutes.post(
   '/extract-bill-data',
   upload.single('billImage'),
   billExtractionController.extractBillData
+);
+
+/**
+ * @swagger
+ * /audit-energetique-simulations/full-upload:
+ *   post:
+ *     summary: Upload a bill and create a simulation in one step
+ *     tags: [Audit Simulation]
+ *     description: Uploads an image/PDF (STEG bill), extracts data using AI, merges with provided fields, and creates the energy simulation.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               billImage:
+ *                 type: string
+ *                 format: binary
+ *                 description: The image or PDF file of the bill (JPG/PNG/PDF)
+ *               fullName:
+ *                 type: string
+ *               companyName:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               phoneNumber:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               governorate:
+ *                 type: string
+ *                 enum: [Tunis, Ariana, Ben Arous, Manouba, Bizerte, Béja, Jendouba, Kairouan, Kasserine, Médenine, Monastir, Nabeul, Sfax, Sousse, Tataouine, Tozeur, Zaghouan, Siliana, Le Kef, Mahdia, Sidi Bouzid, Gabès, Gafsa]
+ *               buildingType:
+ *                 type: string
+ *                 enum: [ 'Café / Restaurant', 'Centre esthétique / Spa', 'Hôtel', 'Service Tertiaire', 'Clinique / Centre médical', 'Bureau / Administration / Banque', 'Atelier léger / Artisanat / Menuiserie', 'Usine lourde / Mécanique / Métallurgie', 'Industrie textile / Emballage', 'Industrie alimentaire', 'Industrie plastique / Injection', 'Industrie agroalimentaire réfrigérée', 'École / Centre de formation']
+ *               surfaceArea:
+ *                 type: number
+ *               floors:
+ *                 type: integer
+ *               activityType:
+ *                 type: string
+ *               openingDaysPerWeek:
+ *                 type: number
+ *               openingHoursPerDay:
+ *                 type: number
+ *               insulation:
+ *                 type: string
+ *               glazingType:
+ *                 type: string
+ *               ventilation:
+ *                 type: string
+ *               climateZone:
+ *                 type: string
+ *               heatingSystem:
+ *                 type: string
+ *               coolingSystem:
+ *                 type: string
+ *               conditionedCoverage:
+ *                 type: string
+ *               domesticHotWater:
+ *                 type: string
+ *               equipmentCategories:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               tariffType:
+ *                 type: string
+ *                 enum: ['Basse Tension', 'Moyenne Tension', 'Haute Tension']
+ *               contractedPower:
+ *                 type: number
+ *               monthlyBillAmount:
+ *                 type: number
+ *               hasRecentBill:
+ *                 type: boolean
+ *               recentBillConsumption:
+ *                 type: number
+ *               existingMeasures:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               lightingType:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Simulation created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuditEnergetiqueResponse'
+ *       400:
+ *         description: Validation error or missing fields
+ *       500:
+ *         description: Server error
+ */
+auditEnergetiqueSimulationRoutes.post(
+  '/full-upload',
+  upload.single('billImage'),
+  auditEnergetiqueSimulationController.createSimulationWithBill
 );
 
 /**
@@ -337,7 +514,10 @@ auditEnergetiqueSimulationRoutes.post(
  *       500:
  *         description: Server error
  */
-auditEnergetiqueSimulationRoutes.post('/', auditEnergetiqueSimulationController.createSimulation);
+auditEnergetiqueSimulationRoutes.post(
+  '/',
+  auditEnergetiqueSimulationController.createSimulation
+);
 
 /**
  * @swagger
@@ -362,6 +542,233 @@ auditEnergetiqueSimulationRoutes.post('/', auditEnergetiqueSimulationController.
  *       404:
  *         description: Simulation not found
  */
-auditEnergetiqueSimulationRoutes.get('/:id', auditEnergetiqueSimulationController.getSimulationById);
+auditEnergetiqueSimulationRoutes.get(
+  '/:id',
+  auditEnergetiqueSimulationController.getSimulationById
+);
 
-auditEnergetiqueSimulationRoutes.delete('/:id', auditEnergetiqueSimulationController.deleteSimulation);
+auditEnergetiqueSimulationRoutes.delete(
+  '/:id',
+  auditEnergetiqueSimulationController.deleteSimulation
+);
+
+// ------------------------------------------
+// NEW ROUTE: Generate & send audit PDF
+// ------------------------------------------
+/**
+ * @swagger
+ * /audit-energetique-simulations/send-pdf:
+ *   post:
+ *     summary: Generate PDF for an audit simulation and send it by email
+ *     tags: [Audit Simulation]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               simulationId:
+ *                 type: string
+ *                 example: "6936dfef12308673de825e02"
+ *     responses:
+ *       200:
+ *         description: PDF generated and sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 simulationId:
+ *                   type: string
+ *       400:
+ *         description: simulationId missing
+ *       404:
+ *         description: Simulation not found
+ *       500:
+ *         description: PDF generation or email sending failed
+ */
+auditEnergetiqueSimulationRoutes.post('/send-pdf', (req, res) =>
+  auditReportController.sendAuditReport(req, res)
+);
+
+/**
+ * @swagger
+ * /audit-energetique-simulations/download-pdf:
+ *   post:
+ *     summary: Generate and download audit report PDF directly
+ *     tags: [Audit Simulation]
+ *     description: Generates an audit report PDF and triggers a browser download. The PDF is also automatically saved to Google Cloud Storage.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               simulationId:
+ *                 type: string
+ *                 example: "6936dfef12308673de825e02"
+ *     responses:
+ *       200:
+ *         description: PDF generated and ready for download
+ *         content:
+ *           application/pdf:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       400:
+ *         description: simulationId missing
+ *       404:
+ *         description: Simulation not found
+ *       500:
+ *         description: PDF generation failed
+ */
+auditEnergetiqueSimulationRoutes.post('/download-pdf', (req, res) =>
+  auditReportController.generateAuditReportPDF(req, res)
+);
+
+// ------------------------------------------
+// NEW ROUTE: Generate & send PV report PDF
+// ------------------------------------------
+/**
+ * @swagger
+ * /audit-energetique-simulations/send-pv-pdf:
+ *   post:
+ *     summary: Generate PV (photovoltaic) report and send it by email
+ *     tags: [Audit Simulation]
+ *     description: |
+ *       **IMPORTANT:** PV reports require Audit Solaire data for PV calculations.
+ *
+ *       **Data Sources:**
+ *       - **solaireId (REQUIRED)**: Audit Solaire simulation ID - provides PV power, production, yield, financial metrics (NPV, IRR, ROI, payback), monthlyEconomics (12 months), and annualEconomics (25 years)
+ *       - **energetiqueId (OPTIONAL but recommended)**: Audit Energetique simulation ID - provides CO₂ emissions data and contact information
+ *
+ *       **Best Practice:** Provide both IDs for a complete report:
+ *       - solaireId → PV calculations, financial metrics, monthly/annual economics data
+ *       - energetiqueId → CO₂ data, contact info, building details
+ *
+ *       **Requirements:**
+ *       - The solaire simulation must have completed economic analysis (annualEconomics or monthlyEconomics data)
+ *       - If annualEconomics is missing, the system will attempt to recalculate from monthlyEconomics
+ *       - If both are missing, the request will fail with a clear error message
+ *
+ *       **Note:** If only energetiqueId is provided, PV values will be 0 (no PV calculations available).
+ *       If only solaireId is provided, CO₂ values will be estimated and contact info may be incomplete.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               solaireId:
+ *                 type: string
+ *                 description: Audit Solaire simulation ID (REQUIRED for PV calculations - provides power, production, financial metrics). Either solaireId or energetiqueId must be provided.
+ *                 example: "69539fae7d92e87c2930f85e"
+ *               energetiqueId:
+ *                 type: string
+ *                 description: Audit Energetique simulation ID (OPTIONAL but recommended - provides CO₂ emissions and contact info). For complete report, provide both solaireId and energetiqueId.
+ *                 example: "695268f9f6dcdc59f2c82461"
+ *               simulationId:
+ *                 type: string
+ *                 description: Legacy support - will try to find in Audit Solaire first, then Energetique. Prefer using solaireId/energetiqueId instead.
+ *                 example: "69539fae7d92e87c2930f85e"
+ *     responses:
+ *       200:
+ *         description: PV report generated and sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "PV PDF generated and sent successfully"
+ *                 email:
+ *                   type: string
+ *                   example: "hello@joya-energy.com"
+ *                 solaireId:
+ *                   type: string
+ *                   example: "69539fae7d92e87c2930f85e"
+ *                 energetiqueId:
+ *                   type: string
+ *                   example: "695268f9f6dcdc59f2c82461"
+ *       400:
+ *         description: |
+ *           Bad request. Possible reasons:
+ *           - Either solaireId or energetiqueId (or legacy simulationId) is required
+ *           - Email address is missing (provide energetiqueId to get contact info automatically)
+ *           - Solar audit simulation is missing required economics data (annualEconomics or monthlyEconomics)
+ *           - Solar audit simulation is missing required financial metrics (NPV, IRR, ROI, payback periods)
+ *       404:
+ *         description: Simulation not found (solaireId or energetiqueId does not exist)
+ *       500:
+ *         description: PV PDF generation or email sending failed (check server logs for details)
+ */
+auditEnergetiqueSimulationRoutes.post('/send-pv-pdf', (req, res) =>
+  pvReportController.sendPVReport(req, res)
+);
+
+// ------------------------------------------
+// NEW ROUTE: Download PV report PDF directly
+// ------------------------------------------
+/**
+ * @swagger
+ * /audit-energetique-simulations/download-pv-pdf:
+ *   post:
+ *     summary: Generate and download PV (photovoltaic) report PDF
+ *     tags: [Audit Simulation]
+ *     description: |
+ *       Generates a PV report PDF and triggers a browser download. The PDF is also automatically saved to Google Cloud Storage.
+ *
+ *       **Data Sources:**
+ *       - **solaireId (REQUIRED)**: Audit Solaire simulation ID - provides PV power, production, yield, financial metrics
+ *       - **energetiqueId (OPTIONAL)**: Audit Energetique simulation ID - provides CO₂ emissions data
+ *
+ *       **Requirements:**
+ *       - The solaire simulation must have completed economic analysis (annualEconomics or monthlyEconomics data)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               solaireId:
+ *                 type: string
+ *                 description: Audit Solaire simulation ID (REQUIRED for PV calculations)
+ *                 example: "69539fae7d92e87c2930f85e"
+ *               energetiqueId:
+ *                 type: string
+ *                 description: Audit Energetique simulation ID (OPTIONAL - provides CO₂ emissions data)
+ *                 example: "695268f9f6dcdc59f2c82461"
+ *               simulationId:
+ *                 type: string
+ *                 description: Legacy support - will try to find in Audit Solaire first, then Energetique
+ *     responses:
+ *       200:
+ *         description: PDF generated and returned as download
+ *         content:
+ *           application/pdf:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       400:
+ *         description: |
+ *           Bad request. Possible reasons:
+ *           - Either solaireId or energetiqueId (or legacy simulationId) is required
+ *           - Solar audit simulation is missing required economics data
+ *           - Solar audit simulation is missing required financial metrics (NPV, IRR, ROI, Payback periods)
+ *       404:
+ *         description: Simulation not found (solaireId or energetiqueId does not exist)
+ *       500:
+ *         description: PV PDF generation failed (check server logs for details)
+ */
+auditEnergetiqueSimulationRoutes.post('/download-pv-pdf', (req, res) =>
+  pvReportController.downloadPVReportPDF(req, res)
+);

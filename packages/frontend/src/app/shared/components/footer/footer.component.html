@@ -1,0 +1,159 @@
+@if (isVisible()) {
+<footer class="footer" aria-labelledby="footer-heading">
+  <h2 id="footer-heading" class="sr-only">Footer</h2>
+
+  <!-- Newsletter signup -->
+  <div class="footer-newsletter">
+    <div class="footer-newsletter-container">
+      <div class="newsletter-content">
+        <div class="newsletter-text">
+          <h3 class="newsletter-title">Restez informé</h3>
+          <p class="newsletter-description">
+            Recevez nos dernières actualités, conseils sur l'énergie solaire et opportunités de
+            financement adaptées aux entreprises.
+          </p>
+        </div>
+        <div class="newsletter-form-wrapper">
+          <form (ngSubmit)="handleSubmit($event)" class="newsletter-form">
+            <input
+              type="email"
+              name="email"
+              [value]="email()"
+              (input)="email.set($any($event.target).value)"
+              placeholder="Votre email professionnel"
+              class="newsletter-input"
+              required
+              [disabled]="isSubmitting()"
+            />
+            <button
+              type="submit"
+              class="newsletter-button"
+              [class.newsletter-button--disabled]="isSubmitting()"
+              [disabled]="isSubmitting()"
+            >
+              {{ isSubmitting() ? 'En cours...' : "S'inscrire" }}
+            </button>
+          </form>
+          @if (submitStatus()) {
+          <p
+            class="newsletter-status"
+            [class.newsletter-status--success]="submitStatus()?.type === 'success'"
+            [class.newsletter-status--error]="submitStatus()?.type === 'error'"
+          >
+            {{ submitStatus()?.message }}
+          </p>
+          } @else {
+          <p class="newsletter-disclaimer">
+            Nous respectons votre vie privée. Désabonnez-vous à tout moment.
+          </p>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Footer Content -->
+  <div class="footer-main">
+    <div class="footer-main-container">
+      <div class="footer-grid">
+        <!-- Company Info -->
+        <div class="footer-company">
+          <a routerLink="/" class="footer-logo-link">
+            <img src="/logo_big.webp" alt="JOYA Energy" class="footer-logo-image" />
+          </a>
+          <p class="footer-company-description">
+            Solutions d'énergie durable pour les entreprises grâce à des mécanismes de financement
+            innovants.
+          </p>
+          <div class="footer-social-links">
+            @for (item of navigation.social; track item.name) {
+            <a
+              [href]="item.href"
+              class="footer-social-link"
+              [attr.aria-label]="item.name"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span class="sr-only">{{ item.name }}</span>
+              <ng-icon [name]="item.icon" class="footer-social-icon" aria-hidden="true"></ng-icon>
+            </a>
+            }
+          </div>
+        </div>
+
+        <!-- Footer Columns -->
+        <div class="footer-columns">
+          <div class="footer-column-group">
+            <div class="footer-column">
+              <h3 class="footer-column-title">Solutions</h3>
+              <ul class="footer-links" role="list">
+                @for (item of navigation.solutions; track item.href) {
+                <li>
+                  <a [href]="item.href" class="footer-link">
+                    {{ item.name }}
+                  </a>
+                </li>
+                }
+              </ul>
+            </div>
+            <div class="footer-column">
+              <h3 class="footer-column-title">Support</h3>
+              <ul class="footer-links" role="list">
+                @for (item of navigation.support; track item.href) {
+                <li>
+                  <a [href]="item.href" class="footer-link">
+                    {{ item.name }}
+                  </a>
+                </li>
+                }
+              </ul>
+            </div>
+          </div>
+          <div class="footer-column-group">
+            <!-- <div class="footer-column">
+                <h3 class="footer-column-title">Entreprise</h3>
+                <ul class="footer-links" role="list">
+                  @for (item of navigation.company; track item.href) {
+                    <li>
+                      <a 
+                        [href]="item.href" 
+                        class="footer-link"
+                      >
+                        {{ item.name }}
+                      </a>
+                    </li>
+                  }
+                </ul>
+              </div> -->
+            <div class="footer-column">
+              <h3 class="footer-column-title">Mentions légales</h3>
+              <ul class="footer-links" role="list">
+                @for (item of navigation.legal; track item.href) {
+                <li>
+                  <a [href]="item.href" class="footer-link">
+                    {{ item.name }}
+                  </a>
+                </li>
+                }
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Bottom -->
+  <div class="footer-bottom">
+    <div class="footer-bottom-container">
+      <div class="footer-bottom-content">
+        <p class="footer-copyright">&copy; {{ currentYear }} Joya. Tous droits réservés.</p>
+        <div class="footer-bottom-links">
+          <a routerLink="/privacy" class="footer-bottom-link"> Politique de confidentialité </a>
+          <a routerLink="/data-policy" class="footer-bottom-link"> Politique de données </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+}

@@ -1,0 +1,55 @@
+<div class="content-page">
+  <main class="content-page__main">
+    <nav class="content-page__sidebar" aria-label="Sommaire">
+      <p class="content-page__sidebar-title">Sur cette page</p>
+      <ul class="content-page__nav">
+        @for (item of faqItems; track item.question; let i = $index) {
+        <li>
+          <a href="#faq-{{ i }}" (click)="scrollToSection($event, 'faq-' + i)"
+            >{{ i + 1 }}. {{ item.question }}</a
+          >
+        </li>
+        }
+      </ul>
+    </nav>
+    <div class="content-page__content">
+      <div class="content-page__container">
+        <nav class="content-page__top">
+          <a routerLink="/" class="content-page__back-link">
+            <span class="content-page__back-arrow" aria-hidden="true">←</span>
+            Retour à l'accueil
+          </a>
+        </nav>
+        <header class="content-page__header">
+          <h1 class="content-page__title">FAQ</h1>
+          <p class="content-page__meta">Questions fréquentes – JOYA Energy</p>
+        </header>
+
+        <div class="content-page__body">
+          <p class="content-page__intro">
+            Retrouvez les réponses aux questions les plus fréquentes sur nos solutions énergétiques,
+            le solaire, l'audit énergétique et la plateforme Joya.
+          </p>
+
+          <div class="faq-list">
+            @for (item of faqItems; track item.question; let i = $index) {
+            <div class="faq-item" [id]="'faq-' + i">
+              <h2 class="faq-item__question">{{ item.question }}</h2>
+              <p class="faq-item__answer">{{ item.answer }}</p>
+            </div>
+            }
+          </div>
+
+          <p class="content-page__back">
+            <a routerLink="/" class="content-page__btn content-page__btn--outline"
+              >Retour à l'accueil</a
+            >
+            <a routerLink="/contact" class="content-page__btn content-page__btn--primary"
+              >Une autre question ? Contactez-nous</a
+            >
+          </p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

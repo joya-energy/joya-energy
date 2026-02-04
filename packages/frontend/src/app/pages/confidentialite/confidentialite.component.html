@@ -1,0 +1,120 @@
+<div class="content-page">
+  <main class="content-page__main">
+    <nav class="content-page__sidebar" aria-label="Sommaire">
+      <p class="content-page__sidebar-title">Sur cette page</p>
+      <ul class="content-page__nav">
+        <li>
+          <a href="#responsable" (click)="scrollToSection($event, 'responsable')"
+            >1. Responsable du traitement</a
+          >
+        </li>
+        <li>
+          <a href="#donnees-collectees" (click)="scrollToSection($event, 'donnees-collectees')"
+            >2. Données collectées</a
+          >
+        </li>
+        <li>
+          <a href="#finalites" (click)="scrollToSection($event, 'finalites')"
+            >3. Finalités du traitement</a
+          >
+        </li>
+        <li>
+          <a href="#base-legale" (click)="scrollToSection($event, 'base-legale')"
+            >4. Base légale et conservation</a
+          >
+        </li>
+        <li>
+          <a href="#vos-droits" (click)="scrollToSection($event, 'vos-droits')">5. Vos droits</a>
+        </li>
+        <li>
+          <a href="#securite-partage" (click)="scrollToSection($event, 'securite-partage')"
+            >6. Sécurité et partage</a
+          >
+        </li>
+      </ul>
+    </nav>
+    <div class="content-page__content">
+      <div class="content-page__container">
+        <nav class="content-page__top">
+          <a routerLink="/" class="content-page__back-link">
+            <span class="content-page__back-arrow" aria-hidden="true">←</span>
+            Retour à l'accueil
+          </a>
+        </nav>
+        <header class="content-page__header">
+          <h1 class="content-page__title">Confidentialité</h1>
+          <p class="content-page__meta">Politique de confidentialité – JOYA Energy</p>
+          <p class="content-page__updated">Dernière mise à jour : à définir</p>
+        </header>
+
+        <div class="content-page__body prose">
+          <p>
+            JOYA Energy (« nous », « notre ») s’engage à protéger la vie privée des visiteurs de son
+            site et des utilisateurs de ses services. Cette politique décrit comment nous
+            collectons, utilisons et protégeons vos données personnelles dans le cadre de nos
+            solutions énergétiques (solaire, audit énergétique, plateforme digitale).
+          </p>
+
+          <h2 id="responsable">1. Responsable du traitement</h2>
+          <p>
+            Le responsable du traitement des données est JOYA Energy. Pour toute question relative à
+            vos données personnelles, vous pouvez nous contacter via la page Contact ou à l’adresse
+            indiquée sur le site.
+          </p>
+
+          <h2 id="donnees-collectees">2. Données collectées</h2>
+          <p>Nous pouvons collecter les données suivantes :</p>
+          <ul>
+            <li>Données d’identification (nom, prénom, email, téléphone, entreprise)</li>
+            <li>Données relatives à votre projet (consommation, site, objectifs énergétiques)</li>
+            <li>
+              Données de navigation (adresse IP, cookies, pages visitées) dans le respect des
+              réglages de votre navigateur
+            </li>
+          </ul>
+
+          <h2 id="finalites">3. Finalités du traitement</h2>
+          <p>Vos données sont utilisées pour :</p>
+          <ul>
+            <li>Répondre à vos demandes de contact et de démonstration</li>
+            <li>
+              Réaliser des simulations (audit solaire, audit énergétique) et vous envoyer les
+              résultats
+            </li>
+            <li>
+              Gérer la relation client et le suivi de la performance énergétique lorsque vous
+              souscrivez à nos services
+            </li>
+            <li>
+              Améliorer notre site et nos services (analyses agrégées, sans identification directe)
+            </li>
+          </ul>
+
+          <h2 id="base-legale">4. Base légale et conservation</h2>
+          <p>
+            Le traitement repose sur votre consentement, l’exécution de contrats ou nos intérêts
+            légitimes (prospection, amélioration des services), dans le respect des textes en
+            vigueur. Les données sont conservées pendant la durée nécessaire à ces finalités puis
+            archivées ou supprimées selon les obligations légales.
+          </p>
+
+          <h2 id="vos-droits">5. Vos droits</h2>
+          <p>
+            Vous disposez d’un droit d’accès, de rectification, d’effacement, de limitation du
+            traitement et, le cas échéant, de portabilité de vos données. Vous pouvez vous opposer
+            au traitement ou retirer votre consentement. Pour exercer ces droits ou déposer une
+            réclamation auprès de l’autorité compétente, contactez-nous via la page Contact.
+          </p>
+
+          <h2 id="securite-partage">6. Sécurité et partage</h2>
+          <p>
+            Nous mettons en œuvre des mesures techniques et organisationnelles pour protéger vos
+            données. Elles ne sont partagées qu’avec des prestataires strictement nécessaires
+            (hébergement, envoi d’emails, outils de relation client) et dans le cadre de garanties
+            appropriées.
+          </p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

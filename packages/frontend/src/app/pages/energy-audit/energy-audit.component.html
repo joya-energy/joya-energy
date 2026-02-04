@@ -1,0 +1,276 @@
+<div class="energy-audit-page">
+  <div class="energy-audit-container">
+    <!-- Sidebar with Step Progress -->
+    <aside class="simulator-sidebar">
+      <div class="sidebar-steps">
+        @for (step of steps; track step.number) {
+          <div 
+            class="sidebar-step-item" 
+            [class.active]="currentStep() === step.number"
+            [class.clickable]="isStepClickable(step.number) && !step.isResult"
+            [class.disabled]="!isStepClickable(step.number) && !step.isResult"
+            (click)="!step.isResult && goToStep(step.number)">
+            @if (!step.isResult) {
+              <app-ui-progress-bar
+                [step]="step.number"
+                [title]="step.title"
+                [progress]="stepProgress()[step.number]"
+                [completed]="stepProgress()[step.number] === 100"
+                [isFocused]="currentStep() === step.number"
+                class="sidebar-progress-bar">
+              </app-ui-progress-bar>
+            } @else {
+              <!-- Result step - matches progress bar layout but without progress bar -->
+              <div class="sidebar-result-step" [class.active]="currentStep() === step.number" [class.disabled]="true">
+                <div class="sidebar-result-step-left">
+                  <div 
+                    class="sidebar-step-circle result"
+                    [class.active]="currentStep() === step.number">
+                    <span class="step-number">{{ step.number }}</span>
+                  </div>
+                </div>
+                <div class="sidebar-result-step-right">
+                  <h3 class="sidebar-step-title">{{ step.title }}</h3>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="simulator-main">
+      <!-- Fixed Timeline Header -->
+      <div class="form-timeline-header">
+        <div class="step-progress-header">
+          <span class="step-indicator">Étape {{ currentStep() }} sur {{ steps.length }}</span>
+          <span class="step-completion">Progression: {{ overallProgress() }}%</span>
+        </div>
+        <app-ui-step-timeline
+          [currentStep]="currentStep()"
+          [totalSteps]="steps.length">
+        </app-ui-step-timeline>
+      </div>
+
+      <!-- Scrollable Step Content Area -->
+      <div class="form-content-scrollable">
+        <div class="form-content">
+          <!-- Dynamic Step Content - Unique div that changes per step -->
+          <div 
+            class="step-content" 
+            [attr.data-step]="currentStep()">
+          @if (currentStepData().isResult) {
+            <!-- Results View -->
+            <div class="results-view">
+              @if (simulationResult(); as result) {
+                <!-- Results Header -->
+                <div class="results-header">
+                  <div class="header-icon">
+                    <ng-icon name="lucideZap" class="energy-icon"></ng-icon>
+                  </div>
+                  <div class="header-content">
+                    <h2 class="results-title">Rapport d'Audit Énergétique</h2>
+                    <p class="results-subtitle">Analyse technique et économique de votre consommation énergétique</p>
+                    <div class="results-meta">
+                      <span class="meta-item">
+                        <ng-icon name="lucideCalendar" class="meta-icon"></ng-icon>
+                        {{ result.createdAt | date:'dd/MM/yyyy' }}
+                      </span>
+                      <span class="meta-item">
+                        <ng-icon name="lucideMapPin" class="meta-icon"></ng-icon>
+                        {{ form.get('address')?.value || 'Adresse non spécifiée' }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="results-container">
+                  <div class="results-grid">
+                    <!-- Energy Consumption -->
+                    <div class="result-card consumption" [@resultCards]>
+                      <div class="result-icon">⚡</div>
+                      <h3>Consommation Énergétique</h3>
+                      <div class="result-value">
+                        <span class="amount">{{ result.results.energyConsumption.annual.value }}</span>
+                        <span class="unit">{{ result.results.energyConsumption.annual.unit }}</span>
+                      </div>
+                      <div class="result-subvalues">
+                        <div class="subvalue">
+                          <span>Mensuel:</span>
+                          <strong>{{ result.results.energyConsumption.monthly.value }} {{ result.results.energyConsumption.monthly.unit }}</strong>
+                        </div>
+                        <div class="subvalue">
+                          <span>Ratio:</span>
+                          <strong>{{ result.results.energyConsumption.perSquareMeter.value }} {{ result.results.energyConsumption.perSquareMeter.unit }}</strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Energy Cost -->
+                    <div class="result-card cost" [@resultCards]>
+                      <div class="result-icon">💰</div>
+                      <h3>Coût Estimé</h3>
+                      <div class="result-value">
+                        <span class="amount">{{ result.results.energyCost.annual.value }}</span>
+                        <span class="unit">{{ result.results.energyCost.annual.unit }}</span>
+                      </div>
+                      <div class="result-subvalues">
+                        <div class="subvalue">
+                          <span>Mensuel:</span>
+                          <strong>{{ result.results.energyCost.monthly.value }} {{ result.results.energyCost.monthly.unit }}</strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- CO2 Emissions -->
+                    <div class="result-card co2" [@resultCards]>
+                      <div class="result-icon">🌱</div>
+                      <h3>Impact Carbone</h3>
+                      <div class="result-value">
+                        <span class="amount">{{ result.results.co2Emissions.annual.tons | number:'1.1-2' }}</span>
+                        <span class="unit">Tonnes CO₂/an</span>
+                      </div>
+                      <div class="result-subvalues">
+                        <div class="subvalue">
+                          <span>Ratio:</span>
+                          <strong>{{ result.results.co2Emissions.perSquareMeter.value }} {{ result.results.co2Emissions.perSquareMeter.unit }}</strong>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="recommendation-banners-container">
+                    <!-- Energy Classification -->
+                  @if (result.results.energyClassification && result.results.energyClassification.isApplicable) {
+                    <div class="recommendation-banner" [@resultCards]>
+                      <div class="classification-badge" [class]="'class-' + result.results.energyClassification.class">
+                        {{ result.results.energyClassification.class }}
+                      </div>
+                      <div class="recommendation-text">
+                        <h4>Classe Énergétique</h4>
+                        <!-- <p>{{ result.results.energyClassification.description }}</p>
+                        <small >BECTh: {{ result.results.energyClassification.becth }} kWh/m².an</small> -->
+                      </div>
+                    </div>
+                  }
+
+                  <!-- Carbon Classification -->
+                  @if (result.results.carbonClassification && result.results.carbonClassification.isApplicable) {
+                    <div class="recommendation-banner carbon-banner" [@resultCards]>
+                      <div class="classification-badge" [class]="'class-' + result.results.carbonClassification.class">
+                        {{ result.results.carbonClassification.class }}
+                      </div>
+                      <div class="recommendation-text">
+                        <h4>Classement Carbone</h4>
+                        <!-- <p>{{ result.results.carbonClassification.description }}</p>
+                        <small >{{ result.results.carbonClassification.intensity }} {{ result.results.carbonClassification.unit }}</small> -->
+                      </div>
+                    </div>
+                  }
+                  </div>
+                </div>
+              } @else {
+                <p>Les calculs sont en cours...</p>
+              }
+            </div>
+          } @else {
+            <!-- Form Fields -->
+            <form [formGroup]="form" class="simulator-form">
+              <div class="simulator-form-header">
+                <h3 class="simulator-form-title">Calculateur Audit Énergétique</h3>
+                <h2 class="step-title">{{ currentStepData().title }}</h2>
+                @if (currentStepData().description) {
+                  <p class="step-description">{{ currentStepData().description }}</p>
+                }
+              </div>
+              
+              <!-- Step Components (Modular) -->
+              @if (currentStep() === 1) {
+                <div [@stepTransition]="currentStep()">
+                  <app-step-building
+                    [form]="form"
+                    [buildingCategories]="buildingCategories"
+                    [buildingTypes]="buildingTypes"
+                    [activityTypes]="formServiceInstance.activityTypes"
+                    [climateZones]="formServiceInstance.climateZones">
+                  </app-step-building>
+                </div>
+              } @else if (currentStep() === 2) {
+                <div [@stepTransition]="currentStep()">
+                  <app-step-technical [form]="form"></app-step-technical>
+                </div>
+              } @else if (currentStep() === 3) {
+                <div [@stepTransition]="currentStep()">
+                  <app-step-equipment [form]="form"></app-step-equipment>
+                </div>
+              } @else if (currentStep() === 4) {
+                <div [@stepTransition]="currentStep()">
+                  <app-step-personal [form]="form"></app-step-personal>
+                </div>
+              }
+            </form>
+          }
+          </div>
+        </div>
+      </div>
+
+      <!-- Fixed Navigation Buttons Footer -->
+      <div class="form-actions" [class.result-actions]="currentStepData().isResult">
+        @if (!currentStepData().isResult) {
+          <button
+            type="button"
+            class="hero__btn hero__btn--outline"
+            [disabled]="!canGoBack()"
+            (click)="previousStep()">
+            <ng-icon name="lucideArrowLeft" size="16"></ng-icon>
+            Précédent
+          </button>
+
+          @if (currentStep() < lastFormStepNumber) {
+            <button
+              type="button"
+              class="hero__btn hero__btn--primary"
+              [disabled]="!canProceed() || isSubmitting()"
+              (click)="nextStep()">
+              Suivant
+              <ng-icon name="lucideArrowRight" size="16"></ng-icon>
+            </button>
+          } @else {
+            <button
+              type="button"
+              class="hero__btn hero__btn--primary"
+              [disabled]="!canProceed() || isSubmitting()"
+              (click)="submitForm()">
+              @if (isSubmitting()) {
+                <span>Envoi...</span>
+              } @else {
+                <span>Voir les résultats</span>
+                <ng-icon name="lucideArrowRight" size="16"></ng-icon>
+              }
+            </button>
+          }
+        } @else {
+          <!-- Results step actions -->
+          <button
+            type="button"
+            class="hero__btn hero__btn--outline"
+            (click)="resetForm()">
+            Nouvelle simulation
+          </button>
+          <button
+            type="button"
+            class="hero__btn hero__btn--primary"
+            [disabled]="isGeneratingPDF() || !simulationResult()?.simulationId"
+            (click)="downloadPDF()">
+            @if (isGeneratingPDF()) {
+              <span>Génération...</span>
+            } @else {
+              <span>Télécharger le rapport PDF</span>
+            }
+          </button>
+        }
+      </div>
+    </main>
+  </div>
+</div>

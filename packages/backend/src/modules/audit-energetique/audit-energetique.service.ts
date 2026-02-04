@@ -6,6 +6,7 @@ import {
 } from '@shared/interfaces/audit-energetique.interface';
 import { AuditEnergetiqueSimulationRepository } from './audit-energetique.repository';
 import { HTTP404Error } from '@backend/errors/http.error';
+import { HeatingSystemTypes } from '@shared/enums/audit-batiment.enum';
 import {
   BUILDING_COEFFICIENTS,
   PROCESS_FACTORS,
@@ -14,6 +15,7 @@ import {
   COOLING_COVERAGE_FACTORS,
   EMISSION_FACTORS
 } from './config';
+
 import {
   computeEnvelopeFactor,
   computeCompactnessFactor,
@@ -23,11 +25,12 @@ import {
   computeDomesticHotWaterLoad,
   computeCo2Emissions,
   computeEnergyClass,
-  computeEnergySplit
+  computeEnergySplit,
+  computeFlatRateTariff
 } from './helpers';
 import { Logger } from '@backend/middlewares';
 
-type AuditEnergetiqueCreateInput = Omit<
+export type AuditEnergetiqueCreateInput = Omit<
   ICreateAuditEnergetiqueSimulation,
   | 'annualConsumption'
   | 'monthlyConsumption'
@@ -38,13 +41,16 @@ type AuditEnergetiqueCreateInput = Omit<
   | 'energyClassDescription'
   | 'becth'
 >;
-export type { AuditEnergetiqueCreateInput };
 
-/**
- * Service for Energy Audit Simulations
- * Orchestrates the calculation of annual energy consumption for buildings
+const HEATING_SYSTEM_EFFICIENCIES: Record<HeatingSystemTypes, number> = {
+  [HeatingSystemTypes.NONE]: 1,
+  [HeatingSystemTypes.ELECTRIC_INDIVIDUAL]: 1,
+  [HeatingSystemTypes.ELECTRIC_HEATING]: 0.92,
+  [HeatingSystemTypes.REVERSIBLE_AC]: 1,
+  [HeatingSystemTypes.GAS_BOILER]: 0.7,
+  [HeatingSystemTypes.OTHER]: 0.8
+};
 
- */
 export class AuditSimulationService extends CommonService<
   IAuditEnergetiqueSimulation,
   ICreateAuditEnergetiqueSimulation,
@@ -54,37 +60,33 @@ export class AuditSimulationService extends CommonService<
     super(new AuditEnergetiqueSimulationRepository());
   }
 
-  /**
-   * Creates a new energy audit simulation with full consumption calculation
-   * 
-   * Steps:
-   * 1. Calculate building envelope factors
-   * 2. Compute HVAC loads (heating + cooling)
-   * 3. Calculate lighting, IT, and base loads
-   * 4. Add equipment-specific loads
-   * 5. Calculate domestic hot water (ECS) consumption
-   * 6. Sum all loads and convert to annual consumption
-   */
-  public async createSimulation(payload: AuditEnergetiqueCreateInput): Promise<IAuditEnergetiqueSimulation> {
-  
-    // Calculate envelope factors F_enveloppe = F_isolation × F_vitrage × F_VMC
-    const envelopeFactor = computeEnvelopeFactor(payload.insulation, payload.glazingType, payload.ventilation);
-    Logger.info(`Envelope factor: ${envelopeFactor}`);
+  public async createSimulation(
+    payload: AuditEnergetiqueCreateInput
+  ): Promise<IAuditEnergetiqueSimulation> {
+
+    /* -----------------------------------------
+     * BUILDING & USAGE FACTORS
+     * ----------------------------------------- */
+
+    const envelopeFactor = computeEnvelopeFactor(
+      payload.insulation,
+      payload.glazingType,
+      payload.ventilation
+    );
+
     const compactnessFactor = computeCompactnessFactor(payload.floors);
-    Logger.info(`Compactness factor: ${compactnessFactor}`);
-    // Calculate process (Depend on the building type)
+    const usageFactor = computeUsageFactor(
+      payload.openingHoursPerDay,
+      payload.openingDaysPerWeek
+    );
+
     const processFactor = PROCESS_FACTORS[payload.buildingType] ?? 1;
-    Logger.info(`Process factor: ${processFactor}`);
-
     const climate = CLIMATE_FACTORS[payload.climateZone];
-    Logger.info(`Climate factor: ${JSON.stringify(climate)}`);
-
-    const usageFactor = computeUsageFactor(payload.openingHoursPerDay, payload.openingDaysPerWeek);
-    Logger.info(`Usage factor: ${usageFactor}`);
     const buildingCoefficients = BUILDING_COEFFICIENTS[payload.buildingType];
 
-  
- 
+    /* -----------------------------------------
+     * LOADS (kWh/m²)
+     * ----------------------------------------- */
 
     const lightingLoad = buildingCoefficients.light * usageFactor;
     const itLoad = buildingCoefficients.it * usageFactor * processFactor;
@@ -98,14 +100,8 @@ export class AuditSimulationService extends CommonService<
       surface: payload.surfaceArea
     });
 
-    const hvacBase = buildingCoefficients.hvac * envelopeFactor * compactnessFactor;
-
-    Logger.info(`HVAC base: ${hvacBase}`);
-
-    Logger.info(`Heating K: ${Number(process.env.ENERGY_AUDIT_K_CH)}`);
-    Logger.info(`Cooling K: ${Number(process.env.ENERGY_AUDIT_K_FR)}`);
     const hvacLoads = computeHvacLoads({
-      hvacBase,
+      hvacBase: buildingCoefficients.hvac * envelopeFactor * compactnessFactor,
       climate,
       usageFactor,
       heatingSystem: payload.heatingSystem,
@@ -120,104 +116,163 @@ export class AuditSimulationService extends CommonService<
       ecsUsageFactor: ECS_USAGE_FACTORS[payload.buildingType] ?? 1,
       reference: buildingCoefficients.ecs,
       gasEfficiency: Number(process.env.ENERGY_AUDIT_ECS_GAS_EFF),
-      solarCoverage: Number(process.env.ENERGY_AUDIT_ECS_SOLAR_COVERAGE),
-      solarAppointEff: Number(process.env.ENERGY_AUDIT_ECS_SOLAR_APPOINT_EFF),
-      heatPumpCop: Number(process.env.ENERGY_AUDIT_ECS_PAC_COP)
+      electricEfficiency: Number(process.env.ENERGY_AUDIT_ECS_ELEC_EFF)
     });
 
-    const perSquareTotal =
-      hvacLoads.perSquare +
-      lightingLoad +
-      itLoad +
-      baseLoad +
-      equipmentLoad.perSquare +
-      ecsLoad.perSquare;
-    Logger.info(`Per square total: ${perSquareTotal}`);
+    /* -----------------------------------------
+     * ANNUAL CONSUMPTION
+     * ----------------------------------------- */
 
     const annualConsumption =
-      (payload.surfaceArea * perSquareTotal) +
-      equipmentLoad.absoluteKwh +
-      ecsLoad.absoluteKwh;
+      (
+        lightingLoad +
+        itLoad +
+        baseLoad +
+        equipmentLoad.perSquare +
+        hvacLoads.perSquare +
+        ecsLoad.perSquare
+      ) * payload.surfaceArea;
 
     const monthlyConsumption = annualConsumption / 12;
 
-    // Calculate total heating and cooling loads in kWh/year
-    const annualHeatingLoadKwh = hvacLoads.heatingLoad * payload.surfaceArea;
-    const annualCoolingLoadKwh = hvacLoads.coolingLoad * payload.surfaceArea;
-    const annualEcsLoadKwh = ecsLoad.perSquare * payload.surfaceArea + ecsLoad.absoluteKwh;
+    /* -----------------------------------------
+     * ENERGY SPLIT & EMISSIONS
+     * ----------------------------------------- */
 
-    // Split energy consumption between electricity and gas
+    const annualHeatingKwh = hvacLoads.heatingLoad * payload.surfaceArea;
+    const annualEcsKwh =
+      ecsLoad.perSquare * payload.surfaceArea + (ecsLoad.absoluteKwh ?? 0);
+
     const energySplit = computeEnergySplit({
       totalConsumption: annualConsumption,
       heatingSystem: payload.heatingSystem,
       ecsType: payload.domesticHotWater,
-      heatingLoadKwh: annualHeatingLoadKwh,
-      ecsLoadKwh: annualEcsLoadKwh
+      heatingLoadKwh: annualHeatingKwh,
+      ecsLoadKwh: annualEcsKwh
     });
 
-    // Calculate CO₂ emissions
+    const coverageFactor =
+      COOLING_COVERAGE_FACTORS[payload.conditionedCoverage] ?? 1;
+
+    const conditionedSurface = payload.surfaceArea * coverageFactor;
+
     const emissions = computeCo2Emissions({
       electricityConsumption: energySplit.electricityConsumption,
       gasConsumption: energySplit.gasConsumption,
+      buildingType: payload.buildingType,
+      conditionedSurface,
       emissionFactorElec: EMISSION_FACTORS.ELECTRICITY,
       emissionFactorGas: EMISSION_FACTORS.NATURAL_GAS
     });
 
-    // Calculate conditioned surface for BECTh
-    const coverageFactor = COOLING_COVERAGE_FACTORS[payload.conditionedCoverage] ?? 1;
-    const conditionedSurface = payload.surfaceArea * coverageFactor;
+    /* -----------------------------------------
+     * ENERGY CLASS
+     * ----------------------------------------- */
 
-    // Calculate energy class (only for offices)
     const energyClassResult = computeEnergyClass({
       buildingType: payload.buildingType,
-      heatingLoad: annualHeatingLoadKwh,
-      coolingLoad: annualCoolingLoadKwh,
-      conditionedSurface
+      electricityConsumption: annualConsumption,
+      gasConsumption: energySplit.gasConsumption,
+      conditionedSurface,
+      gasEfficiency:
+        HEATING_SYSTEM_EFFICIENCIES[payload.heatingSystem] ?? 0.9
     });
 
-    const energyCostPerKwh = Number(process.env.ENERGY_COST_PER_KWH);
-    Logger.info(`Energy cost per kWh: ${energyCostPerKwh}`);
-    Logger.info(`Annual consumption: ${annualConsumption}`);
-    const simulationPayload: ICreateAuditEnergetiqueSimulation = {
+    /* -----------------------------------------
+     * COST
+     * ----------------------------------------- */
+
+    const tariff = computeFlatRateTariff({ monthlyConsumption });
+    const avgPrice = tariff.annualCost / annualConsumption;
+
+    const coolingKwh =
+      (hvacLoads.coolingLoad ?? 0) * payload.surfaceArea;
+    const heatingKwh = annualHeatingKwh;
+    const lightingKwh = lightingLoad * payload.surfaceArea;
+    const ecsKwh = annualEcsKwh;
+    const equipmentKwh =
+      (itLoad + baseLoad + equipmentLoad.perSquare) *
+        payload.surfaceArea +
+      (equipmentLoad.absoluteKwh ?? 0);
+
+    const sum =
+      coolingKwh +
+      heatingKwh +
+      lightingKwh +
+      ecsKwh +
+      equipmentKwh;
+
+    const scale = sum > 0 ? annualConsumption / sum : 1;
+
+const percent = (cost: number) =>
+  tariff.annualCost > 0
+    ? Math.round((cost / tariff.annualCost) * 100)
+    : 0;
+
+const endUses = {
+  breakdown: {
+    cooling: {
+      consumptionKwh: Number((coolingKwh * scale).toFixed(2)),
+      costTunisianDinar: Number((coolingKwh * scale * avgPrice).toFixed(2)),
+      sharePercent: percent(coolingKwh * scale * avgPrice),
+    },
+    heating: {
+      consumptionKwh: Number((heatingKwh * scale).toFixed(2)),
+      costTunisianDinar: Number((heatingKwh * scale * avgPrice).toFixed(2)),
+      sharePercent: percent(heatingKwh * scale * avgPrice),
+    },
+    lighting: {
+      consumptionKwh: Number((lightingKwh * scale).toFixed(2)),
+      costTunisianDinar: Number((lightingKwh * scale * avgPrice).toFixed(2)),
+      sharePercent: percent(lightingKwh * scale * avgPrice),
+    },
+    equipment: {
+      consumptionKwh: Number((equipmentKwh * scale).toFixed(2)),
+      costTunisianDinar: Number((equipmentKwh * scale * avgPrice).toFixed(2)),
+      sharePercent: percent(equipmentKwh * scale * avgPrice),
+    },
+    domesticHotWater: {
+      consumptionKwh: Number((ecsKwh * scale).toFixed(2)),
+      costTunisianDinar: Number((ecsKwh * scale * avgPrice).toFixed(2)),
+      sharePercent: percent(ecsKwh * scale * avgPrice),
+    },
+  },
+  totalConsumptionKwh: Number(annualConsumption.toFixed(2)),
+  totalCostTunisianDinar: Number(tariff.annualCost.toFixed(2)),
+};
+
+    Logger.info('Energy end-use breakdown computed');
+
+    return await this.create({
       ...payload,
       equipmentCategories: payload.equipmentCategories ?? [],
       annualConsumption: Number(annualConsumption.toFixed(2)),
       monthlyConsumption: Number(monthlyConsumption.toFixed(2)),
-      energyCostPerYear: Number((annualConsumption * energyCostPerKwh).toFixed(2)),
+      energyCostPerYear: tariff.annualCost,
+      energyEndUseBreakdown: endUses,
       co2EmissionsKg: emissions.totalCo2,
       co2EmissionsTons: emissions.totalCo2Tons,
-      energyClass: energyClassResult.energyClass ?? undefined,
+      carbonClass: emissions.carbonClass ?? undefined,
+      carbonIntensity: emissions.carbonIntensity ?? undefined,
+      energyClass: energyClassResult.joyaClass ?? undefined,
       energyClassDescription: energyClassResult.classDescription ?? undefined,
-      becth: energyClassResult.becth ?? undefined
-    };
+      totalAnnualEnergy: energyClassResult.totalAnnualEnergy,
+      siteIntensity: energyClassResult.siteIntensity,
+      referenceIntensity: energyClassResult.referenceIntensity ?? undefined,
 
-    return await this.create(simulationPayload);
+    });
   }
 
-  /**
-   * Retrieves a simulation by ID
-   */
   public async getSimulationById(id: string): Promise<IAuditEnergetiqueSimulation> {
     const simulation = await this.findById(id);
-
-    if (!simulation) {
-      throw new HTTP404Error('Audit simulation not found');
-    }
-
+    if (!simulation) throw new HTTP404Error('Audit simulation not found');
     return simulation;
   }
 
-  /**
-   * Deletes a simulation by ID
-   */
-  public async deleteSimulation(id: string): Promise<void> {
+  public async deleteSimulation(id: string) {
     const deleted = await this.delete(id);
-
-    if (!deleted) {
-      throw new HTTP404Error('Audit simulation not found');
-    }
+    if (!deleted) throw new HTTP404Error('Audit simulation not found');
   }
-
 }
 
 export const auditSimulationService = new AuditSimulationService();

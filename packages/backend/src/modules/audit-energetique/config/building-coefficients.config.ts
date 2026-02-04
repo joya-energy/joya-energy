@@ -9,7 +9,7 @@ export interface BuildingCoefficients {
 }
 
 export const BUILDING_COEFFICIENTS: Record<BuildingTypes, BuildingCoefficients> = {
-  [BuildingTypes.PHARMACY]: { hvac: 70, light: 14, it: 25, base: 8, ecs: 3 },
+  [BuildingTypes.SERVICE]: { hvac: 80 , light: 24, it: 35, base: 8, ecs: 3 },
   [BuildingTypes.CAFE_RESTAURANT]: { hvac: 90, light: 22, it: 30, base: 10, ecs: 18 },
   [BuildingTypes.BEAUTY_CENTER]: { hvac: 80, light: 18, it: 30, base: 8, ecs: 12 },
   [BuildingTypes.HOTEL_GUESTHOUSE]: { hvac: 110, light: 18, it: 28, base: 10, ecs: 25 },
@@ -25,7 +25,7 @@ export const BUILDING_COEFFICIENTS: Record<BuildingTypes, BuildingCoefficients> 
 };
 
 export const PROCESS_FACTORS: Record<BuildingTypes, number> = {
-  [BuildingTypes.PHARMACY]: 1.0,
+  [BuildingTypes.SERVICE]:1.0,
   [BuildingTypes.CAFE_RESTAURANT]: 1.3,
   [BuildingTypes.BEAUTY_CENTER]: 1.3,
   [BuildingTypes.HOTEL_GUESTHOUSE]: 1.0,
@@ -41,7 +41,7 @@ export const PROCESS_FACTORS: Record<BuildingTypes, number> = {
 };
 
 export const ECS_USAGE_FACTORS: Record<BuildingTypes, number> = {
-  [BuildingTypes.PHARMACY]: 0.7,
+  [BuildingTypes.SERVICE]:0.7,
   [BuildingTypes.CAFE_RESTAURANT]: 1.0,
   [BuildingTypes.BEAUTY_CENTER]: 1.4,
   [BuildingTypes.HOTEL_GUESTHOUSE]: 1.4,

@@ -1,0 +1,53 @@
+<section class="pd-section">
+  <div class="pd-section__container">
+    <div class="pd-transparency__wrap">
+      <div class="pd-transparency__visual">
+        <div class="pd-transparency__card">
+          <div class="pd-transparency__dots">
+            <span class="pd-transparency__dot pd-transparency__dot--red"></span>
+            <span class="pd-transparency__dot pd-transparency__dot--primary"></span>
+            <span class="pd-transparency__dot pd-transparency__dot--secondary"></span>
+          </div>
+          <div class="pd-transparency__rows">
+            @for (point of points; track point.label) {
+            <div class="pd-transparency__row">
+              <div class="pd-transparency__row-icon">
+                <ng-icon [name]="point.icon" class="pd-transparency__icon" />
+              </div>
+              <div class="pd-transparency__row-text">
+                <p class="pd-transparency__row-label">{{ point.label }}</p>
+                <p class="pd-transparency__row-desc">{{ point.description }}</p>
+              </div>
+              <div class="pd-transparency__row-value">{{ point.value }}</div>
+            </div>
+            }
+          </div>
+        </div>
+        <div class="pd-transparency__card-bg"></div>
+      </div>
+
+      <div class="pd-transparency__content">
+        <h2 class="pd-transparency__title">Transparence et confiance</h2>
+        <p class="pd-transparency__lead">
+          Toutes les données suivies par la plateforme sont accessibles à tout moment. Vous voyez
+          exactement :
+        </p>
+        <ul class="pd-transparency__list">
+          <li class="pd-transparency__list-item">
+            <span class="pd-transparency__bullet"></span>
+            Ce qui est produit
+          </li>
+          <li class="pd-transparency__list-item">
+            <span class="pd-transparency__bullet"></span>
+            Ce qui est consommé
+          </li>
+          <li class="pd-transparency__list-item">
+            <span class="pd-transparency__bullet"></span>
+            Ce qui est économisé
+          </li>
+        </ul>
+        <p class="pd-transparency__footer">La performance est mesurée, documentée et suivie.</p>
+      </div>
+    </div>
+  </div>
+</section>

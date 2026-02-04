@@ -1,0 +1,23 @@
+# Docker build context (used when building from repo root, e.g. Dockerfile.backend)
+node_modules/
+**/node_modules/
+**/dist/
+**/build/
+.git/
+.gitignore
+.env
+.env.*
+!.env.example
+**/*.log
+logs/
+coverage/
+**/.cache/
+**/.tmp/
+**/*.tsbuildinfo
+.vscode/
+.idea/
+*.code-workspace
+.cursor/
+packages/frontend/
+Dockerfile*
+.dockerignore*

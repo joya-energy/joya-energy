@@ -1,0 +1,101 @@
+:host {
+  display: block;
+  width: 100%;
+  font-family: var(--font-family-primary, sans-serif);
+}
+
+.ui-step-timeline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  position: relative;
+  padding: 1rem 0;
+}
+
+.timeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.timeline-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: var(--neutral-200);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+
+  .timeline-step.completed & {
+    background: var(--landing-primary);
+    color: var(--ui-timeline-text-white);
+  }
+
+  .timeline-step.active & {
+    background: var(--landing-primary);
+    color: var(--ui-timeline-text-white);
+    box-shadow: 0 0 0 4px var(--landing-primary-light);
+  }
+
+  .timeline-step.future & {
+    background: var(--neutral-200);
+    color: var(--text-secondary);
+  }
+}
+
+.step-number {
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.check-icon {
+  color: var(--ui-timeline-text-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.timeline-label {
+  margin-top: 0.5rem;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  text-align: center;
+  white-space: nowrap;
+
+  .timeline-step.active & {
+    color: var(--landing-primary-dark);
+    font-weight: var(--font-weight-medium);
+  }
+}
+
+.timeline-connector {
+  position: absolute;
+  top: 1.25rem;
+  left: calc(50% + 1.75rem); // Start from right edge of circle
+  right: calc(-50% + 1.75rem); // End at left edge of next circle
+  height: 4px;
+  background: var(--neutral-200);
+  z-index: 0;
+  transition: background-color 0.3s ease;
+
+  // Connector is filled if the current step (before the connector) is completed
+  &.completed {
+    background: var(--landing-primary);
+  }
+}
+
+

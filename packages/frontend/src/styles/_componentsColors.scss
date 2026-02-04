@@ -1,0 +1,162 @@
+/**
+ * UI Components Color Variables
+ * 
+ * This file contains all color variables used across UI components.
+ * Modify these values to change the color scheme globally.
+ * 
+ * Usage:
+ *   background: var(--ui-color-white);
+ *   color: var(--ui-text-primary);
+ */
+
+:root {
+  // ============================================
+  // Base Colors
+  // ============================================
+  
+  // White
+  --ui-color-white: #ffffff;
+  
+  // Black/Gray shades (for shadows and overlays)
+  --ui-shadow-black-10: rgba(0, 0, 0, 0.1);
+  --ui-shadow-black-5: rgba(0, 0, 0, 0.05);
+  --ui-shadow-black-15: rgba(0, 0, 0, 0.15);
+  --ui-shadow-black-20: rgba(0, 0, 0, 0.2);
+  --ui-shadow-black-4: rgba(0, 0, 0, 0.04);
+  --ui-shadow-black-8: rgba(0, 0, 0, 0.08);
+  
+  // White overlays
+  --ui-overlay-white-95: rgba(255, 255, 255, 0.95);
+  --ui-overlay-white-97: rgba(255, 255, 255, 0.97);
+  --ui-overlay-white-80: rgba(255, 255, 255, 0.8);
+  --ui-overlay-white-60: rgba(255, 255, 255, 0.6);
+  --ui-overlay-white-70: rgba(255, 255, 255, 0.7);
+  --ui-overlay-white-90: rgba(255, 255, 255, 0.9);
+  --ui-overlay-white-98: rgba(255, 255, 255, 0.98);
+  --ui-overlay-white-20: rgba(255, 255, 255, 0.2);
+  --ui-overlay-white-30: rgba(255, 255, 255, 0.3);
+  --ui-overlay-white-65: rgba(255, 255, 255, 0.65);
+  --ui-overlay-white-6: rgba(255, 255, 255, 0.6);
+  --ui-overlay-white-8: rgba(255, 255, 255, 0.8);
+  --ui-overlay-white-9: rgba(255, 255, 255, 0.9);
+
+  // ============================================
+  // UI Input Component Colors
+  // ============================================
+  
+  // Focus shadow (teal-soft with opacity)
+  --ui-input-focus-shadow: rgba(13, 87, 87, 0.1);
+  
+  // ============================================
+  // UI Select Component Colors
+  // ============================================
+  
+  // Dropdown shadows
+  --ui-select-dropdown-shadow-1: rgba(0, 0, 0, 0.1);
+  --ui-select-dropdown-shadow-2: rgba(0, 0, 0, 0.05);
+  
+  // Box hover shadow
+  --ui-select-box-hover-shadow: rgba(0, 0, 0, 0.1);
+  
+  // ============================================
+  // UI Progress Bar Component Colors
+  // ============================================
+  
+  // Progress bar uses landing colors (already defined in _landing-theme.scss)
+  // White text for active/completed states
+  --ui-progress-text-white: var(--ui-color-white);
+  
+  // ============================================
+  // UI Step Timeline Component Colors
+  // ============================================
+  
+  // Timeline uses landing colors (already defined in _landing-theme.scss)
+  // White text for active/completed states
+  --ui-timeline-text-white: var(--ui-color-white);
+  
+  // ============================================
+  // UI Image Component Colors
+  // ============================================
+  
+  // Skeleton loading gradient colors
+  --ui-image-skeleton-light: #f0f0f0;
+  --ui-image-skeleton-dark: #e0e0e0;
+  
+  // ============================================
+  // Landing Theme Colors (Reference)
+  // ============================================
+  // These are defined in _landing-theme.scss but referenced here for clarity
+  // --landing-primary: #e37051;
+  // --landing-primary-dark: #d65f3f;
+  // --landing-primary-light: #f0a68a;
+  // --landing-primary-lightest: #f7ece9;
+  // --landing-secondary: #112e3c;
+  // --landing-secondary-dark: #0e2531;
+  // --landing-secondary-light: #4a5568;
+  // --landing-secondary-lightest: #e8f1f6;
+  
+  // ============================================
+  // Brand Colors (Reference from _variables.scss)
+  // ============================================
+  // These are defined in _variables.scss but referenced here for clarity
+  // --teal-deep: #0a3d46;
+  // --teal-soft: #0d5757;
+  // --orange-solar: #f3a31c;
+  
+  // ============================================
+  // Semantic Colors (Reference from _variables.scss)
+  // ============================================
+  // These are defined in _variables.scss but referenced here for clarity
+  // --success-500: #22c55e;
+  // --warning-500: #eab308;
+  // --danger-500: #ef4444;
+  
+  // ============================================
+  // Neutral Grays (Reference from _variables.scss)
+  // ============================================
+  // These are defined in _variables.scss but referenced here for clarity
+  // --neutral-50: #fafafa;
+  // --neutral-100: #f5f5f5;
+  // --neutral-200: #e5e5e5;
+  // --neutral-300: #d4d4d4;
+  // --neutral-400: #a3a3a3;
+  // --neutral-500: #737373;
+  // --neutral-600: #525252;
+  // --neutral-700: #404040;
+  // --neutral-800: #262626;
+  // --neutral-900: #171717;
+  
+  // ============================================
+  // Text Colors (Reference from _variables.scss)
+  // ============================================
+  // These are defined in _variables.scss but referenced here for clarity
+  // --text-primary: #0a3d46;
+  // --text-secondary: #0d5757;
+  // --text-muted: #4b4b64;
+  
+  // ============================================
+  // UI Select Component Colors (Reference from _variables.scss)
+  // ============================================
+  // These are defined in _variables.scss but referenced here for clarity
+  // --select-bg: #ffffff;
+  // --select-bg-hover: #f1f5f9;
+  // --select-bg-selected: var(--ocean-blue);
+  // --select-bg-disabled: #f1f5f9;
+  // --select-border: var(--neutral-300);
+  // --select-border-hover: #94a3b8;
+  // --select-border-focus: var(--orange-solar);
+  // --select-border-focus-shadow: #f0a58a00;
+  // --select-text: #334155;
+  // --select-text-hover: #0f172a;
+  // --select-text-selected: var(--landing-secondary);
+  // --select-text-placeholder: var(--neutral-400);
+  // --select-icon: #64748b;
+  // --select-check: var(--orange-solar);
+  // --select-box-bg: var(--neutral-100);
+  // --select-box-bg-hover: var(--neutral-100);
+  // --select-box-bg-selected: var(--ocean-blue);
+  // --select-box-border: var(--neutral-300);
+  // --select-box-border-selected: var(--ocean-blue-outliner);
+  // --select-box-text: var(--text-primary);
+  // --select-box-text-selected: var(--teal-deep);
+}

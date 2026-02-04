@@ -1,0 +1,32 @@
+<section class="rws">
+  <div class="rws__line"></div>
+
+  <div class="rws__container">
+    <div class="rws__header">
+      <span class="rws__badge">Pourquoi nos outils</span>
+      <h2 class="rws__title">
+        La <span class="rws__title-accent">Donnée</span> au Service de Votre Performance
+      </h2>
+      <p class="rws__subtitle">
+        Avant de pouvoir optimiser, il faut pouvoir mesurer. Nos outils sont le point de départ
+        d'une stratégie énergétique réussie.
+      </p>
+    </div>
+
+    <div class="rws__grid">
+      @for (item of items; track item.icon; let i = $index) {
+      <div class="rws__item">
+        <div class="rws__icon-wrap">
+          <div class="rws__icon-glow"></div>
+          <div class="rws__icon-bg">
+            <app-ressources-performance-icon [name]="item.icon" class="rws__icon" />
+          </div>
+          <div class="rws__icon-ring"></div>
+        </div>
+        <h4 class="rws__item-title">{{ item.title }}</h4>
+        <p class="rws__item-desc">{{ item.description }}</p>
+      </div>
+      }
+    </div>
+  </div>
+</section>

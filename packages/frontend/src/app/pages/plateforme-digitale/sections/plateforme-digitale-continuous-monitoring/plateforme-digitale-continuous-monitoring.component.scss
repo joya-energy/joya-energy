@@ -1,0 +1,119 @@
+.pd-section {
+  padding: var(--landing-spacing-3xl) 0;
+}
+
+.pd-section__container {
+  max-width: 100rem;
+  padding-left: 5rem;
+  padding-right: 5rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+
+  @media (min-width: 768px) {
+    padding: 0 2rem;
+  }
+
+  @media (min-width: 1200px) {
+    padding: 0 3rem;
+  }
+}
+
+.pd-section--alt {
+  background: var(--landing-secondary-lightest);
+}
+
+.pd-monitoring__inner {
+  max-width: 120rem;
+  margin: 0 auto;
+}
+
+.pd-monitoring__title {
+  font-family: var(--landing-font-heading);
+  font-size: clamp(1.875rem, 4vw, 4rem);
+  font-weight: 700;
+  color: var(--landing-secondary);
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.pd-monitoring__grid {
+  display: grid;
+  gap: 2rem;
+  margin-bottom: 3rem;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.pd-monitoring__card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: #fff;
+  border-radius: var(--landing-radius-xl);
+  padding: 2rem;
+  box-shadow: var(--landing-shadow-md);
+}
+
+.pd-monitoring__icon-wrap {
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--landing-radius-md);
+  background: rgba(17, 46, 60, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pd-monitoring__icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--landing-secondary);
+}
+
+.pd-monitoring__text {
+  font-weight: 500;
+  color: var(--landing-secondary);
+  margin: 0.5rem 0 0;
+  line-height: 1.5;
+}
+
+.pd-monitoring__callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+
+  padding: 1.5rem 2rem;
+  background: linear-gradient(to right, rgba(227, 112, 81, 0.1), rgba(227, 112, 81, 0.05));
+  border: 1px solid rgba(227, 112, 81, 0.2);
+  border-radius: var(--landing-radius-xl);
+}
+
+.pd-monitoring__callout-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--landing-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+  flex-shrink: 0;
+}
+
+.pd-monitoring__callout-title {
+  font-size: var(--landing-text-lg);
+  font-weight: 600;
+  color: var(--landing-secondary);
+  margin: 0 0 0.5rem;
+}
+
+.pd-monitoring__callout-desc {
+  font-size: var(--landing-text-base);
+  line-height: 1.6;
+  color: var(--neutral-600, #5a6b7a);
+  margin: 0;
+}

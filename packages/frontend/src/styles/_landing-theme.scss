@@ -1,0 +1,98 @@
+/**
+ * Landing page theme tokens
+ * Keeps landing-specific colors, typography, and spacing consistent and easy to tweak globally.
+ */
+
+:root {
+  /* Landing (React design) palette */
+  --landing-primary: #e37051;
+  --landing-primary-dark: #d65f3f;
+  --landing-primary-light: #f0a68a;
+  --landing-primary-lightest: #f7ece9;
+  
+  --landing-secondary: #112e3c;
+  --landing-secondary-dark: #0e2531;
+  --landing-secondary-light: #4a5568;
+  --landing-secondary-lightest: #e8f1f6;
+
+  --landing-accent: #e86c4f;
+  --landing-accent-hover: #d55c3f;
+  --landing-heading: #1a365d;
+  --landing-tab-bg: #fff5f5;
+
+  --landing-card-bg: #ffffff;
+  --landing-card-border: var(--neutral-200);
+  --landing-muted: #666666;
+
+  /* Landing Typography */
+  --landing-font-heading: var(--font-family-primary);
+  --landing-font-body: var(--font-family-primary);
+  
+  /* Landing Font Weights - Defined before use */
+  --landing-font-normal: var(--font-weight-regular);   // 400
+  --landing-font-medium: var(--font-weight-medium);    // 500
+  --landing-font-semibold: var(--font-weight-semibold); // 600
+  --landing-font-bold: var(--font-weight-bold);         // 700
+  
+  /* Landing Font Sizes */
+  --landing-text-xs: var(--font-size-xs);      // 12px
+  --landing-text-sm: var(--font-size-sm);      // 14px
+  --landing-text-base: var(--font-size-base);  // 16px
+  --landing-text-lg: var(--font-size-lg);      // 18px
+  --landing-text-xl: var(--font-size-xl);      // 20px
+  --landing-text-2xl: 2.4rem;                 // 24px
+  --landing-text-3xl: 3rem;                   // 30px
+  --landing-text-4xl: 3.6rem;                 // 36px
+  --landing-text-5xl: 4.8rem;                 // 48px
+  --landing-text-6xl: 6rem;                   // 60px
+  
+  /* Landing Title Size - Consistent across all sections */
+  --landing-title-size: 45px;
+  --landing-title-size-mobile: 28px; // Smaller size for mobile devices
+
+  /* Landing Border Radius - Defined before use */
+  --landing-radius-sm: 6px;
+  --landing-radius-md: 8px;
+  --landing-radius-lg: 12px;
+  --landing-radius-xl: 16px;
+  --landing-radius-full: 999px;
+  
+  /* Landing Badge Styles - Consistent across all sections */
+  --landing-badge-font-size: 14px;
+  --landing-badge-font-weight: var(--landing-font-semibold);
+  --landing-badge-padding: 6px 12px;
+  --landing-badge-radius: var(--landing-radius-full);
+  --landing-badge-primary-bg: var(--landing-primary-lightest);
+  --landing-badge-primary-color: var(--landing-primary-dark);
+  --landing-badge-primary-text: var(--landing-primary-dark);
+  --landing-badge-secondary-bg: var(--landing-secondary-lightest);
+  --landing-badge-secondary-color: var(--landing-secondary-dark);
+  --landing-badge-secondary-text: var(--landing-secondary-dark);
+
+  /* Landing Spacing */
+  --landing-spacing-xs: 4px;
+  --landing-spacing-sm: 8px;
+  --landing-spacing-md: 16px;
+  --landing-spacing-lg: 24px;
+  --landing-spacing-xl: 32px;
+  --landing-spacing-2xl: 48px;
+  --landing-spacing-3xl: 64px;
+  --landing-spacing-4xl: 80px;
+
+  /* Landing Shadows */
+  --landing-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --landing-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --landing-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --landing-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  
+  /* Landing Hover Effects */
+  --landing-hover-lift: -6px;
+  --landing-hover-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04);
+  
+  /* Landing Transitions */
+  --landing-transition-fast: 0.15s ease;
+  --landing-transition-base: 0.3s ease;
+  --landing-transition-slow: 0.5s ease;
+  --landing-transition-bounce: 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+

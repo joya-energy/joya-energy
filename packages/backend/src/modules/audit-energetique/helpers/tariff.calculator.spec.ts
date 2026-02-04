@@ -1,4 +1,4 @@
-import { EnergyTariffTypes } from '@shared/enums/audit-energetique.enum';
+import { EnergyTariffTypes } from '@shared/enums/audit-energy-tariff';
 import { computeAnnualConsumptionFromBill, computeEnergyIntensity } from '../helpers/tariff.calculator';
 
 describe('computeAnnualConsumptionFromBill', () => {

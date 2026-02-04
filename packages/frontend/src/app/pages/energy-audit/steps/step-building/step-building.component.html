@@ -1,0 +1,88 @@
+<div class="step-building" [formGroup]="form">
+  <!-- Building Type Selection -->
+  <div class="form-section">
+    <div class="form-section-header">Type de bâtiment</div>
+    <div class="building-grid">
+      @for (category of buildingCategories; track trackByCategory($index, category)) {
+        <button
+          type="button"
+          class="building-card"
+          [class.building-card--active]="form.get('buildingType')?.value === category.id"
+          (click)="selectBuildingType(category.id)">
+          <div class="building-card-icon">
+            <ng-icon [name]="category.icon" size="20"></ng-icon>
+          </div>
+          <span>{{ category.label }}</span>
+        </button>
+      }
+    </div>
+    
+    <!-- Fallback select for other building types -->
+    @if (!isFeaturedBuilding(form.get('buildingType')?.value)) {
+      <div class="fallback-select">
+        <app-ui-select
+          formControlName="buildingType"
+          [options]="getBuildingTypeOptions()"
+          placeholder="Sélectionner un autre type..."
+          variant="box">
+        </app-ui-select>
+      </div>
+    }
+  </div>
+
+  <!-- Building Characteristics -->
+  <div class="form-section">
+    <div class="form-section-header" >Caractéristiques générales</div>
+    <div class="form-grid" style="margin-bottom: 3rem;">
+      <!-- Surface Area -->
+      <div class="one_row_inputs">
+        <app-ui-input
+        formControlName="surfaceArea"
+        type="number"
+        label="Surface (m²)"
+        placeholder="0"
+        [required]="true"
+        tooltipTitle="Surface utile"
+        tooltipDescription="Surface auditée en m² (SHON ou utile)."
+        size="md">
+      </app-ui-input>
+
+       <!-- Activity Type -->
+       <app-ui-select
+       formControlName="activityType"
+       label="Activité"
+       [options]="getActivityTypeOptions()"
+       placeholder="Sélectionnez..."
+       [required]="true"
+       variant="dropdown">
+     </app-ui-select>
+
+     
+      </div>
+
+      <div class="one_row_inputs" >  
+      <!-- Floors -->
+      <app-ui-input
+        formControlName="floors"
+        type="number"
+        label="Étages"
+        placeholder="0"
+        [required]="true"
+        tooltipTitle="Nombre d'étages"
+        tooltipDescription="Inclure rez-de-chaussée et niveaux techniques."
+        size="md">
+      </app-ui-input>
+
+      <!-- Climate Zone -->
+      <app-ui-select
+        formControlName="climateZone"
+        label="Zone climatique"
+        [options]="getClimateZoneOptions()"
+        placeholder="Sélectionnez..."
+        [required]="true"
+        variant="dropdown">
+      </app-ui-select>
+    </div>
+    </div>
+  </div>
+</div>

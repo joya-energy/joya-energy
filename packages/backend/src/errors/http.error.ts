@@ -43,6 +43,13 @@ export class HTTP404Error extends HTTPClientError {
   }
 }
 
+export class HTTP500Error extends HTTPClientError {
+  readonly statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
+  constructor(message: string | Record<string, unknown> = 'Internal server error', data?: unknown) {
+    super(HttpStatusCode.INTERNAL_SERVER_ERROR, message, data);
+  }
+}
+
 export class HTTP409Error extends HTTPClientError {
   readonly statusCode = HttpStatusCode.CONFLICT;
   constructor(message: string | Record<string, unknown> = 'Conflict', data?: unknown) {

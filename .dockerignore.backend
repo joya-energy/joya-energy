@@ -1,0 +1,25 @@
+# Use as: docker build -f Dockerfile.backend --ignore-file .dockerignore.backend .
+# Or rename to .dockerignore when building backend only.
+
+node_modules/
+**/node_modules/
+**/dist/
+**/build/
+.git/
+.gitignore
+.env
+.env.*
+!.env.example
+**/*.log
+logs/
+coverage/
+**/.cache/
+**/.tmp/
+**/*.tsbuildinfo
+.vscode/
+.idea/
+*.code-workspace
+.cursor/
+packages/frontend/
+Dockerfile*
+.dockerignore*

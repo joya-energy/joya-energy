@@ -1,0 +1,260 @@
+<section id="how-it-works" class="how-it-works">
+  <!-- Enhanced decorative elements -->
+  <div class="how-it-works__deco-1"></div>
+  <div class="how-it-works__deco-2"></div>
+  <div class="how-it-works__deco-3"></div>
+  <div class="how-it-works__deco-4"></div>
+
+  <div class="how-it-works__container">
+    <div class="how-it-works__header">
+      <app-landing-badge text="PROCESSUS SIMPLE" variant="secondary" />
+      <h2 class="how-it-works__title">
+        Comment fonctionne notre
+        <span class="how-it-works__title-accent">solution énergétique</span>
+      </h2>
+      <p class="how-it-works__subtitle">
+        Une approche structurée pour améliorer durablement la performance énergétique de votre
+        entreprise, sans complexité.
+      </p>
+      <div class="how-it-works__bar"></div>
+    </div>
+
+    <div class="how-it-works__content">
+      <!-- Left column - Steps with vertical timeline style -->
+      <div class="how-it-works__steps">
+        @for (step of steps; track step.number; let i = $index) {
+        <div class="step-card">
+          <!-- Number indicator -->
+          <div class="step-card__number">
+            <div class="step-card__number-circle">{{ step.number }}</div>
+          </div>
+
+          <div class="step-card__body">
+            <div class="step-card__header">
+              <div class="step-card__icon-wrapper">
+                <ng-icon [name]="step.icon" class="step-card__icon" />
+              </div>
+              <h3 class="step-card__title">{{ step.title }}</h3>
+            </div>
+            <p class="step-card__description">{{ step.description }}</p>
+          </div>
+
+          <!-- Vertical timeline connector -->
+          @if (i < steps.length - 1) {
+          <div class="step-card__connector"></div>
+          }
+        </div>
+        }
+      </div>
+
+      <!-- Right column - SVG Illustration -->
+      <div class="how-it-works__illustration">
+        <div class="illustration-wrapper">
+          <svg
+            class="illustration-svg"
+            viewBox="0 0 800 600"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <!-- Background -->
+            <rect width="800" height="600" fill="#F9FAFB" />
+
+            <!-- Sun with rays -->
+            <g class="sun-group">
+              <circle cx="650" cy="150" r="70" fill="#FDE68A" />
+              <circle
+                cx="650"
+                cy="150"
+                r="85"
+                stroke="#FDE68A"
+                stroke-width="2"
+                stroke-dasharray="4 4"
+              />
+              <circle
+                cx="650"
+                cy="150"
+                r="100"
+                stroke="#FDE68A"
+                stroke-width="2"
+                stroke-dasharray="4 4"
+                stroke-opacity="0.6"
+              />
+            </g>
+
+            <!-- Ground/horizon -->
+            <path d="M0 450 L800 450" stroke="#E5E7EB" stroke-width="2" />
+
+            <!-- Building - isometric style -->
+            <g>
+              <!-- Building base - isometric cube -->
+              <path
+                d="M200 450 L400 350 L600 450 L400 550 Z"
+                fill="#F3F4F6"
+                stroke="#D1D5DB"
+                stroke-width="2"
+              />
+
+              <!-- Building sides -->
+              <path
+                d="M400 350 L400 250 L600 350 L600 450 Z"
+                fill="#E5E7EB"
+                stroke="#D1D5DB"
+                stroke-width="2"
+              />
+              <path
+                d="M200 450 L200 350 L400 250 L400 350 Z"
+                fill="#F3F4F6"
+                stroke="#D1D5DB"
+                stroke-width="2"
+              />
+
+              <!-- Roof -->
+              <path
+                d="M300 200 L400 150 L500 200 L400 250 Z"
+                fill="#E5E7EB"
+                stroke="#D1D5DB"
+                stroke-width="2"
+              />
+
+              <!-- Windows -->
+              <rect
+                x="250"
+                y="380"
+                width="40"
+                height="40"
+                fill="#BFDBFE"
+                stroke="#93C5FD"
+                stroke-width="1"
+              />
+              <rect
+                x="310"
+                y="350"
+                width="40"
+                height="40"
+                fill="#BFDBFE"
+                stroke="#93C5FD"
+                stroke-width="1"
+              />
+              <rect
+                x="450"
+                y="380"
+                width="40"
+                height="40"
+                fill="#BFDBFE"
+                stroke="#93C5FD"
+                stroke-width="1"
+              />
+              <rect
+                x="510"
+                y="410"
+                width="40"
+                height="40"
+                fill="#BFDBFE"
+                stroke="#93C5FD"
+                stroke-width="1"
+              />
+            </g>
+
+            <!-- Solar Panels -->
+            <g class="panels-group">
+              <!-- Panel frame -->
+              <rect x="300" y="175" width="200" height="100" rx="5" fill="#3B82F6" />
+
+              <!-- Panel cells -->
+              <!-- First row -->
+              <rect x="310" y="185" width="55" height="25" rx="2" fill="#1E40AF" />
+              <rect x="375" y="185" width="55" height="25" rx="2" fill="#1E40AF" />
+              <rect x="440" y="185" width="55" height="25" rx="2" fill="#1E40AF" />
+
+              <!-- Second row -->
+              <rect x="310" y="215" width="55" height="25" rx="2" fill="#1E40AF" />
+              <rect x="375" y="215" width="55" height="25" rx="2" fill="#1E40AF" />
+              <rect x="440" y="215" width="55" height="25" rx="2" fill="#1E40AF" />
+
+              <!-- Third row -->
+              <rect x="310" y="245" width="55" height="25" rx="2" fill="#1E40AF" />
+              <rect x="375" y="245" width="55" height="25" rx="2" fill="#1E40AF" />
+              <rect x="440" y="245" width="55" height="25" rx="2" fill="#1E40AF" />
+
+              <!-- Panel shine effect -->
+              <path d="M300 175 L500 175 L485 185 L315 185 Z" fill="#DBEAFE" opacity="0.6" />
+            </g>
+
+            <!-- Energy flow visualization - lines animate -->
+            <g>
+              <!-- Sun to panels -->
+              <path
+                class="energy-flow-1"
+                d="M650 150 L500 225"
+                stroke="#FBBF24"
+                stroke-width="3"
+                fill="none"
+              />
+
+              <!-- Panels to building -->
+              <path
+                class="energy-flow-2"
+                d="M400 275 L400 350"
+                stroke="#10B981"
+                stroke-width="3"
+                fill="none"
+              />
+
+              <!-- Building to grid -->
+              <path
+                class="energy-flow-3"
+                d="M400 400 C 300 450, 200 420, 150 500"
+                stroke="#10B981"
+                stroke-width="3"
+                fill="none"
+              />
+            </g>
+
+            <!-- Energy icons -->
+            <g>
+              <circle cx="650" cy="150" r="12" fill="white" />
+              <path
+                d="M650 144 L648 150 L652 150 L650 156"
+                stroke="#FBBF24"
+                stroke-width="2"
+                fill="none"
+              />
+
+              <circle cx="500" cy="225" r="10" fill="white" />
+              <path
+                d="M500 220 L498 225 L502 225 L500 230"
+                stroke="#FBBF24"
+                stroke-width="2"
+                fill="none"
+              />
+
+              <circle cx="400" cy="350" r="10" fill="white" />
+              <path
+                d="M400 345 L398 350 L402 350 L400 355"
+                stroke="#10B981"
+                stroke-width="2"
+                fill="none"
+              />
+
+              <circle cx="150" cy="500" r="10" fill="white" />
+              <path
+                d="M150 495 L148 500 L152 500 L150 505"
+                stroke="#10B981"
+                stroke-width="2"
+                fill="none"
+              />
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA Button -->
+    <div class="how-it-works__cta">
+      <a href="/notre-solution" class="how-it-works__cta-btn">
+        Découvrir notre approche
+        <ng-icon name="lucideArrowRight" class="how-it-works__cta-icon" />
+      </a>
+    </div>
+  </div>
+</section>

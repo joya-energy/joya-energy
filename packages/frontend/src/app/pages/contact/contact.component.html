@@ -1,0 +1,139 @@
+<section class="contact-section">
+  <div class="container">
+    <div class="contact-header text-center">
+      <h1 class="contact-title">Parlons de votre projet</h1>
+      <p class="contact-subtitle">
+        Une question sur nos solutions solaires ? Notre équipe est à votre écoute.
+      </p>
+    </div>
+
+    <div class="contact-grid">
+      <!-- Left Column: Info (Dynamic) -->
+      <div class="contact-info-column">
+        
+        @for (item of contactInfo; track item.label) {
+          <div class="info-item">
+            <ng-icon [name]="item.icon" class="info-icon"></ng-icon>
+            <div class="info-content">
+              <span class="info-label">{{ item.label }}</span>
+              @if (item.link) {
+                <a [href]="item.link" class="info-value">{{ item.value }}</a>
+              } @else {
+                <span class="info-value" [class.address-text]="item.isAddress">{{ item.value }}</span>
+              }
+            </div>
+          </div>
+        }
+
+      </div>
+
+      <!-- Right Column: Clean Form -->
+      <div class="contact-form-column">
+        <form [formGroup]="contactForm" (ngSubmit)="onSubmit()" class="contact-form">
+          
+          <div class="form-row">
+            <!-- Name (Combined) -->
+            <div class="form-group">
+              <label for="name" class="form-label">Nom complet*</label>
+              <input 
+                type="text" 
+                id="name" 
+                formControlName="name" 
+                class="form-input" 
+                placeholder="Votre nom et prénom"
+                [class.has-error]="contactForm.controls.name.invalid && contactForm.controls.name.touched"
+              >
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+              <label for="email" class="form-label">Email professionnel*</label>
+              <input 
+                type="email" 
+                id="email" 
+                formControlName="email" 
+                class="form-input" 
+                placeholder="votre@email.com"
+                [class.has-error]="contactForm.controls.email.invalid && contactForm.controls.email.touched"
+              >
+            </div>
+          </div>
+
+          <div class="form-row">
+            <!-- Company -->
+            <div class="form-group">
+              <label for="companyName" class="form-label">Entreprise*</label>
+              <input 
+                type="text" 
+                id="companyName" 
+                formControlName="companyName" 
+                class="form-input" 
+                placeholder="Votre entreprise"
+                [class.has-error]="contactForm.controls.companyName.invalid && contactForm.controls.companyName.touched"
+              >
+            </div>
+
+            <!-- Phone -->
+            <div class="form-group">
+              <label for="phone" class="form-label">Téléphone*</label>
+              <input 
+                type="tel" 
+                id="phone" 
+                formControlName="phoneNumber" 
+                class="form-input" 
+                placeholder="+216 XX XXX XXX"
+                [class.has-error]="contactForm.controls.phoneNumber.invalid && contactForm.controls.phoneNumber.touched"
+              >
+            </div>
+          </div>
+
+          <!-- Subject -->
+          <div class="form-group">
+            <label for="subject" class="form-label">Sujet*</label>
+            <div class="select-wrapper">
+              <select 
+                id="subject" 
+                formControlName="subject" 
+                class="form-select"
+              >
+                @for (subject of subjects; track subject) {
+                  <option [value]="subject">{{ subject }}</option>
+                }
+              </select>
+              <ng-icon name="lucideChevronDown" class="select-icon"></ng-icon>
+            </div>
+          </div>
+
+          <!-- Message -->
+          <div class="form-group">
+            <label for="message" class="form-label">Message*</label>
+            <textarea 
+              id="message" 
+              formControlName="message" 
+              class="form-textarea" 
+              rows="3" 
+              placeholder="Comment pouvons-nous vous aider ?"
+              [class.has-error]="contactForm.controls.message.invalid && contactForm.controls.message.touched"
+            ></textarea>
+          </div>
+
+          <div class="form-required-legend text-right text-xs text-muted mt-2">
+            * Requis
+          </div>
+
+          <!-- Submit Button -->
+          <div class="btn-submit-wrapper">
+            <button type="submit" class="btn btn-cta btn-block" [disabled]="contactForm.invalid || isSubmitting()">
+              @if (isSubmitting()) {
+                Envoi...
+              } @else {
+                Envoyer
+              }
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
