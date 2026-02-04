@@ -1,7 +1,7 @@
 {
-  "buildCommand": "node scripts/generate-env.js && (node node_modules/@angular/cli/bin/ng.js build --configuration production 2>/dev/null || node ../../node_modules/@angular/cli/bin/ng.js build --configuration production)",
+  "buildCommand": "npm install --prefix ../.. && node scripts/generate-env.js && node ../../node_modules/@angular/cli/bin/ng.js build --configuration production",
   "outputDirectory": "dist/joya-frontend/browser",
-  "installCommand": "npm install",
+  "installCommand": "echo 'Skipping install, will run from buildCommand'",
   "rewrites": [{ "source": "/((?!.*\\.).*$)", "destination": "/index.html" }],
   "headers": [
     {
