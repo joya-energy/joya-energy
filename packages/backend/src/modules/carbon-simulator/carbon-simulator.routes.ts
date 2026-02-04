@@ -1,9 +1,10 @@
-import { Router, Request, Response } from 'express';
+import asyncRouter from 'express-promise-router';
+import { Request, Response, NextFunction } from 'express';
 import { BuildingTypes } from '@shared/enums/audit-general.enum';
 import { calculateCarbonFootprintSummary } from './helpers/carbon-footprint-summary.calculator';
 import type { CarbonFootprintSummaryInput } from './helpers/carbon-footprint-summary.calculator';
 
-export const carbonSimulatorRoutes = Router();
+export const carbonSimulatorRoutes = asyncRouter();
 
 /** Map sector key (e.g. OFFICE_ADMIN_BANK) to BuildingTypes value (label) for electricity extrapolation. Throws if unknown. */
 function sectorKeyToBuildingTypeLabel(key: string): string {
@@ -19,13 +20,22 @@ function sectorKeyToBuildingTypeLabel(key: string): string {
  * Body: CarbonFootprintSummaryInput (electricity.buildingType can be sector key or label)
  * Returns: CarbonFootprintSummaryResult
  */
-carbonSimulatorRoutes.post('/summary', (req: Request, res: Response) => {
-  const body = req.body as CarbonFootprintSummaryInput;
-  const electricity = {
-    ...body.electricity,
-    buildingType: sectorKeyToBuildingTypeLabel(body.electricity.buildingType) as CarbonFootprintSummaryInput['electricity']['buildingType'],
-  };
-  const input: CarbonFootprintSummaryInput = { ...body, electricity };
-  const result = calculateCarbonFootprintSummary(input);
-  res.json(result);
-});
+carbonSimulatorRoutes.post(
+  '/summary',
+  (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const body = req.body as CarbonFootprintSummaryInput;
+      const electricity = {
+        ...body.electricity,
+        buildingType: sectorKeyToBuildingTypeLabel(
+          body.electricity.buildingType
+        ) as CarbonFootprintSummaryInput['electricity']['buildingType'],
+      };
+      const input: CarbonFootprintSummaryInput = { ...body, electricity };
+      const result = calculateCarbonFootprintSummary(input);
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
+);

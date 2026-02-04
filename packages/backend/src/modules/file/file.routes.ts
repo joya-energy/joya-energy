@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import asyncRouter from 'express-promise-router';
 import { fileController } from './file.controller';
 
 /**
@@ -58,7 +58,7 @@ import { fileController } from './file.controller';
  *   description: File management endpoints
  */
 
-export const fileRoutes = Router();
+export const fileRoutes = asyncRouter();
 
 /**
  * @swagger
@@ -116,4 +116,3 @@ fileRoutes.get('/:id', fileController.getFileById);
  *         description: Server error
  */
 fileRoutes.delete('/:id', fileController.deleteFile);
-

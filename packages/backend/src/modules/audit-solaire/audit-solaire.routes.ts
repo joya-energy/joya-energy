@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import asyncRouter from 'express-promise-router';
 import multer from 'multer';
 import { auditSolaireSimulationController } from './audit-solaire.controller';
 
@@ -244,14 +244,14 @@ import { auditSolaireSimulationController } from './audit-solaire.controller';
  *   description: Solar audit simulation endpoints
  */
 
-export const auditSolaireSimulationRoutes = Router();
+export const auditSolaireSimulationRoutes = asyncRouter();
 
 // Configure multer for memory storage (buffer access)
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  }
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
 });
 
 /**
@@ -268,7 +268,7 @@ const upload = multer({
  *         - Monthly economics (12 months of bill calculations)
  *         - Annual economics (25 years of projections with inflation, degradation, discounting)
  *         - Financial metrics (NPV, IRR, ROI, payback periods)
- *       
+ *
  *       The simulation includes detailed monthlyEconomics and annualEconomics arrays that are stored in the database
  *       and used for PV report generation.
  *     requestBody:
@@ -289,7 +289,10 @@ const upload = multer({
  *       500:
  *         description: Server error
  */
-auditSolaireSimulationRoutes.post('/', auditSolaireSimulationController.createSimulation);
+auditSolaireSimulationRoutes.post(
+  '/',
+  auditSolaireSimulationController.createSimulation
+);
 
 /**
  * @swagger
@@ -380,7 +383,10 @@ auditSolaireSimulationRoutes.post(
  *       200:
  *         description: List of simulations
  */
-auditSolaireSimulationRoutes.get('/', auditSolaireSimulationController.getSimulations);
+auditSolaireSimulationRoutes.get(
+  '/',
+  auditSolaireSimulationController.getSimulations
+);
 
 /**
  * @swagger
@@ -405,7 +411,10 @@ auditSolaireSimulationRoutes.get('/', auditSolaireSimulationController.getSimula
  *       404:
  *         description: Simulation not found
  */
-auditSolaireSimulationRoutes.get('/:id', auditSolaireSimulationController.getSimulationById);
+auditSolaireSimulationRoutes.get(
+  '/:id',
+  auditSolaireSimulationController.getSimulationById
+);
 
 /**
  * @swagger
@@ -426,4 +435,7 @@ auditSolaireSimulationRoutes.get('/:id', auditSolaireSimulationController.getSim
  *       404:
  *         description: Simulation not found
  */
-auditSolaireSimulationRoutes.delete('/:id', auditSolaireSimulationController.deleteSimulation);
+auditSolaireSimulationRoutes.delete(
+  '/:id',
+  auditSolaireSimulationController.deleteSimulation
+);

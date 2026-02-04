@@ -1,9 +1,11 @@
 export const validateEmail = (email: string): boolean => {
+  if (email == null || typeof email !== 'string') return false;
   const re = /\S+@\S+\.\S+/;
-  return re.test(email);
+  return re.test(String(email).trim());
 };
 
 export const validatePhoneNumber = (phoneNumber: string): boolean => {
+  if (phoneNumber == null || typeof phoneNumber !== 'string') return false;
   const clean = String(phoneNumber)
     .trim()
     .replace(/\s+/g, '') // remove spaces
@@ -16,7 +18,7 @@ export const validatePhoneNumber = (phoneNumber: string): boolean => {
   // 1. Starts with + (international) -> 8 to 15 digits after +
   // 2. Starts with 0 (local with prefix) -> 9 to 14 digits total
   // 3. Just digits (local without prefix) -> exactly 8 digits (Tunisian standard)
-  
+
   const re = /^(\+|00)[1-9][0-9]{7,14}$|^0[1-9][0-9]{8,10}$|^[1-9][0-9]{7}$/;
   return re.test(clean);
 };

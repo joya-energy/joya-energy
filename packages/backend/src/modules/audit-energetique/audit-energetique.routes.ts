@@ -1,20 +1,18 @@
-import { Router } from 'express';
+import asyncRouter from 'express-promise-router';
 import multer from 'multer';
 import { auditEnergetiqueSimulationController } from './audit-energetique.controller';
 import { billExtractionController } from './bill-extraction.controller';
-import { auditReportController } from './audit-report.controller'; 
+import { auditReportController } from './audit-report.controller';
 import { pvReportController } from './pv-report.controller';
 
-
-
-export const auditEnergetiqueSimulationRoutes = Router();
+export const auditEnergetiqueSimulationRoutes = asyncRouter();
 
 // Configure multer for memory storage (buffer access)
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  }
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
 });
 
 /**
@@ -516,7 +514,10 @@ auditEnergetiqueSimulationRoutes.post(
  *       500:
  *         description: Server error
  */
-auditEnergetiqueSimulationRoutes.post('/', auditEnergetiqueSimulationController.createSimulation);
+auditEnergetiqueSimulationRoutes.post(
+  '/',
+  auditEnergetiqueSimulationController.createSimulation
+);
 
 /**
  * @swagger
@@ -541,11 +542,15 @@ auditEnergetiqueSimulationRoutes.post('/', auditEnergetiqueSimulationController.
  *       404:
  *         description: Simulation not found
  */
-auditEnergetiqueSimulationRoutes.get('/:id', auditEnergetiqueSimulationController.getSimulationById);
+auditEnergetiqueSimulationRoutes.get(
+  '/:id',
+  auditEnergetiqueSimulationController.getSimulationById
+);
 
-auditEnergetiqueSimulationRoutes.delete('/:id', auditEnergetiqueSimulationController.deleteSimulation);
-
-
+auditEnergetiqueSimulationRoutes.delete(
+  '/:id',
+  auditEnergetiqueSimulationController.deleteSimulation
+);
 
 // ------------------------------------------
 // NEW ROUTE: Generate & send audit PDF
@@ -587,9 +592,8 @@ auditEnergetiqueSimulationRoutes.delete('/:id', auditEnergetiqueSimulationContro
  *       500:
  *         description: PDF generation or email sending failed
  */
-auditEnergetiqueSimulationRoutes.post(
-  '/send-pdf',
-  (req, res) => auditReportController.sendAuditReport(req, res)
+auditEnergetiqueSimulationRoutes.post('/send-pdf', (req, res) =>
+  auditReportController.sendAuditReport(req, res)
 );
 
 /**
@@ -624,9 +628,8 @@ auditEnergetiqueSimulationRoutes.post(
  *       500:
  *         description: PDF generation failed
  */
-auditEnergetiqueSimulationRoutes.post(
-  '/download-pdf',
-  (req, res) => auditReportController.generateAuditReportPDF(req, res)
+auditEnergetiqueSimulationRoutes.post('/download-pdf', (req, res) =>
+  auditReportController.generateAuditReportPDF(req, res)
 );
 
 // ------------------------------------------
@@ -640,20 +643,20 @@ auditEnergetiqueSimulationRoutes.post(
  *     tags: [Audit Simulation]
  *     description: |
  *       **IMPORTANT:** PV reports require Audit Solaire data for PV calculations.
- *       
+ *
  *       **Data Sources:**
  *       - **solaireId (REQUIRED)**: Audit Solaire simulation ID - provides PV power, production, yield, financial metrics (NPV, IRR, ROI, payback), monthlyEconomics (12 months), and annualEconomics (25 years)
  *       - **energetiqueId (OPTIONAL but recommended)**: Audit Energetique simulation ID - provides CO₂ emissions data and contact information
- *       
+ *
  *       **Best Practice:** Provide both IDs for a complete report:
  *       - solaireId → PV calculations, financial metrics, monthly/annual economics data
  *       - energetiqueId → CO₂ data, contact info, building details
- *       
+ *
  *       **Requirements:**
  *       - The solaire simulation must have completed economic analysis (annualEconomics or monthlyEconomics data)
  *       - If annualEconomics is missing, the system will attempt to recalculate from monthlyEconomics
  *       - If both are missing, the request will fail with a clear error message
- *       
+ *
  *       **Note:** If only energetiqueId is provided, PV values will be 0 (no PV calculations available).
  *       If only solaireId is provided, CO₂ values will be estimated and contact info may be incomplete.
  *     requestBody:
@@ -707,9 +710,8 @@ auditEnergetiqueSimulationRoutes.post(
  *       500:
  *         description: PV PDF generation or email sending failed (check server logs for details)
  */
-auditEnergetiqueSimulationRoutes.post(
-  '/send-pv-pdf',
-  (req, res) => pvReportController.sendPVReport(req, res)
+auditEnergetiqueSimulationRoutes.post('/send-pv-pdf', (req, res) =>
+  pvReportController.sendPVReport(req, res)
 );
 
 // ------------------------------------------
@@ -723,11 +725,11 @@ auditEnergetiqueSimulationRoutes.post(
  *     tags: [Audit Simulation]
  *     description: |
  *       Generates a PV report PDF and triggers a browser download. The PDF is also automatically saved to Google Cloud Storage.
- *       
+ *
  *       **Data Sources:**
  *       - **solaireId (REQUIRED)**: Audit Solaire simulation ID - provides PV power, production, yield, financial metrics
  *       - **energetiqueId (OPTIONAL)**: Audit Energetique simulation ID - provides CO₂ emissions data
- *       
+ *
  *       **Requirements:**
  *       - The solaire simulation must have completed economic analysis (annualEconomics or monthlyEconomics data)
  *     requestBody:
@@ -767,7 +769,6 @@ auditEnergetiqueSimulationRoutes.post(
  *       500:
  *         description: PV PDF generation failed (check server logs for details)
  */
-auditEnergetiqueSimulationRoutes.post(
-  '/download-pv-pdf',
-  (req, res) => pvReportController.downloadPVReportPDF(req, res)
+auditEnergetiqueSimulationRoutes.post('/download-pv-pdf', (req, res) =>
+  pvReportController.downloadPVReportPDF(req, res)
 );

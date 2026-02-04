@@ -2,10 +2,10 @@
  * Financing Comparison Routes
  */
 
-import { Router } from 'express';
+import asyncRouter from 'express-promise-router';
 import { comparisonController } from '../controllers';
 
-const router = Router();
+const router = asyncRouter();
 
 /**
  * @route   POST /api/financing-comparisons
@@ -29,4 +29,3 @@ router.get('/advantages', comparisonController.getAdvantages);
 router.get('/locations', comparisonController.getLocations);
 
 export default router;
-

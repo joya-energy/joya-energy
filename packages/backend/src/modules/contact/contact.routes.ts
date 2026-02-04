@@ -1,6 +1,7 @@
-import { Router } from 'express';
+import asyncRouter from 'express-promise-router';
 import { contactController } from './contact.controller';
-export const contactRoutes = Router();
+
+export const contactRoutes = asyncRouter();
 
 contactRoutes.post('/', contactController.createContact);
 contactRoutes.get('/', contactController.getContacts);
