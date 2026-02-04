@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build:production --workspace joya-frontend",
+  "buildCommand": "cd packages/frontend && node scripts/generate-env.js && node ../../node_modules/@angular/cli/bin/ng.js build --configuration production",
   "outputDirectory": "packages/frontend/dist/joya-frontend/browser",
   "installCommand": "npm install",
   "rewrites": [{ "source": "/((?!.*\\.).*$)", "destination": "/index.html" }],
