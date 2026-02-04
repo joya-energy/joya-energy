@@ -1,0 +1,28 @@
+<section class="rkh">
+  <div class="rkh__gradient"></div>
+
+  <div class="rkh__container">
+    <div class="rkh__header">
+      <span class="rkh__badge">Centre de Ressources</span>
+      <h2 class="rkh__title">
+        Approfondissez vos <span class="rkh__title-accent">Connaissances</span>
+      </h2>
+      <p class="rkh__subtitle">
+        Pour aller plus loin, consultez nos guides et analyses rédigés par nos experts.
+      </p>
+    </div>
+
+    <div class="rkh__grid">
+      @for (article of articles; track article.title) {
+      <app-knowledge-card
+        [icon]="article.icon"
+        [badge]="article.badge"
+        [title]="article.title"
+        [description]="article.description"
+        [linkText]="article.linkText"
+        [routerLink]="article.routerLink"
+      />
+      }
+    </div>
+  </div>
+</section>

@@ -7,7 +7,7 @@
  * Desktop: >= 1024px (fixed transparent navbar)
  */
 
- :host {
+:host {
   display: block;
   width: 100%;
   max-width: 100vw;
@@ -28,7 +28,7 @@
   box-sizing: border-box;
   overflow-x: hidden;
   overflow-y: visible;
-  
+
   // MOBILE (< 1024px): Fixed navbar that hides on scroll down, shows on scroll up
   position: fixed;
   top: 0;
@@ -40,14 +40,14 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transform: translateY(0);
   transition: transform 0.3s ease;
-  
+
   // Hide navbar on mobile when scrolling down
   &--hidden {
     @media (max-width: 1023px) {
       transform: translateY(-100%);
     }
   }
-  
+
   // DESKTOP (>= 1024px): Fixed transparent navbar that changes on scroll
   @media (min-width: 1024px) {
     background: transparent;
@@ -241,7 +241,7 @@
   // Very wide screens: scale down gap to fit better
   @media (min-width: 1410px) {
     display: flex;
-    gap:1rem;
+    gap: 1rem;
   }
 }
 

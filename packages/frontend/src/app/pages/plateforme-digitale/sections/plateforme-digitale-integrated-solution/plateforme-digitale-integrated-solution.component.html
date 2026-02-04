@@ -1,0 +1,23 @@
+<section class="pd-section pd-section--alt">
+  <div class="pd-section__container">
+    <div class="pd-integre__inner">
+      <h2 class="pd-integre__title">Un outil intégré à la solution <span>Joya</span></h2>
+      <p class="pd-integre__lead">
+        La plateforme digitale fait partie intégrante de la solution spanJoya. Elle accompagne
+        chaque étape du projet, du diagnostic initial au suivi long terme.
+      </p>
+      <p class="pd-integre__label">Vous bénéficiez :</p>
+
+      <div class="pd-integre__grid">
+        @for (benefit of benefits; track benefit.text) {
+        <div class="pd-integre__card">
+          <div class="pd-integre__icon-wrap">
+            <ng-icon [name]="benefit.icon" class="pd-integre__icon" />
+          </div>
+          <p class="pd-integre__card-text">{{ benefit.text }}</p>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+</section>

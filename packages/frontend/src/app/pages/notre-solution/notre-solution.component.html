@@ -1,0 +1,167 @@
+<div class="notre-solution-page">
+  <main class="notre-solution-page__main">
+    <section class="hero">
+      <div class="hero__container">
+        <div class="hero__grid">
+          <div class="hero__left">
+            <p class="hero__badge">NOTRE SOLUTION</p>
+            <h1 class="hero__title">
+              Nous gérons votre énergie.<br />
+              Vous en voyez les résultats.
+            </h1>
+            <p class="hero__subtitle">
+              Joya agit comme un opérateur énergétique et prend la responsabilité de la performance
+              énergétique de votre site, de bout en bout.
+            </p>
+          </div>
+
+          <div class="hero__right">
+            <div class="hero__image-wrap">
+              <img
+                src="/Solution_Hero_Img.webp"
+                alt="Notre solution Joya – gestion de l'énergie de bout en bout"
+                class="hero__image"
+                width="800"
+                height="600"
+                loading="eager"
+                fetchpriority="high"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="solution-cards">
+      <div class="solution-cards__container">
+        <div class="solution-cards__grid">
+          @for (card of cards; track card.id) {
+          <div class="solution-card">
+            <div class="solution-card__icon-wrapper">
+              <ng-icon [name]="card.icon" class="solution-card__icon" />
+            </div>
+            <h3 class="solution-card__title">{{ card.title }}</h3>
+            <p class="solution-card__description">{{ card.description }}</p>
+          </div>
+          }
+        </div>
+      </div>
+    </section>
+    <section class="how-it-works">
+      <div class="how-it-works__container">
+        <div class="how-it-works__header">
+          <h2 class="how-it-works__title">
+            Comment fonctionne notre
+            <span class="how-it-works__title-accent">solution énergétique</span>
+          </h2>
+          <p class="how-it-works__subtitle">
+            Une approche structurée pour améliorer durablement la performance énergétique de votre
+            entreprise, sans complexité.
+          </p>
+        </div>
+        <div class="how-it-works__grid">
+          <div class="how-it-works__left">
+            <h2 class="how-it-works__step-title">Comprendre votre énergie</h2>
+            <p class="how-it-works__step-description">
+              Analyse de votre consommation, de vos usages et de votre site pour identifier les
+              leviers réels de performance énergétique.
+            </p>
+            <h2 class="how-it-works__step-title">Déployer la bonne solution</h2>
+            <p class="how-it-works__step-description">
+              Conception et mise en œuvre d’une solution énergétique adaptée à votre site, intégrant
+              production solaire et optimisation des usages.
+            </p>
+            <h2 class="how-it-works__step-title">Piloter la performance</h2>
+            <p class="how-it-works__step-description">
+              Suivi continu de la consommation, de la production et des économies via la plateforme
+              digitale Joya.
+            </p>
+          </div>
+          <div class="how-it-works__img-wrapper">
+            <img src="/Solution_steps_SS_Img.png" alt="Comment ça marche ?" height="460" />
+          </div>
+        </div>
+      </div>
+      <div class="how-it-works__container" style="margin-top: 3rem">
+        <div class="how-it-works__header">
+          <h2 class="how-it-works__title">
+            Ce que Joya prend en
+            <span class="how-it-works__title-accent">charge</span>
+          </h2>
+          <p class="how-it-works__subtitle">
+            De l’analyse à la maintenance, nous assurons l’ensemble du cycle pour une performance
+            énergétique optimale et sans surprise.
+          </p>
+        </div>
+        <div class="how-it-works__grid">
+          <div class="how-it-works__img-wrapper">
+            <img
+              src="/Solution_Steps_Img.png"
+              alt="Comment ça marche ?"
+              class="how-it-works__img"
+              style="margin-left: 60px !important"
+            />
+          </div>
+          <div class="how-it-works__left" style="margin-left: 60px !important">
+            <h2 class="how-it-works__step-title">Joya s’occupe de tout</h2>
+            <ul class="how-it-works__list how-it-works__list--with-checks">
+              <li class="how-it-works__list-item">
+                <ng-icon name="lucideCheckCircle" class="how-it-works__list-icon" />
+                <span>Analyse et diagnostic énergétique</span>
+              </li>
+              <li class="how-it-works__list-item">
+                <ng-icon name="lucideCheckCircle " class="how-it-works__list-icon" />
+                <span>Conception de la solution</span>
+              </li>
+              <li class="how-it-works__list-item">
+                <ng-icon name="lucideCheckCircle " class="how-it-works__list-icon" />
+                <span>Installation et coordination technique</span>
+              </li>
+              <li class="how-it-works__list-item">
+                <ng-icon name="lucideCheckCircle " class="how-it-works__list-icon" />
+                <span>Suivi, maintenance et optimisation</span>
+              </li>
+              <li class="how-it-works__list-item">
+                <ng-icon name="lucideCheckCircle " class="how-it-works__list-icon" />
+                <span>Reporting et pilotage de la performance</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="Transition-plateforme">
+      <div class="solution-cards__container">
+        <div class="solution-card__grid">
+          <div class="solution-card">
+            <div class="solution-card__icon-wrapper">
+              <ng-icon name="lucideBarChart2" class="solution-card__icon" />
+            </div>
+            <h3 class="solution-card__title">La performance repose sur des données réelles</h3>
+            <p class="solution-card__description">
+              Toutes les décisions et optimisations sont basées sur des données mesurées,
+              accessibles via la plateforme digitale Joya.
+            </p>
+            <a href="#contact" class="solution-card__cta-btn"> Découvrir la plateforme digitale</a>
+          </div>
+
+          <div class="cta-card">
+            <p class="cta-card__phrase">
+              Prêt à voir ce que Joya peut faire pour votre site ? Découvrez votre potentiel solaire
+              et les économies réalisables grâce à une simulation personnalisée.
+            </p>
+            <div class="cta-card__actions">
+              <a routerLink="/audit-solaire" class="cta-card__btn cta-card__btn--primary">
+                Simuler mon potentiel solaire
+              </a>
+              <a routerLink="/contact" class="cta-card__btn cta-card__btn--outline">
+                Parler à un conseiller
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>

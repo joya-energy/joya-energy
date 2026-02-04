@@ -9,60 +9,115 @@ import { Routes } from '@angular/router';
  *   data: { hideFooter: true }
  * }
  * ```
-*/
-
+ */
 
 export const routes: Routes = [
   {
     path: 'landing',
-    loadComponent: () => import('./pages/landing/landing.component').then(m => m.LandingComponent),
+    loadComponent: () =>
+      import('./pages/landing/landing.component').then((m) => m.LandingComponent),
     title: 'Landing | JOYA Energy',
-    data: { hideFooter: false }
+    data: { hideFooter: false },
+  },
+  {
+    path: 'notre-solution',
+    loadComponent: () =>
+      import('./pages/notre-solution/notre-solution.component').then(
+        (m) => m.NotreSolutionComponent
+      ),
+    title: 'Notre solution | JOYA Energy',
+  },
+  {
+    path: 'plateforme-digitale',
+    loadComponent: () =>
+      import('./pages/plateforme-digitale/plateforme-digitale.component').then(
+        (m) => m.PlateformeDigitaleComponent
+      ),
+    title: 'Plateforme digitale | JOYA Energy',
+  },
+  {
+    path: 'ressources',
+    loadComponent: () =>
+      import('./pages/ressources/ressources.component').then((m) => m.RessourcesComponent),
+    title: 'Ressources | JOYA Energy',
   },
   {
     path: '',
-    loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent),
-    title: 'JOYA Energy - Passez au solaire'
+    loadComponent: () => import('./pages/home/home.component').then((m) => m.HomeComponent),
+    title: 'JOYA Energy - Passez au solaire',
   },
   {
     path: 'contact',
-    loadComponent: () => import('./pages/contact/contact.component').then(m => m.ContactComponent),
-    title: 'Contactez-nous | JOYA Energy'
+    loadComponent: () =>
+      import('./pages/contact/contact.component').then((m) => m.ContactComponent),
+    title: 'Contactez-nous | JOYA Energy',
   },
   {
     path: 'audit-energetique',
-    loadComponent: () => import('./pages/audit-energetique/audit-energetique.component').then(m => m.AuditEnergetiqueComponent),
-    title: 'Simulation audit énergétique | JOYA Energy'
+    loadComponent: () =>
+      import('./pages/audit-energetique/audit-energetique.component').then(
+        (m) => m.AuditEnergetiqueComponent
+      ),
+    title: 'Simulation audit énergétique | JOYA Energy',
   },
   {
     path: 'audit-solaire',
-    loadComponent: () => import('./pages/audit-solaire/audit-solaire.component').then(m => m.AuditSolaireComponent),
-    title: 'Simulation audit solaire | JOYA Energy'
+    loadComponent: () =>
+      import('./pages/audit-solaire/audit-solaire.component').then((m) => m.AuditSolaireComponent),
+    title: 'Simulation audit solaire | JOYA Energy',
   },
   {
     path: 'solar-audit',
-    loadComponent: () => import('./pages/solar-audit/solar-audit.component').then(m => m.SolarAuditComponent),
+    loadComponent: () =>
+      import('./pages/solar-audit/solar-audit.component').then((m) => m.SolarAuditComponent),
     title: 'Audit Solaire | JOYA Energy',
-    data: { hideFooter: true }
+    data: { hideFooter: true },
   },
   {
     path: 'comparaison-financements',
-    loadComponent: () => import('./features/financing-comparison/financing-comparison.component').then(m => m.FinancingComparisonComponent),
-    title: 'Comparateur de Financements | JOYA Energy'
+    loadComponent: () =>
+      import('./pages/comparaison-financements/comparaison-financements.component').then(
+        (m) => m.ComparaisonFinancementsComponent
+      ),
+    title: 'Comparateur de Financements | JOYA Energy',
+    data: { hideFooter: true },
   },
   {
     path: 'bilan-carbon',
-    loadComponent: () => import('./pages/bilan-carbon/bilan-carbon.component.js').then(m => m.BilanCarbonComponent),
-    title: 'Bilan Carbone | JOYA Energy'
+    loadComponent: () =>
+      import('./pages/bilan-carbon/bilan-carbon.component.js').then((m) => m.BilanCarbonComponent),
+    title: 'Bilan Carbone | JOYA Energy',
   },
   {
     path: 'energy-audit',
-    loadComponent: () => import('./pages/energy-audit/energy-audit.component').then(m => m.EnergyAuditComponent),
+    loadComponent: () =>
+      import('./pages/energy-audit/energy-audit.component').then((m) => m.EnergyAuditComponent),
     title: 'Audit Énergétique | JOYA Energy',
-    data: { hideFooter: true }
+    data: { hideFooter: true },
+  },
+  {
+    path: 'privacy',
+    loadComponent: () =>
+      import('./pages/confidentialite/confidentialite.component').then(
+        (m) => m.ConfidentialiteComponent
+      ),
+    title: 'Confidentialité | JOYA Energy',
+  },
+  {
+    path: 'data-policy',
+    loadComponent: () =>
+      import('./pages/politique-donnees/politique-donnees.component').then(
+        (m) => m.PolitiqueDonneesComponent
+      ),
+    title: 'Politique de données | JOYA Energy',
+  },
+  {
+    path: 'faq',
+    loadComponent: () => import('./pages/faq/faq.component').then((m) => m.FaqComponent),
+    title: 'FAQ | JOYA Energy',
   },
   {
     path: '**',
-    redirectTo: ''
-  }
+    redirectTo: '',
+  },
 ];

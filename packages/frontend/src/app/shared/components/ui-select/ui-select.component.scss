@@ -51,7 +51,7 @@
   width: 100%;
   padding: 0.75rem 1rem;
   background: var(--select-bg);
-  border: 1px solid var(--select-border);
+  border: 1px solid var(--select-box-border-selected);
   border-radius: 0.5rem;
   font-size: var(--font-size-sm);
   color: var(--select-text);
@@ -65,7 +65,7 @@
 }
 
 .ui-select-container.open .ui-select-trigger {
-  border-color: var(--select-border-focus);
+  border-color: var(--select-box-border-selected);
   box-shadow: 0 0 0 4px var(--select-border-focus-shadow);
 }
 

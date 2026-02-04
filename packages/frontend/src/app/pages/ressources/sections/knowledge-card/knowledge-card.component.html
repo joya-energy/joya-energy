@@ -1,0 +1,21 @@
+<a [routerLink]="routerLink()" class="kc-card">
+  <div class="kc-card__border"></div>
+  <div class="kc-card__hover"></div>
+
+  <div class="kc-card__content">
+    <div class="kc-card__header">
+      <div class="kc-card__icon-bg">
+        <app-ressources-performance-icon [name]="icon()" class="kc-card__icon" />
+      </div>
+      <span class="kc-card__badge">{{ badge() }}</span>
+    </div>
+
+    <h4 class="kc-card__title">{{ title() }}</h4>
+    <p class="kc-card__desc">{{ description() }}</p>
+
+    <span class="kc-card__link">
+      {{ linkText() }}
+      <ng-icon name="lucideArrowRight" class="kc-card__link-icon" />
+    </span>
+  </div>
+</a>

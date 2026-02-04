@@ -1,0 +1,49 @@
+<section class="pd-section">
+  <div class="pd-section__container">
+    <div class="pd-indicators__wrap">
+      <div class="pd-indicators__content">
+        <h2 class="pd-indicators__title">Des indicateurs utiles, pas des chiffres bruts</h2>
+        <p class="pd-indicators__lead">
+          La plateforme Joya transforme les données énergétiques en indicateurs simples,
+          compréhensibles et exploitables. Chaque donnée est contextualisée pour vous permettre de :
+        </p>
+        <ul class="pd-indicators__list">
+          @for (benefit of benefits; track benefit) {
+          <li class="pd-indicators__item">
+            <ng-icon name="lucideCheckCircle" class="pd-indicators__icon" />
+            <span>{{ benefit }}</span>
+          </li>
+          }
+        </ul>
+      </div>
+
+      <div class="pd-indicators__visual">
+        <div class="pd-indicators__card">
+          <div class="pd-indicators__card-row">
+            <span class="pd-indicators__card-label">Performance du mois</span>
+            <span class="pd-indicators__card-value">+12%</span>
+          </div>
+          <div class="pd-indicators__bar">
+            <span class="pd-indicators__bar-fill"></span>
+          </div>
+          <div class="pd-indicators__stats">
+            <div class="pd-indicators__stat">
+              <p class="pd-indicators__stat-num">2.4k</p>
+              <p class="pd-indicators__stat-label">kWh produits</p>
+            </div>
+            <div class="pd-indicators__stat pd-indicators__stat--border">
+              <p class="pd-indicators__stat-num">1.8k</p>
+              <p class="pd-indicators__stat-label">kWh consommés</p>
+            </div>
+            <div class="pd-indicators__stat">
+              <p class="pd-indicators__stat-num pd-indicators__stat-num--accent">€340</p>
+              <p class="pd-indicators__stat-label">Économisés</p>
+            </div>
+          </div>
+        </div>
+        <span class="pd-indicators__blur pd-indicators__blur--1"></span>
+        <span class="pd-indicators__blur pd-indicators__blur--2"></span>
+      </div>
+    </div>
+  </div>
+</section>
