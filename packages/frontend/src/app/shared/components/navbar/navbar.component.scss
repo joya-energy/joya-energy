@@ -96,7 +96,6 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 5rem;
   gap: 0.75rem;
   width: 100%;
   max-width: 100%;
@@ -104,19 +103,19 @@
   overflow-x: hidden;
 
   @media (min-width: 640px) {
-    height: 6rem;
+    height: 2rem;
     gap: 1rem;
   }
 
   // Desktop: larger size
   @media (min-width: 1024px) and (max-width: 1409px) {
     height: 8rem;
-    gap: 2rem;
+    gap: 4rem;
   }
 
   // Very wide screens: scale down to fit better
   @media (min-width: 1410px) {
-    height: 7rem;
+    height: 8rem;
     gap: 1.5rem;
   }
 }
@@ -147,23 +146,24 @@
 }
 
 .navbar-logo-image {
-  height: 6rem !important;
+  height: 6rem;
   width: auto;
   object-fit: contain;
   max-width: 100%;
 
   @media (min-width: 640px) {
-    height: 3rem;
+    height: 2rem;
+    margin-bottom: 0.5rem;
   }
 
   // Desktop: larger size
   @media (min-width: 1024px) and (max-width: 1409px) {
-    height: 3.2rem;
+    height: 4rem;
   }
 
   // Very wide screens: scale down to fit better
   @media (min-width: 1410px) {
-    height: 4rem;
+    height: 6rem;
   }
 }
 

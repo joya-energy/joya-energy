@@ -874,13 +874,21 @@
 
   @media (max-width: 768px) {
     padding: 1rem 1.5rem;
-    // Extra padding for mobile to ensure buttons are above Android navigation bar
-    padding-bottom: calc(1rem + max(env(safe-area-inset-bottom), 3rem));
+    // Responsive padding that adapts to device navigation bars
+    // Base 2rem + auto-detected safe area (navigation bar height if present)
+    padding-bottom: calc(2rem + env(safe-area-inset-bottom, 3rem));
     max-width: 100%;
 
     .hero__btn {
       flex: 1;
       min-width: auto;
+    }
+  }
+
+  // Additional support for Android devices using @supports
+  @supports (padding-bottom: max(0px)) {
+    @media (max-width: 768px) {
+      padding-bottom: max(2rem, calc(2rem + env(safe-area-inset-bottom)));
     }
   }
 }
