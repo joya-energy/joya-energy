@@ -177,6 +177,7 @@
   margin-bottom: 1.5rem;
   padding-left: 1rem;
   padding-right: 1rem;
+  margin-top: 1rem;
 }
 
 .sc-card__features {
@@ -246,7 +247,7 @@
   background: linear-gradient(to right, var(--landing-primary), var(--landing-primary-dark));
   color: #fff;
   font-weight: 600;
-  font-size: clamp(0.8rem, 2vw, 0.875rem);
+  font-size: 1.2rem !important;
   text-decoration: none;
   border-radius: var(--landing-radius-md);
   transition: transform var(--landing-transition-fast), box-shadow var(--landing-transition-fast);
