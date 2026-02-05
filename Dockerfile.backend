@@ -59,5 +59,6 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD wget -q -O- "http://127.0.0.1:${PORT:-3000}/api/health" || exit 1
 
 # Run compiled backend with path resolution for @shared
+# Shell form so we emit a log line immediately (Railway shows "Starting Container" then this)
 # Ensure DB_URI and other required env vars are set in Railway (or the process will exit and return 502)
-CMD ["node", "-r", "tsconfig-paths/register", "dist/packages/backend/src/index.js"]
+CMD echo "Joya backend starting (node $(node -v))..." && exec node -r tsconfig-paths/register dist/packages/backend/src/index.js

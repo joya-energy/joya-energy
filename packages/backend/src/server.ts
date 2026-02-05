@@ -26,6 +26,8 @@ const createServer = async (): Promise<http.Server> => {
   const { PORT = 3000 } = process.env;
   return server.listen(PORT, () => {
     Logger.info(`Server is running on port ${PORT}`);
+    // So Railway/containers always show this in logs (Logger is WARN in production)
+    console.log(`[Joya] Server is running on port ${PORT}`);
   });
 };
 
