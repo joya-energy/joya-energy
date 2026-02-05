@@ -29,6 +29,7 @@ import {
   lucideCalendar
 } from '@ng-icons/lucide';
 
+import { NoGroupingPipe } from '../../shared/pipes/no-grouping.pipe';
 // Base Components
 import { UiStepTimelineComponent } from '../../shared/components/ui-step-timeline/ui-step-timeline.component';
 import { UiProgressBarComponent } from '../../shared/components/ui-progress-bar/ui-progress-bar.component';
@@ -53,6 +54,7 @@ import { AuditEnergetiqueResponse } from '../../core/services/audit-energetique.
     CommonModule,
     ReactiveFormsModule,
     NgIconComponent,
+    NoGroupingPipe,
     UiStepTimelineComponent,
     UiProgressBarComponent,
     DatePipe,

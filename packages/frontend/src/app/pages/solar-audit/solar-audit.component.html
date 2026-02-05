@@ -113,7 +113,7 @@
                       <div class="card-content">
                         <div class="card-value">{{ (simulation.expectedProduction / 1000).toFixed(0) }} <span class="unit">MWh</span></div>
                         <div class="card-label">Production Annuelle</div>
-                        <div class="card-description">{{ simulation.expectedProduction.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} kWh/an</div>
+                        <div class="card-description">{{ simulation.expectedProduction.toFixed(0) }} kWh/an</div>
                       </div>
                       <div class="card-accent"></div>
                     </div>
@@ -125,7 +125,7 @@
                       <div class="card-content">
                         <div class="card-value">{{ (simulation.annualSavings / 1000).toFixed(0) }} <span class="unit">k DT</span></div>
                         <div class="card-label">Économies Annuelles</div>
-                        <div class="card-description">{{ simulation.annualSavings.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} DT/an</div>
+                        <div class="card-description">{{ simulation.annualSavings.toFixed(0) }} DT/an</div>
                       </div>
                       <div class="card-accent"></div>
                     </div>
@@ -138,7 +138,7 @@
                         <div class="card-category">ROI</div>
                       </div>
                       <div class="card-content">
-                        <div class="card-value">{{ formatPaybackPeriod(simulation.paybackMonths) }}</div>
+                        <div class="card-value">{{ getPaybackDisplayFromIntersection() }}</div>
                         <div class="card-label">Retour sur Investissement</div>
                         <div class="card-description">Période de remboursement</div>
                       </div>
@@ -168,13 +168,13 @@
                           <div class="comparison-badge">Avant</div>
                         </div>
                         <div class="comparison-content">
-                          <div class="comparison-value warning">{{ simulation.annualBillWithoutPV.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} <span class="currency">DT</span></div>
+                          <div class="comparison-value warning">{{ simulation.annualBillWithoutPV.toFixed(0) }} <span class="currency">DT</span></div>
                           <div class="comparison-label">Situation Actuelle</div>
                           <div class="comparison-subtitle">Coût annuel d'électricité</div>
                           <div class="comparison-details">
                             <div class="detail-item">
                               <ng-icon name="lucideActivity" class="detail-icon"></ng-icon>
-                              <span>{{ simulation.annualConsumption.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} kWh/an</span>
+                              <span>{{ simulation.annualConsumption.toFixed(0) }} kWh/an</span>
                             </div>
                           </div>
                         </div>
@@ -189,7 +189,7 @@
                         </div>
                         <div class="savings-indicator">
                           <div class="savings-amount">
-                            -{{ (simulation.annualBillWithoutPV - simulation.annualBillWithPV).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} DT
+                            -{{ (simulation.annualBillWithoutPV - simulation.annualBillWithPV).toFixed(0) }} DT
                           </div>
                           <div class="savings-label">Économies annuelles</div>
                         </div>
@@ -204,7 +204,7 @@
                           <div class="comparison-badge">Après</div>
                         </div>
                         <div class="comparison-content">
-                          <div class="comparison-value success">{{ simulation.annualBillWithPV.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} <span class="currency">DT</span></div>
+                          <div class="comparison-value success">{{ simulation.annualBillWithPV.toFixed(0) }} <span class="currency">DT</span></div>
                           <div class="comparison-label">Avec Panneaux Solaires</div>
                           <div class="comparison-subtitle">Coût annuel restant</div>
                           <div class="comparison-details">
@@ -245,7 +245,7 @@
                           <div class="metric-badge">Investissement</div>
                         </div>
                         <div class="metric-content">
-                          <div class="metric-value primary">{{ simulation.installationCost.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}</div>
+                          <div class="metric-value primary">{{ simulation.installationCost.toFixed(0) }}</div>
                           <div class="metric-label">CAPEX</div>
                           <div class="metric-subtitle">Coût d'investissement</div>
                         </div>
@@ -260,7 +260,7 @@
                           <div class="metric-badge">Maintenance</div>
                         </div>
                         <div class="metric-content">
-                          <div class="metric-value neutral">{{ simulation.annualOpex.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}</div>
+                          <div class="metric-value neutral">{{ simulation.annualOpex.toFixed(0) }}</div>
                           <div class="metric-label">OPEX</div>
                           <div class="metric-subtitle">Coût de maintenance annuel</div>
                         </div>
@@ -275,7 +275,7 @@
                           <div class="metric-badge">Profit</div>
                         </div>
                         <div class="metric-content">
-                          <div class="metric-value success">{{ ((simulation.roi25Years || 0) * 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}%</div>
+                          <div class="metric-value success">{{ ((simulation.roi25Years || 0) * 100).toFixed(2) }}%</div>
                           <div class="metric-label">ROI</div>
                           <div class="metric-subtitle">Retour sur investissement</div>
                         </div>
@@ -291,7 +291,7 @@
                             <div class="metric-badge">Cumulé</div>
                           </div>
                           <div class="metric-content">
-                            <div class="metric-value success">{{ simulation.annualEconomics[simulation.annualEconomics.length - 1]!.cumulativeNetGain.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}</div>
+                            <div class="metric-value success">{{ simulation.annualEconomics[simulation.annualEconomics.length - 1]!.cumulativeNetGain.toFixed(0) }}</div>
                             <div class="metric-label">Gain cumulé</div>
                             <div class="metric-subtitle">Non actualisé (25 ans)</div>
                           </div>
@@ -325,7 +325,7 @@
                       <div class="chart-container">
                         <div class="chart-y-axis">
                           @for (tick of getChartYAxisTicks(); track $index) {
-                            <div class="y-axis-label">{{ tick | number:'1.0-0' }}</div>
+                            <div class="y-axis-label">{{ tick | noGrouping:'1.0-0' }}</div>
                           }
                         </div>
                         <div class="chart-bars-container">
@@ -338,7 +338,7 @@
                                       <div class="monthly-bills-tooltip monthly-bills-tooltip-stacked">
                                         <div class="monthly-bills-tooltip-month">{{ monthlyBillsTooltip()!.monthLabel }}</div>
                                         <div class="monthly-bills-tooltip-bubble monthly-bills-tooltip-bubble-sans">
-                                          Sans solaire: {{ monthlyBillsTooltip()!.billWithoutPV | number:'1.0-0' }} DT
+                                          Sans solaire: {{ monthlyBillsTooltip()!.billWithoutPV | noGrouping:'1.0-0' }} DT
                                         </div>
                                       </div>
                                     }
@@ -346,7 +346,7 @@
                                       <div class="monthly-bills-tooltip monthly-bills-tooltip-stacked">
                                         <div class="monthly-bills-tooltip-month">{{ monthlyBillsTooltip()!.monthLabel }}</div>
                                         <div class="monthly-bills-tooltip-bubble monthly-bills-tooltip-bubble-avec">
-                                          Avec solaire: {{ monthlyBillsTooltip()!.billWithPV | number:'1.0-0' }} DT
+                                          Avec solaire: {{ monthlyBillsTooltip()!.billWithPV | noGrouping:'1.0-0' }} DT
                                         </div>
                                       </div>
                                     }
@@ -400,7 +400,7 @@
                         <div class="line-chart-container">
                           <div class="line-chart-y-axis">
                             @for (tick of getLineChartYAxisTicks(); track tick; let i = $index) {
-                              <div class="y-axis-label">{{ tick | number:'1.0-0' }}</div>
+                              <div class="y-axis-label">{{ tick | noGrouping:'1.0-0' }}</div>
                             }
                           </div>
                           <div class="line-chart-content">
@@ -412,8 +412,8 @@
                                   [style.top.px]="tt.bubbleLocalY"
                                   style="transform: translate(-50%, -50%);">
                                   <div class="chart-tooltip-year">Année {{ tt.year }}</div>
-                                  <div class="chart-tooltip-bubble chart-tooltip-bubble-gains">{{ tt.gains | number:'1.0-0' }} DT</div>
-                                  <div class="chart-tooltip-bubble chart-tooltip-bubble-capex">{{ tt.capex | number:'1.0-0' }} DT</div>
+                                  <div class="chart-tooltip-bubble chart-tooltip-bubble-gains">{{ tt.gains | noGrouping:'1.0-0' }} DT</div>
+                                  <div class="chart-tooltip-bubble chart-tooltip-bubble-capex">{{ tt.capex | noGrouping:'1.0-0' }} DT</div>
                                 </div>
                               }
                               <svg
@@ -472,7 +472,7 @@
                                   <g>
                                     <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="8" fill="#10b981" stroke="white" stroke-width="3"/>
                                     <rect [attr.x]="getIntersectionBubbleX()" [attr.y]="pt.y - 45" [attr.width]="getIntersectionBubbleWidth()" height="35" rx="10" fill="#10b981" stroke="#059669" stroke-width="2" opacity="0.95" filter="url(#shadow)"/>
-                                    <text [attr.x]="pt.x" [attr.y]="pt.y - 25" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff">{{ pt.year | number:'1.1-1' }} ans</text>
+                                    <text [attr.x]="pt.x" [attr.y]="pt.y - 25" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff">{{ pt.year | noGrouping:'1.1-1' }} ans</text>
                                   </g>
                                 }
                                 @if (getFinalGainsPoint(); as fp) {
@@ -481,7 +481,7 @@
                                       <circle [attr.cx]="fp.x" [attr.cy]="fp.y" r="8" fill="#3b82f6" stroke="white" stroke-width="3"/>
                                       <line [attr.x1]="fp.x" [attr.y1]="fp.y" [attr.x2]="fp.x - 95" [attr.y2]="fp.y + 50" stroke="rgba(59, 130, 246, 0.9)" stroke-width="3" stroke-linecap="round"/>
                                       <rect [attr.x]="getFinalGainsBubbleX()" [attr.y]="fp.y + 20" [attr.width]="getFinalGainsBubbleWidth()" height="40" rx="12" fill="#ffffff" stroke="#3b82f6" stroke-width="3" opacity="0.97" filter="url(#shadow)"/>
-                                      <text [attr.x]="getFinalGainsTextX()" [attr.y]="fp.y + 46" text-anchor="middle" font-size="14" font-weight="bold" fill="#1e40af">{{ getFinalGainsValue() | number:'1.0-0' }} DT</text>
+                                      <text [attr.x]="getFinalGainsTextX()" [attr.y]="fp.y + 46" text-anchor="middle" font-size="14" font-weight="bold" fill="#1e40af">{{ getFinalGainsValue() | noGrouping:'1.0-0' }} DT</text>
                                     </g>
                                   }
                                 }
@@ -491,7 +491,7 @@
                                       <circle [attr.cx]="cp.x" [attr.cy]="cp.y" r="8" fill="#f97316" stroke="white" stroke-width="3"/>
                                       <line [attr.x1]="cp.x" [attr.y1]="cp.y" [attr.x2]="cp.x - 95" [attr.y2]="cp.y - 28" stroke="rgba(249, 115, 22, 0.9)" stroke-width="3" stroke-linecap="round"/>
                                       <rect [attr.x]="getFinalCapexBubbleX()" [attr.y]="cp.y - 50" [attr.width]="getFinalCapexBubbleWidth()" height="40" rx="12" fill="#ffffff" stroke="#f97316" stroke-width="3" opacity="0.97" filter="url(#shadow)"/>
-                                      <text [attr.x]="getFinalCapexTextX()" [attr.y]="cp.y - 24" text-anchor="middle" font-size="14" font-weight="bold" fill="#c2410c">{{ getFinalCapexValue() | number:'1.0-0' }} DT</text>
+                                      <text [attr.x]="getFinalCapexTextX()" [attr.y]="cp.y - 24" text-anchor="middle" font-size="14" font-weight="bold" fill="#c2410c">{{ getFinalCapexValue() | noGrouping:'1.0-0' }} DT</text>
                                     </g>
                                   }
                                 }
@@ -555,7 +555,7 @@
                           <div class="environmental-badge">25 ans</div>
                         </div>
                         <div class="environmental-content">
-                          <div class="environmental-value success">{{ (simulation.totalCo2Avoided25Years ).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }} <span class="unit">tonnes</span></div>
+                          <div class="environmental-value success">{{ (simulation.totalCo2Avoided25Years ).toFixed(0) }} <span class="unit">tonnes</span></div>
                           <div class="environmental-label">CO₂ évité total</div>
                           <div class="environmental-subtitle">Émissions cumulées sur la durée de vie</div>
                         </div>

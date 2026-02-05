@@ -9,23 +9,23 @@
         </div>
         <div class="summary-item">
           <span class="label">Taille</span>
-          <span class="value">{{ comparison.projectCalculation.sizeKwp | number:'1.2-2' }} kWp</span>
+          <span class="value">{{ comparison.projectCalculation.sizeKwp | noGrouping:'1.2-2' }} kWp</span>
         </div>
         <div class="summary-item">
           <span class="label">CAPEX</span>
-          <span class="value">{{ comparison.projectCalculation.capexDt | number:'1.0-0' }} DT</span>
+          <span class="value">{{ comparison.projectCalculation.capexDt | noGrouping:'1.0-0' }} DT</span>
         </div>
         <div class="summary-item">
           <span class="label">Production annuelle</span>
-          <span class="value">{{ comparison.projectCalculation.annualProductionKwh | number:'1.0-0' }} kWh</span>
+          <span class="value">{{ comparison.projectCalculation.annualProductionKwh | noGrouping:'1.0-0' }} kWh</span>
         </div>
         <div class="summary-item">
           <span class="label">Économies mensuelles</span>
-          <span class="value">{{ comparison.projectCalculation.monthlyGrossSavingsDt | number:'1.2-2' }} DT</span>
+          <span class="value">{{ comparison.projectCalculation.monthlyGrossSavingsDt | noGrouping:'1.2-2' }} DT</span>
         </div>
         <div class="summary-item">
           <span class="label">OPEX mensuel</span>
-          <span class="value">{{ comparison.projectCalculation.monthlyOpexDt | number:'1.2-2' }} DT</span>
+          <span class="value">{{ comparison.projectCalculation.monthlyOpexDt | noGrouping:'1.2-2' }} DT</span>
         </div>
       </div>
     </div>
@@ -47,14 +47,14 @@
         <div class="insight">
           <strong>Meilleur cashflow mensuel:</strong> 
           {{ best.type === 'cash' ? 'Comptant' : best.type === 'credit' ? 'Crédit' : best.type === 'leasing' ? 'Leasing' : 'ESCO JOYA' }}
-          ({{ best.monthlyCashflow | number:'1.2-2' }} DT/mois)
+          ({{ best.monthlyCashflow | noGrouping:'1.2-2' }} DT/mois)
         </div>
       }
       @if (lowestInitialInvestment(); as lowest) {
         <div class="insight">
           <strong>Investissement initial le plus faible:</strong> 
           {{ lowest.type === 'cash' ? 'Comptant' : lowest.type === 'credit' ? 'Crédit' : lowest.type === 'leasing' ? 'Leasing' : 'ESCO JOYA' }}
-          ({{ lowest.initialInvestment | number:'1.0-0' }} DT)
+          ({{ lowest.initialInvestment | noGrouping:'1.0-0' }} DT)
         </div>
       }
     </div>

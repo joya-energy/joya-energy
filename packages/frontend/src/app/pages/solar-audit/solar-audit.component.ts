@@ -42,6 +42,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
 import { finalize } from 'rxjs/operators';
 
 // Base layout components (from energy audit template)
+import { NoGroupingPipe } from '../../shared/pipes/no-grouping.pipe';
 import { UiStepTimelineComponent } from '../../shared/components/ui-step-timeline/ui-step-timeline.component';
 import { UiProgressBarComponent } from '../../shared/components/ui-progress-bar/ui-progress-bar.component';
 
@@ -86,6 +87,7 @@ interface BuildingTypeCard {
     CommonModule,
     ReactiveFormsModule,
     NgIconComponent,
+    NoGroupingPipe,
     UiStepTimelineComponent,
     UiProgressBarComponent,
     UiSelectComponent,
@@ -865,7 +867,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     if (!Number.isFinite(months) || months < 0) return '> 25 ans';
 
     const years = Math.floor(months / 12);
-    const remainingMonths = months % 12;
+    const remainingMonths = Math.round(months % 12);
 
     if (years === 0) {
       return `${remainingMonths} mois`;
@@ -874,6 +876,19 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       return `${years} an${years > 1 ? 's' : ''}`;
     }
     return `${years} an${years > 1 ? 's' : ''} et ${remainingMonths} mois`;
+  }
+
+  /**
+   * Payback display aligned with the chart intersection (same value as on the graph, not rounded).
+   * Uses the intersection point so the card and chart always show the same payback with 2 decimals.
+   */
+  protected getPaybackDisplayFromIntersection(): string {
+    const point = this.getIntersectionPoint();
+    if (point != null && Number.isFinite(point.year)) {
+      return `${point.year.toFixed(1)} ans`;
+    }
+    const simulation = this.simulationResult();
+    return this.formatPaybackPeriod(simulation?.paybackMonths);
   }
 
   // ----- Chart helpers (monthly bills + cumulative gains vs CAPEX) – same logic as old audit-solaire -----
@@ -1187,7 +1202,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     const value = this.getFinalGainsValue();
     if (value === null) return 180;
     return this.calculateBubbleWidth(
-      Math.round(value).toLocaleString('fr-FR').replace(/\s/g, ' ') + ' DT'
+      Math.round(value).toString() + ' DT'
     );
   }
 
@@ -1231,7 +1246,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     const value = this.getFinalCapexValue();
     if (value === null || value === 0) return 180;
     return this.calculateBubbleWidth(
-      Math.round(value).toLocaleString('fr-FR').replace(/\s/g, ' ') + ' DT'
+      Math.round(value).toString() + ' DT'
     );
   }
 
