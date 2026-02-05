@@ -137,7 +137,7 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
   };
 
   protected readonly inputTypeOptions: { value: string; label: string }[] = [
-    { value: 'size', label: "Taille de l'installation (kWp)" },
+    { value: 'size', label: "Taille de l'installation (kWc)" },
     { value: 'amount', label: "Budget d'investissement (DT)" },
   ];
 
@@ -180,6 +180,9 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
       inputType: ['size'],
       installationSizeKwp: [null as number | null],
       investmentAmountDt: [null as number | null],
+      fullName: [''],
+      companyName: [''],
+      email: ['', Validators.email],
     });
     this.form.get('inputType')?.valueChanges.subscribe((type) => {
       this.form.patchValue(
@@ -274,12 +277,27 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
       const v = this.form.get('investmentAmountDt')?.value;
       if (v != null && v > 0) input.investmentAmountDt = v;
     }
+    const fullName = this.form.get('fullName')?.value as string;
+    const companyName = this.form.get('companyName')?.value as string;
+    const email = this.form.get('email')?.value as string;
+    if (fullName?.trim()) input.fullName = fullName.trim();
+    if (companyName?.trim()) input.companyName = companyName.trim();
+    if (email?.trim()) input.email = email.trim();
     this.isSubmitting.set(true);
     this.financingService
       .createComparison(input)
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
-        next: () => this.currentStep.set(3),
+        next: () => {
+          this.currentStep.set(3);
+          if (input.email) {
+            this.notificationStore.addNotification({
+              type: 'success',
+              title: 'Résultats envoyés par email',
+              message: `Un récapitulatif a été envoyé à ${input.email}. Vérifiez votre boîte de réception.`,
+            });
+          }
+        },
         error: () => {},
       });
   }
@@ -287,7 +305,15 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
   protected newComparison(): void {
     this.financingService.clearResult();
     this.currentStep.set(1);
-    this.form.reset({ inputType: 'size', installationSizeKwp: null, investmentAmountDt: null });
+    this.form.reset({
+      location: '',
+      inputType: 'size',
+      installationSizeKwp: null,
+      investmentAmountDt: null,
+      fullName: '',
+      companyName: '',
+      email: '',
+    });
   }
 
   protected formatCurrency(value: number): string {

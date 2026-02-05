@@ -14,6 +14,10 @@ export interface ProjectInput {
   location: Governorates;
   installationSizeKwp?: number;
   investmentAmountDt?: number;
+  /** Contact: optional, used to send comparison results by email */
+  fullName?: string;
+  companyName?: string;
+  email?: string;
 }
 
 export interface ProjectCalculation {
@@ -138,7 +142,12 @@ export class FinancingComparisonService {
     this.errorSignal.set(null);
 
     return this.http
-      .post<{ success: boolean; data: ComparisonResult }>(this.apiUrl, input)
+      .post<{ success: boolean; data: ComparisonResult }>(this.apiUrl, {
+        ...input,
+        fullName: input.fullName || undefined,
+        companyName: input.companyName || undefined,
+        email: input.email || undefined,
+      })
       .pipe(
         map((response) => response.data),
         tap((result) => {
@@ -157,18 +166,16 @@ export class FinancingComparisonService {
    * Fetches available locations
    */
   public fetchLocations(): Observable<Location[]> {
-    return this.http
-      .get<{ success: boolean; data: Location[] }>(`${this.apiUrl}/locations`)
-      .pipe(
-        map((response) => response.data),
-        tap((locations) => {
-          this.locationsSignal.set(locations);
-        }),
-        catchError((error) => {
-          console.error('Error fetching locations:', error);
-          return throwError(() => error);
-        })
-      );
+    return this.http.get<{ success: boolean; data: Location[] }>(`${this.apiUrl}/locations`).pipe(
+      map((response) => response.data),
+      tap((locations) => {
+        this.locationsSignal.set(locations);
+      }),
+      catchError((error) => {
+        console.error('Error fetching locations:', error);
+        return throwError(() => error);
+      })
+    );
   }
 
   /**
@@ -199,4 +206,3 @@ export class FinancingComparisonService {
     this.errorSignal.set(null);
   }
 }
-

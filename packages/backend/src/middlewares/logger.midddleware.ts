@@ -10,13 +10,22 @@ const LOG_LEVELS = {
   WARN: 'warn',
   INFO: 'info',
   HTTP: 'http',
-  DEBUG: 'debug'
+  DEBUG: 'debug',
 } as const;
 
-// Ensure logs directory exists
-const logsDir = path.join(process.cwd(), 'logs');
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir, { recursive: true });
+const isProduction = process.env.NODE_ENV === NodeEnv.PROD;
+
+// Only use file transports when not in production (containers often have read-only FS; Railway captures stdout)
+let logsDir: string | null = null;
+if (!isProduction && process.env.NODE_ENV !== NodeEnv.TEST) {
+  try {
+    logsDir = path.join(process.cwd(), 'logs');
+    if (!fs.existsSync(logsDir)) {
+      fs.mkdirSync(logsDir, { recursive: true });
+    }
+  } catch {
+    logsDir = null;
+  }
 }
 
 const levels = {
@@ -24,16 +33,28 @@ const levels = {
   warn: 1,
   info: 2,
   http: 3,
-  debug: 4
+  debug: 4,
 };
 
-// Get log level from environment or default to debug
+// Get log level from environment or default based on NODE_ENV
+// LOG_LEVEL env var (e.g. 'debug' | 'info' | 'warn' | 'error') overrides the default.
 const getLogLevel = (): string => {
-  return process.env.NODE_ENV === NodeEnv.PROD ? LOG_LEVELS.WARN : LOG_LEVELS.DEBUG;
+  const envLevel = process.env.LOG_LEVEL?.toLowerCase();
+  if (
+    envLevel &&
+    Object.values(LOG_LEVELS).includes(
+      envLevel as (typeof LOG_LEVELS)[keyof typeof LOG_LEVELS]
+    )
+  ) {
+    return envLevel;
+  }
+  return process.env.NODE_ENV === NodeEnv.PROD
+    ? LOG_LEVELS.WARN
+    : LOG_LEVELS.DEBUG;
 };
 
 const isDebug = (): boolean => {
-  return  process.env.NODE_ENV === NodeEnv.DEV;
+  return process.env.NODE_ENV === NodeEnv.DEV;
 };
 
 const colors = {
@@ -41,7 +62,7 @@ const colors = {
   warn: 'yellow',
   info: 'green',
   http: 'magenta',
-  debug: 'white'
+  debug: 'white',
 };
 
 addColors(colors);
@@ -50,29 +71,32 @@ const formatLogs = format.combine(
   format.errors({ stack: isDebug() }),
   format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
   format.colorize({ all: true }),
-  format.printf((info) => `${String(info.timestamp)} ${info.level}: ${String(info.message)}`)
+  format.printf(
+    (info) => `${String(info.timestamp)} ${info.level}: ${String(info.message)}`
+  )
 );
 
 // Console transport for all environments
 const consoleTransport = new transports.Console();
 
-// File transports (only in non-test environments)
+// File transports (only when logsDir is available and not in production)
 const isTest = process.env.NODE_ENV === NodeEnv.TEST;
-const fileTransports = isTest
-  ? []
-  : [
-      new transports.File({
-        filename: path.join(logsDir, 'error.log'),
-        level: LOG_LEVELS.ERROR,
-        maxsize: 5242880, // 5MB
-        maxFiles: 5
-      }),
-      new transports.File({
-        filename: path.join(logsDir, 'all.log'),
-        maxsize: 5242880, // 5MB
-        maxFiles: 5
-      })
-    ];
+const fileTransports =
+  isTest || !logsDir
+    ? []
+    : [
+        new transports.File({
+          filename: path.join(logsDir, 'error.log'),
+          level: LOG_LEVELS.ERROR,
+          maxsize: 5242880, // 5MB
+          maxFiles: 5,
+        }),
+        new transports.File({
+          filename: path.join(logsDir, 'all.log'),
+          maxsize: 5242880, // 5MB
+          maxFiles: 5,
+        }),
+      ];
 
 const loggerOptions = {
   level: getLogLevel(),
@@ -82,12 +106,24 @@ const loggerOptions = {
   handleExceptions: true,
   exceptionHandlers: [
     consoleTransport,
-    ...(isTest ? [] : [new transports.File({ filename: path.join(logsDir, 'exceptions.log') })])
+    ...(isTest || !logsDir
+      ? []
+      : [
+          new transports.File({
+            filename: path.join(logsDir, 'exceptions.log'),
+          }),
+        ]),
   ],
   rejectionHandlers: [
     consoleTransport,
-    ...(isTest ? [] : [new transports.File({ filename: path.join(logsDir, 'rejections.log') })])
-  ]
+    ...(isTest || !logsDir
+      ? []
+      : [
+          new transports.File({
+            filename: path.join(logsDir, 'rejections.log'),
+          }),
+        ]),
+  ],
 };
 
 export const Logger = createLogger(loggerOptions);

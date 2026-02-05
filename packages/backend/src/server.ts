@@ -23,9 +23,13 @@ import { HttpStatusCode } from '@shared';
 
 const createServer = async (): Promise<http.Server> => {
   const server = await createApp();
-  const { PORT = 3000 } = process.env;
-  return server.listen(PORT, () => {
-    Logger.info(`Server is running on port ${PORT}`);
+  const port = Number(process.env.PORT ?? 3000) || 3000;
+  const host = '0.0.0.0';
+
+  return server.listen(port, host, () => {
+    Logger.info(`Server is running on http://${host}:${port}`);
+    // So Railway/containers always show this in logs (Logger is WARN in production)
+    console.log(`[Joya] Server is running on http://${host}:${port}`);
   });
 };
 
@@ -70,14 +74,51 @@ const createApp = async (): Promise<http.Server> => {
     );
   });
 
-  // 1. CORS - Simplest permissive config for debugging
-  app.use(cors());
+  // 1. CORS - Allow frontend domains
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        const allowedOrigins = [
+          'http://localhost:4200',
+          'https://joya-energy.com',
+          'https://www.joya-energy.com',
+        ];
+
+        // Allow Vercel preview deployments (*.vercel.app)
+        if (
+          !origin ||
+          allowedOrigins.includes(origin) ||
+          origin.endsWith('.vercel.app')
+        ) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+      optionsSuccessStatus: 200,
+    })
+  );
 
   // 3. Swagger Documentation
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
   // Mount router
   app.use(router);
+
+  // Health check (no DB required) – for monitoring and frontend status page
+  router.get('/api/health', (_req, res) => {
+    res.status(200).json({
+      status: 'ok',
+      service: 'joya-backend',
+      timestamp: new Date().toISOString(),
+      env: ServerConfig.isProduction()
+        ? 'production'
+        : (process.env.NODE_ENV ?? 'development'),
+    });
+  });
 
   // Mount routes BEFORE other middleware to ensure they are matched
   router.use('/api/contacts', contactRoutes);

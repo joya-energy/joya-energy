@@ -49,13 +49,8 @@ export class MailService {
   /* ---------------------------- CONFIG BUILDER ---------------------------- */
 
   private buildConfig(): MailConfig | null {
-    const {
-      SMTP_HOST,
-      SMTP_PORT,
-      SMTP_USER,
-      SMTP_PASS,
-      EMAIL_FROM,
-    } = process.env;
+    const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, EMAIL_FROM } =
+      process.env;
 
     if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
       Logger.warn('⚠️ SMTP config incomplete — email sending disabled.');
@@ -105,9 +100,8 @@ export class MailService {
         port: config.port,
         secure: config.port === 465,
         tls: {
-        rejectUnauthorized: false, 
-         },
-
+          rejectUnauthorized: false,
+        },
 
         auth: {
           user: config.user,
@@ -131,14 +125,11 @@ export class MailService {
   public async sendMail(options: MailOptions): Promise<void> {
     const transport = this.ensureTransport();
 
-    const from =
-    process.env.POSTMARK_FROM ??
-    process.env.EMAIL_FROM ??
-    '';
+    const from = process.env.POSTMARK_FROM ?? process.env.EMAIL_FROM ?? '';
 
-      if (!from) {
-    throw new Error('EMAIL_FROM / POSTMARK_FROM is missing');
-  }
+    if (!from) {
+      throw new Error('EMAIL_FROM / POSTMARK_FROM is missing');
+    }
 
     try {
       /* ---------------------------- POSTMARK ---------------------------- */
@@ -151,14 +142,13 @@ export class MailService {
           To: options.to,
           TemplateId: options.templateId,
           TemplateModel: options.templateModel,
-          Attachments: options.attachments.map(a => ({
+          Attachments: options.attachments.map((a) => ({
             Name: a.Name,
             Content: a.Content,
             ContentType: a.ContentType,
             ContentID: a.ContentID,
           })),
-          MessageStream:
-            process.env.POSTMARK_MESSAGE_STREAM ?? 'outbound',
+          MessageStream: process.env.POSTMARK_MESSAGE_STREAM ?? 'outbound',
         });
 
         Logger.info('✅ Email sent via Postmark');
@@ -175,7 +165,7 @@ export class MailService {
         subject: options.subject,
         text: options.text,
         html: options.html,
-        attachments: options.attachments.map(a => ({
+        attachments: options.attachments.map((a) => ({
           filename: a.Name,
           content: Buffer.from(a.Content, 'base64'),
           contentType: a.ContentType,
@@ -184,12 +174,55 @@ export class MailService {
       });
 
       Logger.info(`✅ Email sent via SMTP to ${options.to}`);
-
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : String(err);
+      const message = err instanceof Error ? err.message : String(err);
 
       Logger.error(`❌ Email send failed: ${message}`);
+      throw err;
+    }
+  }
+
+  /**
+   * Send a simple email with HTML/text body (no template).
+   * Use for comparison results and other non-templated emails.
+   */
+  public async sendSimpleMail(options: {
+    to: string;
+    subject: string;
+    text: string;
+    html: string;
+  }): Promise<void> {
+    const transport = this.ensureTransport();
+    const from = process.env.POSTMARK_FROM ?? process.env.EMAIL_FROM ?? '';
+    if (!from) {
+      throw new Error('EMAIL_FROM / POSTMARK_FROM is missing');
+    }
+    try {
+      if (transport.type === 'postmark') {
+        Logger.info('📨 Sending simple email via Postmark');
+        await (transport.client as ServerClient).sendEmail({
+          From: from,
+          To: options.to,
+          Subject: options.subject,
+          TextBody: options.text,
+          HtmlBody: options.html,
+          MessageStream: process.env.POSTMARK_MESSAGE_STREAM ?? 'outbound',
+        });
+        Logger.info('✅ Simple email sent via Postmark');
+        return;
+      }
+      Logger.info('📬 Sending simple email via SMTP');
+      await (transport.client as Transporter).sendMail({
+        from,
+        to: options.to,
+        subject: options.subject,
+        text: options.text,
+        html: options.html,
+      });
+      Logger.info(`✅ Simple email sent via SMTP to ${options.to}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      Logger.error(`❌ Simple email send failed: ${message}`);
       throw err;
     }
   }

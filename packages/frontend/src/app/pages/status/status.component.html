@@ -1,0 +1,23 @@
+<div class="status-page">
+  <h1>État des services</h1>
+  <section class="backend-status">
+    <h2>Backend (API)</h2>
+    @switch (state()) { @case ('loading') {
+    <p class="status loading">Vérification en cours…</p>
+    } @case ('ok') {
+    <p class="status ok">Backend : opérationnel</p>
+    @if (payload(); as p) {
+    <dl class="meta">
+      <dt>Service</dt>
+      <dd>{{ p.service }}</dd>
+      <dt>Environnement</dt>
+      <dd>{{ p.env ?? '—' }}</dd>
+      <dt>Dernière réponse</dt>
+      <dd>{{ p.timestamp }}</dd>
+    </dl>
+    } } @case ('error') {
+    <p class="status error">Backend : inaccessible</p>
+    <p class="error-detail">{{ errorMessage() }}</p>
+    } }
+  </section>
+</div>

@@ -11,8 +11,12 @@ try {
   // dotenv optional; on Vercel env vars are already in process.env
 }
 
-const apiUrl = (process.env.NG_APP_API_URL || '/api').replace(/'/g, "\\'");
-const googleMapsApiKey = (process.env.NG_APP_GOOGLE_MAPS_API_KEY || '').replace(/'/g, "\\'");
+const apiUrl = (
+  process.env.NG_APP_API_URL || 'https://joya-backend-production.up.railway.app/api'
+).replace(/'/g, "\\'");
+const googleMapsApiKey = (
+  process.env.NG_APP_GOOGLE_MAPS_API_KEY || 'AIzaSyBls9111rmwlK89NjAaqVRHMEhJdzeZs9Q'
+).replace(/'/g, "\\'");
 
 const content = `// Auto-generated at build time – do not edit
 export const generatedEnv = {
