@@ -23,11 +23,13 @@ import { HttpStatusCode } from '@shared';
 
 const createServer = async (): Promise<http.Server> => {
   const server = await createApp();
-  const { PORT = 3000 } = process.env;
-  return server.listen(PORT, () => {
-    Logger.info(`Server is running on port ${PORT}`);
+  const port = Number(process.env.PORT ?? 3000) || 3000;
+  const host = '0.0.0.0';
+
+  return server.listen(port, host, () => {
+    Logger.info(`Server is running on http://${host}:${port}`);
     // So Railway/containers always show this in logs (Logger is WARN in production)
-    console.log(`[Joya] Server is running on port ${PORT}`);
+    console.log(`[Joya] Server is running on http://${host}:${port}`);
   });
 };
 
