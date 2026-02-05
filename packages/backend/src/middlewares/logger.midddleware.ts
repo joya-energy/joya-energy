@@ -36,8 +36,18 @@ const levels = {
   debug: 4,
 };
 
-// Get log level from environment or default to debug
+// Get log level from environment or default based on NODE_ENV
+// LOG_LEVEL env var (e.g. 'debug' | 'info' | 'warn' | 'error') overrides the default.
 const getLogLevel = (): string => {
+  const envLevel = process.env.LOG_LEVEL?.toLowerCase();
+  if (
+    envLevel &&
+    Object.values(LOG_LEVELS).includes(
+      envLevel as (typeof LOG_LEVELS)[keyof typeof LOG_LEVELS]
+    )
+  ) {
+    return envLevel;
+  }
   return process.env.NODE_ENV === NodeEnv.PROD
     ? LOG_LEVELS.WARN
     : LOG_LEVELS.DEBUG;

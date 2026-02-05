@@ -53,10 +53,10 @@ EXPOSE 3000
 
 WORKDIR /app/packages/backend
 
-# Health check so orchestrators (e.g. Railway) can detect when the app is up or crashed
-# Uses PORT from env (Railway sets it); default 3000 for local Docker
+# Health check so orchestrators (e.g. Railway) can detect when the app is up or crashed.
+# Use Node's built-in HTTP client (no extra binaries like curl/wget needed).
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget -q -O- "http://127.0.0.1:${PORT:-3000}/api/health" || exit 1
+  CMD ["node", "-e", "require('http').get('http://127.0.0.1:' + (process.env.PORT || 3000) + '/api/health', r => { if (r.statusCode !== 200) process.exit(1); }).on('error', () => process.exit(1));"]
 
 # Run compiled backend with path resolution for @shared
 # Shell form so we emit a log line immediately (Railway shows "Starting Container" then this)
