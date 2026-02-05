@@ -13,6 +13,9 @@ COPY packages/shared/package*.json packages/shared/
 # Install all dependencies (including dev for build)
 RUN npm ci
 
+# Install Chrome for Puppeteer in builder (installs to /root/.cache/puppeteer)
+RUN npx puppeteer browsers install chrome
+
 # Copy source
 COPY packages/shared packages/shared
 COPY packages/backend packages/backend
@@ -40,13 +43,43 @@ ENV NODE_ENV=production
 # Path resolution for @shared and @backend at runtime
 ENV TS_NODE_PROJECT=tsconfig.runtime.json
 
+# Install Chrome runtime dependencies manually (minimal set for headless Chrome)
+# Update package lists first, then install all libraries Chrome needs
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    fonts-liberation \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libatspi2.0-0 \
+    libcairo2 \
+    libcups2 \
+    libdbus-1-3 \
+    libdrm2 \
+    libexpat1 \
+    libgbm1 \
+    libglib2.0-0 \
+    libnspr4 \
+    libnss3 \
+    libpango-1.0-0 \
+    libx11-6 \
+    libxcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxkbcommon0 \
+    libxrandr2 \
+    wget \
+    xdg-utils \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copy root package files and node_modules (includes tsconfig-paths for path resolution)
 COPY --from=builder /app/package.json /app/package-lock.json* ./
 COPY --from=builder /app/node_modules ./node_modules
 
-# Install Chrome + all runtime dependencies via Puppeteer (--install-deps installs system packages)
-# This downloads Chrome and installs libglib2.0-0, libnss3, libxkbcommon0, etc. automatically
-RUN npx puppeteer browsers install chrome --install-deps
+# Copy Puppeteer Chrome cache from builder (Chrome binary already installed there)
+COPY --from=builder /root/.cache/puppeteer /root/.cache/puppeteer
 
 # Copy built backend (dist + runtime config) and shared package
 COPY --from=builder /app/packages/backend packages/backend

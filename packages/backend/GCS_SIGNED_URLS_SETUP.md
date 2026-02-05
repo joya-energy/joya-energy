@@ -2,7 +2,7 @@
 
 Ce guide explique comment configurer l’upload des PDFs vers GCS (local et production / Railway).
 
---- yes
+--- yes --
 
 ## 🚀 Railway / Production : clé JSON dans une variable d’environnement (recommandé)
 
