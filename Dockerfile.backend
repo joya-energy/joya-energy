@@ -1,7 +1,7 @@
 # Joya Backend - Production image for Railway (or any Docker host)
 # Build from repo root: docker build -f Dockerfile.backend -t joya-backend .
 
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
@@ -12,6 +12,9 @@ COPY packages/shared/package*.json packages/shared/
 
 # Install all dependencies (including dev for build)
 RUN npm ci
+
+# Install Chrome for Puppeteer (needed for PDF generation in production)
+RUN npx puppeteer browsers install chrome
 
 # Copy source
 COPY packages/shared packages/shared
@@ -32,7 +35,7 @@ RUN mkdir -p dist/packages/backend/src/modules/audit-energetique/template && \
 WORKDIR /app
 
 # --- Production stage ---
-FROM node:20-alpine AS runner
+FROM node:20-slim AS runner
 
 WORKDIR /app
 
@@ -43,6 +46,9 @@ ENV TS_NODE_PROJECT=tsconfig.runtime.json
 # Copy root package files and node_modules (includes tsconfig-paths for path resolution)
 COPY --from=builder /app/package.json /app/package-lock.json* ./
 COPY --from=builder /app/node_modules ./node_modules
+
+# Copy Puppeteer Chrome cache so runtime has a browser available
+COPY --from=builder /root/.cache/puppeteer /root/.cache/puppeteer
 
 # Copy built backend (dist + runtime config) and shared package
 COPY --from=builder /app/packages/backend packages/backend

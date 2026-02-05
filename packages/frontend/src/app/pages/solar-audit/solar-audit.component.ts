@@ -725,6 +725,21 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
             title: 'Simulation terminée',
             message: 'Voici les résultats de votre audit solaire.',
           });
+          // Send PV report by email at the end (non-blocking)
+          this.auditService.sendPVReportByEmail(result.id).subscribe({
+            next: (emailRes) => {
+              if (emailRes?.email) {
+                this.notificationStore.addNotification({
+                  type: 'success',
+                  title: 'Rapport envoyé par email',
+                  message: `Le rapport PV sera envoyé à ${emailRes.email}. Vérifiez votre boîte de réception.`,
+                });
+              }
+            },
+            error: () => {
+              /* email optional */
+            },
+          });
         },
         error: (error) => {
           console.error('Error creating simulation:', error);
@@ -791,6 +806,21 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
             type: 'success',
             title: 'Simulation terminée',
             message: 'Les données de votre facture ont été extraites et la simulation a été créée.',
+          });
+          // Send PV report by email at the end (non-blocking)
+          this.auditService.sendPVReportByEmail(result.id).subscribe({
+            next: (emailRes) => {
+              if (emailRes?.email) {
+                this.notificationStore.addNotification({
+                  type: 'success',
+                  title: 'Rapport envoyé par email',
+                  message: `Le rapport PV sera envoyé à ${emailRes.email}. Vérifiez votre boîte de réception.`,
+                });
+              }
+            },
+            error: () => {
+              /* email optional */
+            },
           });
         },
         error: (error) => {

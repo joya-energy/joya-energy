@@ -1,11 +1,21 @@
-import { Component, signal, computed, ChangeDetectionStrategy, OnInit, OnDestroy, PLATFORM_ID, inject, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  signal,
+  computed,
+  ChangeDetectionStrategy,
+  OnInit,
+  OnDestroy,
+  PLATFORM_ID,
+  inject,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { CommonModule, isPlatformBrowser, DatePipe } from '@angular/common';
 import { ReactiveFormsModule, FormGroup } from '@angular/forms';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
 import { finalize } from 'rxjs/operators';
-import { 
-  lucideArrowRight, 
+import {
+  lucideArrowRight,
   lucideArrowLeft,
   lucideHome,
   lucideBuilding2,
@@ -26,7 +36,7 @@ import {
   lucideStethoscope,
   lucideShirt,
   lucideUtensilsCrossed,
-  lucideCalendar
+  lucideCalendar,
 } from '@ng-icons/lucide';
 
 // Base Components
@@ -69,23 +79,23 @@ import { AuditEnergetiqueResponse } from '../../core/services/audit-energetique.
     trigger('stepTransition', [
       transition(':enter', [
         style({ opacity: 0, transform: 'translateX(20px)' }),
-        animate('300ms ease-out', style({ opacity: 1, transform: 'translateX(0)' }))
+        animate('300ms ease-out', style({ opacity: 1, transform: 'translateX(0)' })),
       ]),
       transition(':leave', [
-        animate('200ms ease-in', style({ opacity: 0, transform: 'translateX(-20px)' }))
-      ])
+        animate('200ms ease-in', style({ opacity: 0, transform: 'translateX(-20px)' })),
+      ]),
     ]),
     // Result cards fade in - simple fade and slide up
     trigger('resultCards', [
       transition(':enter', [
         style({ opacity: 0, transform: 'translateY(20px)' }),
-        animate('400ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
-      ])
-    ])
+        animate('400ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
+      ]),
+    ]),
   ],
   providers: [
-    provideIcons({ 
-      lucideArrowRight, 
+    provideIcons({
+      lucideArrowRight,
       lucideArrowLeft,
       lucideHome,
       lucideBuilding2,
@@ -106,9 +116,9 @@ import { AuditEnergetiqueResponse } from '../../core/services/audit-energetique.
       lucideStethoscope,
       lucideShirt,
       lucideUtensilsCrossed,
-      lucideCalendar
-    })
-  ]
+      lucideCalendar,
+    }),
+  ],
 })
 export class EnergyAuditComponent implements OnInit, OnDestroy {
   private platformId = inject(PLATFORM_ID);
@@ -121,17 +131,17 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
   protected readonly steps = this.formService.getSteps();
   protected readonly buildingCategories = this.formService.buildingCategories;
   protected readonly buildingTypes = this.formService.buildingTypes;
-  
+
   // Expose formService for template access
   protected get formServiceInstance() {
     return this.formService;
   }
-  
+
   protected readonly currentStep = signal<number>(1);
   protected readonly isSubmitting = signal(false);
   protected readonly isGeneratingPDF = signal(false);
   protected readonly simulationResult = signal<AuditEnergetiqueResponse['data'] | null>(null);
-  
+
   // Force recomputation signal - updates when form changes
   private readonly formUpdateTrigger = signal(0);
 
@@ -145,16 +155,16 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
     // Subscribe to form value changes to trigger progress updates
     this.form.valueChanges.subscribe(() => {
       // Update validity for all controls
-      Object.keys(this.form.controls).forEach(key => {
+      Object.keys(this.form.controls).forEach((key) => {
         const control = this.form.get(key);
         if (control) {
           control.updateValueAndValidity({ emitEvent: false });
         }
       });
-      
+
       // Trigger recomputation of progress
-      this.formUpdateTrigger.update(v => v + 1);
-      
+      this.formUpdateTrigger.update((v) => v + 1);
+
       // Force change detection to update progress bars
       this.cdr.markForCheck();
     });
@@ -172,42 +182,46 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
   protected readonly stepProgress = computed(() => {
     // Access trigger to recompute when form changes
     this.formUpdateTrigger();
-    
+
     const progress: Record<number, number> = {};
     const formValue = this.form.value;
-    
-    this.steps.forEach(step => {
+
+    this.steps.forEach((step) => {
       if (step.isResult) {
         progress[step.number] = 0;
         return;
       }
 
       // Get visible fields for this step
-      const stepFields = step.fields.filter(field => this.isFieldVisible(field));
-      
+      const stepFields = step.fields.filter((field) => this.isFieldVisible(field));
+
       // For step 3 (equipment), also include hasExistingMeasures
-      const fieldsToCheck = step.number === 3 
-        ? [...stepFields, { name: 'hasExistingMeasures', required: true } as StepField]
-        : stepFields;
-      
+      const fieldsToCheck =
+        step.number === 3
+          ? [...stepFields, { name: 'hasExistingMeasures', required: true } as StepField]
+          : stepFields;
+
       if (fieldsToCheck.length === 0) {
         progress[step.number] = 0;
         return;
       }
 
       // Count filled AND valid fields (progress only increases when fields are valid)
-      const filledFields = fieldsToCheck.filter(field => {
+      const filledFields = fieldsToCheck.filter((field) => {
         const control = this.form.get(field.name);
         if (!control) return false;
         const value = control.value;
-        
+
         // Check if value is filled
-        const isFilled = value !== null && value !== '' && value !== undefined && 
+        const isFilled =
+          value !== null &&
+          value !== '' &&
+          value !== undefined &&
           (Array.isArray(value) ? value.length > 0 : true);
-        
+
         // Check if control is valid (no validation errors)
         const isValid = control.valid;
-        
+
         // Both filled and valid required for progress
         return isFilled && isValid;
       });
@@ -220,14 +234,14 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
 
   // Get current step data
   protected readonly currentStepData = computed(() => {
-    return this.steps.find(s => s.number === this.currentStep()) || this.steps[0];
+    return this.steps.find((s) => s.number === this.currentStep()) || this.steps[0];
   });
 
   // Calculate overall progress - only for current step
   protected readonly overallProgress = computed(() => {
     const current = this.currentStepData();
     if (current.isResult) return 0;
-    
+
     return this.stepProgress()[current.number];
   });
 
@@ -247,22 +261,22 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
 
   /** Last form step (4). Result step is 5. */
   protected readonly lastFormStepNumber = (() => {
-    const resultStep = this.steps.find(s => s.isResult);
+    const resultStep = this.steps.find((s) => s.isResult);
     return resultStep ? resultStep.number - 1 : this.steps.length - 1;
   })();
 
   // Check if a step is clickable in sidebar - ONLY allows going back
   protected isStepClickable(stepNumber: number): boolean {
-    const step = this.steps.find(s => s.number === stepNumber);
+    const step = this.steps.find((s) => s.number === stepNumber);
     if (!step) return false;
-    
+
     // Result step is never clickable
     if (step.isResult) {
       return false;
     }
-    
+
     const current = this.currentStep();
-    
+
     // Can only go back to previous steps (not forward, not current)
     return stepNumber < current;
   }
@@ -276,21 +290,21 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
     if (!this.canProceed()) {
       // Mark current step fields as touched to show validation errors
       const currentStep = this.currentStepData();
-      currentStep.fields.forEach(field => {
+      currentStep.fields.forEach((field) => {
         const control = this.form.get(field.name);
         if (control) {
           control.markAsTouched();
         }
       });
-      
+
       this.notificationStore.addNotification({
         type: 'warning',
         title: 'Étape incomplète',
-        message: 'Veuillez remplir tous les champs avant de continuer.'
+        message: 'Veuillez remplir tous les champs avant de continuer.',
       });
       return;
     }
-    
+
     const nextStepNum = this.currentStep() + 1;
     if (nextStepNum <= this.steps.length) {
       this.currentStep.set(nextStepNum);
@@ -310,7 +324,7 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
     }
 
     const current = this.currentStep();
-    
+
     // Can only go back to previous steps
     if (stepNumber < current) {
       this.currentStep.set(stepNumber);
@@ -323,28 +337,43 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
       this.notificationStore.addNotification({
         type: 'warning',
         title: 'Formulaire incomplet',
-        message: 'Veuillez remplir tous les champs obligatoires.'
+        message: 'Veuillez remplir tous les champs obligatoires.',
       });
       return;
     }
 
     const payload = this.buildPayload();
     this.isSubmitting.set(true);
-    
+
     this.auditService
       .createSimulation(payload)
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: (response: AuditEnergetiqueResponse) => {
           this.simulationResult.set(response.data);
-          const resultStep = this.steps.find(s => s.isResult);
+          const resultStep = this.steps.find((s) => s.isResult);
           if (resultStep) {
             this.currentStep.set(resultStep.number);
           }
           this.notificationStore.addNotification({
             type: 'success',
             title: 'Simulation terminée',
-            message: 'Voici les résultats de votre audit.'
+            message: 'Voici les résultats de votre audit.',
+          });
+          // Send report by email at the end (non-blocking)
+          this.auditService.generateAndSendPDF(response.data.simulationId).subscribe({
+            next: (emailRes) => {
+              if (emailRes?.email) {
+                this.notificationStore.addNotification({
+                  type: 'success',
+                  title: 'Rapport envoyé par email',
+                  message: `Le rapport a été envoyé à ${emailRes.email}. Vérifiez votre boîte de réception.`,
+                });
+              }
+            },
+            error: () => {
+              /* email optional; user already has result */
+            },
           });
         },
         error: (error) => {
@@ -352,9 +381,9 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
           this.notificationStore.addNotification({
             type: 'error',
             title: 'Erreur',
-            message: 'Impossible de créer la simulation. Vérifiez les informations saisies.'
+            message: 'Impossible de créer la simulation. Vérifiez les informations saisies.',
           });
-        }
+        },
       });
   }
 
@@ -364,78 +393,77 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
       this.notificationStore.addNotification({
         type: 'error',
         title: 'Erreur',
-        message: 'Aucune simulation trouvée. Veuillez d\'abord compléter l\'audit.'
+        message: "Aucune simulation trouvée. Veuillez d'abord compléter l'audit.",
       });
       return;
     }
 
     this.isGeneratingPDF.set(true);
-    
-    // First, download the PDF directly
-    this.auditService
-      .downloadPDF(result.simulationId)
-      .subscribe({
-        next: (blob: Blob) => {
-          // Create download link and trigger download
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `rapport-audit-energetique-${result.simulationId.substring(0, 8)}.pdf`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(url);
 
-          // Then send via email (don't wait for it to complete)
-          this.auditService
-            .generateAndSendPDF(result.simulationId)
-            .pipe(finalize(() => this.isGeneratingPDF.set(false)))
-            .subscribe({
-              next: (emailResponse) => {
-                if (emailResponse?.email) {
-                  this.notificationStore.addNotification({
-                    type: 'success',
-                    title: 'PDF téléchargé et envoyé',
-                    message: `Le rapport PDF a été téléchargé et envoyé à ${emailResponse.email}. Veuillez vérifier votre boîte de réception (et vos spams).`
-                  });
-                } else {
-                  this.notificationStore.addNotification({
-                    type: 'success',
-                    title: 'PDF téléchargé',
-                    message: 'Le rapport PDF a été téléchargé. L\'envoi par email est en cours...'
-                  });
-                }
-              },
-              error: (emailError) => {
-                // Email sending failed, but download succeeded
-                console.error('Error sending PDF via email:', emailError);
+    // First, download the PDF directly
+    this.auditService.downloadPDF(result.simulationId).subscribe({
+      next: (blob: Blob) => {
+        // Create download link and trigger download
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `rapport-audit-energetique-${result.simulationId.substring(0, 8)}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        // Then send via email (don't wait for it to complete)
+        this.auditService
+          .generateAndSendPDF(result.simulationId)
+          .pipe(finalize(() => this.isGeneratingPDF.set(false)))
+          .subscribe({
+            next: (emailResponse) => {
+              if (emailResponse?.email) {
                 this.notificationStore.addNotification({
-                  type: 'warning',
+                  type: 'success',
+                  title: 'PDF téléchargé et envoyé',
+                  message: `Le rapport PDF a été téléchargé et envoyé à ${emailResponse.email}. Veuillez vérifier votre boîte de réception (et vos spams).`,
+                });
+              } else {
+                this.notificationStore.addNotification({
+                  type: 'success',
                   title: 'PDF téléchargé',
-                  message: 'Le PDF a été téléchargé avec succès. L\'envoi par email a échoué, mais vous avez déjà le fichier.'
+                  message: "Le rapport PDF a été téléchargé. L'envoi par email est en cours...",
                 });
               }
-            });
-        },
-        error: (error) => {
-          this.isGeneratingPDF.set(false);
-          console.error('Error downloading PDF:', error);
-          
-          // Extract error message from response if available
-          let errorMessage = 'Impossible de générer le PDF. Veuillez réessayer.';
-          if (error?.error?.error) {
-            errorMessage = error.error.error;
-          } else if (error?.message) {
-            errorMessage = error.message;
-          }
-          
-          this.notificationStore.addNotification({
-            type: 'error',
-            title: 'Erreur',
-            message: errorMessage
+            },
+            error: (emailError) => {
+              // Email sending failed, but download succeeded
+              console.error('Error sending PDF via email:', emailError);
+              this.notificationStore.addNotification({
+                type: 'warning',
+                title: 'PDF téléchargé',
+                message:
+                  "Le PDF a été téléchargé avec succès. L'envoi par email a échoué, mais vous avez déjà le fichier.",
+              });
+            },
           });
+      },
+      error: (error) => {
+        this.isGeneratingPDF.set(false);
+        console.error('Error downloading PDF:', error);
+
+        // Extract error message from response if available
+        let errorMessage = 'Impossible de générer le PDF. Veuillez réessayer.';
+        if (error?.error?.error) {
+          errorMessage = error.error.error;
+        } else if (error?.message) {
+          errorMessage = error.message;
         }
-      });
+
+        this.notificationStore.addNotification({
+          type: 'error',
+          title: 'Erreur',
+          message: errorMessage,
+        });
+      },
+    });
   }
 
   protected resetForm(): void {
@@ -445,20 +473,20 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
     this.notificationStore.addNotification({
       type: 'info',
       title: 'Formulaire réinitialisé',
-      message: 'Vous pouvez commencer une nouvelle simulation.'
+      message: 'Vous pouvez commencer une nouvelle simulation.',
     });
   }
 
   private buildPayload(): EnergyAuditRequest {
     const formValue = this.form.getRawValue();
-    
+
     // COMMENTED OUT: Since we removed recentBillConsumption field, set hasRecentBill to false
     // to avoid backend validation errors. Backend requires recentBillConsumption when hasRecentBill is true.
-    // const hasRecentBill = formValue.monthlyBillAmount !== null && 
-    //                      formValue.monthlyBillAmount !== undefined && 
+    // const hasRecentBill = formValue.monthlyBillAmount !== null &&
+    //                      formValue.monthlyBillAmount !== undefined &&
     //                      formValue.monthlyBillAmount > 0;
     const hasRecentBill = false; // Set to false since we removed recentBillConsumption field
-    
+
     return {
       // Personal
       fullName: formValue.fullName || '',
@@ -467,14 +495,14 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
       phoneNumber: formValue.phoneNumber || '',
       address: formValue.address || '',
       governorate: formValue.governorate || '',
-      
+
       // Building
       buildingType: formValue.buildingType || '',
       surfaceArea: formValue.surfaceArea || 0,
       floors: formValue.floors || 0,
       activityType: formValue.activityType || '',
       climateZone: formValue.climateZone || '',
-      
+
       // Technical
       openingDaysPerWeek: formValue.openingDaysPerWeek || 0,
       openingHoursPerDay: formValue.openingHoursPerDay || 0,
@@ -485,12 +513,17 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
       coolingSystem: formValue.coolingSystem || '',
       conditionedCoverage: formValue.conditionedCoverage || '',
       domesticHotWater: formValue.domesticHotWater || '',
-      equipmentCategories: Array.isArray(formValue.equipmentCategories) ? formValue.equipmentCategories : [],
-      existingMeasures: formValue.hasExistingMeasures === true && Array.isArray(formValue.existingMeasures) && formValue.existingMeasures.length > 0
-        ? formValue.existingMeasures 
+      equipmentCategories: Array.isArray(formValue.equipmentCategories)
+        ? formValue.equipmentCategories
         : [],
+      existingMeasures:
+        formValue.hasExistingMeasures === true &&
+        Array.isArray(formValue.existingMeasures) &&
+        formValue.existingMeasures.length > 0
+          ? formValue.existingMeasures
+          : [],
       lightingType: formValue.lightingType || '',
-      
+
       // Consumption
       tariffType: formValue.tariffType || '',
       // COMMENTED OUT: contractedPower field removed from UI
@@ -501,10 +534,9 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
       // COMMENTED OUT: recentBillConsumption field removed from UI
       // recentBillConsumption: hasRecentBill && formValue.recentBillConsumption ? formValue.recentBillConsumption : undefined,
       recentBillConsumption: undefined, // Field removed - send undefined (backend will accept this when hasRecentBill is false)
-      billAttachmentUrl: undefined
+      billAttachmentUrl: undefined,
       // COMMENTED OUT: referenceMonth is not sent to backend yet - will be integrated in future
       // referenceMonth: formValue.referenceMonth
     };
   }
-
 }
