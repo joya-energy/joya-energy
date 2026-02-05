@@ -17,7 +17,7 @@
               <div class="card-category">Émissions</div>
             </div>
             <div class="card-content">
-              <div class="card-value">{{ r.co2TotalTonnes | number:'1.1-1' }} <span class="unit">tCO2e</span></div>
+              <div class="card-value">{{ r.co2TotalTonnes | noGrouping:'1.1-1' }} <span class="unit">tCO2e</span></div>
               <div class="card-label">Émissions totales</div>
               <div class="card-description">Empreinte carbone annuelle</div>
             </div>
@@ -31,7 +31,7 @@
               <div class="card-category">Par employé</div>
             </div>
             <div class="card-content">
-              <div class="card-value">{{ emissionsPerEmployee(r) | number:'1.1-1' }} <span class="unit">tCO2e</span></div>
+              <div class="card-value">{{ emissionsPerEmployee(r) | noGrouping:'1.1-1' }} <span class="unit">tCO2e</span></div>
               <div class="card-label">Émissions par employé</div>
               <div class="card-description">Par tête</div>
             </div>
@@ -45,7 +45,7 @@
               <div class="card-category">Intensité</div>
             </div>
             <div class="card-content">
-              <div class="card-value">{{ intensity(r) | number:'1.1-1' }} <span class="unit">kg CO₂e/m²</span></div>
+              <div class="card-value">{{ intensity(r) | noGrouping:'1.1-1' }} <span class="unit">kg CO₂e/m²</span></div>
               <div class="card-label">Intensité carbone</div>
               <div class="card-description">Émissions par m² de surface</div>
             </div>

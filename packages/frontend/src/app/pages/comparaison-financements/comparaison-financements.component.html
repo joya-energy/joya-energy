@@ -232,7 +232,7 @@
                     <h3>Taille installation</h3>
                     <div class="result-value">
                       <span class="amount">{{
-                        comparison.projectCalculation.sizeKwp | number : '1.0-1'
+                        comparison.projectCalculation.sizeKwp | noGrouping : '1.0-1'
                       }}</span>
                       <span class="unit">kWc</span>
                     </div>
@@ -242,7 +242,7 @@
                     <h3>Investissement total</h3>
                     <div class="result-value">
                       <span class="amount">{{
-                        comparison.projectCalculation.capexDt | number : '1.0-0'
+                        comparison.projectCalculation.capexDt | noGrouping : '1.0-0'
                       }}</span>
                       <span class="unit">DT</span>
                     </div>
@@ -254,7 +254,7 @@
                     <h3>Production annuelle</h3>
                     <div class="result-value">
                       <span class="amount">{{
-                        comparison.projectCalculation.annualProductionKwh | number : '1.0-0'
+                        comparison.projectCalculation.annualProductionKwh | noGrouping : '1.0-0'
                       }}</span>
                       <span class="unit">kWh</span>
                     </div>
@@ -264,7 +264,7 @@
                     <h3>Économies mensuelles</h3>
                     <div class="result-value">
                       <span class="amount">{{
-                        comparison.projectCalculation.monthlyGrossSavingsDt | number : '1.0-0'
+                        comparison.projectCalculation.monthlyGrossSavingsDt | noGrouping : '1.0-0'
                       }}</span>
                       <span class="unit">DT/mois</span>
                     </div>

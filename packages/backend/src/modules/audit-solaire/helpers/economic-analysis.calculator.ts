@@ -6,7 +6,7 @@ import { Logger } from '@backend/middlewares';
  * following the Tunisian STEG tariff structure and financial modeling standards.
  * 
  * Key Calculations:
- * - CAPEX: Investment cost (2000 DT/kWc)
+ * - CAPEX: Investment cost (2300 DT/kWc)
  * - OPEX: Annual maintenance cost (4% of CAPEX)
  * - Tariff-based bill calculations (bracket system)
  * - Inflation modeling (STEG 7%, OPEX 3%)
@@ -25,7 +25,7 @@ export interface EconomicAnalysisInput {
   opexInflationRate?: number; // Default 3% - i_OPEX
   discountRate?: number; // Default 8% - r
   pvDegradationRate?: number; // Default 0.4% - d
-  capexPerKwp?: number; // Default 2000 DT/kWp
+  capexPerKwp?: number; // Default 2300 DT/kWp
   opexRatePercentage?: number; // Default 4% of CAPEX - α
 }
 
@@ -98,7 +98,7 @@ const DEFAULT_STEG_TARIFF_INFLATION = 0.07; // 7%
 const DEFAULT_OPEX_INFLATION = 0.03; // 3%
 const DEFAULT_DISCOUNT_RATE = 0.08; // 8%
 const DEFAULT_PV_DEGRADATION_RATE = 0.004; // 0.4%
-const DEFAULT_CAPEX_PER_KWP = 2250; // DT/kWp
+const DEFAULT_CAPEX_PER_KWP = 2300; // DT/kWp
 const DEFAULT_OPEX_RATE_PERCENTAGE = 0.04; // 4% of CAPEX
 
 
@@ -218,7 +218,7 @@ export function calculateAverageAvoidedTariff(
  * CAPEX = Prix_par_kWc × P_PV
  * 
  * @param installedPowerKwp - Installed PV power in kWc
- * @param capexPerKwp - Cost per kWc (default: 2000 DT/kWc)
+ * @param capexPerKwp - Cost per kWc (default: 2300 DT/kWc)
  * @returns Total investment cost in DT
  */
 export function calculateCapex(installedPowerKwp: number, capexPerKwp: number): number {

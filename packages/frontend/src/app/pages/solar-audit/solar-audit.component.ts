@@ -42,6 +42,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
 import { finalize } from 'rxjs/operators';
 
 // Base layout components (from energy audit template)
+import { NoGroupingPipe } from '../../shared/pipes/no-grouping.pipe';
 import { UiStepTimelineComponent } from '../../shared/components/ui-step-timeline/ui-step-timeline.component';
 import { UiProgressBarComponent } from '../../shared/components/ui-progress-bar/ui-progress-bar.component';
 
@@ -86,6 +87,7 @@ interface BuildingTypeCard {
     CommonModule,
     ReactiveFormsModule,
     NgIconComponent,
+    NoGroupingPipe,
     UiStepTimelineComponent,
     UiProgressBarComponent,
     UiSelectComponent,
@@ -906,6 +908,13 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     return `${years} an${years > 1 ? 's' : ''} et ${remainingMonths} mois`;
   }
 
+  /** Formats decimal payback year (e.g. 3.9) as "X ans et Y mois" for the chart bubble. */
+  protected formatPaybackYearsAndMonths(yearDecimal: number): string {
+    const totalMonths = Math.round(yearDecimal * 12);
+    if (totalMonths <= 0) return '0 mois';
+    return this.formatPaybackPeriod(totalMonths);
+  }
+
   // ----- Chart helpers (monthly bills + cumulative gains vs CAPEX) – same logic as old audit-solaire -----
 
   protected getChartMaxValue(): number {
@@ -1180,7 +1189,9 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   protected getIntersectionBubbleWidth(): number {
     const point = this.getIntersectionPoint();
     if (!point) return 100;
-    return this.calculateBubbleWidth(point.year.toFixed(1) + ' ans');
+    const simulation = this.simulationResult();
+    const label = simulation ? this.formatPaybackPeriod(simulation.paybackMonths) : '';
+    return label ? this.calculateBubbleWidth(label) : 100;
   }
 
   protected getIntersectionBubbleX(): number {

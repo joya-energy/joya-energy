@@ -101,7 +101,7 @@
                   </div>
                   <div class="card-content">
                     <div class="card-value">
-                      {{ simulation.systemSize_kWp.toFixed(1) }} <span class="unit">kWc</span>
+                      {{ simulation.systemSize_kWp | noGrouping:'1.1-1' }} <span class="unit">kWc</span>
                     </div>
                     <div class="card-label">Puissance Installée</div>
                     <div class="card-description">Capacité solaire optimale</div>
@@ -118,12 +118,12 @@
                   </div>
                   <div class="card-content">
                     <div class="card-value">
-                      {{ (simulation.expectedProduction / 1000).toFixed(0) }}
+                      {{ (simulation.expectedProduction / 1000) | noGrouping:'1.0-0' }}
                       <span class="unit">MWh</span>
                     </div>
                     <div class="card-label">Production Annuelle</div>
                     <div class="card-description">
-                      {{ simulation.expectedProduction.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}
+                      {{ simulation.expectedProduction | noGrouping:'1.0-0' }}
                       kWh/an
                     </div>
                   </div>
@@ -136,12 +136,12 @@
                   </div>
                   <div class="card-content">
                     <div class="card-value">
-                      {{ (simulation.annualSavings / 1000).toFixed(0) }}
+                      {{ (simulation.annualSavings / 1000) | noGrouping:'1.0-0' }}
                       <span class="unit">k DT</span>
                     </div>
                     <div class="card-label">Économies Annuelles</div>
                     <div class="card-description">
-                      {{ simulation.annualSavings.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}
+                      {{ simulation.annualSavings | noGrouping:'1.0-0' }}
                       DT/an
                     </div>
                   </div>
@@ -198,7 +198,7 @@
                     </div>
                     <div class="comparison-content">
                       <div class="comparison-value warning">
-                        {{ simulation.annualBillWithoutPV.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}
+                        {{ simulation.annualBillWithoutPV | noGrouping:'1.0-0' }}
                         <span class="currency">DT</span>
                       </div>
                       <div class="comparison-label">Situation Actuelle</div>
@@ -207,7 +207,7 @@
                         <div class="detail-item">
                           <ng-icon name="lucideActivity" class="detail-icon"></ng-icon>
                           <span
-                            >{{ simulation.annualConsumption.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}
+                            >{{ simulation.annualConsumption | noGrouping:'1.0-0' }}
                             kWh/an</span
                           >
                         </div>
@@ -224,7 +224,7 @@
                     </div>
                     <div class="savings-indicator">
                       <div class="savings-amount">
-                        -{{ (simulation.annualBillWithoutPV - simulation.annualBillWithPV).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}
+                        -{{ (simulation.annualBillWithoutPV - simulation.annualBillWithPV) | noGrouping:'1.0-0' }}
                         DT
                       </div>
                       <div class="savings-label">Économies annuelles</div>
@@ -241,7 +241,7 @@
                     </div>
                     <div class="comparison-content">
                       <div class="comparison-value success">
-                        {{ simulation.annualBillWithPV.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}
+                        {{ simulation.annualBillWithPV | noGrouping:'1.0-0' }}
                         <span class="currency">DT</span>
                       </div>
                       <div class="comparison-label">Avec Panneaux Solaires</div>
@@ -254,7 +254,7 @@
                         <div class="detail-item">
                           <ng-icon name="lucideSun" class="detail-icon"></ng-icon>
                           <span
-                            >{{ (simulation.expectedProduction / 1000).toFixed(1) }} MWh/an
+                            >{{ (simulation.expectedProduction / 1000) | noGrouping:'1.1-1' }} MWh/an
                             produits</span
                           >
                         </div>
@@ -288,7 +288,7 @@
                     </div>
                     <div class="metric-content">
                       <div class="metric-value primary">
-                        {{ simulation.installationCost.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}
+                        {{ simulation.installationCost | noGrouping:'1.0-0' }}
                       </div>
                       <div class="metric-label">CAPEX</div>
                       <div class="metric-subtitle">Coût d'investissement</div>
@@ -305,7 +305,7 @@
                     </div>
                     <div class="metric-content">
                       <div class="metric-value neutral">
-                        {{ simulation.annualOpex.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}
+                        {{ simulation.annualOpex | noGrouping:'1.0-0' }}
                       </div>
                       <div class="metric-label">OPEX</div>
                       <div class="metric-subtitle">Coût de maintenance annuel</div>
@@ -322,10 +322,7 @@
                     </div>
                     <div class="metric-content">
                       <div class="metric-value success">
-                        {{ ((simulation.roi25Years || 0)).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
-
-
-                        }}
+                        {{ (simulation.roi25Years || 0) | noGrouping:'1.2-2' }}
                       </div>
                       <div class="metric-label">ROI</div>
                       <div class="metric-subtitle">Retour sur investissement</div>
@@ -343,7 +340,7 @@
                     </div>
                     <div class="metric-content">
                       <div class="metric-value success">
-                        {{ simulation.annualEconomics[simulation.annualEconomics.length - 1]!.cumulativeNetGain.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}
+                        {{ simulation.annualEconomics[simulation.annualEconomics.length - 1]!.cumulativeNetGain | noGrouping:'1.0-0' }}
                       </div>
                       <div class="metric-label">Gain cumulé</div>
                       <div class="metric-subtitle">Non actualisé (25 ans)</div>
@@ -361,7 +358,7 @@
                     </div>
                     <div class="metric-content">
                       <div class="metric-value success">
-                        {{ simulation.irr.toFixed(1) }}<span class="unit">%</span>
+                        {{ simulation.irr | noGrouping:'1.1-1' }}<span class="unit">%</span>
                       </div>
                       <div class="metric-label">Taux de Rendement Interne</div>
                       <div class="metric-subtitle">Retour sur investissement annuel</div>
@@ -380,7 +377,7 @@
                 <div class="chart-container">
                   <div class="chart-y-axis">
                     @for (tick of getChartYAxisTicks(); track $index) {
-                    <div class="y-axis-label">{{ tick | number : '1.0-0' }}</div>
+                    <div class="y-axis-label">{{ tick | noGrouping : '1.0-0' }}</div>
                     }
                   </div>
                   <div class="chart-bars-container">
@@ -400,7 +397,7 @@
                                 class="monthly-bills-tooltip-bubble monthly-bills-tooltip-bubble-sans"
                               >
                                 Sans solaire:
-                                {{ monthlyBillsTooltip()!.billWithoutPV | number : '1.0-0' }} DT
+                                {{ monthlyBillsTooltip()!.billWithoutPV | noGrouping : '1.0-0' }} DT
                               </div>
                             </div>
                             } @if (monthlyBillsTooltip()?.monthIndex === i &&
@@ -413,7 +410,7 @@
                                 class="monthly-bills-tooltip-bubble monthly-bills-tooltip-bubble-avec"
                               >
                                 Avec solaire:
-                                {{ monthlyBillsTooltip()!.billWithPV | number : '1.0-0' }} DT
+                                {{ monthlyBillsTooltip()!.billWithPV | noGrouping : '1.0-0' }} DT
                               </div>
                             </div>
                             }
@@ -468,7 +465,7 @@
                   <div class="line-chart-container">
                     <div class="line-chart-y-axis">
                       @for (tick of getLineChartYAxisTicks(); track tick; let i = $index) {
-                      <div class="y-axis-label">{{ tick | number : '1.0-0' }}</div>
+                      <div class="y-axis-label">{{ tick | noGrouping : '1.0-0' }}</div>
                       }
                     </div>
                     <div class="line-chart-content">
@@ -486,10 +483,10 @@
                         >
                           <div class="chart-tooltip-year">Année {{ tt.year }}</div>
                           <div class="chart-tooltip-bubble chart-tooltip-bubble-gains">
-                            {{ tt.gains | number : '1.0-0' }} DT
+                            {{ tt.gains | noGrouping : '1.0-0' }} DT
                           </div>
                           <div class="chart-tooltip-bubble chart-tooltip-bubble-capex">
-                            {{ tt.capex | number : '1.0-0' }} DT
+                            {{ tt.capex | noGrouping : '1.0-0' }} DT
                           </div>
                         </div>
                         }
@@ -599,7 +596,7 @@
                               font-weight="bold"
                               fill="#ffffff"
                             >
-                              {{ pt.year | number : '1.1-1' }} ans
+                              {{ formatPaybackPeriod(simulation.paybackMonths) }}
                             </text>
                           </g>
                           } @if (getFinalGainsPoint(); as fp) { @if (getFinalGainsValue() !== null
@@ -642,7 +639,7 @@
                               font-weight="bold"
                               fill="#1e40af"
                             >
-                              {{ getFinalGainsValue() | number : '1.0-0' }} DT
+                              {{ getFinalGainsValue() | noGrouping : '1.0-0' }} DT
                             </text>
                           </g>
                           } } @if (getFinalCapexPoint(); as cp) { @if (getFinalCapexValue() !== null
@@ -685,7 +682,7 @@
                               font-weight="bold"
                               fill="#c2410c"
                             >
-                              {{ getFinalCapexValue() | number : '1.0-0' }} DT
+                              {{ getFinalCapexValue() | noGrouping : '1.0-0' }} DT
                             </text>
                           </g>
                           } }
@@ -735,7 +732,7 @@
                     </div>
                     <div class="environmental-content">
                       <div class="environmental-value success">
-                        {{ simulation.annualCo2Avoided.toFixed(1) }}
+                        {{ simulation.annualCo2Avoided | noGrouping:'1.1-1' }}
                         <span class="unit">tonnes</span>
                       </div>
                       <div class="environmental-label">CO₂ évité</div>
@@ -753,7 +750,7 @@
                     </div>
                     <div class="environmental-content">
                       <div class="environmental-value success">
-                        {{ (simulation.totalCo2Avoided25Years ).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') }}
+                        {{ simulation.totalCo2Avoided25Years | noGrouping:'1.0-0' }}
                         <span class="unit">tonnes</span>
                       </div>
                       <div class="environmental-label">CO₂ évité total</div>
