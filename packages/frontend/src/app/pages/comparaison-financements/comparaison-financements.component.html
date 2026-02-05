@@ -64,7 +64,7 @@
                 <p class="step-description">
                   Obtenez une comparaison sur 7 ans entre paiement comptant, crédit bancaire,
                   leasing et notre solution <strong>ESCO JOYA</strong> — sans investissement
-                  initial. Saisissez la localisation puis la taille (kWp) ou le budget (DT) de votre
+                  initial. Saisissez la localisation puis la taille (kWc) ou le budget (DT) de votre
                   projet.
                 </p>
               </div>
@@ -99,7 +99,7 @@
                 <span class="simulator-form-title">Données du projet</span>
                 <h2 class="step-title">Paramètres de la comparaison</h2>
                 <p class="step-description-small" style="margin-top: 3rem">
-                  Choisissez la localisation puis indiquez soit la taille de l'installation en kWp,
+                  Choisissez la localisation puis indiquez soit la taille de l'installation en kWc,
                   soit votre budget d'investissement en dinars.
                 </p>
               </div>
@@ -132,7 +132,7 @@
                   <app-ui-input
                     formControlName="installationSizeKwp"
                     type="number"
-                    label="Taille de l'installation (kWp)"
+                    label="Taille de l'installation (kWc)"
                     placeholder="Ex : 50"
                     [required]="true"
                     size="md"
@@ -190,7 +190,7 @@
                 <div class="info-box">
                   <ng-icon name="lucideInfo" size="18"></ng-icon>
                   <span
-                    >Renseignez soit la taille en kWp, soit le budget en dinars (pas les
+                    >Renseignez soit la taille en kWc, soit le budget en dinars (pas les
                     deux).</span
                   >
                 </div>
@@ -234,7 +234,7 @@
                       <span class="amount">{{
                         comparison.projectCalculation.sizeKwp | number : '1.0-1'
                       }}</span>
-                      <span class="unit">kWp</span>
+                      <span class="unit">kWc</span>
                     </div>
                   </div>
                   <div class="result-card capex" [@resultCards]>

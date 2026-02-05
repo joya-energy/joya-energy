@@ -135,7 +135,7 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
   };
 
   protected readonly inputTypeOptions: { value: string; label: string }[] = [
-    { value: 'size', label: "Taille de l'installation (kWp)" },
+    { value: 'size', label: "Taille de l'installation (kWc)" },
     { value: 'amount', label: "Budget d'investissement (DT)" },
   ];
 
