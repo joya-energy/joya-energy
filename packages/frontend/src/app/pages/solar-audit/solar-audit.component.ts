@@ -908,6 +908,13 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     return `${years} an${years > 1 ? 's' : ''} et ${remainingMonths} mois`;
   }
 
+  /** Formats decimal payback year (e.g. 3.9) as "X ans et Y mois" for the chart bubble. */
+  protected formatPaybackYearsAndMonths(yearDecimal: number): string {
+    const totalMonths = Math.round(yearDecimal * 12);
+    if (totalMonths <= 0) return '0 mois';
+    return this.formatPaybackPeriod(totalMonths);
+  }
+
   // ----- Chart helpers (monthly bills + cumulative gains vs CAPEX) – same logic as old audit-solaire -----
 
   protected getChartMaxValue(): number {
@@ -1182,7 +1189,9 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   protected getIntersectionBubbleWidth(): number {
     const point = this.getIntersectionPoint();
     if (!point) return 100;
-    return this.calculateBubbleWidth(point.year.toFixed(1) + ' ans');
+    const simulation = this.simulationResult();
+    const label = simulation ? this.formatPaybackPeriod(simulation.paybackMonths) : '';
+    return label ? this.calculateBubbleWidth(label) : 100;
   }
 
   protected getIntersectionBubbleX(): number {
