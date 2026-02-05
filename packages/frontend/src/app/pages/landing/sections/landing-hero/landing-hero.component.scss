@@ -58,7 +58,7 @@
   position: relative;
   z-index: 1;
   max-width: 1600px;
-  width: 100%;
+
   margin: 0 auto;
   padding: 0 20px; /* Added back padding */
   box-sizing: border-box;
@@ -71,7 +71,7 @@
   gap: 32px;
   align-items: start; /* Align to top for better centering */
   width: 100%;
-  max-width: 100%;
+  max-width: 1400px;
   box-sizing: border-box;
 
   @media (max-width: 1023px) {

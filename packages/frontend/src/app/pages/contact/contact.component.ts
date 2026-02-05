@@ -1,12 +1,31 @@
 import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators, FormGroup, FormControl } from '@angular/forms';
+import {
+  ReactiveFormsModule,
+  FormBuilder,
+  Validators,
+  FormGroup,
+  FormControl,
+} from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ContactService, ContactSubject } from '../../core/services/contact.service';
 import { NotificationStore } from '../../core/notifications/notification.store';
 import { finalize } from 'rxjs/operators';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
-import { lucideMail, lucidePhone, lucideMapPin, lucideClock, lucideSend, lucideChevronDown } from '@ng-icons/lucide';
+import {
+  lucideMail,
+  lucidePhone,
+  lucideMapPin,
+  lucideClock,
+  lucideSend,
+  lucideChevronDown,
+  lucideMessageSquare,
+  lucideUser,
+  lucideBuilding2,
+  lucideCalendar,
+  lucideArrowRight,
+  lucideSparkles,
+} from '@ng-icons/lucide';
 
 // Define strongly typed form
 interface ContactForm {
@@ -21,11 +40,26 @@ interface ContactForm {
 @Component({
   selector: 'app-contact',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, NgIconComponent],
-  providers: [provideIcons({ lucideMail, lucidePhone, lucideMapPin, lucideClock, lucideSend, lucideChevronDown })],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, NgIconComponent],
+  providers: [
+    provideIcons({
+      lucideMail,
+      lucidePhone,
+      lucideMapPin,
+      lucideClock,
+      lucideSend,
+      lucideChevronDown,
+      lucideMessageSquare,
+      lucideUser,
+      lucideBuilding2,
+      lucideCalendar,
+      lucideArrowRight,
+      lucideSparkles,
+    }),
+  ],
   templateUrl: './contact.component.html',
   styleUrl: './contact.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ContactComponent {
   private fb = inject(FormBuilder);
@@ -35,32 +69,21 @@ export class ContactComponent {
   protected subjects = Object.values(ContactSubject);
   protected isSubmitting = signal(false);
 
-  // Contact Information Data Object
-  protected contactInfo = [
+  protected contactInfo: { icon: string; label: string; value: string; link: string | null }[] = [
     {
       icon: 'lucideMail',
       label: 'Email',
-      value: 'contact@joya-energy.tn',
-      link: 'mailto:contact@joya-energy.tn'
+      value: 'hello@joya-energy.com',
+      link: 'mailto:hello@joya-energy.com',
     },
-    {
-      icon: 'lucidePhone',
-      label: 'Téléphone',
-      value: '+216 70 000 000',
-      link: 'tel:+21670000000'
-    },
+    { icon: 'lucidePhone', label: 'Téléphone', value: '+216 54 433 617', link: 'tel:+21654433617' },
     {
       icon: 'lucideMapPin',
       label: 'Adresse',
       value: 'Les Berges du Lac, Tunis',
-      isAddress: true
+      link: 'https://maps.google.com/?q=Les+Berges+du+Lac+Tunis',
     },
-    {
-      icon: 'lucideClock',
-      label: 'Horaires',
-      value: 'Lun - Ven: 8h - 18h',
-      isAddress: true // Reuse address styling for text
-    }
+    { icon: 'lucideClock', label: 'Horaires', value: 'Lun - Ven: 8h - 18h', link: null },
   ];
 
   // Initialize with non-nullable controls
@@ -69,7 +92,7 @@ export class ContactComponent {
   // ^(\+|00)[1-9][0-9]{7,14}$  -> International
   // ^0[1-9][0-9]{8}$           -> Local with prefix (e.g. 06...) - Tunisian 8 digits usually don't start with 0 unless it's 0X... but standard mobile is 8 digits like 5X...
   // ^[1-9][0-9]{7}$            -> 8 digits exactly (Tunisian standard)
-  
+
   contactForm: FormGroup<ContactForm> = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
@@ -79,25 +102,25 @@ export class ContactComponent {
     phoneNumber: ['', [Validators.required, Validators.pattern(/^(\+|00)[0-9]{8,15}$|^[0-9]{8}$/)]],
     companyName: ['', [Validators.required, Validators.minLength(2)]],
     subject: [ContactSubject.GENERAL_INFO, [Validators.required]],
-    message: ['', [Validators.required, Validators.minLength(2)]]
+    message: ['', [Validators.required, Validators.minLength(2)]],
   });
 
   onSubmit() {
     if (this.contactForm.invalid) {
       this.contactForm.markAllAsTouched();
-      
+
       // Check if phone is specifically invalid
       if (this.contactForm.controls.phoneNumber.invalid) {
-         this.notificationStore.addNotification({
+        this.notificationStore.addNotification({
           type: 'warning',
           title: 'Numéro de téléphone invalide',
-          message: 'Veuillez entrer un numéro valide (ex: 51845578 ou +21651845578).'
+          message: 'Veuillez entrer un numéro valide (ex: 51845578 ou +21651845578).',
         });
       } else {
         this.notificationStore.addNotification({
           type: 'warning',
           title: 'Formulaire incomplet',
-          message: 'Veuillez remplir tous les champs obligatoires.'
+          message: 'Veuillez remplir tous les champs obligatoires.',
         });
       }
       return;
@@ -106,14 +129,15 @@ export class ContactComponent {
     this.isSubmitting.set(true);
     const formData = this.contactForm.getRawValue();
 
-    this.contactService.sendContactMessage(formData)
+    this.contactService
+      .sendContactMessage(formData)
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: () => {
           this.notificationStore.addNotification({
             type: 'success',
             title: 'Message envoyé',
-            message: 'Nous avons bien reçu votre demande. Notre équipe vous répondra très bientôt.'
+            message: 'Nous avons bien reçu votre demande. Notre équipe vous répondra très bientôt.',
           });
           this.contactForm.reset({
             name: '',
@@ -121,19 +145,19 @@ export class ContactComponent {
             phoneNumber: '',
             companyName: '',
             subject: ContactSubject.GENERAL_INFO,
-            message: ''
+            message: '',
           });
         },
         error: (err) => {
           console.error('Contact error:', err);
           if (err.status === 400 || err.status === 401) {
-             this.notificationStore.addNotification({
-               type: 'error',
-               title: 'Erreur d\'envoi',
-               message: 'Veuillez vérifier le format de votre email ou numéro de téléphone.'
-             });
+            this.notificationStore.addNotification({
+              type: 'error',
+              title: "Erreur d'envoi",
+              message: 'Veuillez vérifier le format de votre email ou numéro de téléphone.',
+            });
           }
-        }
+        },
       });
   }
 }
