@@ -5,12 +5,13 @@
 
 import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { NoGroupingPipe } from '../../../../shared/pipes/no-grouping.pipe';
 import { FinancingSolution } from '../../services/financing-comparison.service';
 
 @Component({
   selector: 'app-solution-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NoGroupingPipe],
   templateUrl: './solution-card.component.html',
   styleUrl: './solution-card.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

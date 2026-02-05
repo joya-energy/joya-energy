@@ -271,27 +271,25 @@
                   </div>
                 </div>
 
-                <h3 class="section-label solutions-label">Solutions de financement</h3>
-                <div class="solutions-grid">
-                  @for (solution of displaySolutions(); track solution.type) {
-                  <div
-                    class="solution-card"
-                    [class.highlighted]="isBestCashflow(solution.type)"
-                    [class.solution-esco]="solution.type === 'esco'"
-                    [style.--solution-color]="getSolutionColor(solution.type)"
-                  >
-                    <div class="solution-card-header">
-                      <h4 class="solution-title">{{ getSolutionTitle(solution.type) }}</h4>
-                      @if (solution.type === 'esco') {
-                      <span class="recommended-badge">Recommandé</span>
-                      }
+                <div class="results-container">
+                  <h3 class="section-label">Résumé du projet</h3>
+                  <div class="results-grid summary-grid">
+                    <div class="result-card size" [@resultCards]>
+                      <div class="result-icon">
+                        <ng-icon name="lucideSun" size="20"></ng-icon>
+                      </div>
+                      <h3>Taille installation</h3>
+                      <div class="result-value">
+                        <span class="amount">{{ comparison.projectCalculation.sizeKwp | noGrouping:'1.0-1' }}</span>
+                        <span class="unit">kWp</span>
+                      </div>
                     </div>
-                    <div class="solution-card-body">
-                      <div class="solution-metric">
-                        <span class="metric-label">Investissement initial</span>
-                        <span class="metric-value">{{
-                          formatCurrency(solution.initialInvestment)
-                        }}</span>
+                    <div class="result-card capex" [@resultCards]>
+                      <div class="result-icon">DT</div>
+                      <h3>Investissement total</h3>
+                      <div class="result-value">
+                        <span class="amount">{{ comparison.projectCalculation.capexDt | noGrouping:'1.0-0' }}</span>
+                        <span class="unit">DT</span>
                       </div>
                       <div class="solution-metric">
                         <span class="metric-label">Mensualité</span>
@@ -299,16 +297,18 @@
                           formatCurrency(solution.monthlyPayment)
                         }}</span>
                       </div>
-                      <div class="solution-metric">
-                        <span class="metric-label">OPEX mensuel</span>
-                        <span class="metric-value">{{ formatCurrency(solution.monthlyOpex) }}</span>
+                      <h3>Production annuelle</h3>
+                      <div class="result-value">
+                        <span class="amount">{{ comparison.projectCalculation.annualProductionKwh | noGrouping:'1.0-0' }}</span>
+                        <span class="unit">kWh</span>
                       </div>
-                      <div class="solution-metric-divider"></div>
-                      <div class="solution-metric total">
-                        <span class="metric-label">Coût mensuel total</span>
-                        <span class="metric-value">{{
-                          formatCurrency(solution.totalMonthlyCost)
-                        }}</span>
+                    </div>
+                    <div class="result-card savings" [@resultCards]>
+                      <div class="result-icon">€</div>
+                      <h3>Économies mensuelles</h3>
+                      <div class="result-value">
+                        <span class="amount">{{ comparison.projectCalculation.monthlyGrossSavingsDt | noGrouping:'1.0-0' }}</span>
+                        <span class="unit">DT/mois</span>
                       </div>
                       <div class="solution-metric">
                         <span class="metric-label">Économies mensuelles</span>

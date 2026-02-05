@@ -664,10 +664,10 @@ export class AuditPDFService {
           return '0' + (decimals > 0 ? '.' + '0'.repeat(decimals) : '');
         }
         
-        // Format with French number style (space as thousand separator, comma as decimal)
+        // Format without thousand separator (comma as decimal for decimals)
         const fixed = num.toFixed(decimals);
         const parts = fixed.split('.');
-        const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        const integerPart = parts[0];
         return decimals > 0 ? `${integerPart},${parts[1]}` : integerPart;
       };
       
@@ -920,9 +920,9 @@ export class AuditPDFService {
           const finalX = annualData.length > 1 ? (year25Index / (annualData.length - 1)) * 1000 : 500;
           const finalY = 400 - ((finalGain - roundedMin) / actualRange) * 400;
           
-          // Format final gain with spaces as thousand separators (like frontend: number:'1.0-0')
+          // Format final gain without thousand separator
           const formatNumberWithSpaces = (num: number): string => {
-            return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            return Math.round(num).toString();
           };
           
           flattened.lineChartFinalGain = formatNumberWithSpaces(finalGain);

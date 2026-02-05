@@ -206,7 +206,7 @@ export const DEFAULT_LEASING_PARAMETERS = {
 export const DEFAULT_ESCO_PARAMETERS = {
   escoTargetIrrAnnual: 0.13,
   escoOpexIncluded: true,
-  escoCostPerKwpDt: 1750, // ESCO-specific cost per kWp (lower than standard 2000 DT)
+  escoCostPerKwpDt: 1750, // ESCO-specific cost per kWp (lower than standard 2300 DT)
 };
 ```
 
