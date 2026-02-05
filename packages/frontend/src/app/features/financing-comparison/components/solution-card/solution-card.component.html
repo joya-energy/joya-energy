@@ -10,27 +10,27 @@
   <div class="card-body">
     <div class="metric">
       <span class="label">Investissement initial</span>
-      <span class="value">{{ solution().initialInvestment | number:'1.0-0' }} DT</span>
+      <span class="value">{{ solution().initialInvestment | noGrouping:'1.0-0' }} DT</span>
     </div>
 
     <div class="metric">
       <span class="label">Mensualité</span>
-      <span class="value">{{ solution().monthlyPayment | number:'1.2-2' }} DT</span>
+      <span class="value">{{ solution().monthlyPayment | noGrouping:'1.2-2' }} DT</span>
     </div>
 
     <div class="metric">
       <span class="label">OPEX mensuel</span>
-      <span class="value">{{ solution().monthlyOpex | number:'1.2-2' }} DT</span>
+      <span class="value">{{ solution().monthlyOpex | noGrouping:'1.2-2' }} DT</span>
     </div>
 
     <div class="metric highlight">
       <span class="label">Coût mensuel total</span>
-      <span class="value">{{ solution().totalMonthlyCost | number:'1.2-2' }} DT</span>
+      <span class="value">{{ solution().totalMonthlyCost | noGrouping:'1.2-2' }} DT</span>
     </div>
 
     <div class="metric cashflow" [class.positive]="solution().monthlyCashflow > 0">
       <span class="label">Cashflow mensuel</span>
-      <span class="value">{{ solution().monthlyCashflow | number:'1.2-2' }} DT</span>
+      <span class="value">{{ solution().monthlyCashflow | noGrouping:'1.2-2' }} DT</span>
     </div>
 
     <div class="metric">

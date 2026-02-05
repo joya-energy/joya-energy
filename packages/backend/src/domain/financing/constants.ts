@@ -94,7 +94,7 @@ export const LOCATION_YIELDS: Record<string, number> = {
  * Default project parameters
  */
 export const DEFAULT_PROJECT_PARAMETERS = {
-  costPerKwpDt: 2000,
+  costPerKwpDt: 2300,
   yieldKwhPerKwpYear: 1550,
   electricityPriceDtPerKwh: 0.391,
   opexRateAnnual: 0.05,

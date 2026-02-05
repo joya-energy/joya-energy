@@ -18,6 +18,7 @@ import {
   lucideUsers,
   lucideActivity,
 } from '@ng-icons/lucide';
+import { NoGroupingPipe } from '../../shared/pipes/no-grouping.pipe';
 import { BilanCarbonFormService } from './bilan-carbon.form.service';
 import { CarbonSimulatorService } from '../../core/services/carbon-simulator.service';
 import {
@@ -43,7 +44,7 @@ export type EmissionCategoryKey = 'energie_directe' | 'electricite' | 'deplaceme
 @Component({
   selector: 'app-bilan-carbon',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, NgIconComponent],
+  imports: [CommonModule, ReactiveFormsModule, NgIconComponent, NoGroupingPipe],
   templateUrl: './bilan-carbon.component.html',
   styleUrl: './bilan-carbon.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

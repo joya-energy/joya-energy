@@ -25,6 +25,7 @@ import {
 import { trigger, transition, style, animate } from '@angular/animations';
 import { finalize } from 'rxjs/operators';
 
+import { NoGroupingPipe } from '../../shared/pipes/no-grouping.pipe';
 import { UiStepTimelineComponent } from '../../shared/components/ui-step-timeline/ui-step-timeline.component';
 import { UiProgressBarComponent } from '../../shared/components/ui-progress-bar/ui-progress-bar.component';
 import { UiSelectComponent } from '../../shared/components/ui-select/ui-select.component';
@@ -51,6 +52,7 @@ interface SimulatorStep {
     CommonModule,
     ReactiveFormsModule,
     NgIconComponent,
+    NoGroupingPipe,
     UiStepTimelineComponent,
     UiProgressBarComponent,
     UiSelectComponent,
