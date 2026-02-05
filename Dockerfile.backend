@@ -53,5 +53,11 @@ EXPOSE 3000
 
 WORKDIR /app/packages/backend
 
+# Health check so orchestrators (e.g. Railway) can detect when the app is up or crashed
+# Uses PORT from env (Railway sets it); default 3000 for local Docker
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -q -O- "http://127.0.0.1:${PORT:-3000}/api/health" || exit 1
+
 # Run compiled backend with path resolution for @shared
+# Ensure DB_URI and other required env vars are set in Railway (or the process will exit and return 502)
 CMD ["node", "-r", "tsconfig-paths/register", "dist/packages/backend/src/index.js"]

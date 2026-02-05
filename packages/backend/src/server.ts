@@ -104,6 +104,18 @@ const createApp = async (): Promise<http.Server> => {
   // Mount router
   app.use(router);
 
+  // Health check (no DB required) – for monitoring and frontend status page
+  router.get('/api/health', (_req, res) => {
+    res.status(200).json({
+      status: 'ok',
+      service: 'joya-backend',
+      timestamp: new Date().toISOString(),
+      env: ServerConfig.isProduction()
+        ? 'production'
+        : (process.env.NODE_ENV ?? 'development'),
+    });
+  });
+
   // Mount routes BEFORE other middleware to ensure they are matched
   router.use('/api/contacts', contactRoutes);
   router.use(
