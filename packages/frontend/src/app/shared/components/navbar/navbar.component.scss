@@ -10,7 +10,6 @@
 :host {
   display: block;
   width: 100%;
-  max-width: 100vw;
   z-index: 50;
   overflow: visible;
   box-sizing: border-box;
@@ -24,7 +23,6 @@
 
 .navbar {
   width: 100%;
-  max-width: 100vw;
   box-sizing: border-box;
   overflow-x: hidden;
   overflow-y: visible;
