@@ -27,6 +27,14 @@ export interface EconomicAnalysisInput {
   pvDegradationRate?: number; // Default 0.4% - d
   capexPerKwp?: number; // Default 2300 DT/kWp
   opexRatePercentage?: number; // Default 4% of CAPEX - α
+  /** BT: use bracket tariff (0.391 DT/kWh for 500+ kWh). MT: use regime-based flat rate. */
+  tariffTension?: 'BT' | 'MT';
+  /** MT only: Tarif uniforme = 0.291 DT/kWh (291 millimes), Tarif horaire = 0.279 DT/kWh (279 millimes). */
+  tariffRegime?: 'uniforme' | 'horaire' | null;
+  /** When set (e.g. MT T_couv sizing), use for CAPEX/OPEX instead of installedPowerKwp. */
+  installedPowerKwpOverride?: number;
+  /** When set (e.g. MT first-year savings = E_auto × Tarif), use for year-1 savings in 25-year projection. */
+  firstYearSavingsOverride?: number;
 }
 
 export interface MonthlyEconomicResult {
@@ -93,6 +101,11 @@ const STEG_TARIFF_BRACKETS: TariffBracket[] = [
   { minKwh: 500, maxKwh: Infinity, ratePerKwh: 0.391 },
 ];
 
+/** MT Tarif uniforme (screenshot: 291 millimes) → 0.291 DT/kWh */
+const MT_TARIFF_UNIFORME_DT_PER_KWH = 0.291;
+/** MT Tarif horaire (screenshot: 279 millimes) → 0.279 DT/kWh */
+const MT_TARIFF_HORAIRE_DT_PER_KWH = 0.279;
+
 const DEFAULT_PROJECT_LIFETIME_YEARS = 25;
 const DEFAULT_STEG_TARIFF_INFLATION = 0.07; // 7%
 const DEFAULT_OPEX_INFLATION = 0.03; // 3%
@@ -138,14 +151,29 @@ export function determineApplicableTariffRate(consumptionKwh: number): number {
 }
 
 /**
+ * Tariff rate for extrapolation: BT uses bracket tariff (0.391 for 500+ kWh); MT uses regime (Tarif uniforme 0.291, Tarif horaire 0.279 DT/kWh).
+ */
+function getTariffRateForInput(
+  consumptionKwh: number,
+  input: { tariffTension?: 'BT' | 'MT'; tariffRegime?: 'uniforme' | 'horaire' | null }
+): number {
+  if (consumptionKwh <= 0) return 0;
+  if (input.tariffTension === 'MT' && input.tariffRegime) {
+    return input.tariffRegime === 'uniforme' ? MT_TARIFF_UNIFORME_DT_PER_KWH : MT_TARIFF_HORAIRE_DT_PER_KWH;
+  }
+  return determineApplicableTariffRate(consumptionKwh);
+}
+
+/**
  * Calculate monthly electricity bill
  * Formula: Bill = Consumption × Applicable_Tariff_Rate
  * 
  * @param consumptionKwh - Monthly consumption in kWh
+ * @param rateOverride - Optional DT/kWh (used for MT regime); when not set, BT bracket rate is used
  * @returns Monthly bill in DT
  */
-function calculateMonthlyBill(consumptionKwh: number): number {
-  const tariffRate = determineApplicableTariffRate(consumptionKwh);
+function calculateMonthlyBill(consumptionKwh: number, rateOverride?: number): number {
+  const tariffRate = rateOverride != null ? rateOverride : determineApplicableTariffRate(consumptionKwh);
   return Number((consumptionKwh * tariffRate).toFixed(2));
 }
 
@@ -511,7 +539,8 @@ export function analyzeEconomics(input: EconomicAnalysisInput): EconomicAnalysis
   const capexPerKwp = input.capexPerKwp ?? DEFAULT_CAPEX_PER_KWP;
   const opexRatePercentage = input.opexRatePercentage ?? DEFAULT_OPEX_RATE_PERCENTAGE;
 
-  Logger.info(`Starting economic analysis: ${projectLifetimeYears} years, ${input.installedPowerKwp} kWc @ ${capexPerKwp} DT/kWc`);
+  const effectiveInstalledPowerKwp = input.installedPowerKwpOverride ?? input.installedPowerKwp;
+  Logger.info(`Starting economic analysis: ${projectLifetimeYears} years, ${effectiveInstalledPowerKwp} kWc @ ${capexPerKwp} DT/kWc`);
 
   const monthlyResults: MonthlyEconomicResult[] = [];
 
@@ -519,15 +548,19 @@ export function analyzeEconomics(input: EconomicAnalysisInput): EconomicAnalysis
     const index = month - 1;
     const rawConsumption = input.monthlyRawConsumptions[index];
     const billedConsumption = input.monthlyBilledConsumptions[index];
+    const rateRaw = getTariffRateForInput(rawConsumption, input);
+    const rateBilled = getTariffRateForInput(billedConsumption, input);
+    const billWithoutPV = calculateMonthlyBill(rawConsumption, rateRaw);
+    const billWithPV = calculateMonthlyBill(billedConsumption, rateBilled);
 
     monthlyResults.push({
       month,
       rawConsumption: Number(rawConsumption.toFixed(2)),
       billedConsumption: Number(billedConsumption.toFixed(2)),
-      appliedTariffRate: determineApplicableTariffRate(billedConsumption),
-      billWithoutPV: calculateBillWithoutPV(rawConsumption),
-      billWithPV: calculateBillWithPV(billedConsumption),
-      monthlySavings: calculateMonthlySavings(rawConsumption, billedConsumption),
+      appliedTariffRate: rateBilled,
+      billWithoutPV,
+      billWithPV,
+      monthlySavings: Number((billWithoutPV - billWithPV).toFixed(2)),
     });
   }
 
@@ -535,13 +568,18 @@ export function analyzeEconomics(input: EconomicAnalysisInput): EconomicAnalysis
   const year1BilledConsumption = input.monthlyBilledConsumptions.reduce((sum, cons) => sum + cons, 0);
   const year1BillWithout = monthlyResults.reduce((sum, month) => sum + month.billWithoutPV, 0);
   const year1BillWith = monthlyResults.reduce((sum, month) => sum + month.billWithPV, 0);
-  const year1Savings = monthlyResults.reduce((sum, month) => sum + month.monthlySavings, 0);
+  const year1SavingsFromMonthly = monthlyResults.reduce((sum, month) => sum + month.monthlySavings, 0);
+  const year1Savings = input.firstYearSavingsOverride ?? year1SavingsFromMonthly;
+  const totalSavedEnergy = year1RawConsumption - year1BilledConsumption;
+  const averageAvoidedTariff =
+    totalSavedEnergy > 0
+      ? Number(((year1BillWithout - year1BillWith) / totalSavedEnergy).toFixed(4))
+      : 0;
 
   Logger.info(`💰 Year 1 economics: Raw=${year1RawConsumption.toFixed(0)} kWh, Billed=${year1BilledConsumption.toFixed(0)} kWh, BillWithout=${year1BillWithout.toFixed(0)} DT, BillWith=${year1BillWith.toFixed(0)} DT, Savings=${year1Savings.toFixed(0)} DT`);
 
-  const averageAvoidedTariff = calculateAverageAvoidedTariff(input.monthlyRawConsumptions, input.monthlyBilledConsumptions);
 
-  const investmentCost = calculateCapex(input.installedPowerKwp, capexPerKwp);
+  const investmentCost = calculateCapex(effectiveInstalledPowerKwp, capexPerKwp);
   const year1Opex = calculateAnnualOpex(investmentCost, opexRatePercentage);
 
   const annualResults: AnnualEconomicResult[] = [];

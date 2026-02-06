@@ -101,10 +101,10 @@
                   </div>
                   <div class="card-content">
                     <div class="card-value">
-                      {{ simulation.systemSize_kWp | noGrouping:'1.1-1' }} <span class="unit">kWc</span>
+                      {{ (simulation.mtTheoreticalPVPower ?? simulation.systemSize_kWp) | number:'1.1-1' }} <span class="unit">kWc</span>
                     </div>
                     <div class="card-label">Puissance Installée</div>
-                    <div class="card-description">Capacité solaire optimale</div>
+                    <div class="card-description">{{ simulation.mtTheoreticalPVPower != null ? 'Capacité selon T_couv ' : 'Capacité solaire optimale' }}</div>
                   </div>
                   <div class="card-accent"></div>
                 </div>
@@ -118,12 +118,12 @@
                   </div>
                   <div class="card-content">
                     <div class="card-value">
-                      {{ (simulation.expectedProduction / 1000) | noGrouping:'1.0-0' }}
+                      {{ ((simulation.mtAnnualPVProduction ?? simulation.expectedProduction) / 1000) | number:'1.0-0' }}
                       <span class="unit">MWh</span>
                     </div>
                     <div class="card-label">Production Annuelle</div>
                     <div class="card-description">
-                      {{ simulation.expectedProduction | noGrouping:'1.0-0' }}
+                      {{ (simulation.mtAnnualPVProduction ?? simulation.expectedProduction) | number:'1.0-0' }}
                       kWh/an
                     </div>
                   </div>
@@ -136,12 +136,20 @@
                   </div>
                   <div class="card-content">
                     <div class="card-value">
-                      {{ (simulation.annualSavings / 1000) | noGrouping:'1.0-0' }}
+                      @if (simulation.mtSelfConsumedEnergy != null && simulation.annualConsumption > 0) {
+                        {{ ((simulation.mtSelfConsumedEnergy * (simulation.annualBillWithoutPV / simulation.annualConsumption)) / 1000) | number:'1.0-0' }}
+                      } @else {
+                        {{ (simulation.annualSavings / 1000) | noGrouping:'1.0-0' }}
+                      }
                       <span class="unit">k DT</span>
                     </div>
-                    <div class="card-label">Économies Annuelles</div>
+                    <div class="card-label">Économies Annuelles{{ simulation.mtSelfConsumedEnergy == null ? ' (1ᵉʳᵉ année)' : '' }}</div>
                     <div class="card-description">
-                      {{ simulation.annualSavings | noGrouping:'1.0-0' }}
+                      @if (simulation.mtSelfConsumedEnergy != null && simulation.annualConsumption > 0) {
+                        {{ (simulation.mtSelfConsumedEnergy * (simulation.annualBillWithoutPV / simulation.annualConsumption)) | number:'1.0-0' }}
+                      } @else {
+                        {{ simulation.annualSavings | noGrouping:'1.0-0' }}
+                      }
                       DT/an
                     </div>
                   </div>
@@ -173,6 +181,46 @@
                   </div>
                   <div class="card-accent"></div>
                 </div>
+
+                @if (simulation.mtSelfConsumedEnergy != null) {
+                <div class="summary-card mt-autoconsumption">
+                  <div class="card-header">
+                    <div class="card-icon">
+                      <ng-icon name="lucideZap"></ng-icon>
+                    </div>
+                    <div class="card-category">MT</div>
+                  </div>
+                  <div class="card-content">
+                    <div class="card-value">
+                      {{ simulation.mtSelfConsumedEnergy | noGrouping:'1.0-0' }}
+                      <span class="unit">kWh/an</span>
+                    </div>
+                    <div class="card-label">Énergie auto consommée</div>
+                    <div class="card-description">Autoconsommation annuelle </div>
+                  </div>
+                  <div class="card-accent"></div>
+                </div>
+                }
+
+                @if (simulation.mtGridSurplus != null) {
+                <div class="summary-card mt-surplus">
+                  <div class="card-header">
+                    <div class="card-icon">
+                      <ng-icon name="lucideSun"></ng-icon>
+                    </div>
+                    <div class="card-category">MT</div>
+                  </div>
+                  <div class="card-content">
+                    <div class="card-value">
+                      {{ simulation.mtGridSurplus | noGrouping:'1.0-0' }}
+                      <span class="unit">kWh/an</span>
+                    </div>
+                    <div class="card-label">Excédent annuel</div>
+                    <div class="card-description">Surplus injecté au réseau </div>
+                  </div>
+                  <div class="card-accent"></div>
+                </div>
+                }
               </div>
 
               <!-- Cost Comparison Section -->
@@ -202,14 +250,10 @@
                         <span class="currency">DT</span>
                       </div>
                       <div class="comparison-label">Situation Actuelle</div>
-                      <div class="comparison-subtitle">Coût annuel d'électricité</div>
                       <div class="comparison-details">
                         <div class="detail-item">
                           <ng-icon name="lucideActivity" class="detail-icon"></ng-icon>
-                          <span
-                            >{{ simulation.annualConsumption | noGrouping:'1.0-0' }}
-                            kWh/an</span
-                          >
+                          <span>Consommation : {{ simulation.annualConsumption | noGrouping:'1.0-0' }} kWh/an</span>
                         </div>
                       </div>
                     </div>
@@ -221,13 +265,22 @@
                     <div class="transition-arrow">
                       <ng-icon name="lucideArrowRight" class="transition-icon"></ng-icon>
                       <div class="transition-label">Installation Solaire</div>
+                      @if (simulation.mtActualCoverageRate != null && simulation.mtSurplusFraction != null) {
+                      <div class="transition-details">
+                        avec couverture = {{ (simulation.mtActualCoverageRate * 100) | number:'1.1-1' }}% et excedent = {{ (simulation.mtSurplusFraction * 100) | number:'1.1-1' }}%
+                      </div>
+                      }
                     </div>
                     <div class="savings-indicator">
                       <div class="savings-amount">
-                        -{{ (simulation.annualBillWithoutPV - simulation.annualBillWithPV) | noGrouping:'1.0-0' }}
+                        @if (simulation.mtSelfConsumedEnergy != null && simulation.annualConsumption > 0) {
+                          -{{ (simulation.mtSelfConsumedEnergy * (simulation.annualBillWithoutPV / simulation.annualConsumption)) | number:'1.0-0' }}
+                        } @else {
+                          -{{ simulation.annualSavings | noGrouping:'1.0-0' }}
+                        }
                         DT
                       </div>
-                      <div class="savings-label">Économies annuelles</div>
+                      <div class="savings-label">Économies annuelles{{ simulation.mtSelfConsumedEnergy == null ? ' (1ᵉʳᵉ année)' : '' }}</div>
                     </div>
                   </div>
 
@@ -241,23 +294,36 @@
                     </div>
                     <div class="comparison-content">
                       <div class="comparison-value success">
-                        {{ simulation.annualBillWithPV | noGrouping:'1.0-0' }}
+                        @if (simulation.mtSelfConsumedEnergy != null && simulation.annualConsumption > 0) {
+                          {{ (simulation.annualBillWithoutPV - (simulation.mtSelfConsumedEnergy * (simulation.annualBillWithoutPV / simulation.annualConsumption))) | number:'1.0-0' }}
+                        } @else {
+                          -{{ simulation.annualSavings | noGrouping:'1.0-0' }}
+                        }
                         <span class="currency">DT</span>
                       </div>
                       <div class="comparison-label">Avec Panneaux Solaires</div>
-                      <div class="comparison-subtitle">Coût annuel restant</div>
+                      <div class="comparison-subtitle">Économies annuelles{{ simulation.mtSelfConsumedEnergy == null ? ' (1ᵉʳᵉ année)' : '' }}</div>
                       <div class="comparison-details">
                         <div class="detail-item">
                           <ng-icon name="lucideZap" class="detail-icon"></ng-icon>
-                          <span>Couverture: {{ simulation.coverage }}%</span>
+                          <span>Énergie auto consommée :
+                            @if (simulation.mtSelfConsumedEnergy != null) {
+                              {{ simulation.mtSelfConsumedEnergy | number:'1.0-0' }} kWh/an
+                            } @else {
+                              —
+                            }
+                          </span>
+                        </div>
+                        @if (simulation.mtSelfConsumedEnergy == null) {
+                        <div class="detail-item">
+                          <ng-icon name="lucideZap" class="detail-icon"></ng-icon>
+                          <span>Couverture: {{ simulation.coverage | number:'1.1-1' }}%</span>
                         </div>
                         <div class="detail-item">
                           <ng-icon name="lucideSun" class="detail-icon"></ng-icon>
-                          <span
-                            >{{ (simulation.expectedProduction / 1000) | noGrouping:'1.1-1' }} MWh/an
-                            produits</span
-                          >
+                          <span>{{ (simulation.expectedProduction / 1000) | number:'1.1-1' }} MWh/an produits</span>
                         </div>
+                        }
                       </div>
                     </div>
                     <div class="comparison-accent"></div>
@@ -367,8 +433,8 @@
                 </div>
               </div>
 
-              <!-- Monthly Bills Chart – linked to backend monthlyEconomics -->
-              @if (simulation.monthlyEconomics && simulation.monthlyEconomics.length > 0) {
+              <!-- Monthly Bills Chart – linked to backend monthlyEconomics (hidden for MT simulations) -->
+              @if (simulation.monthlyEconomics && simulation.monthlyEconomics.length > 0 && simulation.mtSelfConsumedEnergy == null) {
               <div class="monthly-bills-chart">
                 <div class="chart-header">
                   <h4 class="chart-title">Factures mensuelles – Avec / Sans solaire</h4>

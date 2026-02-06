@@ -100,6 +100,7 @@ export interface  IAuditSolaireSimulation extends BusinessObject {
   paybackMonths: number; // Payback period in months
 
   // Optional MT-specific autoconsumption metadata (only set when tariffTension === 'MT')
+  mtPairIndex?: number | null; // Chosen pair 1..5 (highest T_couv with excedent < 30%)
   mtOperatingHoursCase?: string | null;
   mtCoverageRate?: number | null; // T_couv chosen from matrix (ratio 0..1)
   mtSelfConsumptionRatio?: number | null; // r_auto chosen from matrix (0..1)

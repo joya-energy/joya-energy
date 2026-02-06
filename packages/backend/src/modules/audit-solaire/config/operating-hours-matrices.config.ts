@@ -142,3 +142,35 @@ export function getOperatingHoursRow(
 ): OperatingHoursRow {
     return getRow(caseKey, buildingType);
 }
+
+/** Max surplus fraction (excedent) allowed when selecting pair; default 30%. */
+const DEFAULT_MAX_SURPLUS_FRACTION = 0.3;
+
+/**
+ * Choose the pair (1..5) with highest coverage (T_couv) among those with excedent (surplus fraction) < maxSurplusFraction.
+ * Surplus fraction = E_exc / E_PV = 1 - r_auto (from the pair's r_auto).
+ * @param maxSurplusFraction - Max allowed surplus as ratio (default 0.30 = 30%).
+ * @returns Pair index 1..5; if no pair has surplus < limit, returns the pair with the smallest surplus (best effort).
+ */
+export function getBestPairIndex(
+    caseKey: OperatingHoursCase,
+    buildingType: BuildingTypes,
+    maxSurplusFraction: number = DEFAULT_MAX_SURPLUS_FRACTION
+): OperatingHoursPairIndex {
+    type PairCandidate = { pairIndex: OperatingHoursPairIndex; coverageRate: number; surplusFraction: number };
+    const candidates: PairCandidate[] = OPERATING_HOURS_PAIR_INDEXES.map((pairIndex) => {
+        const coverageRate = getCoverageRate(caseKey, buildingType, pairIndex);
+        const rAuto = getSelfConsumptionRatio(caseKey, buildingType, pairIndex);
+        const surplusFraction = 1 - rAuto; // E_exc / E_PV = 1 - r_auto
+        return { pairIndex, coverageRate, surplusFraction };
+    });
+
+    const withinLimit = candidates.filter((c) => c.surplusFraction < maxSurplusFraction);
+    if (withinLimit.length > 0) {
+        const best = withinLimit.reduce((a, b) => (a.coverageRate >= b.coverageRate ? a : b));
+        return best.pairIndex;
+    }
+    // No pair has excedent < 30%: choose the one with smallest surplus (best effort)
+    const bestEffort = candidates.reduce((a, b) => (a.surplusFraction <= b.surplusFraction ? a : b));
+    return bestEffort.pairIndex;
+}

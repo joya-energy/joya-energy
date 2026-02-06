@@ -692,7 +692,11 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const value = this.form.value as any;
+    const value = this.form.getRawValue() as any;
+    // Read Régime tarifaire (BT/MT) and MT options directly from controls so payload always matches UI selection
+    const tariffTension = (this.form.get('consumption.tariffTension')?.value === 'MT' ? 'MT' : 'BT') as 'BT' | 'MT';
+    const operatingHoursCase = tariffTension === 'MT' ? this.form.get('consumption.operatingHoursCase')?.value ?? null : null;
+    const tariffRegime = tariffTension === 'MT' ? this.form.get('consumption.tariffRegime')?.value ?? null : null;
     // Bill upload feature temporarily disabled
     // const billFile = value.consumption?.billAttachment as File | null;
     // if (billFile && this.invoiceChoice() === 'yes') {
@@ -733,14 +737,10 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       companyName: value.personal?.companyName ?? '',
       email: value.personal?.email ?? '',
       phoneNumber: value.personal?.phoneNumber ?? '',
-      // MT / BT + operating-hours selections (optional for backend)
-      tariffTension: value.consumption?.tariffTension ?? 'BT',
-      operatingHoursCase: value.consumption?.tariffTension === 'MT'
-        ? value.consumption?.operatingHoursCase ?? null
-        : null,
-      tariffRegime: value.consumption?.tariffTension === 'MT'
-        ? value.consumption?.tariffRegime ?? null
-        : null,
+      // MT / BT + operating-hours 
+      tariffTension,
+      operatingHoursCase: operatingHoursCase ?? undefined,
+      tariffRegime: tariffRegime ?? undefined,
     };
 
     this.isSubmitting.set(true);
