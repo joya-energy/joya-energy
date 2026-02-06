@@ -761,6 +761,11 @@
   @media (max-width: 768px) {
     padding: 1rem 1.5rem;
     max-width: 100%;
+
+    .hero__btn {
+      flex: 1;
+      min-width: auto;
+    }
   }
 }
 
