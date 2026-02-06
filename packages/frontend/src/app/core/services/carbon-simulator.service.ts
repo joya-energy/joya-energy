@@ -47,6 +47,12 @@ export interface CarbonFootprintSummaryPayload {
       proPhoneCount: number;
     };
   };
+  personal?: {
+    fullName?: string;
+    companyName?: string;
+    email?: string;
+    phone?: string;
+  };
 }
 
 /**
@@ -67,7 +73,9 @@ export interface CarbonFootprintSummaryResult {
 export class CarbonSimulatorService {
   private api = inject(ApiService);
 
-  calculateSummary(payload: CarbonFootprintSummaryPayload): Observable<CarbonFootprintSummaryResult> {
+  calculateSummary(
+    payload: CarbonFootprintSummaryPayload
+  ): Observable<CarbonFootprintSummaryResult> {
     return this.api.post<CarbonFootprintSummaryResult>('/carbon-simulator/summary', payload);
   }
 }

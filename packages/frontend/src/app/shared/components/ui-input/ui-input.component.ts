@@ -9,9 +9,15 @@ import {
   Self,
   computed,
   Injector,
-  OnInit
+  OnInit,
 } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule, FormControl, NgControl } from '@angular/forms';
+import {
+  ControlValueAccessor,
+  NG_VALUE_ACCESSOR,
+  ReactiveFormsModule,
+  FormControl,
+  NgControl,
+} from '@angular/forms';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import { lucideChevronUp, lucideChevronDown } from '@ng-icons/lucide';
 import { FieldTooltipComponent } from '../field-tooltip/field-tooltip.component';
@@ -27,13 +33,13 @@ import { FieldTooltipComponent } from '../field-tooltip/field-tooltip.component'
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => UiInputComponent),
-      multi: true
+      multi: true,
     },
-    provideIcons({ lucideChevronUp, lucideChevronDown })
-  ]
+    provideIcons({ lucideChevronUp, lucideChevronDown }),
+  ],
 })
 export class UiInputComponent implements ControlValueAccessor, OnInit {
-  @Input() type: 'text' | 'number' = 'text';
+  @Input() type: 'text' | 'number' | 'tel' = 'text';
   @Input() label: string = '';
   @Input() placeholder: string = '';
   @Input() required: boolean = false;
@@ -49,10 +55,10 @@ export class UiInputComponent implements ControlValueAccessor, OnInit {
 
   private injector = inject(Injector);
   private ngControl: NgControl | null = null;
-  
+
   // Form control - will be injected from parent when used with formControlName
   private _control: FormControl | null = null;
-  
+
   // Getter that ensures control exists
   get control(): FormControl {
     if (!this._control) {
@@ -72,17 +78,17 @@ export class UiInputComponent implements ControlValueAccessor, OnInit {
     }
     return this._control;
   }
-  
+
   // Track if control is touched and has errors
   protected readonly showErrors = computed(() => {
     const ctrl = this.control;
     return ctrl && ctrl.invalid && ctrl.touched;
   });
-  
+
   protected readonly errorMessage = computed(() => {
     const ctrl = this.control;
     if (!ctrl || !ctrl.errors || !ctrl.touched) return '';
-    
+
     if (ctrl.hasError('required')) {
       return 'Ce champ est obligatoire';
     }

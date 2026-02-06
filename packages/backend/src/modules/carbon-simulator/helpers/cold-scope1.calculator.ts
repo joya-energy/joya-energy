@@ -18,7 +18,11 @@ import {
   MAINTENANCE_COEFFICIENTS,
 } from '@backend/domain/carbon';
 import { BuildingTypes } from '@shared/enums/audit-general.enum';
-import { IntensityLevel, EquipmentAge, MaintenanceStatus } from '@backend/domain/carbon';
+import {
+  IntensityLevel,
+  EquipmentAge,
+  MaintenanceStatus,
+} from '@backend/domain/carbon';
 import { Logger } from '@backend/middlewares';
 
 /**
@@ -92,15 +96,21 @@ export interface ColdScope1Result {
   co2ColdTonnes: number;
 }
 
+/** Default cold type when building type is unknown. Keeps backend uncrashable. */
+const DEFAULT_COLD_TYPE = ColdType.COMFORT;
+
 /**
- * Helper: deduce ColdType from building type
- * Throws if building type is unknown (no default).
+ * Helper: deduce ColdType from building type.
+ * Returns default for unknown types so the backend never throws.
  */
 function deduceColdType(buildingType: BuildingTypes): ColdType {
   const key = buildingType as unknown as keyof typeof COLD_TYPE_BY_SECTOR;
   const value = COLD_TYPE_BY_SECTOR[key];
   if (value === undefined) {
-    throw new Error(`Unknown building type for cold type: buildingType=${buildingType}`);
+    Logger.warn(
+      `Unknown building type for cold type: buildingType=${buildingType}, using ${DEFAULT_COLD_TYPE}`
+    );
+    return DEFAULT_COLD_TYPE;
   }
   return value;
 }
@@ -138,17 +148,23 @@ export function calculateColdScope1(input: ColdScope1Input): ColdScope1Result {
   const cAge = AGE_COEFFICIENTS[input.equipmentAge];
   const cMaint = MAINTENANCE_COEFFICIENTS[input.maintenanceStatus];
   if (cInt === undefined) {
-    throw new Error(`Unknown intensity level: intensityLevel=${input.intensityLevel}`);
+    throw new Error(
+      `Unknown intensity level: intensityLevel=${input.intensityLevel}`
+    );
   }
   if (cAge === undefined) {
-    throw new Error(`Unknown equipment age: equipmentAge=${input.equipmentAge}`);
+    throw new Error(
+      `Unknown equipment age: equipmentAge=${input.equipmentAge}`
+    );
   }
   if (cMaint === undefined) {
-    throw new Error(`Unknown maintenance status: maintenanceStatus=${input.maintenanceStatus}`);
+    throw new Error(
+      `Unknown maintenance status: maintenanceStatus=${input.maintenanceStatus}`
+    );
   }
 
   const annualLeakKg = Number(
-    (totalChargeKg * baseLeakRate * cInt * cAge * cMaint).toFixed(3),
+    (totalChargeKg * baseLeakRate * cInt * cAge * cMaint).toFixed(3)
   );
 
   // D4 — Conversion en CO₂ équivalent
@@ -157,7 +173,7 @@ export function calculateColdScope1(input: ColdScope1Input): ColdScope1Result {
 
   Logger.info(
     `CO2_froid result: type=${coldType}, N=${numberOfUnits}, charge_tot=${totalChargeKg} kg, ` +
-      `fuite=${annualLeakKg} kg/an, CO2_froid=${co2ColdKg} kg (${co2ColdTonnes} t)`,
+      `fuite=${annualLeakKg} kg/an, CO2_froid=${co2ColdKg} kg (${co2ColdTonnes} t)`
   );
 
   return {
@@ -169,4 +185,3 @@ export function calculateColdScope1(input: ColdScope1Input): ColdScope1Result {
     co2ColdTonnes,
   };
 }
-
