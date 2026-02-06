@@ -276,32 +276,8 @@ export class PVReportController {
       );
       res.send(pdfBuffer);
 
-      // After response: optionally send same report by email (so user gets both file + email)
-      setImmediate(async () => {
-        const contactInfo = await this.getContactInfo(
-          finalSolaireId,
-          finalEnergetiqueId
-        );
-        if (!contactInfo?.email) {
-          Logger.info(
-            `ℹ️ Email not sent (download flow): no contact email on simulation.`
-          );
-          return;
-        }
-        if (!mailService.isPostmarkConfigured()) {
-          Logger.info(
-            `ℹ️ Email not sent (download flow): Postmark not configured (set POSTMARK_SERVER_TOKEN).`
-          );
-          return;
-        }
-        if (!mailService.isTransportAvailable()) {
-          Logger.info(
-            `ℹ️ Email not sent (download flow): email transport not available.`
-          );
-          return;
-        }
-        this.sendPvReportEmail(pdfBuffer, contactInfo, 'after download');
-      });
+      // Note: Email is sent automatically after calculation completes, not on PDF download
+      // This prevents duplicate emails when users download the PDF
 
       return;
     } catch (error) {
@@ -342,22 +318,18 @@ export class PVReportController {
         const exists =
           await AuditEnergetiqueSimulation.findById(finalEnergetiqueId);
         if (!exists) {
-          return res
-            .status(404)
-            .json({
-              error: `Audit Energetique simulation not found: ${finalEnergetiqueId}`,
-            });
+          return res.status(404).json({
+            error: `Audit Energetique simulation not found: ${finalEnergetiqueId}`,
+          });
         }
       }
       if (finalSolaireId) {
         const exists =
           await AuditSolaireSimulationModel.findById(finalSolaireId);
         if (!exists) {
-          return res
-            .status(404)
-            .json({
-              error: `Audit Solaire simulation not found: ${finalSolaireId}`,
-            });
+          return res.status(404).json({
+            error: `Audit Solaire simulation not found: ${finalSolaireId}`,
+          });
         }
       }
 
@@ -374,20 +346,16 @@ export class PVReportController {
 
       if (!mailService.isPostmarkConfigured()) {
         Logger.warn(`Postmark not configured — cannot send PV report`);
-        return res
-          .status(500)
-          .json({
-            error:
-              'Postmark is not configured. Set POSTMARK_SERVER_TOKEN to enable sending PV reports.',
-          });
+        return res.status(500).json({
+          error:
+            'Postmark is not configured. Set POSTMARK_SERVER_TOKEN to enable sending PV reports.',
+        });
       }
       if (!mailService.isTransportAvailable()) {
         Logger.warn(`Email transport is not available — cannot send PV report`);
-        return res
-          .status(500)
-          .json({
-            error: 'Email transport is not available or misconfigured.',
-          });
+        return res.status(500).json({
+          error: 'Email transport is not available or misconfigured.',
+        });
       }
 
       Logger.info(`🔄 Starting PDF generation...`);
