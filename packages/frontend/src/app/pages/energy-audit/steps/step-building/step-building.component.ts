@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup } from '@angular/forms';
-import { NgIconComponent, provideIcons } from '@ng-icons/core';
+import { provideIcons } from '@ng-icons/core';
 import {
   lucideBox,
   lucideDrumstick,
@@ -27,13 +27,7 @@ import { BuildingCardConfig } from '../../../../shared/icons/audit-building-icon
 @Component({
   selector: 'app-step-building',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    NgIconComponent,
-    UiInputComponent,
-    UiSelectComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, UiInputComponent, UiSelectComponent],
   templateUrl: './step-building.component.html',
   styleUrls: ['./step-building.component.scss'],
   providers: [
