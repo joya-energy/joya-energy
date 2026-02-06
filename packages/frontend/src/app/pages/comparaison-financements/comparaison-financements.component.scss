@@ -21,6 +21,7 @@
     padding: 0 0 1rem 1rem;
     margin-top: 5rem;
     height: calc(100vh - 5rem);
+    min-height: calc(100vh - 5rem);
   }
 }
 
@@ -841,4 +842,8 @@
   height: 100%;
   overflow: hidden;
   position: relative;
+
+  @media (max-width: 768px) {
+    overflow-y: auto;
+  }
 }
