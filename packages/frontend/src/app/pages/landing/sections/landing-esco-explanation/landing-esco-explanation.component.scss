@@ -6,7 +6,7 @@
   overflow-x: hidden; // Prevent horizontal overflow
   overflow-y: visible;
   width: 100%;
-  max-width: 100vw; // Prevent overflow
+
   box-sizing: border-box;
 }
 
@@ -106,7 +106,8 @@
   gap: 48px; // gap-12 = 3rem = 48px
   align-items: center; // items-center
 
-  @media (min-width: 1024px) { // lg:
+  @media (min-width: 1024px) {
+    // lg:
     grid-template-columns: repeat(2, 1fr); // lg:grid-cols-2
   }
 }
@@ -126,11 +127,9 @@
   border-radius: var(--landing-radius-lg); // rounded-xl = 0.75rem = 12px
   border: 1px solid var(--neutral-100); // border border-gray-100 = #f5f5f5
   box-shadow: var(--landing-shadow-md);
-  transition: transform var(--landing-transition-base), 
-              box-shadow var(--landing-transition-base),
-              background-color var(--landing-transition-base),
-              border-color var(--landing-transition-base);
-  
+  transition: transform var(--landing-transition-base), box-shadow var(--landing-transition-base),
+    background-color var(--landing-transition-base), border-color var(--landing-transition-base);
+
   &:hover {
     transform: translateY(var(--landing-hover-lift));
     box-shadow: var(--landing-hover-shadow);
@@ -212,9 +211,8 @@
   max-width: 100%;
   display: flex;
   flex-direction: column;
-  transition: transform var(--landing-transition-base), 
-              box-shadow var(--landing-transition-base);
-  
+  transition: transform var(--landing-transition-base), box-shadow var(--landing-transition-base);
+
   &:hover {
     transform: translateY(var(--landing-hover-lift));
     box-shadow: var(--landing-hover-shadow);
@@ -249,7 +247,7 @@
   min-width: 120px;
   max-width: 180px;
   width: auto;
-  
+
   @media (min-width: 1024px) {
     flex: 1 1 auto; // Equal distribution on large screens
   }
@@ -376,7 +374,7 @@
   max-width: 180px;
   flex: 0 1 auto; // Can shrink but don't grow
   align-self: stretch; // Match height of columns
-  
+
   @media (min-width: 1024px) {
     flex: 0 0 auto; // Fixed width on large screens
     min-width: 150px;

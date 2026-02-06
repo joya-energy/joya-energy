@@ -1,0 +1,60 @@
+=================================================================
+VERCEL ENVIRONMENT VARIABLES - EXACT SETTINGS REQUIRED
+=================================================================
+
+Go to: Vercel Dashboard → Your Project → Settings → Environment Variables
+
+ADD THESE TWO VARIABLES (click "Add Variable" for each):
+
+-----------------------------------------------------------------
+Variable 1:
+-----------------------------------------------------------------
+Name (EXACT):    NG_APP_API_URL
+Value:           https://joya-backend-production.up.railway.app/api
+Environment:     All (Production, Preview, Development)
+
+⚠️ MUST end with /api
+⚠️ NO trailing spaces
+⚠️ EXACT name: NG_APP_API_URL (not API_URL, not NG_API_URL)
+
+-----------------------------------------------------------------
+Variable 2:
+-----------------------------------------------------------------
+Name (EXACT):    NG_APP_GOOGLE_MAPS_API_KEY
+Value:           AIzaSyBls9111rmwlK89NjAaqVRHMEhJdzeZs9Q
+Environment:     All (Production, Preview, Development)
+
+⚠️ NO trailing spaces
+⚠️ EXACT name: NG_APP_GOOGLE_MAPS_API_KEY
+
+=================================================================
+AFTER SETTING VARIABLES:
+=================================================================
+
+YOU MUST REDEPLOY:
+
+Option 1: Manual Redeploy
+  1. Go to: Deployments tab
+  2. Click: Latest deployment
+  3. Click: "Redeploy" button
+  4. Wait: 1-2 minutes
+
+Option 2: This commit will trigger auto-deploy
+  (Just push this commit to trigger rebuild)
+
+=================================================================
+VERIFY IT WORKED:
+=================================================================
+
+After redeploy:
+1. Open your frontend in browser
+2. Press F12 (developer tools)
+3. Go to Network tab
+4. Try to use a simulator or form
+5. Check API request URL should be:
+   ✅ https://joya-backend-production.up.railway.app/api/...
+   ❌ NOT /api/... or https://your-frontend.vercel.app/api/...
+
+6. Try Google Maps address input - should show autocomplete
+
+=================================================================

@@ -1,139 +1,258 @@
-<section class="contact-section">
-  <div class="container">
-    <div class="contact-header text-center">
-      <h1 class="contact-title">Parlons de votre projet</h1>
-      <p class="contact-subtitle">
-        Une question sur nos solutions solaires ? Notre équipe est à votre écoute.
+<main class="contact-page">
+  <!-- Hero Section -->
+  <section class="contact-hero">
+    <div class="contact-hero__mesh"></div>
+    <div class="contact-hero__glow contact-hero__glow--left"></div>
+    <div class="contact-hero__glow contact-hero__glow--right"></div>
+
+    <div class="container contact-hero__container">
+      <div class="contact-hero__badge">
+        <ng-icon name="lucideMessageSquare" class="contact-hero__badge-icon"></ng-icon>
+        <span>Contactez-nous</span>
+      </div>
+
+      <h1 class="contact-hero__title">
+        Parlons de Votre <span class="contact-hero__title-accent">Projet Énergétique</span>
+      </h1>
+
+      <p class="contact-hero__subtitle">
+        Notre équipe d'experts est à votre écoute pour répondre à vos questions et vous accompagner
+        dans votre transition énergétique.
       </p>
     </div>
+  </section>
 
-    <div class="contact-grid">
-      <!-- Left Column: Info (Dynamic) -->
-      <div class="contact-info-column">
-        
-        @for (item of contactInfo; track item.label) {
-          <div class="info-item">
-            <ng-icon [name]="item.icon" class="info-icon"></ng-icon>
-            <div class="info-content">
-              <span class="info-label">{{ item.label }}</span>
-              @if (item.link) {
-                <a [href]="item.link" class="info-value">{{ item.value }}</a>
+  <!-- Main Content -->
+  <section class="contact-main">
+    <div class="container">
+      <div class="contact-grid">
+        <!-- Contact Information Sidebar -->
+        <div class="contact-sidebar">
+          <div class="glass-card contact-card">
+            <h2 class="contact-card__heading">
+              <ng-icon name="lucideSparkles" class="contact-card__heading-icon"></ng-icon>
+              Nos Coordonnées
+            </h2>
+
+            <div class="contact-info-list">
+              @for (item of contactInfo; track item.label) { @if (item.link) {
+              <a
+                [href]="item.link"
+                [attr.target]="item.label === 'Adresse' ? '_blank' : null"
+                [attr.rel]="item.label === 'Adresse' ? 'noopener noreferrer' : null"
+                class="contact-info-item contact-info-item--link"
+              >
+                <span class="contact-info-item__icon-wrap">
+                  <ng-icon [name]="item.icon" class="contact-info-item__icon"></ng-icon>
+                </span>
+                <span class="contact-info-item__content">
+                  <span class="contact-info-item__label">{{ item.label }}</span>
+                  <span class="contact-info-item__value">{{ item.value }}</span>
+                </span>
+              </a>
               } @else {
-                <span class="info-value" [class.address-text]="item.isAddress">{{ item.value }}</span>
-              }
-            </div>
-          </div>
-        }
-
-      </div>
-
-      <!-- Right Column: Clean Form -->
-      <div class="contact-form-column">
-        <form [formGroup]="contactForm" (ngSubmit)="onSubmit()" class="contact-form">
-          
-          <div class="form-row">
-            <!-- Name (Combined) -->
-            <div class="form-group">
-              <label for="name" class="form-label">Nom complet*</label>
-              <input 
-                type="text" 
-                id="name" 
-                formControlName="name" 
-                class="form-input" 
-                placeholder="Votre nom et prénom"
-                [class.has-error]="contactForm.controls.name.invalid && contactForm.controls.name.touched"
-              >
-            </div>
-
-            <!-- Email -->
-            <div class="form-group">
-              <label for="email" class="form-label">Email professionnel*</label>
-              <input 
-                type="email" 
-                id="email" 
-                formControlName="email" 
-                class="form-input" 
-                placeholder="votre@email.com"
-                [class.has-error]="contactForm.controls.email.invalid && contactForm.controls.email.touched"
-              >
+              <div class="contact-info-item">
+                <span class="contact-info-item__icon-wrap">
+                  <ng-icon [name]="item.icon" class="contact-info-item__icon"></ng-icon>
+                </span>
+                <span class="contact-info-item__content">
+                  <span class="contact-info-item__label">{{ item.label }}</span>
+                  <span class="contact-info-item__value">{{ item.value }}</span>
+                </span>
+              </div>
+              } }
             </div>
           </div>
 
-          <div class="form-row">
-            <!-- Company -->
-            <div class="form-group">
-              <label for="companyName" class="form-label">Entreprise*</label>
-              <input 
-                type="text" 
-                id="companyName" 
-                formControlName="companyName" 
-                class="form-input" 
-                placeholder="Votre entreprise"
-                [class.has-error]="contactForm.controls.companyName.invalid && contactForm.controls.companyName.touched"
-              >
-            </div>
-
-            <!-- Phone -->
-            <div class="form-group">
-              <label for="phone" class="form-label">Téléphone*</label>
-              <input 
-                type="tel" 
-                id="phone" 
-                formControlName="phoneNumber" 
-                class="form-input" 
-                placeholder="+216 XX XXX XXX"
-                [class.has-error]="contactForm.controls.phoneNumber.invalid && contactForm.controls.phoneNumber.touched"
-              >
+          <!-- Book Meeting CTA -->
+          <div class="cta-card">
+            <div class="cta-card__pattern"></div>
+            <div class="cta-card__glow"></div>
+            <div class="cta-card__inner">
+              <div class="cta-card__icon-wrap">
+                <ng-icon name="lucideCalendar" class="cta-card__icon"></ng-icon>
+              </div>
+              <h3 class="cta-card__title">Réservez un Rendez-vous</h3>
+              <p class="cta-card__text">
+                Préférez-vous un échange en direct ? Planifiez une consultation gratuite avec l'un
+                de nos experts énergie.
+              </p>
+              <a routerLink="/prendre-rendez-vous" class="btn-cta btn-cta--full">
+                Prendre rendez-vous
+                <ng-icon name="lucideArrowRight" class="btn-cta__arrow"></ng-icon>
+              </a>
             </div>
           </div>
+        </div>
 
-          <!-- Subject -->
-          <div class="form-group">
-            <label for="subject" class="form-label">Sujet*</label>
-            <div class="select-wrapper">
-              <select 
-                id="subject" 
-                formControlName="subject" 
-                class="form-select"
-              >
-                @for (subject of subjects; track subject) {
+        <!-- Contact Form -->
+        <div class="contact-form-wrap glass-card">
+          <div class="contact-form-header">
+            <h2 class="contact-form-title">Envoyez-nous un Message</h2>
+            <p class="contact-form-desc">
+              Remplissez le formulaire ci-dessous et nous vous répondrons sous 24h.
+            </p>
+          </div>
+
+          <form [formGroup]="contactForm" (ngSubmit)="onSubmit()" class="contact-form">
+            <div class="form-row form-row--two">
+              <div class="form-group">
+                <label for="name" class="form-label">
+                  <ng-icon name="lucideUser" class="form-label-icon"></ng-icon>
+                  Nom complet <span class="form-label-required">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  formControlName="name"
+                  class="form-input"
+                  placeholder="Votre nom et prénom"
+                  [class.has-error]="
+                    contactForm.controls.name.invalid && contactForm.controls.name.touched
+                  "
+                />
+              </div>
+              <div class="form-group">
+                <label for="email" class="form-label">
+                  <ng-icon name="lucideMail" class="form-label-icon"></ng-icon>
+                  Email professionnel <span class="form-label-required">*</span>
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  formControlName="email"
+                  class="form-input"
+                  placeholder="votre@email.com"
+                  [class.has-error]="
+                    contactForm.controls.email.invalid && contactForm.controls.email.touched
+                  "
+                />
+              </div>
+            </div>
+
+            <div class="form-row form-row--two">
+              <div class="form-group">
+                <label for="companyName" class="form-label">
+                  <ng-icon name="lucideBuilding2" class="form-label-icon"></ng-icon>
+                  Entreprise <span class="form-label-required">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="companyName"
+                  formControlName="companyName"
+                  class="form-input"
+                  placeholder="Votre entreprise"
+                  [class.has-error]="
+                    contactForm.controls.companyName.invalid &&
+                    contactForm.controls.companyName.touched
+                  "
+                />
+              </div>
+              <div class="form-group">
+                <label for="phone" class="form-label">
+                  <ng-icon name="lucidePhone" class="form-label-icon"></ng-icon>
+                  Téléphone <span class="form-label-required">*</span>
+                </label>
+                <input
+                  type="tel"
+                  id="phone"
+                  formControlName="phoneNumber"
+                  class="form-input"
+                  placeholder="+216 XX XXX XXX"
+                  [class.has-error]="
+                    contactForm.controls.phoneNumber.invalid &&
+                    contactForm.controls.phoneNumber.touched
+                  "
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="subject" class="form-label">
+                <ng-icon name="lucideMessageSquare" class="form-label-icon"></ng-icon>
+                Sujet <span class="form-label-required">*</span>
+              </label>
+              <div class="select-wrapper">
+                <select id="subject" formControlName="subject" class="form-select">
+                  @for (subject of subjects; track subject) {
                   <option [value]="subject">{{ subject }}</option>
-                }
-              </select>
-              <ng-icon name="lucideChevronDown" class="select-icon"></ng-icon>
+                  }
+                </select>
+                <ng-icon name="lucideChevronDown" class="select-icon"></ng-icon>
+              </div>
             </div>
-          </div>
 
-          <!-- Message -->
-          <div class="form-group">
-            <label for="message" class="form-label">Message*</label>
-            <textarea 
-              id="message" 
-              formControlName="message" 
-              class="form-textarea" 
-              rows="3" 
-              placeholder="Comment pouvons-nous vous aider ?"
-              [class.has-error]="contactForm.controls.message.invalid && contactForm.controls.message.touched"
-            ></textarea>
-          </div>
+            <div class="form-group">
+              <label for="message" class="form-label">
+                Message <span class="form-label-required">*</span>
+              </label>
+              <textarea
+                id="message"
+                formControlName="message"
+                class="form-textarea"
+                rows="5"
+                placeholder="Décrivez votre projet ou votre demande..."
+                [class.has-error]="
+                  contactForm.controls.message.invalid && contactForm.controls.message.touched
+                "
+              ></textarea>
+            </div>
 
-          <div class="form-required-legend text-right text-xs text-muted mt-2">
-            * Requis
-          </div>
-
-          <!-- Submit Button -->
-          <div class="btn-submit-wrapper">
-            <button type="submit" class="btn btn-cta btn-block" [disabled]="contactForm.invalid || isSubmitting()">
+            <button
+              type="submit"
+              class="btn-cta btn-cta--full btn-cta--submit"
+              [disabled]="contactForm.invalid || isSubmitting()"
+            >
               @if (isSubmitting()) {
-                Envoi...
-              } @else {
-                Envoyer
+              <span class="btn-cta__spinner"></span>
+              Envoi en cours... } @else { Envoyer le message
+              <ng-icon name="lucideSend" class="btn-cta__arrow"></ng-icon>
               }
             </button>
-          </div>
 
-        </form>
+            <p class="form-footer">
+              En soumettant ce formulaire, vous acceptez notre
+              <a routerLink="/data-policy" class="form-footer__link">politique de confidentialité</a
+              >.
+            </p>
+          </form>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+
+  <!-- Map Section -->
+  <section class="contact-map-section">
+    <div class="container">
+      <div class="contact-map-header">
+        <h2 class="contact-map-title">Où Nous Trouver</h2>
+        <p class="contact-map-desc">
+          Rendez-nous visite dans nos bureaux au cœur des Berges du Lac, Tunis.
+        </p>
+      </div>
+
+      <div class="contact-map-wrap">
+        <iframe
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3194.5!2d10.1815!3d36.8!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sLes%20Berges%20du%20Lac%2C%20Tunis!5e0!3m2!1sen!2stn!4v1600000000000!5m2!1sen!2stn"
+          width="100%"
+          height="100%"
+          style="border: 0"
+          allowfullscreen
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          title="Joya Energy Location"
+          class="contact-map-iframe"
+        ></iframe>
+        <div class="contact-map-overlay glass-card">
+          <div class="contact-map-overlay__icon">
+            <ng-icon name="lucideMapPin" class="contact-map-overlay__icon-svg"></ng-icon>
+          </div>
+          <div>
+            <p class="contact-map-overlay__name">Joya Energy</p>
+            <p class="contact-map-overlay__address">Les Berges du Lac, Tunis</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>

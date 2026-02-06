@@ -58,7 +58,7 @@
   position: relative;
   z-index: 1;
   max-width: 1600px;
-  width: 100%;
+
   margin: 0 auto;
   padding: 0 20px; /* Added back padding */
   box-sizing: border-box;
@@ -71,7 +71,7 @@
   gap: 32px;
   align-items: start; /* Align to top for better centering */
   width: 100%;
-  max-width: 100%;
+  max-width: 1400px;
   box-sizing: border-box;
 
   @media (max-width: 1023px) {
@@ -498,17 +498,6 @@
   width: 256px; /* w-64 */
   height: 256px; /* h-64 */
   background-color: var(--landing-primary-lightest);
-  opacity: 0.5;
-  z-index: 0;
-}
-
-.hero__deco-2 {
-  position: absolute;
-  top: 80px; /* top-20 */
-  left: -64px; /* -left-16 */
-  width: 128px; /* w-32 */
-  height: 128px; /* h-32 */
-  background-color: var(--landing-secondary-lightest);
   opacity: 0.5;
   z-index: 0;
 }

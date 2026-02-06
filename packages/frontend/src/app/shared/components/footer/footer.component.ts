@@ -52,6 +52,7 @@ export class FooterComponent {
     support: [
       { name: 'FAQ', href: '/faq' },
       { name: 'Contact', href: '/contact' },
+      { name: 'État des services', href: '/status' },
     ],
     company: [
       { name: 'À propos', href: '/about' },

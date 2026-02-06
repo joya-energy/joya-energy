@@ -98,6 +98,11 @@ export const routes: Routes = [
     title: 'FAQ | JOYA Energy',
   },
   {
+    path: 'status',
+    loadComponent: () => import('./pages/status/status.component').then((m) => m.StatusComponent),
+    title: 'État des services | JOYA Energy',
+  },
+  {
     path: 'prendre-rendez-vous',
     loadComponent: () =>
       import('./pages/prendre-rendez-vous/prendre-rendez-vous.component').then(

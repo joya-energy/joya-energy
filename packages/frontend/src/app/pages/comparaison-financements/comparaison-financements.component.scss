@@ -403,10 +403,7 @@
 }
 
 .inputs-form-card {
-
   padding: 2rem;
-
-
 }
 
 .form-block {
@@ -753,6 +750,8 @@
   border-top: 1px solid var(--neutral-200);
   position: relative;
   z-index: 10;
+  // Add safe area inset for Android/iOS navigation bars
+  padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
 
   &.result-actions {
     justify-content: flex-end;
@@ -760,6 +759,9 @@
 
   @media (max-width: 768px) {
     padding: 1rem 1.5rem;
+    // Fixed padding for mobile to clear Android navigation buttons
+    // Using fixed value since env(safe-area-inset-bottom) is unreliable on Android
+    padding-bottom: 6rem;
     max-width: 100%;
   }
 }

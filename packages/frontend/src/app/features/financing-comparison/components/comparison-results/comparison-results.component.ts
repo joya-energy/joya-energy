@@ -5,6 +5,7 @@
 
 import { Component, inject, ChangeDetectionStrategy, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { NoGroupingPipe } from '../../../../shared/pipes/no-grouping.pipe';
 import { FinancingComparisonService, EscoSolution } from '../../services/financing-comparison.service';
 import { SolutionCardComponent } from '../solution-card/solution-card.component';
 import { NotificationStore } from '../../../../core/notifications/notification.store';
@@ -12,7 +13,7 @@ import { NotificationStore } from '../../../../core/notifications/notification.s
 @Component({
   selector: 'app-comparison-results',
   standalone: true,
-  imports: [CommonModule, SolutionCardComponent],
+  imports: [CommonModule, NoGroupingPipe, SolutionCardComponent],
   templateUrl: './comparison-results.component.html',
   styleUrl: './comparison-results.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

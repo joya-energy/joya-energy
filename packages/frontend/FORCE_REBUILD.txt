@@ -1,0 +1,22 @@
+This file triggers a Vercel rebuild to pick up environment variables.
+
+CRITICAL CHECKLIST BEFORE THIS BUILD:
+======================================
+
+1. Vercel Environment Variables are set EXACTLY:
+   NG_APP_API_URL=https://joya-backend-production.up.railway.app/api
+   NG_APP_GOOGLE_MAPS_API_KEY=AIzaSyBls9111rmwlK89NjAaqVRHMEhJdzeZs9Q
+
+2. Variables are applied to: All (Production, Preview, Development)
+
+3. Variable names are EXACT (with NG_APP_ prefix)
+
+After this commit is pushed, Vercel will rebuild and the environment 
+variables MUST be picked up.
+
+If the build still shows:
+  apiUrl: '/api'
+  
+Then the environment variables are NOT set correctly in Vercel.
+
+Timestamp: 2026-02-04 19:40:00
