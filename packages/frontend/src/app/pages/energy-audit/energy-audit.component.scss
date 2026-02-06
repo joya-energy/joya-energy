@@ -358,10 +358,10 @@
   width: 100%;
   max-width: 1073px;
   margin: 0 auto;
-  padding: 0 2.5rem 0 2.5rem; // Only horizontal padding, no bottom padding
+  padding: 0 2.5rem 2rem 2.5rem;
 
   @media (max-width: 768px) {
-    padding: 0 1.5rem 0 1.5rem;
+    padding: 0 1.5rem 1rem 1.5rem;
     max-width: 100%;
   }
 }

@@ -1,7 +1,9 @@
-// Page layout - aligned with energy-audit / solar-audit
+// Page layout - aligned with bilan-carbon
 .comparaison-financements-page {
   background-color: var(--bg-page);
-  height: calc(100vh - 7rem);
+  /* Height + top margin must equal 100vh to avoid page scroll.
+     Navbar offset is 8rem, so we subtract 8rem here. */
+  height: calc(100vh - 8rem);
   width: 100%;
   max-width: 100vw;
   overflow: hidden;
