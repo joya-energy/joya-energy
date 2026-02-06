@@ -263,6 +263,12 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   ];
 
   protected readonly buildingTypeCards: BuildingTypeCard[] = BUILDING_CARD_CONFIG;
+  /** Building type options adapted for ui-select dropdown-icon variant (with icons). */
+  protected readonly buildingTypeOptionsForSelect = BUILDING_CARD_CONFIG.map((card) => ({
+    value: card.id,
+    label: card.label,
+    icon: card.icon,
+  }));
   protected readonly uploadCardConfig: UploadCardConfig = {
     title: "Téléchargez votre facture d'électricité",
     subtitle: 'ou cliquez pour sélectionner un fichier',

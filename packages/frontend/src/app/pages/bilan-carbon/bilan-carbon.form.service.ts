@@ -9,6 +9,7 @@ import type {
   VehiclesForm,
   TravelForm,
   ITEquipmentForm,
+  PersonalForm,
 } from './bilan-carbon.types';
 
 export interface BilanCarbonFormControls {
@@ -19,6 +20,7 @@ export interface BilanCarbonFormControls {
   vehicles: FormGroup<VehiclesForm>;
   travel: FormGroup<TravelForm>;
   itEquipment: FormGroup<ITEquipmentForm>;
+  personal: FormGroup<PersonalForm>;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -29,21 +31,35 @@ export class BilanCarbonFormService {
     return new FormGroup<BilanCarbonFormControls>({
       general: new FormGroup<GeneralForm>({
         companyName: new FormControl<string>('', { nonNullable: true }),
-        sector: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
+        sector: new FormControl<string>('', {
+          nonNullable: true,
+          validators: [Validators.required],
+        }),
         cityGovernorate: new FormControl<string>('', { nonNullable: true }),
         zone: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
-        referenceYear: new FormControl<number | null>(new Date().getFullYear(), [Validators.required]),
+        referenceYear: new FormControl<number | null>(new Date().getFullYear(), [
+          Validators.required,
+        ]),
         surfaceM2: new FormControl<number | null>(null, [Validators.required, Validators.min(1)]),
-        numberOfEmployees: new FormControl<number | null>(null, [Validators.min(0)]),
+        numberOfEmployees: new FormControl<number | null>(null, [
+          Validators.required,
+          Validators.min(0),
+        ]),
       }),
       electricity: new FormGroup<ElectricityForm>({
-        monthlyBillAmountDt: new FormControl<number | null>(null, [Validators.required, Validators.min(0)]),
+        monthlyBillAmountDt: new FormControl<number | null>(null, [
+          Validators.required,
+          Validators.min(0),
+        ]),
         tariffType: new FormControl<string>('BT', { nonNullable: true }),
-        referenceMonth: new FormControl<number | null>(null, [Validators.required, Validators.min(1), Validators.max(12)]),
+        referenceMonth: new FormControl<string | null>(null, [
+          Validators.required,
+          Validators.pattern(/^(1[0-2]|[1-9])$/),
+        ]),
       }),
       heat: new FormGroup<HeatForm>({
         hasHeatUsages: new FormControl<boolean>(false, { nonNullable: true }),
-        selectedHeatUsage: new FormControl<string | null>(null),
+        selectedHeatUsages: new FormControl<string[]>([], { nonNullable: true }),
         selectedHeatEnergy: new FormControl<string | null>(null),
       }),
       cold: new FormGroup<ColdForm>({
@@ -68,6 +84,12 @@ export class BilanCarbonFormService {
         desktopCount: new FormControl<number | null>(0, [Validators.min(0)]),
         screenCount: new FormControl<number | null>(0, [Validators.min(0)]),
         proPhoneCount: new FormControl<number | null>(0, [Validators.min(0)]),
+      }),
+      personal: new FormGroup<PersonalForm>({
+        fullName: new FormControl<string>('', { nonNullable: true }),
+        companyName: new FormControl<string>('', { nonNullable: true }),
+        email: new FormControl<string>('', { nonNullable: true, validators: [Validators.email] }),
+        phone: new FormControl<string>('', { nonNullable: true }),
       }),
     });
   }
