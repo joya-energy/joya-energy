@@ -418,10 +418,10 @@ export class AuditPDFService {
         format: 'A4',
         printBackground: true,
         margin: {
-          top: '40px',
-          bottom: '40px',
-          left: '40px',
-          right: '40px',
+          top: '0',
+          bottom: '0',
+          left: '0',
+          right: '0',
         },
       });
 
@@ -894,10 +894,18 @@ export class AuditPDFService {
               break;
             }
           }
-          
-          // Format intersection year with 1 decimal (like frontend: number:'1.1-1')
-          const intersectionYearText = intersectionYear !== null ? intersectionYear.toFixed(1) + ' ans' : '';
-          flattened.lineChartIntersectionYear = intersectionYear !== null ? intersectionYear.toFixed(1) : '';
+
+          const formatPaybackYearsAndMonths = (yearDecimal: number): string => {
+            const totalMonths = Math.round(yearDecimal * 12);
+            if (totalMonths <= 0) return '0 mois';
+            const years = Math.floor(totalMonths / 12);
+            const remainingMonths = totalMonths % 12;
+            if (years === 0) return `${remainingMonths} mois`;
+            if (remainingMonths === 0) return `${years} an${years > 1 ? 's' : ''}`;
+            return `${years} an${years > 1 ? 's' : ''} et ${remainingMonths} mois`;
+          };
+          const intersectionYearText = intersectionYear !== null ? formatPaybackYearsAndMonths(intersectionYear) : '';
+          flattened.lineChartIntersectionYear = intersectionYearText;
           flattened.lineChartIntersectionX = intersectionX !== null ? intersectionX.toFixed(2) : '';
           flattened.lineChartIntersectionY = intersectionY !== null ? intersectionY.toFixed(2) : '';
           flattened.lineChartIntersectionCapex = Math.round(capex);
