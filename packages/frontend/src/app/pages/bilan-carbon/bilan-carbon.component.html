@@ -240,14 +240,8 @@
                     <div class="recommendation-content">
                       <h4>Scope 1 – Émissions directes</h4>
                       <p>
-                        Émissions directement générées par les activités de l'entreprise (chaleur,
-                        froid, véhicules).
-                        <strong
-                          >{{ r.co2Scope1Tonnes | noGrouping : '1.1-1' }} tCO2e ({{
-                            scopePct(1, r)
-                          }}
-                          %)</strong
-                        >
+                        Émissions de gaz à effet de serre directement générées par les activités
+                        contrôlées par l’entreprise, sur son site ou via ses équipements.
                       </p>
                     </div>
                   </div>
@@ -258,14 +252,8 @@
                     <div class="recommendation-content">
                       <h4>Scope 2 – Électricité</h4>
                       <p>
-                        Émissions indirectes liées à l'électricité consommée. Réductible par le
-                        solaire.
-                        <strong
-                          >{{ r.co2Scope2Tonnes | noGrouping : '1.1-1' }} tCO2e ({{
-                            scopePct(2, r)
-                          }}
-                          %)</strong
-                        >
+                        Émissions indirectes liées à la production de l’électricité consommée par
+                        l’entreprise, émises hors du site.
                       </p>
                     </div>
                   </div>
@@ -276,13 +264,8 @@
                     <div class="recommendation-content">
                       <h4>Scope 3 – Autres indirectes</h4>
                       <p>
-                        Autres émissions indirectes (déplacements, équipements IT, etc.).
-                        <strong
-                          >{{ r.co2Scope3Tonnes | noGrouping : '1.1-1' }} tCO2e ({{
-                            scopePct(3, r)
-                          }}
-                          %)</strong
-                        >
+                        Ensemble des autres émissions indirectes liées aux activités de
+                        l’entreprise, en amont et en aval, hors énergie.
                       </p>
                     </div>
                   </div>

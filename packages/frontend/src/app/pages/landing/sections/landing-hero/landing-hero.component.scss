@@ -1,6 +1,5 @@
 .hero {
   position: relative;
-  min-height: 75vh; /* 70-80% of viewport height */
   display: flex;
   align-items: center; /* Center vertically */
   padding: 40px 0;
@@ -10,8 +9,7 @@
   background-repeat: no-repeat;
   overflow-x: hidden !important; // Prevent horizontal overflow
   overflow-y: visible;
-  width: 100vw;
-  max-width: 100vw; // Prevent overflow
+  width: 100%;
   box-sizing: border-box;
 
   // Add padding for fixed navbar on both mobile and desktop
@@ -23,7 +21,7 @@
 
   @media (min-width: 1024px) {
     padding-top: calc(8rem + 60px); // navbar height (8rem) + original padding
-    min-height: 80vh;
+    min-height: 80vh; // Only use vh on desktop where viewport is stable
   }
 
   // Optional: Add a subtle overlay to ensure text readability
@@ -45,7 +43,7 @@
   }
 
   @media (max-width: 1023px) {
-    min-height: auto;
+    min-height: auto; // No fixed height on mobile to prevent viewport jumping
   }
 
   @media (max-width: 767px) {
@@ -58,11 +56,11 @@
   position: relative;
   z-index: 1;
   max-width: 1600px;
-
   margin: 0 auto;
   padding: 0 20px; /* Added back padding */
   box-sizing: border-box;
   overflow-x: hidden !important; // Prevent horizontal overflow
+  width: 100%;
 }
 
 .hero__grid {
@@ -208,7 +206,8 @@
 }
 
 .hero__actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
   flex-wrap: wrap;
   margin-bottom: 20px;
@@ -242,7 +241,7 @@
   padding: 10px 20px;
   border-radius: 8px;
   font-weight: 800;
-  font-size: 14px;
+  font-size: 12px;
   transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 
   @media (min-width: 768px) {
@@ -490,14 +489,3 @@
 }
 
 // Responsive styles moved to individual selectors above
-
-.hero__deco-1 {
-  position: absolute;
-  bottom: -80px; /* -bottom-20 */
-  right: -80px; /* -right-20 */
-  width: 256px; /* w-64 */
-  height: 256px; /* h-64 */
-  background-color: var(--landing-primary-lightest);
-  opacity: 0.5;
-  z-index: 0;
-}
