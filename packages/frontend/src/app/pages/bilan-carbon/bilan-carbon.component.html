@@ -403,6 +403,7 @@
                       label="Nombre d'employés sur site"
                       placeholder="Nombre"
                       size="md"
+                      [required]="true"
                     >
                     </app-ui-input>
                   </div>
@@ -450,7 +451,7 @@
                   </div>
                 </div>
                 <div class="form-section" formGroupName="itEquipment" style="margin-top: 2rem">
-                  <div class="form-section-header">Équipements IT (optionnel)</div>
+                  <div class="form-section-header">Équipements IT</div>
                   <div class="form-grid">
                     <div class="form-field">
                       <app-ui-input
@@ -522,10 +523,11 @@
                   <div class="form-grid" style="margin-top: 1.5rem">
                     <div class="form-field">
                       <app-ui-select
-                        formControlName="selectedHeatUsage"
+                        formControlName="selectedHeatUsages"
                         label="Quels usages de chaleur ?"
                         [options]="heatUsageOptions"
-                        placeholder="Sélectionnez..."
+                        placeholder="Sélectionnez un ou plusieurs..."
+                        [multiple]="true"
                         variant="dropdown"
                       >
                       </app-ui-select>
@@ -533,7 +535,7 @@
                     <div class="form-field">
                       <app-ui-select
                         formControlName="selectedHeatEnergy"
-                        label="Quelles énergies ? (si connu)"
+                        label="Quelles énergies ? "
                         [options]="heatEnergyOptions"
                         placeholder="Sélectionnez..."
                         variant="dropdown"

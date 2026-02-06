@@ -41,7 +41,10 @@ export class BilanCarbonFormService {
           Validators.required,
         ]),
         surfaceM2: new FormControl<number | null>(null, [Validators.required, Validators.min(1)]),
-        numberOfEmployees: new FormControl<number | null>(null, [Validators.min(0)]),
+        numberOfEmployees: new FormControl<number | null>(null, [
+          Validators.required,
+          Validators.min(0),
+        ]),
       }),
       electricity: new FormGroup<ElectricityForm>({
         monthlyBillAmountDt: new FormControl<number | null>(null, [
@@ -56,7 +59,7 @@ export class BilanCarbonFormService {
       }),
       heat: new FormGroup<HeatForm>({
         hasHeatUsages: new FormControl<boolean>(false, { nonNullable: true }),
-        selectedHeatUsage: new FormControl<string | null>(null),
+        selectedHeatUsages: new FormControl<string[]>([], { nonNullable: true }),
         selectedHeatEnergy: new FormControl<string | null>(null),
       }),
       cold: new FormGroup<ColdForm>({

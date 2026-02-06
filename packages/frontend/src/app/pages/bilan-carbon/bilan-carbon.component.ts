@@ -199,7 +199,7 @@ export class BilanCarbonComponent implements OnInit, OnDestroy {
     if (current > 1) {
       progress[1] = 100;
     } else if (current === 1) {
-      const step1Required = ['sector', 'zone', 'referenceYear', 'surfaceM2'];
+      const step1Required = ['sector', 'zone', 'referenceYear', 'surfaceM2', 'numberOfEmployees'];
       const step1Filled = step1Required.filter((key) => {
         const control = general.get(key);
         const val = control?.value;
@@ -255,7 +255,8 @@ export class BilanCarbonComponent implements OnInit, OnDestroy {
         this.form.controls.general.controls.sector.valid &&
         this.form.controls.general.controls.zone.valid &&
         this.form.controls.general.controls.referenceYear.valid &&
-        this.form.controls.general.controls.surfaceM2.valid
+        this.form.controls.general.controls.surfaceM2.valid &&
+        this.form.controls.general.controls.numberOfEmployees.valid
       );
     }
     if (step === 2) {
@@ -411,7 +412,7 @@ export class BilanCarbonComponent implements OnInit, OnDestroy {
         hasHeatUsages: h.hasHeatUsages ?? false,
         annualElectricityKwh: 0,
         buildingType: sector as never,
-        selectedHeatUsages: (h.selectedHeatUsage ? [h.selectedHeatUsage] : []) as (
+        selectedHeatUsages: (h.selectedHeatUsages ?? []) as (
           | 'DOMESTIC_HOT_WATER'
           | 'COOKING_KITCHEN'
           | 'INDUSTRIAL_PROCESS'
@@ -421,7 +422,6 @@ export class BilanCarbonComponent implements OnInit, OnDestroy {
           | 'NATURAL_GAS'
           | 'DIESEL_FUEL'
           | 'LPG'
-          | 'UNKNOWN'
         )[],
       },
       cold: {

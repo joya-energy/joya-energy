@@ -26,7 +26,6 @@ export const HEAT_ENERGY_OPTIONS: { value: string; label: string }[] = [
   { value: 'NATURAL_GAS', label: 'Gaz naturel' },
   { value: 'DIESEL_FUEL', label: 'Diesel / Fuel' },
   { value: 'LPG', label: 'GPL (bouteilles, propane, butane)' },
-  { value: 'UNKNOWN', label: 'Je ne sais pas' },
 ];
 
 /** Sector options: value = BuildingTypes key for API */
@@ -161,7 +160,8 @@ export interface ElectricityForm {
 
 export interface HeatForm {
   hasHeatUsages: FormControl<boolean>;
-  selectedHeatUsage: FormControl<string | null>;
+  /** Multiple heat usages (e.g. ECS, cuisson, chauffage). */
+  selectedHeatUsages: FormControl<string[]>;
   selectedHeatEnergy: FormControl<string | null>;
 }
 
