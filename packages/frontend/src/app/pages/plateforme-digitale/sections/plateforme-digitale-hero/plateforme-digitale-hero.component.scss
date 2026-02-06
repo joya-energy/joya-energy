@@ -1,6 +1,6 @@
 .pd-hero {
   position: relative;
-  min-height: 90vh;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -61,11 +61,12 @@
   z-index: 1;
   width: 100%;
   max-width: 160rem;
-  margin: 0 auto;
+  margin-top: 4rem;
   padding: 0 1.5rem;
 
   @media (min-width: 768px) {
     padding: 0 2rem;
+    margin-top: 0;
   }
 
   @media (min-width: 1200px) {
@@ -78,6 +79,9 @@
   grid-template-columns: 1fr;
   gap: 2rem;
   align-items: center;
+  justify-items: center;
+  justify-content: center;
+  align-content: center;
 
   @media (min-width: 1024px) {
     grid-template-columns: 1fr 1fr;
@@ -166,6 +170,7 @@
 
 .pd-hero__features {
   display: flex;
+
   flex-wrap: wrap;
   justify-content: center;
   gap: 1.5rem;
