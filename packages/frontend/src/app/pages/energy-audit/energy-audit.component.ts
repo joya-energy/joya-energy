@@ -148,12 +148,6 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
   private readonly formUpdateTrigger = signal(0);
 
   ngOnInit(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      // Prevent body scrolling when this component is active
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
-    }
-
     // Subscribe to form value changes to trigger progress updates
     this.form.valueChanges.subscribe(() => {
       // Update validity for all controls
@@ -172,13 +166,7 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      // Restore body scrolling when component is destroyed
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-    }
-  }
+  ngOnDestroy(): void {}
 
   // Calculate progress for each step - based on all fields being filled AND valid
   protected readonly stepProgress = computed(() => {

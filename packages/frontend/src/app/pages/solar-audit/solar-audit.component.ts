@@ -373,12 +373,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
 
   protected readonly lastFormStepNumber = 3;
 
-  ngOnDestroy(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-    }
-  }
+  ngOnDestroy(): void {}
 
   protected isFieldVisible(field: StepField): boolean {
     if (!field.condition) return true;
@@ -474,11 +469,6 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
-    }
-
     // Bill upload feature temporarily disabled
     // Set default value for hasInvoice to avoid form validation errors
     const hasInvoiceControl = this.form.get('consumption.hasInvoice');

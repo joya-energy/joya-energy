@@ -158,8 +158,6 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
       this.financingService.fetchLocations().subscribe();
       this.financingService.fetchAdvantages().subscribe();
     }
@@ -167,12 +165,7 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
     this.form.valueChanges.subscribe(() => this.formUpdateTrigger.update((v) => v + 1));
   }
 
-  ngOnDestroy(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-    }
-  }
+  ngOnDestroy(): void {}
 
   private buildForm(): void {
     this.form = this.fb.group({
