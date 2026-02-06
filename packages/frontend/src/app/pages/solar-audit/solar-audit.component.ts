@@ -260,6 +260,13 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     { label: 'Non, je souhaite saisir manuellement', value: 'no' },
   ];
 
+  // Helper getters for MT / BT selection (used in template conditions & logic)
+  protected get isMediumTensionSelected(): boolean {
+    return this.form.get('consumption.tariffTension')?.value === 'MT';
+  }
+
+  @ViewChild('mtOptionsContainer') private mtOptionsContainer?: ElementRef<HTMLElement>;
+
   protected readonly buildingTypeCards: BuildingTypeCard[] = BUILDING_CARD_CONFIG;
   protected readonly uploadCardConfig: UploadCardConfig = {
     title: "Téléchargez votre facture d'électricité",
@@ -507,6 +514,24 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       this.formUpdateTrigger.update((v) => v + 1);
       this.cdr.markForCheck();
     });
+
+    // When user switches to MT, scroll to the newly revealed options
+    this.form
+      .get('consumption.tariffTension')
+      ?.valueChanges.subscribe((value: 'BT' | 'MT') => {
+        if (value === 'MT') {
+          // Wait for the view to render the mtOptionsContainer, then scroll
+          setTimeout(() => this.scrollToMtOptions(), 0);
+        }
+      });
+  }
+
+  private scrollToMtOptions(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    const el = this.mtOptionsContainer?.nativeElement;
+    if (!el) return;
+    // scrollIntoView scrolls the actual scroll container (e.g. .form-content-scrollable), not the window
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   protected onBillSelected(file: File | null): void {
@@ -706,6 +731,14 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       companyName: value.personal?.companyName ?? '',
       email: value.personal?.email ?? '',
       phoneNumber: value.personal?.phoneNumber ?? '',
+      // MT / BT + operating-hours selections (optional for backend)
+      tariffTension: value.consumption?.tariffTension ?? 'BT',
+      operatingHoursCase: value.consumption?.tariffTension === 'MT'
+        ? value.consumption?.operatingHoursCase ?? null
+        : null,
+      tariffRegime: value.consumption?.tariffTension === 'MT'
+        ? value.consumption?.tariffRegime ?? null
+        : null,
     };
 
     this.isSubmitting.set(true);

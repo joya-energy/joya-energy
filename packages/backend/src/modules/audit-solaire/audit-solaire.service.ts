@@ -15,6 +15,16 @@ import { calculatePVProduction } from './helpers/pv-production.calculator';
 import { analyzeEconomics } from './helpers/economic-analysis.calculator';
 import { convertAmountToConsumptionFlatRate } from '../audit-energetique/helpers/progressive-tariff.calculator';
 import { PVGISService } from '@shared/services/pvgis.service';
+import {
+  getCoverageRate,
+  getSelfConsumptionRatio,
+  type OperatingHoursCase,
+  type OperatingHoursPairIndex,
+} from './config/operating-hours-matrices.config';
+import {
+  computePVAutoconsumption,
+  type PVAutoconsumptionResult,
+} from './helpers/pv-autoconsumption.calculator';
 
 
 
@@ -43,6 +53,10 @@ export interface CreateSimulationInput {
   climateZone: ClimateZones;
   measuredAmountTnd: number;
   referenceMonth: number;
+  /** Optional MT/BT info coming from frontend (solar-MT branch) */
+  tariffTension?: 'BT' | 'MT';
+  operatingHoursCase?: OperatingHoursCase | null;
+  tariffRegime?: 'uniforme' | 'horaire' | null;
 }
 
 interface GeoCoordinates {
@@ -104,6 +118,36 @@ export class AuditSolaireSimulationService extends CommonService<
         throw new Error(`Invalid array lengths: billed=${monthlyBilledConsumptions.length}, raw=${monthlyConsumptions.length}`);
       }
 
+      // Optional: MT autoconsumption analysis using operating-hours matrices (Jour / Jour+soir / 24/7)
+      let mtAutoconsumption: PVAutoconsumptionResult | null = null;
+      let mtCoverageRate: number | null = null;
+      let mtSelfConsumptionRatio: number | null = null;
+
+      if (input.tariffTension === 'MT' && input.operatingHoursCase) {
+        const caseKey: OperatingHoursCase = input.operatingHoursCase;
+        // Assumption: use pair index 3 (T_couv_3 / r_auto_3) as the standard scenario.
+        const pairIndex: OperatingHoursPairIndex = 3;
+
+        mtCoverageRate = getCoverageRate(caseKey, input.buildingType, pairIndex);
+        mtSelfConsumptionRatio = getSelfConsumptionRatio(caseKey, input.buildingType, pairIndex);
+
+        mtAutoconsumption = computePVAutoconsumption({
+          annualConsumption: consumptionData.annualEstimatedConsumption,
+          annualProductible: solarData.annualProductibleKwhPerKwp,
+          targetCoverageRate: mtCoverageRate,
+          selfConsumptionRatio: mtSelfConsumptionRatio,
+        });
+
+        Logger.info(
+          `MT autoconsumption: case=${caseKey}, pairIndex=${pairIndex}, ` +
+          `T_couv=${mtCoverageRate}, r_auto=${mtSelfConsumptionRatio}, ` +
+          `P_PV,th=${mtAutoconsumption.theoreticalPVPower}, ` +
+          `E_PV=${mtAutoconsumption.annualPVProduction}, ` +
+          `E_auto=${mtAutoconsumption.selfConsumedEnergy}, ` +
+          `E_exc=${mtAutoconsumption.gridSurplus}`
+        );
+      }
+
       let economicData;
       try {
         economicData = analyzeEconomics({
@@ -118,7 +162,17 @@ export class AuditSolaireSimulationService extends CommonService<
         throw error;
       }
 
-      const simulationData = this.buildSimulationPayload(input, coordinates, solarData, consumptionData, pvSystemData, economicData);
+      const simulationData = this.buildSimulationPayload(
+        input,
+        coordinates,
+        solarData,
+        consumptionData,
+        pvSystemData,
+        economicData,
+        mtCoverageRate,
+        mtSelfConsumptionRatio,
+        mtAutoconsumption
+      );
 
       const simulation = await this.create(simulationData);
       Logger.info(`✅ Simulation created successfully with ID: ${simulation.id}`);
@@ -290,9 +344,12 @@ export class AuditSolaireSimulationService extends CommonService<
     solarData: SolarProductibleData,
     consumptionData: ReturnType<typeof extrapolateConsumption>,
     pvSystemData: ReturnType<typeof calculatePVProduction>,
-    economicData: ReturnType<typeof analyzeEconomics>
+    economicData: ReturnType<typeof analyzeEconomics>,
+    mtCoverageRate: number | null,
+    mtSelfConsumptionRatio: number | null,
+    mtAutoconsumption: PVAutoconsumptionResult | null
   ): ICreateAuditSolaireSimulation {
-    return {
+    const payload = {
       address: input.address,
       fullName: input.fullName,
       companyName: input.companyName,
@@ -345,7 +402,21 @@ export class AuditSolaireSimulationService extends CommonService<
       averageAnnualSavings: economicData.annualResults[0]?.annualSavings || 0,
 
       paybackMonths: economicData.simplePaybackYears,
-    };
+
+      // Optional MT-specific autoconsumption metadata
+      mtOperatingHoursCase: input.tariffTension === 'MT' ? input.operatingHoursCase ?? null : null,
+      mtCoverageRate: input.tariffTension === 'MT' ? mtCoverageRate : null,
+      mtSelfConsumptionRatio: input.tariffTension === 'MT' ? mtSelfConsumptionRatio : null,
+      mtTheoreticalPVPower: input.tariffTension === 'MT' ? mtAutoconsumption?.theoreticalPVPower ?? null : null,
+      mtAnnualPVProduction: input.tariffTension === 'MT' ? mtAutoconsumption?.annualPVProduction ?? null : null,
+      mtSelfConsumedEnergy: input.tariffTension === 'MT' ? mtAutoconsumption?.selfConsumedEnergy ?? null : null,
+      mtGridSurplus: input.tariffTension === 'MT' ? mtAutoconsumption?.gridSurplus ?? null : null,
+      mtActualCoverageRate: input.tariffTension === 'MT' ? mtAutoconsumption?.actualCoverageRate ?? null : null,
+      mtSurplusFraction: input.tariffTension === 'MT' ? mtAutoconsumption?.surplusFraction ?? null : null,
+      mtSurplusWithinLimit: input.tariffTension === 'MT' ? mtAutoconsumption?.surplusWithinLimit ?? null : null,
+    } as unknown as ICreateAuditSolaireSimulation;
+
+    return payload;
   }
 
 

@@ -703,6 +703,80 @@
                           </app-field-tooltip>
                         </div>
                       </div>
+
+                      <!-- Régime tarifaire (BT / MT) -->
+                      <div class="tariff-section">
+                        <div class="field-label">Régime tarifaire</div>
+                        <div class="tariff-toggle-group">
+                          <button
+                            type="button"
+                            class="tariff-toggle"
+                            [class.tariff-toggle--active]="form.get('consumption.tariffTension')?.value === 'BT'"
+                            (click)="form.get('consumption.tariffTension')?.setValue('BT')">
+                            Basse Tension
+                          </button>
+                          <button
+                            type="button"
+                            class="tariff-toggle"
+                            [class.tariff-toggle--active]="form.get('consumption.tariffTension')?.value === 'MT'"
+                            (click)="form.get('consumption.tariffTension')?.setValue('MT')">
+                            Moyenne Tension
+                          </button>
+                        </div>
+                      </div>
+
+                      @if (form.get('consumption.tariffTension')?.value === 'MT') {
+                      <div #mtOptionsContainer class="tariff-row">
+                        <!-- Horaire de fonctionnement (only for MT) -->
+                        <div class="tariff-section">
+                          <div class="field-label">Horaire de fonctionnement</div>
+                          <div class="tariff-toggle-group">
+                            <button
+                              type="button"
+                              class="tariff-toggle"
+                              [class.tariff-toggle--active]="form.get('consumption.operatingHoursCase')?.value === 'jour'"
+                              (click)="form.get('consumption.operatingHoursCase')?.setValue('jour')">
+                              Jour
+                            </button>
+                            <button
+                              type="button"
+                              class="tariff-toggle"
+                              [class.tariff-toggle--active]="form.get('consumption.operatingHoursCase')?.value === '24_7'"
+                              (click)="form.get('consumption.operatingHoursCase')?.setValue('24_7')">
+                              24/24
+                            </button>
+                            <button
+                              type="button"
+                              class="tariff-toggle"
+                              [class.tariff-toggle--active]="form.get('consumption.operatingHoursCase')?.value === 'jour_soir'"
+                              (click)="form.get('consumption.operatingHoursCase')?.setValue('jour_soir')">
+                              Jour + soir
+                            </button>
+                          </div>
+                        </div>
+
+                        <!-- Régime (only for MT) -->
+                        <div class="tariff-section">
+                          <div class="field-label">Régime</div>
+                          <div class="tariff-toggle-group">
+                            <button
+                              type="button"
+                              class="tariff-toggle"
+                              [class.tariff-toggle--active]="form.get('consumption.tariffRegime')?.value === 'uniforme'"
+                              (click)="form.get('consumption.tariffRegime')?.setValue('uniforme')">
+                              Tarif uniforme
+                            </button>
+                            <button
+                              type="button"
+                              class="tariff-toggle"
+                              [class.tariff-toggle--active]="form.get('consumption.tariffRegime')?.value === 'horaire'"
+                              (click)="form.get('consumption.tariffRegime')?.setValue('horaire')">
+                              Tarif horaire
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      }
                     </div>
                     <!--
                     }

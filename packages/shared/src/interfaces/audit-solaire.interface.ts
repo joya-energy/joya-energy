@@ -98,6 +98,18 @@ export interface  IAuditSolaireSimulation extends BusinessObject {
   annualEconomics: AnnualEconomicData[];
 
   paybackMonths: number; // Payback period in months
+
+  // Optional MT-specific autoconsumption metadata (only set when tariffTension === 'MT')
+  mtOperatingHoursCase?: string | null;
+  mtCoverageRate?: number | null; // T_couv chosen from matrix (ratio 0..1)
+  mtSelfConsumptionRatio?: number | null; // r_auto chosen from matrix (0..1)
+  mtTheoreticalPVPower?: number | null; // P_PV,th (kWc)
+  mtAnnualPVProduction?: number | null; // E_PV (kWh/year)
+  mtSelfConsumedEnergy?: number | null; // E_auto (kWh/year)
+  mtGridSurplus?: number | null; // E_exc (kWh/year)
+  mtActualCoverageRate?: number | null; // T_couv_real (0..1)
+  mtSurplusFraction?: number | null; // %exc (0..1)
+  mtSurplusWithinLimit?: boolean | null; // true if E_exc ≤ 30 % E_PV
   createdAt: Date;
   updatedAt: Date;
 }

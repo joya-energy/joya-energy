@@ -626,6 +626,68 @@
   }
 }
 
+/* MT / BT tariff toggle styles (Régime tarifaire, Horaire de fonctionnement, Régime) */
+.tariff-section {
+  margin-top: 1.5rem;
+}
+
+.tariff-section .field-label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.tariff-row {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  margin-top: 1.5rem;
+
+  @media (max-width: 900px) {
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+}
+
+.tariff-toggle-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.tariff-toggle {
+  min-width: 160px;
+  text-align: center;
+  border-radius: 0.75rem;
+  border: 1px solid var(--select-border);
+  padding: 0.9rem 1.25rem;
+  background: var(--select-bg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.tariff-toggle:hover {
+  border-color: var(--neutral-300);
+  transform: translateY(-1px);
+}
+
+.tariff-toggle--active {
+  background: var(--select-box-bg-selected);
+  border-color: var(--select-box-border-selected);
+  color: var(--text-primary);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+}
+
 .form-field {
   width: 100%;
   display: flex;
