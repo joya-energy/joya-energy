@@ -7,12 +7,34 @@
  * - Scope 3 = CO2_travel + CO2_IT
  */
 
-import { calculateElectricityCO2, type ElectricityCO2Input } from './electricity-co2.calculator';
-import { calculateThermalScope1, type ThermalScope1Input } from './thermal-scope1.calculator';
-import { calculateColdScope1, type ColdScope1Input } from './cold-scope1.calculator';
-import { calculateVehiclesScope1, type VehiclesScope1Input } from './vehicles-scope1.calculator';
+import {
+  calculateElectricityCO2,
+  type ElectricityCO2Input,
+} from './electricity-co2.calculator';
+import {
+  calculateThermalScope1,
+  type ThermalScope1Input,
+} from './thermal-scope1.calculator';
+import {
+  calculateColdScope1,
+  type ColdScope1Input,
+} from './cold-scope1.calculator';
+import {
+  calculateVehiclesScope1,
+  type VehiclesScope1Input,
+} from './vehicles-scope1.calculator';
 import { calculateScope3, type Scope3Input } from './scope3.calculator';
 import { Logger } from '@backend/middlewares';
+
+/**
+ * Optional personal info for email notifications and marketing
+ */
+export interface PersonalInfo {
+  fullName?: string;
+  companyName?: string;
+  email?: string;
+  phone?: string;
+}
 
 /**
  * Input for the full carbon footprint summary
@@ -42,6 +64,11 @@ export interface CarbonFootprintSummaryInput {
    * Scope 3 — Travel + IT equipment
    */
   scope3: Scope3Input;
+
+  /**
+   * Optional personal info for email notifications
+   */
+  personal?: PersonalInfo;
 }
 
 /**
@@ -93,7 +120,7 @@ export interface CarbonFootprintSummaryResult {
  * Compute full carbon footprint summary: Scope 1 + Scope 2 + Scope 3
  */
 export function calculateCarbonFootprintSummary(
-  input: CarbonFootprintSummaryInput,
+  input: CarbonFootprintSummaryInput
 ): CarbonFootprintSummaryResult {
   // Scope 2 — Electricity (CO2_elec)
   const electricityResult = calculateElectricityCO2(input.electricity);
@@ -113,7 +140,7 @@ export function calculateCarbonFootprintSummary(
       thermalResult.co2ThermalKg +
       coldResult.co2ColdKg +
       vehiclesResult.co2VehiclesKg
-    ).toFixed(2),
+    ).toFixed(2)
   );
   const co2Scope1Tonnes = Number((co2Scope1Kg / 1000).toFixed(3));
 
@@ -124,7 +151,7 @@ export function calculateCarbonFootprintSummary(
 
   // Total
   const co2TotalKg = Number(
-    (co2Scope1Kg + co2Scope2Kg + co2Scope3Kg).toFixed(2),
+    (co2Scope1Kg + co2Scope2Kg + co2Scope3Kg).toFixed(2)
   );
   const co2TotalTonnes = Number((co2TotalKg / 1000).toFixed(3));
 
@@ -132,7 +159,7 @@ export function calculateCarbonFootprintSummary(
     `Carbon footprint summary: Scope1=${co2Scope1Kg} kg (${co2Scope1Tonnes} t), ` +
       `Scope2=CO2_elec=${co2Scope2Kg} kg (${co2Scope2Tonnes} t), ` +
       `Scope3=${co2Scope3Kg} kg (${co2Scope3Tonnes} t), ` +
-      `Total=${co2TotalKg} kg (${co2TotalTonnes} t)`,
+      `Total=${co2TotalKg} kg (${co2TotalTonnes} t)`
   );
 
   return {

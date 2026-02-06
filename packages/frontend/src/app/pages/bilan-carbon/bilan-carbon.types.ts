@@ -26,7 +26,6 @@ export const HEAT_ENERGY_OPTIONS: { value: string; label: string }[] = [
   { value: 'NATURAL_GAS', label: 'Gaz naturel' },
   { value: 'DIESEL_FUEL', label: 'Diesel / Fuel' },
   { value: 'LPG', label: 'GPL (bouteilles, propane, butane)' },
-  { value: 'UNKNOWN', label: 'Je ne sais pas' },
 ];
 
 /** Sector options: value = BuildingTypes key for API */
@@ -34,7 +33,7 @@ export const SECTOR_OPTIONS: { value: string; label: string }[] = [
   { value: 'OFFICE_ADMIN_BANK', label: 'Bureaux / Administration' },
   { value: 'SERVICE', label: 'Retail / Commerce' },
   { value: 'CAFE_RESTAURANT', label: 'Restauration / Café' },
-  { value: 'HOTEL_GUESTHOUSE', label: 'Hôtel / Maison d\'hôtes' },
+  { value: 'HOTEL_GUESTHOUSE', label: "Hôtel / Maison d'hôtes" },
   { value: 'CLINIC_MEDICAL', label: 'Médical / Clinique' },
   { value: 'LIGHT_WORKSHOP', label: 'Atelier léger' },
   { value: 'FOOD_INDUSTRY', label: 'Industrie alimentaire' },
@@ -103,7 +102,10 @@ export const FUEL_OPTIONS: { value: string; label: string }[] = [
 
 /** Vehicle usage - backend VehicleUsageType */
 export const VEHICLE_USAGE_OPTIONS: { value: string; label: string }[] = [
-  { value: 'Déplacements légers', label: 'Déplacements professionnels légers (visites clients, administration)' },
+  {
+    value: 'Déplacements légers',
+    label: 'Déplacements professionnels légers (visites clients, administration)',
+  },
   { value: 'Livraisons / tournées', label: 'Livraisons ou tournées régulières' },
   { value: 'Transport intensif / lourd', label: 'Transport intensif ou marchandises lourdes' },
 ];
@@ -117,10 +119,18 @@ export const TRAVEL_FREQUENCY_OPTIONS: { value: string; label: string }[] = [
 
 /** Reference month 1-12 */
 export const MONTH_OPTIONS: { value: number; label: string }[] = [
-  { value: 1, label: 'Jan' }, { value: 2, label: 'Fév' }, { value: 3, label: 'Mar' },
-  { value: 4, label: 'Avr' }, { value: 5, label: 'Mai' }, { value: 6, label: 'Juin' },
-  { value: 7, label: 'Juil' }, { value: 8, label: 'Août' }, { value: 9, label: 'Sep' },
-  { value: 10, label: 'Oct' }, { value: 11, label: 'Nov' }, { value: 12, label: 'Déc' },
+  { value: 1, label: 'Jan' },
+  { value: 2, label: 'Fév' },
+  { value: 3, label: 'Mar' },
+  { value: 4, label: 'Avr' },
+  { value: 5, label: 'Mai' },
+  { value: 6, label: 'Juin' },
+  { value: 7, label: 'Juil' },
+  { value: 8, label: 'Août' },
+  { value: 9, label: 'Sep' },
+  { value: 10, label: 'Oct' },
+  { value: 11, label: 'Nov' },
+  { value: 12, label: 'Déc' },
 ];
 
 /** Tariff type for electricity */
@@ -144,12 +154,14 @@ export interface GeneralForm {
 export interface ElectricityForm {
   monthlyBillAmountDt: FormControl<number | null>;
   tariffType: FormControl<string>;
-  referenceMonth: FormControl<number | null>;
+  /** Stored as string for ui-select compatibility; convert to number when building payload */
+  referenceMonth: FormControl<string | null>;
 }
 
 export interface HeatForm {
   hasHeatUsages: FormControl<boolean>;
-  selectedHeatUsage: FormControl<string | null>;
+  /** Multiple heat usages (e.g. ECS, cuisson, chauffage). */
+  selectedHeatUsages: FormControl<string[]>;
   selectedHeatEnergy: FormControl<string | null>;
 }
 
@@ -180,12 +192,42 @@ export interface ITEquipmentForm {
   proPhoneCount: FormControl<number | null>;
 }
 
+export interface PersonalForm {
+  fullName: FormControl<string>;
+  companyName: FormControl<string>;
+  email: FormControl<string>;
+  phone: FormControl<string>;
+}
+
 export interface BilanCarbonFormValue {
-  general: Partial<{ companyName: string; sector: string; cityGovernorate: string; zone: string; referenceYear: number; surfaceM2: number; numberOfEmployees: number }>;
+  general: Partial<{
+    companyName: string;
+    sector: string;
+    cityGovernorate: string;
+    zone: string;
+    referenceYear: number;
+    surfaceM2: number;
+    numberOfEmployees: number;
+  }>;
   electricity: Partial<{ monthlyBillAmountDt: number; tariffType: string; referenceMonth: number }>;
-  heat: Partial<{ hasHeatUsages: boolean; selectedHeatUsages: string[]; selectedHeatEnergies: string[] }>;
+  heat: Partial<{
+    hasHeatUsages: boolean;
+    selectedHeatUsages: string[];
+    selectedHeatEnergies: string[];
+  }>;
   cold: Partial<{ hasCold: boolean; intensity: string; equipmentAge: string; maintenance: string }>;
-  vehicles: Partial<{ hasVehicles: boolean; numberOfVehicles: number; kmPerVehiclePerYear: number; fuelType: string; usageType: string }>;
+  vehicles: Partial<{
+    hasVehicles: boolean;
+    numberOfVehicles: number;
+    kmPerVehiclePerYear: number;
+    fuelType: string;
+    usageType: string;
+  }>;
   travel: Partial<{ planeFrequency: string | null; trainFrequency: string | null }>;
-  itEquipment: Partial<{ laptopCount: number; desktopCount: number; screenCount: number; proPhoneCount: number }>;
+  itEquipment: Partial<{
+    laptopCount: number;
+    desktopCount: number;
+    screenCount: number;
+    proPhoneCount: number;
+  }>;
 }
