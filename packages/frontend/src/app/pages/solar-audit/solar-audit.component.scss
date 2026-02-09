@@ -634,6 +634,68 @@
   }
 }
 
+/* MT / BT tariff toggle styles (Régime tarifaire, Horaire de fonctionnement, Régime) */
+.tariff-section {
+  margin-top: 1.5rem;
+}
+
+.tariff-section .field-label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.tariff-row {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  margin-top: 1.5rem;
+
+  @media (max-width: 900px) {
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+}
+
+.tariff-toggle-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.tariff-toggle {
+  min-width: 160px;
+  text-align: center;
+  border-radius: 0.75rem;
+  border: 1px solid var(--select-border);
+  padding: 0.9rem 1.25rem;
+  background: var(--select-bg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.tariff-toggle:hover {
+  border-color: var(--neutral-300);
+  transform: translateY(-1px);
+}
+
+.tariff-toggle--active {
+  background: var(--select-box-bg-selected);
+  border-color: var(--select-box-border-selected);
+  color: var(--text-primary);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+}
+
 .form-field {
   width: 100%;
   display: flex;
@@ -916,6 +978,36 @@
         .card-category {
           background: #fef3c7;
           color: #d97706;
+        }
+      }
+
+      &.mt-autoconsumption {
+        border-left: 4px solid #0d9488;
+        .card-accent {
+          background: linear-gradient(135deg, #14b8a6, #0d9488);
+        }
+        .card-icon {
+          background: #ccfbf1;
+          color: #0d9488;
+        }
+        .card-category {
+          background: #ccfbf1;
+          color: #0d9488;
+        }
+      }
+
+      &.mt-surplus {
+        border-left: 4px solid #0891b2;
+        .card-accent {
+          background: linear-gradient(135deg, #06b6d4, #0891b2);
+        }
+        .card-icon {
+          background: #cffafe;
+          color: #0891b2;
+        }
+        .card-category {
+          background: #cffafe;
+          color: #0891b2;
         }
       }
 
@@ -1233,6 +1325,18 @@
             font-size: var(--font-size-xs);
           }
         }
+
+        .transition-details {
+          font-size: var(--font-size-xs);
+          color: #047857;
+          text-align: center;
+          margin-top: 0.5rem;
+          line-height: 1.4;
+
+          @media (max-width: 640px) {
+            font-size: 0.7rem;
+          }
+        }
       }
 
       .savings-indicator {
@@ -1272,6 +1376,17 @@
           color: #166534;
           text-transform: uppercase;
           letter-spacing: 0.05em;
+
+          @media (max-width: 640px) {
+            font-size: var(--font-size-min);
+          }
+        }
+
+        .savings-detail {
+          font-size: var(--font-size-xs);
+          color: #047857;
+          margin-top: 0.5rem;
+          font-weight: 500;
 
           @media (max-width: 640px) {
             font-size: var(--font-size-min);

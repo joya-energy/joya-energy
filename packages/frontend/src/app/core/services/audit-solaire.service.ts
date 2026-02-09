@@ -18,6 +18,12 @@ export interface CreateSimulationPayload {
   buildingType: string;
   climateZone: string;
   
+  // Optional MT / BT + operating-hours info (used on solar-MT branch UI)
+  // Currently not consumed by the backend but sent for future use.
+  tariffTension?: 'BT' | 'MT';
+  operatingHoursCase?: 'jour' | 'jour_soir' | '24_7';
+  tariffRegime?: 'uniforme' | 'horaire';
+  
   // Personal Info (ready for backend integration)
   // NOTE: These fields are currently sent but backend doesn't use them yet.
   // Backend will be updated to accept and store these fields.

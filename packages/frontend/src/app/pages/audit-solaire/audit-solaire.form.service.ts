@@ -167,7 +167,11 @@ export class AuditSolaireFormService {
           Validators.min(MIN_MONTH),
           Validators.max(MAX_MONTH)
         ]),
-        billAttachment: this.fb.control<File | null>(null)
+        billAttachment: this.fb.control<File | null>(null),
+        // New MT / BT + operating-hours controls (used by new solar audit UI)
+        tariffTension: this.fb.nonNullable.control<'BT' | 'MT'>('BT', []),
+        operatingHoursCase: this.fb.control<'jour' | 'jour_soir' | '24_7' | null>(null, []),
+        tariffRegime: this.fb.control<'uniforme' | 'horaire' | null>(null, []),
       }),
       building: this.fb.group({
         buildingType: this.fb.nonNullable.control<BuildingTypes>({} as BuildingTypes, [Validators.required]),

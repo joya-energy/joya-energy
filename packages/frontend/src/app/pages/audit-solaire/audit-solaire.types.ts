@@ -3,7 +3,13 @@ import { BuildingTypes, ClimateZones } from '@shared';
 
 export type InvoiceFieldName = 'hasInvoice';
 export type LocationFieldName = 'address' | 'fullName' | 'companyName' | 'email' | 'phoneNumber';
-export type ConsumptionFieldName = 'measuredAmountTnd' | 'referenceMonth' | 'billAttachment';
+export type ConsumptionFieldName =
+  | 'measuredAmountTnd'
+  | 'referenceMonth'
+  | 'billAttachment'
+  | 'tariffTension'
+  | 'operatingHoursCase'
+  | 'tariffRegime';
 export type BuildingFieldName = 'buildingType' | 'climateZone';
 export type PersonalFieldName = 'fullName' | 'companyName' | 'email' | 'phoneNumber';
 
@@ -20,6 +26,12 @@ export type ConsumptionFormValue = {
   measuredAmountTnd: number | null;
   referenceMonth: number | null;
   billAttachment: File | null;
+  /** 'BT' (Basse Tension) or 'MT' (Moyenne Tension) */
+  tariffTension: 'BT' | 'MT';
+  /** Operating hours case for MT: 'jour', 'jour_soir', or '24_7'. Null for BT. */
+  operatingHoursCase: 'jour' | 'jour_soir' | '24_7' | null;
+  /** MT tariff regime: 'uniforme' or 'horaire'. Null for BT. */
+  tariffRegime: 'uniforme' | 'horaire' | null;
 };
 
 export type BuildingFormValue = {
@@ -54,6 +66,9 @@ export type ConsumptionForm = {
   measuredAmountTnd: FormControl<number | null>;
   referenceMonth: FormControl<number | null>;
   billAttachment: FormControl<File | null>;
+  tariffTension: FormControl<'BT' | 'MT'>;
+  operatingHoursCase: FormControl<'jour' | 'jour_soir' | '24_7' | null>;
+  tariffRegime: FormControl<'uniforme' | 'horaire' | null>;
 };
 
 export type BuildingForm = {

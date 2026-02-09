@@ -6,6 +6,7 @@ import { HTTP400Error, HTTP404Error } from '@backend/errors/http.error';
 import { Logger } from '@backend/middlewares';
 import { requireNumber, requireString } from '../common/validation.utils';
 import { BuildingTypes, ClimateZones } from '@shared/enums/audit-general.enum';
+import { type OperatingHoursCase } from './config';
 import { billExtractionService } from '../audit-energetique/bill-extraction.service';
 
 export class AuditSolaireSimulationController {
@@ -170,6 +171,10 @@ export class AuditSolaireSimulationController {
       climateZone: climateZone as ClimateZones,
       measuredAmountTnd: requireNumber(body.measuredAmountTnd, 'measuredAmountTnd', { min: 0 }),
       referenceMonth,
+      // Optional MT fields - tolerate absence for BT flows
+      tariffTension: (body.tariffTension === 'MT' ? 'MT' : 'BT') as 'BT' | 'MT',
+      operatingHoursCase: (body.operatingHoursCase as any as OperatingHoursCase | null) ?? null,
+      tariffRegime: (body.tariffRegime as any as 'uniforme' | 'horaire' | null) ?? null,
     };
   }
 }
