@@ -16,6 +16,7 @@ import {
 import { Governorates } from '@shared/enums/audit-general.enum';
 import { mailService } from '@backend/common/mail/mail.service';
 import type { CreateComparisonResult } from '@backend/domain/financing';
+import { LeadCollectorService } from '@backend/modules/lead/lead-collector.service';
 
 function formatDt(value: number): string {
   return (
@@ -154,6 +155,19 @@ export class ComparisonController {
         Logger.info(
           'ℹ️ Email not sent (comparison): email transport not configured.'
         );
+      }
+
+      // Collect lead asynchronously (non-blocking)
+      if (validatedData.email) {
+        LeadCollectorService.collectLead({
+          email: validatedData.email,
+          phoneNumber: validatedData.phoneNumber ?? '',
+          name: validatedData.fullName,
+          companyName: validatedData.companyName,
+          source: 'financing-comparison',
+        }).catch(() => {
+          // Silently ignored - lead collection never fails the main operation
+        });
       }
 
       res.status(201).json({

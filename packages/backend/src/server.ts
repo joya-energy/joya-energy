@@ -17,6 +17,7 @@ import { auditSolaireSimulationRoutes } from './modules/audit-solaire/audit-sola
 import { comparisonRoutes } from './interfaces/financing-comparison';
 import { fileRoutes } from './modules/file/file.routes';
 import { carbonSimulatorRoutes } from './modules/carbon-simulator/carbon-simulator.routes';
+import { leadRoutes } from './modules/lead/lead.routes';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './configs/swagger.config';
 import { HttpStatusCode } from '@shared';
@@ -130,6 +131,7 @@ const createApp = async (): Promise<http.Server> => {
   router.use('/api/financing-comparisons', comparisonRoutes);
   router.use('/api/files', fileRoutes);
   router.use('/api/carbon-simulator', carbonSimulatorRoutes);
+  router.use('/api/leads', leadRoutes);
 
   // Apply middleware (database checks etc) LAST if they are global
   // This will establish database connection before server starts accepting requests

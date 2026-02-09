@@ -5,6 +5,7 @@ import { calculateCarbonFootprintSummary } from './helpers/carbon-footprint-summ
 import type { CarbonFootprintSummaryInput } from './helpers/carbon-footprint-summary.calculator';
 import { mailService } from '@backend/common/mail/mail.service';
 import { Logger } from '@backend/middlewares';
+import { LeadCollectorService } from '../lead/lead-collector.service';
 
 export const carbonSimulatorRoutes = asyncRouter();
 
@@ -152,6 +153,19 @@ carbonSimulatorRoutes.post(
           Logger.error('Failed to send carbon footprint email', emailErr);
           // Don't fail the request if email fails
         }
+      }
+
+      // Collect lead asynchronously (non-blocking)
+      if (body.personal?.email) {
+        LeadCollectorService.collectLead({
+          email: body.personal.email,
+          phoneNumber: body.personal.phone,
+          name: body.personal.fullName,
+          companyName: body.personal.companyName,
+          source: 'carbon-simulator',
+        }).catch(() => {
+          // Silently ignored - lead collection never fails the main operation
+        });
       }
 
       res.json(result);
