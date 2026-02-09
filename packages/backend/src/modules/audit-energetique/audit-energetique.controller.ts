@@ -6,6 +6,7 @@ import { Logger } from '@backend/middlewares';
 import { billExtractionService } from './bill-extraction.service';
 import {type AuditEnergetiqueResponseDto, toAuditEnergetiqueResponseDto} from './dto/audit-energetique-response.dto';
 import { AuditRequestPayload,ExtractedAuditData,mergeExtractedValues,sanitizeAuditPayload} from './utils/payload-normalizer';
+import { LeadCollectorService } from '../lead/lead-collector.service';
 
 export class AuditEnergetiqueSimulationController {
   public createSimulation = async (req: Request, res: Response<AuditEnergetiqueResponseDto>): Promise<void> => {
@@ -15,6 +16,20 @@ export class AuditEnergetiqueSimulationController {
       
       // Transform to structured response
       const response = toAuditEnergetiqueResponseDto(simulation);
+      
+      // Collect lead asynchronously (non-blocking)
+      if (input.email) {
+        LeadCollectorService.collectLead({
+          email: input.email,
+          phoneNumber: input.phoneNumber,
+          name: input.fullName,
+          address: input.address,
+          companyName: input.companyName,
+          source: 'audit-energetique',
+        }).catch(() => {
+          // Silently ignored - lead collection never fails the main operation
+        });
+      }
       
       res.status(HttpStatusCode.CREATED).json(response);
     } catch (error) {
@@ -39,6 +54,21 @@ export class AuditEnergetiqueSimulationController {
       const input = sanitizeAuditPayload(mergedBody);
       const simulation = await auditSimulationService.createSimulation(input);
       const response = toAuditEnergetiqueResponseDto(simulation);
+      
+      // Collect lead asynchronously (non-blocking)
+      if (input.email) {
+        LeadCollectorService.collectLead({
+          email: input.email,
+          phoneNumber: input.phoneNumber,
+          name: input.fullName,
+          address: input.address,
+          companyName: input.companyName,
+          source: 'audit-energetique',
+        }).catch(() => {
+          // Silently ignored - lead collection never fails the main operation
+        });
+      }
+      
       res.status(HttpStatusCode.CREATED).json(response);
     } catch (error) {
       if (error instanceof HTTP400Error) {

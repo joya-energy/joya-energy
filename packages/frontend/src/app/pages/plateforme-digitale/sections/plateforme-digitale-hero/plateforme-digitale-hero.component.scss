@@ -1,10 +1,13 @@
 .pd-hero {
   position: relative;
   min-height: 100vh;
+  width: 100vw;
   display: flex;
+  justify-content: center;
   align-items: center;
+  align-content: center;
   overflow: hidden;
-
+ 
   padding-top: calc(5rem + 2rem);
 
   @media (min-width: 768px) {
@@ -17,47 +20,16 @@
   }
 }
 
-.pd-hero__bg {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
 
-.pd-hero__blur {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(60px);
-  opacity: 0.5;
 
-  &--1 {
-    top: 5rem;
-    right: 2.5rem;
-    width: 16rem;
-    height: 16rem;
-    background: rgba(255, 255, 255, 0.05);
-  }
 
-  &--2 {
-    bottom: 5rem;
-    left: 2.5rem;
-    width: 24rem;
-    height: 24rem;
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  &--3 {
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 600px;
-    height: 600px;
-    background: rgba(227, 112, 81, 0.1);
-  }
-}
 
 .pd-hero__container {
   position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
   z-index: 1;
   width: 100%;
   max-width: 160rem;
@@ -78,6 +50,7 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 2rem;
+  
   align-items: center;
   justify-items: center;
   justify-content: center;

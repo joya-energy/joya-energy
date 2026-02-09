@@ -94,8 +94,8 @@
 }
 
 .sc-card__icon-bg {
-  width: 3rem;
-  height: 3rem;
+  width: 4rem;
+  height: 4rem;
   border-radius: var(--landing-radius-md);
   background: color-mix(in srgb, var(--landing-primary) 10%, transparent);
   color: var(--landing-primary);
@@ -120,12 +120,12 @@
 }
 
 .sc-card__icon {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
 
   @media (min-width: 768px) {
-    width: 2.25rem;
-    height: 2.25rem;
+    width: 3rem;
+    height: 3rem;
   }
 }
 

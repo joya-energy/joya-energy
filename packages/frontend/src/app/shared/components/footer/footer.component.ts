@@ -5,6 +5,8 @@ import { RouterLink } from '@angular/router';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import { lucideLinkedin } from '@ng-icons/lucide';
 import { FooterVisibilityService } from '../../services/footer-visibility.service';
+import { LeadService } from '../../../core/services/lead.service';
+import { finalize } from 'rxjs/operators';
 
 interface NavigationLink {
   name: string;
@@ -30,6 +32,7 @@ interface NavigationGroup {
 })
 export class FooterComponent {
   private readonly footerVisibilityService = inject(FooterVisibilityService);
+  private readonly leadService = inject(LeadService);
 
   // Expose visibility signal
   readonly isVisible = this.footerVisibilityService.isVisible;
@@ -39,7 +42,7 @@ export class FooterComponent {
   protected readonly submitStatus = signal<{ type: 'success' | 'error'; message: string } | null>(
     null
   );
-
+  
   protected readonly navigation: NavigationGroup = {
     solutions: [
       { name: 'Ressources', href: '/ressources' },
@@ -78,7 +81,9 @@ export class FooterComponent {
   protected handleSubmit(event: Event): void {
     event.preventDefault();
 
-    if (!this.email()) {
+    const emailValue = this.email().trim();
+
+    if (!emailValue) {
       this.submitStatus.set({
         type: 'error',
         message: 'Veuillez entrer votre email.',
@@ -86,18 +91,48 @@ export class FooterComponent {
       return;
     }
 
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailValue)) {
+      this.submitStatus.set({
+        type: 'error',
+        message: 'Veuillez entrer une adresse email valide.',
+      });
+      return;
+    }
+
     this.isSubmitting.set(true);
     this.submitStatus.set(null);
 
-    // TODO: Replace with actual API endpoint
-    // For now, simulate API call
-    setTimeout(() => {
-      this.submitStatus.set({
-        type: 'success',
-        message: 'Merci pour votre inscription !',
+    this.leadService
+      .createLead({
+        email: emailValue,
+        source: 'newsletter',
+      })
+      .pipe(finalize(() => this.isSubmitting.set(false)))
+      .subscribe({
+        next: (response) => {
+          // Check if email already exists
+          if ('message' in response && response.message === 'already exist') {
+            this.submitStatus.set({
+              type: 'success',
+              message: 'Vous êtes déjà inscrit à notre newsletter !',
+            });
+          } else {
+            this.submitStatus.set({
+              type: 'success',
+              message: 'Merci pour votre inscription ! Vous recevrez bientôt nos actualités.',
+            });
+          }
+          this.email.set('');
+        },
+        error: (error) => {
+          console.error('Newsletter subscription error:', error);
+          this.submitStatus.set({
+            type: 'error',
+            message: 'Une erreur est survenue. Veuillez réessayer plus tard.',
+          });
+        },
       });
-      this.email.set('');
-      this.isSubmitting.set(false);
-    }, 500);
   }
 }

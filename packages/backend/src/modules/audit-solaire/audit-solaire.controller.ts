@@ -6,13 +6,30 @@ import { HTTP400Error, HTTP404Error } from '@backend/errors/http.error';
 import { Logger } from '@backend/middlewares';
 import { requireNumber, requireString } from '../common/validation.utils';
 import { BuildingTypes, ClimateZones } from '@shared/enums/audit-general.enum';
+import { type OperatingHoursCase } from './config';
 import { billExtractionService } from '../audit-energetique/bill-extraction.service';
+import { LeadCollectorService } from '../lead/lead-collector.service';
 
 export class AuditSolaireSimulationController {
   public createSimulation = async (req: Request, res: Response): Promise<void> => {
     try {
       const input = AuditSolaireSimulationController.sanitizePayload(req.body);
       const simulation = await auditSolaireSimulationService.createSimulation(input);
+      
+      // Collect lead asynchronously (non-blocking)
+      if (input.email) {
+        LeadCollectorService.collectLead({
+          email: input.email,
+          phoneNumber: input.phoneNumber,
+          name: input.fullName,
+          address: input.address,
+          companyName: input.companyName,
+          source: 'audit-solaire',
+        }).catch(() => {
+          // Silently ignored - lead collection never fails the main operation
+        });
+      }
+      
       res.status(HttpStatusCode.CREATED).json(simulation);
     } catch (error) {
       if (error instanceof HTTP400Error) {
@@ -40,6 +57,20 @@ export class AuditSolaireSimulationController {
       // Sanitize and create simulation
       const input = AuditSolaireSimulationController.sanitizePayload(mergedBody);
       const simulation = await auditSolaireSimulationService.createSimulation(input);
+      
+      // Collect lead asynchronously (non-blocking)
+      if (input.email) {
+        LeadCollectorService.collectLead({
+          email: input.email,
+          phoneNumber: input.phoneNumber,
+          name: input.fullName,
+          address: input.address,
+          companyName: input.companyName,
+          source: 'audit-solaire',
+        }).catch(() => {
+          // Silently ignored - lead collection never fails the main operation
+        });
+      }
       
       res.status(HttpStatusCode.CREATED).json(simulation);
     } catch (error) {
@@ -170,6 +201,10 @@ export class AuditSolaireSimulationController {
       climateZone: climateZone as ClimateZones,
       measuredAmountTnd: requireNumber(body.measuredAmountTnd, 'measuredAmountTnd', { min: 0 }),
       referenceMonth,
+      // Optional MT fields - tolerate absence for BT flows
+      tariffTension: (body.tariffTension === 'MT' ? 'MT' : 'BT') as 'BT' | 'MT',
+      operatingHoursCase: (body.operatingHoursCase as any as OperatingHoursCase | null) ?? null,
+      tariffRegime: (body.tariffRegime as any as 'uniforme' | 'horaire' | null) ?? null,
     };
   }
 }

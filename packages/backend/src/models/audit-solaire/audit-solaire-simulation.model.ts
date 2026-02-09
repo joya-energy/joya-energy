@@ -61,7 +61,19 @@ export const AuditSolaireSimulationModel: Model<AuditSolaireSimulationDocument> 
       cumulativeCashFlowDiscounted: { type: Number, required: true },
       cumulativeNetGain: { type: Number, required: true },
       cumulativeNetGainDiscounted: { type: Number, required: true }
-    }]
+    }],
+    // Optional MT (Moyenne Tension) autoconsumption fields
+    mtPairIndex: { type: Number, required: false }, // Chosen pair 1..5 (highest T_couv with excedent < 30%)
+    mtOperatingHoursCase: { type: String, required: false },
+    mtCoverageRate: { type: Number, required: false },
+    mtSelfConsumptionRatio: { type: Number, required: false },
+    mtTheoreticalPVPower: { type: Number, required: false },
+    mtAnnualPVProduction: { type: Number, required: false },
+    mtSelfConsumedEnergy: { type: Number, required: false },
+    mtGridSurplus: { type: Number, required: false },
+    mtActualCoverageRate: { type: Number, required: false },
+    mtSurplusFraction: { type: Number, required: false },
+    mtSurplusWithinLimit: { type: Boolean, required: false }
   },
   {
     timestamps: true
