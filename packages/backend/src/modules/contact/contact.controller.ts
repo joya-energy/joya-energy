@@ -4,11 +4,26 @@ import { type IContact } from '@shared/interfaces/contact.interface';
 import { HttpStatusCode, type PaginatedResult } from '@shared';
 import { HTTP400Error, HTTP404Error } from '@backend/errors/http.error';
 import { Logger } from '@backend/middlewares';
+import { LeadCollectorService } from '../lead/lead-collector.service';
 
 export class ContactController {
   public createContact = async (req: Request, res: Response<IContact>): Promise<void> => {
     try {
       const contact = await contactService.createContact(req.body);
+      
+      // Collect lead asynchronously (non-blocking)
+      if (contact.email) {
+        LeadCollectorService.collectLead({
+          email: contact.email,
+          phoneNumber: contact.phoneNumber,
+          name: contact.name,
+          companyName: contact.companyName,
+          source: 'contact-form',
+        }).catch(() => {
+          // Silently ignored - lead collection never fails the main operation
+        });
+      }
+      
       res.status(HttpStatusCode.CREATED).json(contact);
     } catch (error) {
       Logger.error(`Error: Contact not created: ${String(error)}`);

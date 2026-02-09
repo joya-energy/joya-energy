@@ -25,6 +25,7 @@ export function validateComparisonRequest(data: unknown): {
   fullName?: string;
   companyName?: string;
   email?: string;
+  phoneNumber?: string;
   creditParams?: {
     creditAnnualRate?: number;
     selfFinancingRate?: number;
@@ -83,17 +84,41 @@ export function validateComparisonRequest(data: unknown): {
   const fullName = optionalString(body.fullName);
   const companyName = optionalString(body.companyName);
   const email = optionalString(body.email);
+  const phoneNumber = optionalString(body.phoneNumber);
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     throw new HTTP400Error('Invalid email format');
   }
 
-  const result: any = {
+  const result: {
+    location: Governorates;
+    installationSizeKwp?: number;
+    investmentAmountDt?: number;
+    fullName?: string;
+    companyName?: string;
+    email?: string;
+    phoneNumber?: string;
+    creditParams?: {
+      creditAnnualRate?: number;
+      selfFinancingRate?: number;
+    };
+    leasingParams?: {
+      leasingAnnualRate?: number;
+      leasingResidualValueRate?: number;
+      leasingOpexMultiplier?: number;
+      selfFinancingRate?: number;
+    };
+    escoParams?: {
+      escoTargetIrrAnnual?: number;
+      escoOpexIncluded?: boolean;
+    };
+  } = {
     location,
     installationSizeKwp,
     investmentAmountDt,
     fullName,
     companyName,
     email,
+    phoneNumber,
   };
 
   // Validate credit params
