@@ -339,10 +339,44 @@
             }
           </div>
         </div>
+
+        <!-- Mobile Navigation Buttons Footer (scrolls with content) -->
+        <div class="form-actions form-actions--mobile" [class.result-actions]="currentStep() === 3">
+          @if (currentStep() === 3) {
+          <button type="button" class="hero__btn hero__btn--outline" (click)="newComparison()">
+            Nouvelle comparaison
+          </button>
+          <a routerLink="/contact" class="hero__btn hero__btn--primary">Parler à un conseiller</a>
+          } @else { @if (currentStep() > 1) {
+          <button type="button" class="hero__btn hero__btn--outline" (click)="previousStep()">
+            <ng-icon name="lucideArrowLeft" size="16"></ng-icon>
+            Précédent
+          </button>
+          } @else {
+          <span></span>
+          }
+          <button
+            type="button"
+            class="hero__btn hero__btn--primary"
+            [disabled]="!canProceed() || (currentStep() === 2 && (loading() || isSubmitting()))"
+            (click)="nextStep()"
+          >
+            @if (currentStep() === 2 && (loading() || isSubmitting())) {
+            <span>Calcul en cours…</span>
+            } @else if (currentStep() === 1) {
+            <span>Commencer</span>
+            <ng-icon name="lucideArrowRight" size="16"></ng-icon>
+            } @else {
+            <span>Comparer les solutions</span>
+            <ng-icon name="lucideArrowRight" size="16"></ng-icon>
+            }
+          </button>
+          }
+        </div>
       </div>
 
-      <!-- Footer navigation -->
-      <div class="form-actions" [class.result-actions]="currentStep() === 3">
+      <!-- Desktop Navigation Buttons Footer -->
+      <div class="form-actions form-actions--desktop" [class.result-actions]="currentStep() === 3">
         @if (currentStep() === 3) {
         <button type="button" class="hero__btn hero__btn--outline" (click)="newComparison()">
           Nouvelle comparaison

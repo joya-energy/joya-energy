@@ -148,12 +148,6 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
   private readonly formUpdateTrigger = signal(0);
 
   ngOnInit(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      // Prevent body scrolling when this component is active
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
-    }
-
     // Subscribe to form value changes to trigger progress updates
     this.form.valueChanges.subscribe(() => {
       // Update validity for all controls
@@ -172,13 +166,7 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      // Restore body scrolling when component is destroyed
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-    }
-  }
+  ngOnDestroy(): void {}
 
   // Calculate progress for each step - based on all fields being filled AND valid
   protected readonly stepProgress = computed(() => {
@@ -414,38 +402,15 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
+        this.isGeneratingPDF.set(false);
 
-        // Then send via email (don't wait for it to complete)
-        this.auditService
-          .generateAndSendPDF(result.simulationId)
-          .pipe(finalize(() => this.isGeneratingPDF.set(false)))
-          .subscribe({
-            next: (emailResponse) => {
-              if (emailResponse?.email) {
-                this.notificationStore.addNotification({
-                  type: 'success',
-                  title: 'PDF téléchargé et envoyé',
-                  message: `Le rapport PDF a été téléchargé et envoyé à ${emailResponse.email}. Veuillez vérifier votre boîte de réception (et vos spams).`,
-                });
-              } else {
-                this.notificationStore.addNotification({
-                  type: 'success',
-                  title: 'PDF téléchargé',
-                  message: "Le rapport PDF a été téléchargé. L'envoi par email est en cours...",
-                });
-              }
-            },
-            error: (emailError) => {
-              // Email sending failed, but download succeeded
-              console.error('Error sending PDF via email:', emailError);
-              this.notificationStore.addNotification({
-                type: 'warning',
-                title: 'PDF téléchargé',
-                message:
-                  "Le PDF a été téléchargé avec succès. L'envoi par email a échoué, mais vous avez déjà le fichier.",
-              });
-            },
-          });
+        // Note: Email is sent automatically after calculation completes, not on PDF download
+        // This prevents duplicate emails when users download the PDF
+        this.notificationStore.addNotification({
+          type: 'success',
+          title: 'PDF téléchargé',
+          message: 'Le rapport PDF a été téléchargé avec succès.',
+        });
       },
       error: (error) => {
         this.isGeneratingPDF.set(false);

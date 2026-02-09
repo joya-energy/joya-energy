@@ -270,6 +270,12 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   @ViewChild('mtOptionsContainer') private mtOptionsContainer?: ElementRef<HTMLElement>;
 
   protected readonly buildingTypeCards: BuildingTypeCard[] = BUILDING_CARD_CONFIG;
+  /** Building type options adapted for ui-select dropdown-icon variant (with icons). */
+  protected readonly buildingTypeOptionsForSelect = BUILDING_CARD_CONFIG.map((card) => ({
+    value: card.id,
+    label: card.label,
+    icon: card.icon,
+  }));
   protected readonly uploadCardConfig: UploadCardConfig = {
     title: "Téléchargez votre facture d'électricité",
     subtitle: 'ou cliquez pour sélectionner un fichier',
@@ -374,12 +380,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
 
   protected readonly lastFormStepNumber = 3;
 
-  ngOnDestroy(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-    }
-  }
+  ngOnDestroy(): void {}
 
   protected isFieldVisible(field: StepField): boolean {
     if (!field.condition) return true;
@@ -475,11 +476,6 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
-    }
-
     // Bill upload feature temporarily disabled
     // Set default value for hasInvoice to avoid form validation errors
     const hasInvoiceControl = this.form.get('consumption.hasInvoice');

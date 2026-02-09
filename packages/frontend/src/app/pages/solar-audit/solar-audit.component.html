@@ -246,7 +246,7 @@
                     </div>
                     <div class="comparison-content">
                       <div class="comparison-value warning">
-                        {{ simulation.annualBillWithoutPV | noGrouping:'1.0-0' }}
+                        {{ simulation.annualBillWithoutPV | noGrouping : '1.0-0' }}
                         <span class="currency">DT</span>
                       </div>
                       <div class="comparison-label">Situation Actuelle</div>
@@ -354,7 +354,7 @@
                     </div>
                     <div class="metric-content">
                       <div class="metric-value primary">
-                        {{ simulation.installationCost | noGrouping:'1.0-0' }}
+                        {{ simulation.installationCost | noGrouping : '1.0-0' }}
                       </div>
                       <div class="metric-label">CAPEX</div>
                       <div class="metric-subtitle">Coût d'investissement</div>
@@ -371,7 +371,7 @@
                     </div>
                     <div class="metric-content">
                       <div class="metric-value neutral">
-                        {{ simulation.annualOpex | noGrouping:'1.0-0' }}
+                        {{ simulation.annualOpex | noGrouping : '1.0-0' }}
                       </div>
                       <div class="metric-label">OPEX</div>
                       <div class="metric-subtitle">Coût de maintenance annuel</div>
@@ -388,7 +388,7 @@
                     </div>
                     <div class="metric-content">
                       <div class="metric-value success">
-                        {{ (simulation.roi25Years || 0) | noGrouping:'1.2-2' }}
+                        {{ simulation.roi25Years || 0 | noGrouping : '1.2-2' }}
                       </div>
                       <div class="metric-label">ROI</div>
                       <div class="metric-subtitle">Retour sur investissement</div>
@@ -406,7 +406,10 @@
                     </div>
                     <div class="metric-content">
                       <div class="metric-value success">
-                        {{ simulation.annualEconomics[simulation.annualEconomics.length - 1]!.cumulativeNetGain | noGrouping:'1.0-0' }}
+                        {{
+                          simulation.annualEconomics[simulation.annualEconomics.length - 1]!
+                            .cumulativeNetGain | noGrouping : '1.0-0'
+                        }}
                       </div>
                       <div class="metric-label">Gain cumulé</div>
                       <div class="metric-subtitle">Non actualisé (25 ans)</div>
@@ -424,7 +427,7 @@
                     </div>
                     <div class="metric-content">
                       <div class="metric-value success">
-                        {{ simulation.irr | noGrouping:'1.1-1' }}<span class="unit">%</span>
+                        {{ simulation.irr | noGrouping : '1.1-1' }}<span class="unit">%</span>
                       </div>
                       <div class="metric-label">Taux de Rendement Interne</div>
                       <div class="metric-subtitle">Retour sur investissement annuel</div>
@@ -798,7 +801,7 @@
                     </div>
                     <div class="environmental-content">
                       <div class="environmental-value success">
-                        {{ simulation.annualCo2Avoided | noGrouping:'1.1-1' }}
+                        {{ simulation.annualCo2Avoided | noGrouping : '1.1-1' }}
                         <span class="unit">tonnes</span>
                       </div>
                       <div class="environmental-label">CO₂ évité</div>
@@ -816,7 +819,7 @@
                     </div>
                     <div class="environmental-content">
                       <div class="environmental-value success">
-                        {{ simulation.totalCo2Avoided25Years | noGrouping:'1.0-0' }}
+                        {{ simulation.totalCo2Avoided25Years | noGrouping : '1.0-0' }}
                         <span class="unit">tonnes</span>
                       </div>
                       <div class="environmental-label">CO₂ évité total</div>
@@ -1058,25 +1061,16 @@
               @if (currentStep() === 2) {
               <div [@stepTransition]="currentStep()">
                 <div class="building-type-selection" formGroupName="building">
-                  <div class="field-label">
-                    <span>Type de bâtiment</span>
-                  </div>
-                  <div class="building-grid">
-                    @for (card of buildingTypeCards; track card.id) {
-                    <button
-                      type="button"
-                      class="building-card"
-                      [class.building-card--active]="
-                        form.get('building.buildingType')?.value === card.id
-                      "
-                      (click)="form.get('building.buildingType')?.setValue(card.id)"
+                  <div class="form-field">
+                    <app-ui-select
+                      formControlName="buildingType"
+                      label="Type de bâtiment"
+                      [required]="true"
+                      [options]="buildingTypeOptionsForSelect"
+                      placeholder="Sélectionnez le type de bâtiment"
+                      variant="dropdown-icon"
                     >
-                      <div class="building-card-icon">
-                        <ng-icon [name]="card.icon" size="20"></ng-icon>
-                      </div>
-                      <span>{{ card.label }}</span>
-                    </button>
-                    }
+                    </app-ui-select>
                   </div>
 
                   <div class="form-field" style="margin-bottom: 4rem">
@@ -1168,10 +1162,74 @@
             }
           </div>
         </div>
+
+        <!-- Mobile Navigation Buttons Footer (scrolls with content) -->
+        <div
+          class="form-actions form-actions--mobile"
+          [class.result-actions]="currentStepData().isResult"
+        >
+          @if (!currentStepData().isResult) {
+          <button
+            type="button"
+            class="hero__btn hero__btn--outline"
+            [disabled]="!canGoBack()"
+            (click)="previousStep()"
+          >
+            <ng-icon name="lucideArrowLeft" size="16"></ng-icon>
+            Précédent
+          </button>
+
+          @if (currentStep() < lastFormStepNumber) {
+          <button
+            type="button"
+            class="hero__btn hero__btn--primary"
+            [disabled]="isSubmitting()"
+            (click)="nextStep()"
+          >
+            Suivant
+            <ng-icon name="lucideArrowRight" size="16"></ng-icon>
+          </button>
+          } @else {
+          <button
+            type="button"
+            class="hero__btn hero__btn--primary"
+            [disabled]="isSubmitting()"
+            (click)="nextStep()"
+          >
+            @if (isSubmitting()) {
+            <span>Calcul en cours...</span>
+            } @else {
+            <span>Lancer la simulation</span>
+            <ng-icon name="lucideArrowRight" size="16"></ng-icon>
+            }
+          </button>
+          } } @else {
+          <!-- Results step actions -->
+          <button type="button" class="hero__btn hero__btn--outline" (click)="resetForm()">
+            Nouvelle simulation
+          </button>
+          <button
+            type="button"
+            class="hero__btn hero__btn--primary"
+            [disabled]="isGeneratingPDF() || !simulationResult()?.id"
+            (click)="downloadPVReport()"
+          >
+            @if (isGeneratingPDF()) {
+            <span>Génération...</span>
+            } @else {
+            <span>Télécharger le rapport PV</span>
+            <ng-icon name="lucideDownload" size="16"></ng-icon>
+            }
+          </button>
+          }
+        </div>
       </div>
 
-      <!-- Fixed Navigation Buttons Footer -->
-      <div class="form-actions" [class.result-actions]="currentStepData().isResult">
+      <!-- Desktop Navigation Buttons Footer -->
+      <div
+        class="form-actions form-actions--desktop"
+        [class.result-actions]="currentStepData().isResult"
+      >
         @if (!currentStepData().isResult) {
         <button
           type="button"

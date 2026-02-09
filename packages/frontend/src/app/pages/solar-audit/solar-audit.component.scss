@@ -1,21 +1,23 @@
 .energy-audit-page {
   background-color: var(--bg-page);
-  height: calc(100vh - 7rem);
+  /* Height + top margin must equal 100vh to avoid page scroll.
+     Navbar offset is 8rem, so we subtract 8rem here. */
+  height: calc(100vh - 8rem);
   width: 100%;
   max-width: 100vw;
   overflow: hidden;
   box-sizing: border-box;
   margin-top: 8rem;
-  padding: 0 0rem 2rem 2rem;
+  padding: 0 0 2rem 2rem;
   font-family: var(--font-family-primary);
   color: var(--text-primary);
   display: flex;
   flex-direction: column;
   position: relative;
-  box-shadow: 0px -1px 3px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.08);
 
   @media (max-width: 768px) {
-    padding: 0 0rem 1rem 1rem;
+    padding: 0 0 1rem 1rem;
     margin-top: 5rem;
     height: calc(100vh - 5rem);
   }
@@ -282,6 +284,9 @@
   @media (max-width: 768px) {
     padding: 1.5rem 1.5rem 1rem 1.5rem;
     max-width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 5;
   }
 }
 
@@ -307,41 +312,32 @@
   overflow-y: auto;
   overflow-x: hidden;
   min-height: 0;
-  position: relative;
   width: 100%;
 
   &::-webkit-scrollbar {
     width: 10px;
-    position: absolute;
-    right: 0;
   }
-
   &::-webkit-scrollbar-track {
     background: var(--neutral-100);
     border-radius: 5px;
   }
-
   &::-webkit-scrollbar-thumb {
     background-color: var(--neutral-400);
     border-radius: 5px;
-
     &:hover {
       background-color: var(--neutral-500);
     }
   }
-
-  scrollbar-width: thin;
-  scrollbar-color: var(--neutral-400) var(--neutral-100);
 }
 
 .form-content {
   width: 100%;
   max-width: 1073px;
   margin: 0 auto;
-  padding: 0 2.5rem 0 2.5rem;
+  padding: 0 2.5rem 2rem 2.5rem;
 
   @media (max-width: 768px) {
-    padding: 0 1.5rem 0 1.5rem;
+    padding: 0 1.5rem 1rem 1.5rem;
     max-width: 100%;
   }
 }
@@ -506,22 +502,29 @@
   gap: 1rem;
   background: var(--bg-page);
   border-top: 1px solid var(--neutral-200);
-  position: relative;
-  z-index: 10;
-  // Add safe area inset for Android/iOS navigation bars
-  padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
 
   @media (max-width: 768px) {
     padding: 1rem 1.5rem;
-    // Fixed padding for mobile to clear Android navigation buttons
-    // Using fixed value since env(safe-area-inset-bottom) is unreliable on Android
-    padding-bottom: 6rem;
     max-width: 100%;
 
     .hero__btn {
       flex: 1;
       min-width: auto;
     }
+  }
+}
+
+.form-actions--mobile {
+  display: none;
+
+  @media (max-width: 768px) {
+    display: flex;
+  }
+}
+
+.form-actions--desktop {
+  @media (max-width: 768px) {
+    display: none;
   }
 }
 
@@ -1943,7 +1946,7 @@
       justify-content: center;
       gap: 2rem;
       margin-top: 1.25rem;
-      font-size: 0.8125rem;
+      font-size: 1.2rem;
       color: #64748b;
 
       .legend-item {

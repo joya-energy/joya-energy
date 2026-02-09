@@ -4,7 +4,6 @@ import { RessourcesPageHeaderComponent } from './sections/ressources-page-header
 import { RessourcesWhySectionComponent } from './sections/ressources-why-section/ressources-why-section.component';
 import { RessourcesSimulatorsSectionComponent } from './sections/ressources-simulators-section/ressources-simulators-section.component';
 import { RessourcesCtaBridgeComponent } from './sections/ressources-cta-bridge/ressources-cta-bridge.component';
-import { RessourcesKnowledgeHubComponent } from './sections/ressources-knowledge-hub/ressources-knowledge-hub.component';
 
 @Component({
   selector: 'app-ressources',
@@ -15,7 +14,6 @@ import { RessourcesKnowledgeHubComponent } from './sections/ressources-knowledge
     RessourcesWhySectionComponent,
     RessourcesSimulatorsSectionComponent,
     RessourcesCtaBridgeComponent,
-    RessourcesKnowledgeHubComponent,
   ],
   templateUrl: './ressources.component.html',
   styleUrl: './ressources.component.scss',

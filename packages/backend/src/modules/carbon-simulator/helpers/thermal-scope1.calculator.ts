@@ -95,15 +95,22 @@ export interface ThermalScope1Result {
   co2ThermalTonnes: number;
 }
 
+/** Default r_th when building type is unknown (office-like). Keeps backend uncrashable. */
+const DEFAULT_THERMAL_RATIO =
+  THERMAL_RATIO_BY_SECTOR[BuildingTypes.OFFICE_ADMIN_BANK] ?? 0.15;
+
 /**
- * Helper: get r_th for a given building type
- * Throws if building type is unknown (no default).
+ * Helper: get r_th for a given building type.
+ * Returns default for unknown types so the backend never throws.
  */
 function getThermalRatio(buildingType: BuildingTypes): number {
   const key = buildingType as unknown as keyof typeof THERMAL_RATIO_BY_SECTOR;
   const value = THERMAL_RATIO_BY_SECTOR[key];
   if (value === undefined) {
-    throw new Error(`Unknown building type for thermal ratio: buildingType=${buildingType}`);
+    Logger.warn(
+      `Unknown building type for thermal ratio: buildingType=${buildingType}, using default ${DEFAULT_THERMAL_RATIO}`
+    );
+    return DEFAULT_THERMAL_RATIO;
   }
   return value;
 }
@@ -141,7 +148,9 @@ function computeUsagesCoefficient(selectedHeatUsages: HeatUsageKey[]): number {
  * - If only DIESEL_FUEL → FE_th = FE_TH_MIX  (no litres, so use mix proxy)
  * - If multiple energies OR UNKNOWN → FE_th = FE_TH_MIX
  */
-function chooseThermalEmissionFactor(selectedHeatEnergies: HeatEnergyType[]): number {
+function chooseThermalEmissionFactor(
+  selectedHeatEnergies: HeatEnergyType[]
+): number {
   if (selectedHeatEnergies.length === 0) {
     // Unknown energy → use mix
     return CARBON_EMISSION_FACTORS.THERMAL_MIX;
@@ -179,7 +188,9 @@ function chooseThermalEmissionFactor(selectedHeatEnergies: HeatEnergyType[]): nu
  * - Étape 5 — FE_th (gaz / GPL / mix)
  * - Étape 6 — CO2_th = kWh_th × FE_th ; tCO2_th = CO2_th / 1000
  */
-export function calculateThermalScope1(input: ThermalScope1Input): ThermalScope1Result {
+export function calculateThermalScope1(
+  input: ThermalScope1Input
+): ThermalScope1Result {
   // Étape 0 — Activation
   if (!input.hasHeatUsages) {
     Logger.info('CO2_th = 0 (no heat usages)');
@@ -201,19 +212,25 @@ export function calculateThermalScope1(input: ThermalScope1Input): ThermalScope1
   const usagesCoefficient = computeUsagesCoefficient(input.selectedHeatUsages);
 
   // Étape 3 — Chaleur finale estimée
-  const finalThermalKwh = Number((baseThermalKwh * usagesCoefficient).toFixed(2));
+  const finalThermalKwh = Number(
+    (baseThermalKwh * usagesCoefficient).toFixed(2)
+  );
 
   // Étape 5 — Choisir FE_th
-  const appliedThermalEmissionFactor = chooseThermalEmissionFactor(input.selectedHeatEnergies);
+  const appliedThermalEmissionFactor = chooseThermalEmissionFactor(
+    input.selectedHeatEnergies
+  );
 
   // Étape 6 — CO₂ thermique
-  const co2ThermalKg = Number((finalThermalKwh * appliedThermalEmissionFactor).toFixed(2));
+  const co2ThermalKg = Number(
+    (finalThermalKwh * appliedThermalEmissionFactor).toFixed(2)
+  );
   const co2ThermalTonnes = Number((co2ThermalKg / 1000).toFixed(3));
 
   Logger.info(
     `CO2_th result: kWh_th_base=${baseThermalKwh}, C_usages=${usagesCoefficient}, ` +
       `kWh_th=${finalThermalKwh}, FE_th=${appliedThermalEmissionFactor}, ` +
-      `CO2_th=${co2ThermalKg} kg (${co2ThermalTonnes} t)`,
+      `CO2_th=${co2ThermalKg} kg (${co2ThermalTonnes} t)`
   );
 
   return {
@@ -225,4 +242,3 @@ export function calculateThermalScope1(input: ThermalScope1Input): ThermalScope1
     co2ThermalTonnes,
   };
 }
-
