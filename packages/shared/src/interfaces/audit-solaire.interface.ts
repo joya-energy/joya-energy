@@ -111,6 +111,10 @@ export interface  IAuditSolaireSimulation extends BusinessObject {
   mtActualCoverageRate?: number | null; // T_couv_real (0..1)
   mtSurplusFraction?: number | null; // %exc (0..1)
   mtSurplusWithinLimit?: boolean | null; // true if E_exc ≤ 30 % E_PV
+  /** MT only: annual savings from self-consumption (DT/an) = E_auto × (F_sans / C_annuelle) */
+  mtAnnualSelfConsumptionSavings?: number | null;
+  /** MT only: simplified annual bill with PV (DT/an) = F_sans − mtAnnualSelfConsumptionSavings */
+  mtAnnualBillWithPVApprox?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }

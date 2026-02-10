@@ -190,6 +190,7 @@ export class AuditSolaireSimulationService extends CommonService<
           monthlyRawConsumptions: monthlyConsumptions,
           installedPowerKwp: pvSystemData.installedPower,
           annualPVProduction: pvSystemData.annualPVProduction,
+          annualSelfConsumedEnergy: mtAutoconsumption.selfConsumedEnergy,
           tariffTension: input.tariffTension,
           tariffRegime: input.tariffRegime ?? undefined,
           installedPowerKwpOverride: mtAutoconsumption.theoreticalPVPower,
@@ -387,6 +388,46 @@ export class AuditSolaireSimulationService extends CommonService<
     mtAutoconsumption: PVAutoconsumptionResult | null,
     mtPairIndex: OperatingHoursPairIndex | null
   ): ICreateAuditSolaireSimulation {
+    // Base annual savings from monthly results (BT baseline)
+    let annualSavings = economicData.monthlyResults.reduce(
+      (sum, month) => sum + month.monthlySavings,
+      0
+    );
+
+    // Extract first-year economics for derived MT metrics
+    const firstYearEconomics = economicData.annualResults[0];
+    const annualBillWithoutPV = firstYearEconomics?.annualBillWithoutPV ?? 0;
+
+    // MT-specific derived metrics
+    let mtAnnualSelfConsumptionSavings: number | null = null;
+    let mtAnnualBillWithPVApprox: number | null = null;
+
+    if (input.tariffTension === 'MT') {
+      // Self-consumption-based savings: E_auto × (F_sans / C_annuelle)
+      if (mtAutoconsumption?.selfConsumedEnergy != null && consumptionData.annualEstimatedConsumption > 0) {
+        const avoidedTariff =
+          annualBillWithoutPV / consumptionData.annualEstimatedConsumption;
+        mtAnnualSelfConsumptionSavings =
+          mtAutoconsumption.selfConsumedEnergy * avoidedTariff;
+        mtAnnualBillWithPVApprox =
+          annualBillWithoutPV - mtAnnualSelfConsumptionSavings;
+      }
+
+      // Build Eco_annuel starting from self-consumption savings when available
+      if (mtAnnualSelfConsumptionSavings != null) {
+        annualSavings = mtAnnualSelfConsumptionSavings;
+      }
+
+      // Include revenue from surplus sale in Eco_annuel when MT data is available:
+      // Eco_annuel = (E_auto × Tarif_évité) + Vente_exc
+      if (mtAutoconsumption?.gridSurplus != null) {
+        const SURPLUS_BUYBACK_TARIFF_DT_PER_KWH = 0.08;
+        const surplusRevenueSTEG =
+          mtAutoconsumption.gridSurplus * SURPLUS_BUYBACK_TARIFF_DT_PER_KWH;
+        annualSavings += surplusRevenueSTEG;
+      }
+    }
+
     const payload = {
       address: input.address,
       fullName: input.fullName,
@@ -417,10 +458,7 @@ export class AuditSolaireSimulationService extends CommonService<
 
       installationCost: economicData.investmentCost,
       annualOpex: economicData.annualMaintenanceCost,
-      annualSavings: economicData.monthlyResults.reduce(
-        (sum, month) => sum + month.monthlySavings,
-        0
-      ),
+      annualSavings,
       totalSavings25Years: economicData.totalSavings25Years,
       coverage: pvSystemData.energyCoverageRate, // Alias for compatibility
       simplePaybackYears: economicData.simplePaybackYears,
@@ -453,6 +491,10 @@ export class AuditSolaireSimulationService extends CommonService<
       mtActualCoverageRate: input.tariffTension === 'MT' ? mtAutoconsumption?.actualCoverageRate ?? null : null,
       mtSurplusFraction: input.tariffTension === 'MT' ? mtAutoconsumption?.surplusFraction ?? null : null,
       mtSurplusWithinLimit: input.tariffTension === 'MT' ? mtAutoconsumption?.surplusWithinLimit ?? null : null,
+      mtAnnualSelfConsumptionSavings:
+        input.tariffTension === 'MT' ? mtAnnualSelfConsumptionSavings : null,
+      mtAnnualBillWithPVApprox:
+        input.tariffTension === 'MT' ? mtAnnualBillWithPVApprox : null,
     } as unknown as ICreateAuditSolaireSimulation;
 
     return payload;
