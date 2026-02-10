@@ -716,11 +716,24 @@ export class AuditPDFService {
         ? formatNumber(pvData.avgPriceWithPV * 1000, 0)
         : 'N/A';
       // Annual bills and surplus revenue (year 1)
-      flattened.annualBillWithoutPV = formatNumber(pvData.annualBillWithoutPV, 0);
-      flattened.annualBillWithPV = formatNumber(pvData.annualBillWithPV, 0);
-      flattened.surplusRevenueSTEG = formatNumber(pvData.surplusRevenueSTEG ?? 0, 0);
-      // Eco_annuel is already provided in pvData.annualSavings from the economic analysis
-      flattened.annualSavings = formatNumber(pvData.annualSavings, 0);
+      const annualBillWithoutPVValue = pvData.annualBillWithoutPV ?? null;
+      const surplusRevenueSTEGValue = pvData.surplusRevenueSTEG ?? 0;
+      const annualSavingsValue = pvData.annualSavings ?? null;
+
+      // Ensure PDF values are consistent with Eco_annuel formula:
+      // Eco_annuel = F_sans - F_avec + Vente_exc
+      // ⇒ F_avec = F_sans - (Eco_annuel - Vente_exc)
+      let annualBillWithPVForPdf: number | null = null;
+      if (annualBillWithoutPVValue !== null && annualSavingsValue !== null) {
+        annualBillWithPVForPdf =
+          annualBillWithoutPVValue - (annualSavingsValue - surplusRevenueSTEGValue);
+      }
+
+      flattened.annualBillWithoutPV = formatNumber(annualBillWithoutPVValue, 0);
+      flattened.annualBillWithPV = formatNumber(annualBillWithPVForPdf, 0);
+      flattened.surplusRevenueSTEG = formatNumber(surplusRevenueSTEGValue, 0);
+      // Eco_annuel is already provided by pvData.annualSavings
+      flattened.annualSavings = formatNumber(annualSavingsValue, 0);
       flattened.gainCumulated = formatNumber(pvData.gainCumulated, 0);
       flattened.npv = formatNumber(pvData.npv, 0);
       flattened.paybackSimple = formatNumber(pvData.paybackSimple, 2);
