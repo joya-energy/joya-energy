@@ -86,5 +86,18 @@ export function toAuditSolaireResponseDto(simulation: IAuditSolaireSimulation): 
     paybackMonths: simulation.paybackMonths,
     createdAt: simulation.createdAt,
     updatedAt: simulation.updatedAt,
+    mtPairIndex: simulation.mtPairIndex,
+    mtOperatingHoursCase: simulation.mtOperatingHoursCase,
+    mtCoverageRate: simulation.mtCoverageRate,
+    mtSelfConsumptionRatio: simulation.mtSelfConsumptionRatio,
+    mtTheoreticalPVPower: simulation.mtTheoreticalPVPower,
+    mtAnnualPVProduction: simulation.mtAnnualPVProduction,
+    mtSelfConsumedEnergy: simulation.mtSelfConsumedEnergy,
+    mtGridSurplus: simulation.mtGridSurplus,
+    mtActualCoverageRate: simulation.mtActualCoverageRate,
+    mtSurplusFraction: simulation.mtSurplusFraction,
+    mtSurplusWithinLimit: simulation.mtSurplusWithinLimit,
+    mtAnnualSelfConsumptionSavings: simulation.mtAnnualSelfConsumptionSavings,
+    mtAnnualBillWithPVApprox: simulation.mtAnnualBillWithPVApprox,
   };
 }

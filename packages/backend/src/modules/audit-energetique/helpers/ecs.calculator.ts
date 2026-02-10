@@ -3,6 +3,8 @@ import { DomesticHotWaterTypes } from '@shared/enums/audit-batiment.enum';
 export interface EcsCalculationInput {
   ecsType: DomesticHotWaterTypes;
   ecsUsageFactor: number;
+  /** General usage factor from operating hours (0–1), same as for lighting/HVAC */
+  usageFactor: number;
   reference: number;
   gasEfficiency: number;
   electricEfficiency: number;
@@ -27,12 +29,13 @@ export function computeDomesticHotWaterLoad(params: EcsCalculationInput): EcsCal
   const {
     ecsType,
     ecsUsageFactor,
+    usageFactor,
     reference,
     gasEfficiency,
     electricEfficiency,
   } = params;
 
-  const ecsUtile = reference * ecsUsageFactor;
+  const ecsUtile = reference * ecsUsageFactor * usageFactor;
 
   if (ecsType === DomesticHotWaterTypes.NONE) {
     return { perSquare: 0, absoluteKwh: 0 };

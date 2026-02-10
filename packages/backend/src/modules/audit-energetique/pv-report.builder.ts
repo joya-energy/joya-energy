@@ -8,6 +8,12 @@ export type PvReportData = {
   pvYield: number | null;
   pvProductionYear1: number | null;
   coverageRate: number | null;
+  /** MT only: self-consumed energy (kWh/an) */
+  selfConsumedEnergy: number | null;
+  /** MT only: grid surplus (kWh/an) */
+  gridSurplus: number | null;
+  /** MT only: surplus rate as percentage (0–100) */
+  surplusRatePercent: number | null;
 
   consumptionWithoutPV: number | null;
   consumptionWithPV: number | null;
@@ -18,6 +24,13 @@ export type PvReportData = {
   avgPriceWithPV_mDt: number | null;
 
   annualSavings: number | null;
+
+  /** Annual bill without PV (DT) – year 1 */
+  annualBillWithoutPV: number | null;
+  /** Annual bill with PV (DT) – year 1 */
+  annualBillWithPV: number | null;
+  /** MT: annual revenue from selling surplus to STEG (DT) */
+  surplusRevenueSTEG: number | null;
 
   gainCumulated: number | null;
   gainDiscounted: number | null;
@@ -122,33 +135,41 @@ export function buildPvReportDataFromSolaire(
   
   // Validation warnings for missing critical data
   
-  // PV Power: installedPower or systemSize_kWp (kWc)
-  // Direct access - these should be populated from calculatePVProduction
+  // PV Power: for MT use mtTheoreticalPVPower, otherwise installedPower or systemSize_kWp (kWc)
   const pvPower = validateNumber(
+    (solaireDto as { mtTheoreticalPVPower?: number | null }).mtTheoreticalPVPower ??
     solaireDto.installedPower ?? solaireDto.systemSize_kWp
   );
-  
-  // PV Production Year 1: expectedProduction (annualPVProduction from calculator)
-  // This is stored as: expectedProduction: pvSystemData.annualPVProduction
-  const pvProductionYear1 = validateNumber(solaireDto.expectedProduction);
-  
-  // PV Yield: kWh/kWc/an (specific yield from PVGIS)
-  // annualProductible = specific yield from PVGIS (kWh/kWp/year) - stored from solarData.annualProductibleKwhPerKwp
-  // This is the yield PER kWp, not the total production
-  const annualProductible = validateNumber(solaireDto.annualProductible);
-  
-  // Calculate yield: if annualProductible exists, use it directly (it's already kWh/kWp/year)
-  // Otherwise, calculate from production/power
-  const pvYield = annualProductible !== null
-    ? annualProductible  // Direct from PVGIS
-    : (pvPower !== null && pvProductionYear1 !== null && pvPower > 0 
-      ? pvProductionYear1 / pvPower 
-      : null);
-  
-  // Coverage Rate: percentage of consumption covered by PV
-  const coverageRate = validateNumber(
-    solaireDto.energyCoverageRate ?? solaireDto.coverage
+
+  // PV Production Year 1: for MT use mtAnnualPVProduction, otherwise expectedProduction
+  const pvProductionYear1 = validateNumber(
+    (solaireDto as { mtAnnualPVProduction?: number | null }).mtAnnualPVProduction ??
+    solaireDto.expectedProduction
   );
+
+  // PV Yield: kWh/kWc/an (specific yield from PVGIS or production/power)
+  const annualProductible = validateNumber(solaireDto.annualProductible);
+  const pvYield = annualProductible !== null
+    ? annualProductible
+    : (pvPower !== null && pvProductionYear1 !== null && pvPower > 0
+      ? pvProductionYear1 / pvPower
+      : null);
+
+  // Coverage Rate: for MT use mtActualCoverageRate (0..1 → %), otherwise energyCoverageRate/coverage
+  const mtActualCoverageRate = (solaireDto as { mtActualCoverageRate?: number | null }).mtActualCoverageRate;
+  const coverageRate = mtActualCoverageRate != null && Number.isFinite(mtActualCoverageRate)
+    ? mtActualCoverageRate * 100
+    : validateNumber(solaireDto.energyCoverageRate ?? solaireDto.coverage);
+
+  // MT-only: self-consumed energy, grid surplus, surplus rate (%)
+  const mtSelfConsumedEnergy = (solaireDto as { mtSelfConsumedEnergy?: number | null }).mtSelfConsumedEnergy;
+  const mtGridSurplus = (solaireDto as { mtGridSurplus?: number | null }).mtGridSurplus;
+  const mtSurplusFraction = (solaireDto as { mtSurplusFraction?: number | null }).mtSurplusFraction;
+  const selfConsumedEnergy = validateNumber(mtSelfConsumedEnergy);
+  const gridSurplus = validateNumber(mtGridSurplus);
+  const surplusRatePercent = mtSurplusFraction != null && Number.isFinite(mtSurplusFraction)
+    ? mtSurplusFraction * 100
+    : null;
   
   // Validation and warnings
   if (pvPower === null) {
@@ -184,15 +205,17 @@ export function buildPvReportDataFromSolaire(
   let avgPriceWithoutPV = 0;
   let avgPriceWithPV = 0;
   let consumptionWithPV = 0;
+  let totalBillWithout = 0;
+  let totalBillWith = 0;
   
   Logger.info(`🔍 Checking monthlyEconomics: exists=${!!solaireDto.monthlyEconomics}, length=${solaireDto.monthlyEconomics?.length ?? 0}`);
   
   if (solaireDto.monthlyEconomics && solaireDto.monthlyEconomics.length > 0) {
     Logger.info(`📊 Calculating avg prices from monthlyEconomics (${solaireDto.monthlyEconomics.length} months)`);
-    const totalBillWithout = solaireDto.monthlyEconomics.reduce(
+    totalBillWithout = solaireDto.monthlyEconomics.reduce(
       (sum, m) => sum + (validateNumber(m.billWithoutPV) ?? 0), 0
     );
-    const totalBillWith = solaireDto.monthlyEconomics.reduce(
+    totalBillWith = solaireDto.monthlyEconomics.reduce(
       (sum, m) => sum + (validateNumber(m.billWithPV) ?? 0), 0
     );
     const totalConsumptionWithout = solaireDto.monthlyEconomics.reduce(
@@ -237,6 +260,20 @@ export function buildPvReportDataFromSolaire(
     );
     annualSavings = calculatedSavings > 0 ? calculatedSavings : null;
   }
+
+  // Annual bills (year 1): from DTO or from monthly economics totals
+  const annualBillWithoutPV = validateNumber((solaireDto as { annualBillWithoutPV?: number }).annualBillWithoutPV)
+    ?? (totalBillWithout > 0 ? totalBillWithout : null);
+  const annualBillWithPV = validateNumber((solaireDto as { annualBillWithPV?: number }).annualBillWithPV)
+    ?? (totalBillWith > 0 ? totalBillWith : null);
+
+  // MT: revenue from selling surplus to STEG (DT).
+  // Surplus sale tariff (injection) = 0.08 DT/kWh.
+  const SURPLUS_BUYBACK_TARIFF_DT_PER_KWH = 0.08;
+  const surplusRevenueSTEG = gridSurplus != null && gridSurplus > 0
+    ? round(gridSurplus * SURPLUS_BUYBACK_TARIFF_DT_PER_KWH, 0)
+    : null;
+
   // Validate required financial metrics are present
   // These must come from proper economic analysis, not fallback calculations
   const recordId = (solaireDto as any).id || 'unknown';
@@ -400,7 +437,10 @@ export function buildPvReportDataFromSolaire(
     pvPower: safeRound(pvPower, 2),
     pvYield: safeRound(pvYield, 0),
     pvProductionYear1: safeRound(pvProductionYear1, 0),
-    coverageRate: safeRound(coverageRate, 1),
+    coverageRate: safeRound(coverageRate as number | null, 1),
+    selfConsumedEnergy: safeRound(selfConsumedEnergy, 0),
+    gridSurplus: safeRound(gridSurplus, 0),
+    surplusRatePercent: safeRound(surplusRatePercent, 1),
 
     consumptionWithoutPV: safeRound(consumptionWithoutPV, 0),
     consumptionWithPV: safeRound(consumptionWithPV, 0),
@@ -412,6 +452,10 @@ export function buildPvReportDataFromSolaire(
     avgPriceWithPV_mDt: avgPriceWithPV !== null ? round(avgPriceWithPV * 1000, 0) : null,
 
     annualSavings: safeRound(annualSavings, 0),
+
+    annualBillWithoutPV: safeRound(annualBillWithoutPV, 0),
+    annualBillWithPV: safeRound(annualBillWithPV, 0),
+    surplusRevenueSTEG: safeRound(surplusRevenueSTEG, 0),
 
     gainCumulated: safeRound(gainCumulatedFromEconomics, 0),
     gainDiscounted: safeRound(gainDiscounted, 0),
