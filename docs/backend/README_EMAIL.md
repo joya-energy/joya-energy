@@ -18,12 +18,15 @@ EMAIL_TO=admin@joya.com
 ## ⚡ Quick Setup Options
 
 ### Option 1: Automated Setup (Recommended for Testing)
+
 ```bash
 npm run setup-email
 ```
+
 This generates test credentials and tests your connection automatically.
 
 ### Option 2: Manual Setup
+
 1. Read `QUICK_START_EMAIL.md` for 5-minute setup
 2. Read `EMAIL_SETUP_GUIDE.md` for detailed instructions
 
@@ -32,11 +35,13 @@ This generates test credentials and tests your connection automatically.
 ## 🧪 How to Test
 
 ### 1. Start Server
+
 ```bash
 npm run dev
 ```
 
 ### 2. Test Contact Form
+
 Use the `test-contact-api.http` file with REST Client extension, or:
 
 ```bash
@@ -46,6 +51,7 @@ curl -X POST http://localhost:3001/api/contacts \
 ```
 
 ### 3. Check Email
+
 - **Console logs** will show "Email dispatched to..."
 - **Ethereal**: Console will show preview URL
 - **Mailtrap**: Check your Mailtrap inbox
@@ -80,11 +86,13 @@ curl -X POST http://localhost:3001/api/contacts \
 ## 🎓 Best Practices
 
 ### Development
+
 - ✅ Use **Ethereal** or **Mailtrap** (catches all emails)
 - ✅ Never use production email service
 - ✅ Keep `.env` in `.gitignore`
 
 ### Production
+
 - ✅ Use **SendGrid**, **Mailgun**, or **AWS SES**
 - ✅ Set up proper domain verification
 - ✅ Use environment variables (not `.env` file)
@@ -160,4 +168,3 @@ See `EMAIL_SETUP_GUIDE.md` section "Production Email Services" for details.
 **Need more help?** Check the detailed guides:
 - `QUICK_START_EMAIL.md` - Quick setup
 - `EMAIL_SETUP_GUIDE.md` - Full documentation
-
