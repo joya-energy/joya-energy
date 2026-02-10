@@ -152,6 +152,9 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   private readonly notificationStore = inject(NotificationStore);
   private readonly cdr = inject(ChangeDetectorRef);
 
+  // Surplus sale tariff (injection) used for MT surplus revenue calculations (DT/kWh)
+  protected readonly surplusBuybackTariffDtPerKwh = 0.08;
+
   // Reuse existing typed form from old solar simulator
   protected readonly form: FormGroup = this.formService.buildForm();
 

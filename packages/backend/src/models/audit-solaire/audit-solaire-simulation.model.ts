@@ -73,7 +73,9 @@ export const AuditSolaireSimulationModel: Model<AuditSolaireSimulationDocument> 
     mtGridSurplus: { type: Number, required: false },
     mtActualCoverageRate: { type: Number, required: false },
     mtSurplusFraction: { type: Number, required: false },
-    mtSurplusWithinLimit: { type: Boolean, required: false }
+    mtSurplusWithinLimit: { type: Boolean, required: false },
+    mtAnnualSelfConsumptionSavings: { type: Number, required: false },
+    mtAnnualBillWithPVApprox: { type: Number, required: false },
   },
   {
     timestamps: true

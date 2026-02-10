@@ -114,6 +114,7 @@ export class AuditSimulationService extends CommonService<
     const ecsLoad = computeDomesticHotWaterLoad({
       ecsType: payload.domesticHotWater,
       ecsUsageFactor: ECS_USAGE_FACTORS[payload.buildingType] ?? 1,
+      usageFactor,
       reference: buildingCoefficients.ecs,
       gasEfficiency: Number(process.env.ENERGY_AUDIT_ECS_GAS_EFF),
       electricEfficiency: Number(process.env.ENERGY_AUDIT_ECS_ELEC_EFF)

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { AuditPDFService } from '../audit-energetique/pdf.service';
+import { AuditPDFService, type PDFTemplateType } from './pdf.service';
 import { mailService, MailAttachment } from '../../common/mail/mail.service';
 import { Logger } from '@backend/middlewares/logger.midddleware';
 import { HTTP400Error } from '@backend/errors/http.error';
@@ -220,11 +220,14 @@ export class PVReportController {
       throw new Error('Either solaireId or energetiqueId must be provided');
     }
 
-    // Pass both DTOs explicitly so PDF service can combine them
-    Logger.info(`🔄 Calling PDF service.generatePDF with template='pv'`);
+    // Choose PV template: MT if simulation has MT autoconsumption data, otherwise BT
+    const pvTemplate: PDFTemplateType =
+      solaireDto?.mtSelfConsumedEnergy != null ? 'pv-mt' : 'pv-bt';
+
+    Logger.info(`🔄 Calling PDF service.generatePDF with template='${pvTemplate}'`);
     const pdfBuffer = await this.pdfService.generatePDF(
       dto,
-      'pv',
+      pvTemplate,
       solaireDto,
       energetiqueDto
     );

@@ -101,10 +101,10 @@
                   </div>
                   <div class="card-content">
                     <div class="card-value">
-                      {{ (simulation.mtTheoreticalPVPower ?? simulation.systemSize_kWp) | number:'1.1-1' }} <span class="unit">kWc</span>
+                      {{ (simulation.mtTheoreticalPVPower ?? simulation.systemSize_kWp) | noGrouping:'1.1-1' }} <span class="unit">kWc</span>
                     </div>
                     <div class="card-label">Puissance Installée</div>
-                    <div class="card-description">{{ simulation.mtTheoreticalPVPower != null ? 'Capacité selon T_couv ' : 'Capacité solaire optimale' }}</div>
+                    <div class="card-description">Capacité solaire optimale</div>
                   </div>
                   <div class="card-accent"></div>
                 </div>
@@ -118,12 +118,12 @@
                   </div>
                   <div class="card-content">
                     <div class="card-value">
-                      {{ ((simulation.mtAnnualPVProduction ?? simulation.expectedProduction) / 1000) | number:'1.0-0' }}
+                      {{ ((simulation.mtAnnualPVProduction ?? simulation.expectedProduction) / 1000) | noGrouping:'1.0-0' }}
                       <span class="unit">MWh</span>
                     </div>
                     <div class="card-label">Production Annuelle</div>
                     <div class="card-description">
-                      {{ (simulation.mtAnnualPVProduction ?? simulation.expectedProduction) | number:'1.0-0' }}
+                      {{ (simulation.mtAnnualPVProduction ?? simulation.expectedProduction) | noGrouping:'1.0-0' }}
                       kWh/an
                     </div>
                   </div>
@@ -136,8 +136,8 @@
                   </div>
                   <div class="card-content">
                     <div class="card-value">
-                      @if (simulation.mtSelfConsumedEnergy != null && simulation.annualConsumption > 0) {
-                        {{ ((simulation.mtSelfConsumedEnergy * (simulation.annualBillWithoutPV / simulation.annualConsumption)) / 1000) | number:'1.0-0' }}
+                      @if (simulation.mtAnnualSelfConsumptionSavings != null) {
+                        {{ (simulation.mtAnnualSelfConsumptionSavings / 1000) | noGrouping:'1.0-0' }}
                       } @else {
                         {{ (simulation.annualSavings / 1000) | noGrouping:'1.0-0' }}
                       }
@@ -145,8 +145,8 @@
                     </div>
                     <div class="card-label">Économies Annuelles{{ simulation.mtSelfConsumedEnergy == null ? ' (1ᵉʳᵉ année)' : '' }}</div>
                     <div class="card-description">
-                      @if (simulation.mtSelfConsumedEnergy != null && simulation.annualConsumption > 0) {
-                        {{ (simulation.mtSelfConsumedEnergy * (simulation.annualBillWithoutPV / simulation.annualConsumption)) | number:'1.0-0' }}
+                      @if (simulation.mtAnnualSelfConsumptionSavings != null) {
+                        {{ simulation.mtAnnualSelfConsumptionSavings | noGrouping:'1.0-0' }}
                       } @else {
                         {{ simulation.annualSavings | noGrouping:'1.0-0' }}
                       }
@@ -267,17 +267,13 @@
                       <div class="transition-label">Installation Solaire</div>
                       @if (simulation.mtActualCoverageRate != null && simulation.mtSurplusFraction != null) {
                       <div class="transition-details">
-                        avec couverture = {{ (simulation.mtActualCoverageRate * 100) | number:'1.1-1' }}% et excedent = {{ (simulation.mtSurplusFraction * 100) | number:'1.1-1' }}%
+                        avec couverture = {{ (simulation.mtActualCoverageRate * 100) | noGrouping:'1.1-1' }}% et excedent = {{ (simulation.mtSurplusFraction * 100) | noGrouping:'1.1-1' }}%
                       </div>
                       }
                     </div>
                     <div class="savings-indicator">
                       <div class="savings-amount">
-                        @if (simulation.mtSelfConsumedEnergy != null && simulation.annualConsumption > 0) {
-                          -{{ (simulation.mtSelfConsumedEnergy * (simulation.annualBillWithoutPV / simulation.annualConsumption)) | number:'1.0-0' }}
-                        } @else {
-                          -{{ simulation.annualSavings | noGrouping:'1.0-0' }}
-                        }
+                        {{ simulation.annualSavings | noGrouping:'1.0-0' }}
                         DT
                       </div>
                       <div class="savings-label">Économies annuelles{{ simulation.mtSelfConsumedEnergy == null ? ' (1ᵉʳᵉ année)' : '' }}</div>
@@ -294,8 +290,8 @@
                     </div>
                     <div class="comparison-content">
                       <div class="comparison-value success">
-                        @if (simulation.mtSelfConsumedEnergy != null && simulation.annualConsumption > 0) {
-                          {{ (simulation.annualBillWithoutPV - (simulation.mtSelfConsumedEnergy * (simulation.annualBillWithoutPV / simulation.annualConsumption))) | number:'1.0-0' }}
+                      @if (simulation.mtAnnualBillWithPVApprox != null) {
+                        {{ simulation.mtAnnualBillWithPVApprox | noGrouping:'1.0-0' }}
                         } @else {
                           -{{ simulation.annualSavings | noGrouping:'1.0-0' }}
                         }
@@ -308,7 +304,7 @@
                           <ng-icon name="lucideZap" class="detail-icon"></ng-icon>
                           <span>Énergie auto consommée :
                             @if (simulation.mtSelfConsumedEnergy != null) {
-                              {{ simulation.mtSelfConsumedEnergy | number:'1.0-0' }} kWh/an
+                              {{ simulation.mtSelfConsumedEnergy | noGrouping:'1.0-0' }} kWh/an
                             } @else {
                               —
                             }
@@ -317,11 +313,11 @@
                         @if (simulation.mtSelfConsumedEnergy == null) {
                         <div class="detail-item">
                           <ng-icon name="lucideZap" class="detail-icon"></ng-icon>
-                          <span>Couverture: {{ simulation.coverage | number:'1.1-1' }}%</span>
+                          <span>Couverture: {{ simulation.coverage | noGrouping:'1.1-1' }}%</span>
                         </div>
                         <div class="detail-item">
                           <ng-icon name="lucideSun" class="detail-icon"></ng-icon>
-                          <span>{{ (simulation.expectedProduction / 1000) | number:'1.1-1' }} MWh/an produits</span>
+                          <span>{{ (simulation.expectedProduction / 1000) | noGrouping:'1.1-1' }} MWh/an produits</span>
                         </div>
                         }
                       </div>
@@ -801,7 +797,7 @@
                     </div>
                     <div class="environmental-content">
                       <div class="environmental-value success">
-                        {{ simulation.annualCo2Avoided | noGrouping : '1.1-1' }}
+                        {{ simulation.annualCo2Avoided | noGrouping : '1.2-2' }}
                         <span class="unit">tonnes</span>
                       </div>
                       <div class="environmental-label">CO₂ évité</div>

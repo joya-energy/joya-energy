@@ -33,7 +33,7 @@ const COVER_IMAGE_FILES = ['cover.png', 'pv-cover.png'];
 type PDFInputDto =
   | AuditEnergetiqueResponseDto
   | AuditSolaireResponseDto;
-export type PDFTemplateType = 'audit' | 'pv';
+export type PDFTemplateType = 'audit' | 'pv-bt' | 'pv-mt';
 
 
 /**
@@ -151,14 +151,19 @@ export class AuditPDFService {
     try {
       // Cache templates
       const auditTemplateDir = path.resolve(__dirname, './template/audit');
-      const pvTemplateDir = path.resolve(__dirname, './template/pv');
-      
+      const pvBtTemplateDir = path.resolve(__dirname, './template/pv-bt');
+      const pvMtTemplateDir = path.resolve(__dirname, './template/pv-mt');
+
       this.assetsCache.templates.set('audit', fs.readFileSync(
         path.join(auditTemplateDir, 'template.html'),
         'utf8'
       ));
-      this.assetsCache.templates.set('pv', fs.readFileSync(
-        path.join(pvTemplateDir, 'template.html'),
+      this.assetsCache.templates.set('pv-bt', fs.readFileSync(
+        path.join(pvBtTemplateDir, 'template.html'),
+        'utf8'
+      ));
+      this.assetsCache.templates.set('pv-mt', fs.readFileSync(
+        path.join(pvMtTemplateDir, 'template.html'),
         'utf8'
       ));
 
@@ -171,12 +176,20 @@ export class AuditPDFService {
         path.join(auditTemplateDir, 'style.css'),
         'utf8'
       ));
-      this.assetsCache.css.set('pv-bootstrap', fs.readFileSync(
-        path.join(pvTemplateDir, 'bootstrap.min.css'),
+      this.assetsCache.css.set('pv-bt-bootstrap', fs.readFileSync(
+        path.join(pvBtTemplateDir, 'bootstrap.min.css'),
         'utf8'
       ));
-      this.assetsCache.css.set('pv-style', fs.readFileSync(
-        path.join(pvTemplateDir, 'style.css'),
+      this.assetsCache.css.set('pv-bt-style', fs.readFileSync(
+        path.join(pvBtTemplateDir, 'style.css'),
+        'utf8'
+      ));
+      this.assetsCache.css.set('pv-mt-bootstrap', fs.readFileSync(
+        path.join(pvMtTemplateDir, 'bootstrap.min.css'),
+        'utf8'
+      ));
+      this.assetsCache.css.set('pv-mt-style', fs.readFileSync(
+        path.join(pvMtTemplateDir, 'style.css'),
         'utf8'
       ));
 
@@ -468,7 +481,7 @@ export class AuditPDFService {
   ): Promise<Buffer> {
 
     const isAudit = template === 'audit';
-    const isPv = template === 'pv';
+    const isPv = template === 'pv-bt' || template === 'pv-mt';
 
     // For PV template, use provided DTOs or fallback to dto parameter
     // Prefer explicitly passed DTOs over type casting from single dto
@@ -598,7 +611,7 @@ export class AuditPDFService {
       email: finalSolaireDto?.email ?? '',
       phoneNumber: finalSolaireDto?.phoneNumber ?? '',
       address: finalSolaireDto?.address ?? '',
-      governorate: '', // Not stored in PV simulation
+      governorate: data?.contact?.governorate ?? '', // From energy audit contact; not stored in PV simulation
 
       // Building info - from Energetique if available
       heating: data?.systems.heating ?? '',
@@ -644,7 +657,7 @@ export class AuditPDFService {
     // ===============================
     // MERGE PV REPORT DATA (ONLY FOR PV TEMPLATE)
     // ===============================
-    if (template === 'pv') {
+    if (template === 'pv-bt' || template === 'pv-mt') {
       // Format numbers for display (without locale formatting to avoid space issues)
       // Returns "N/A" for null/undefined values (missing data)
       const formatNumber = (n: number | string | null | undefined, decimals = 2): string => {
@@ -687,6 +700,9 @@ export class AuditPDFService {
       flattened.pvYield = formatNumber(pvData.pvYield, 0);
       flattened.pvProductionYear1 = formatNumber(pvData.pvProductionYear1, 0);
       flattened.coverageRate = formatNumber(pvData.coverageRate, 1);
+      flattened.selfConsumedEnergy = formatNumber(pvData.selfConsumedEnergy, 0);
+      flattened.gridSurplus = formatNumber(pvData.gridSurplus, 0);
+      flattened.surplusRatePercent = formatNumber(pvData.surplusRatePercent, 1);
       
       // Use actual values from PV data (these should be calculated correctly)
       flattened.consumptionWithoutPV = formatNumber(pvData.consumptionWithoutPV, 0);
@@ -699,7 +715,25 @@ export class AuditPDFService {
       flattened.avgPriceWithPV_mDt = pvData.avgPriceWithPV !== null
         ? formatNumber(pvData.avgPriceWithPV * 1000, 0)
         : 'N/A';
-      flattened.annualSavings = formatNumber(pvData.annualSavings, 0);
+      // Annual bills and surplus revenue (year 1)
+      const annualBillWithoutPVValue = pvData.annualBillWithoutPV ?? null;
+      const surplusRevenueSTEGValue = pvData.surplusRevenueSTEG ?? 0;
+      const annualSavingsValue = pvData.annualSavings ?? null;
+
+      // Ensure PDF values are consistent with Eco_annuel formula:
+      // Eco_annuel = F_sans - F_avec + Vente_exc
+      // ⇒ F_avec = F_sans - (Eco_annuel - Vente_exc)
+      let annualBillWithPVForPdf: number | null = null;
+      if (annualBillWithoutPVValue !== null && annualSavingsValue !== null) {
+        annualBillWithPVForPdf =
+          annualBillWithoutPVValue - (annualSavingsValue - surplusRevenueSTEGValue);
+      }
+
+      flattened.annualBillWithoutPV = formatNumber(annualBillWithoutPVValue, 0);
+      flattened.annualBillWithPV = formatNumber(annualBillWithPVForPdf, 0);
+      flattened.surplusRevenueSTEG = formatNumber(surplusRevenueSTEGValue, 0);
+      // Eco_annuel is already provided by pvData.annualSavings
+      flattened.annualSavings = formatNumber(annualSavingsValue, 0);
       flattened.gainCumulated = formatNumber(pvData.gainCumulated, 0);
       flattened.npv = formatNumber(pvData.npv, 0);
       flattened.paybackSimple = formatNumber(pvData.paybackSimple, 2);
@@ -1001,12 +1035,12 @@ export class AuditPDFService {
     // Save to cloud storage (or fallback) WITHOUT blocking the response.
     // This is often the slowest step (network upload). We run it in the background.
     try {
-      const filePrefix = template === 'pv' ? 'PV' : 'Audit';
+      const filePrefix = (template === 'pv-bt' || template === 'pv-mt') ? 'PV' : 'Audit';
       const fileName = data
         ? `${data.contact.companyName || data.contact.fullName || 'Client'}`
         : (finalSolaireDto ? 'Client' : 'Unknown');
       const originalFileName = `${filePrefix}_${fileName}.pdf`;
-      const fileType = template === 'pv' ? FileType.PDF_PV_REPORT : FileType.PDF_AUDIT_REPORT;
+      const fileType = (template === 'pv-bt' || template === 'pv-mt') ? FileType.PDF_PV_REPORT : FileType.PDF_AUDIT_REPORT;
 
       const simulationId = auditDto?.data?.simulationId
         ?? (dto as AuditEnergetiqueResponseDto)?.data?.simulationId
@@ -1014,7 +1048,7 @@ export class AuditPDFService {
 
       const metadata: IFile['metadata'] = {
         simulationId,
-        simulationType: template === 'pv'
+        simulationType: (template === 'pv-bt' || template === 'pv-mt')
           ? (finalSolaireDto ? AuditSimulationTypes.AUDIT_SOLAIRE : AuditSimulationTypes.AUDIT_ENERGETIQUE)
           : AuditSimulationTypes.AUDIT_ENERGETIQUE,
         companyName: data?.contact?.companyName || data?.contact?.fullName || undefined,

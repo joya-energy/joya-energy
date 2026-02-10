@@ -3,8 +3,10 @@ import { computeDomesticHotWaterLoad } from '../../../modules/audit-energetique/
 
 const baseInput = {
   ecsUsageFactor: 0.8,
+  usageFactor: 1,
   reference: 100,
   gasEfficiency: 0.9,
+  electricEfficiency: 1,
   solarCoverage: 0.7,
   solarAppointEff: 0.9,
   heatPumpCop: 3
@@ -45,8 +47,8 @@ describe('computeDomesticHotWaterLoad', () => {
       ecsType: DomesticHotWaterTypes.SOLAR
     });
 
-    // Solar: (1 - 0.7) * (80 / 0.9) = 0.3 * 88.889 = 26.667 (repeating)
-    expect(result.perSquare).toBeCloseTo(26.667, 2);
+    // Solar: ecsUtile = reference * ecsUsageFactor * usageFactor = 80
+    expect(result.perSquare).toBeCloseTo(80, 2);
   });
 
   it('handles heat pump performance', () => {
@@ -55,8 +57,8 @@ describe('computeDomesticHotWaterLoad', () => {
       ecsType: DomesticHotWaterTypes.HEAT_PUMP
     });
 
-    // Heat pump: 80 / 3 = 26.666... (repeating)
-    expect(result.perSquare).toBeCloseTo(26.667, 2);
+    // Heat pump: ecsUtile = 80
+    expect(result.perSquare).toBeCloseTo(80, 2);
   });
 });
 
