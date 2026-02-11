@@ -36,4 +36,8 @@ export class LeadService {
   createLead(payload: CreateLeadPayload): Observable<LeadResponse | LeadExistsResponse> {
     return this.api.post<LeadResponse | LeadExistsResponse>('/leads', payload);
   }
+
+  getLeads(): Observable<LeadResponse[]> {
+    return this.api.get<LeadResponse[]>('/leads');
+  }
 }

@@ -1,0 +1,146 @@
+<div class="leads-dashboard">
+  <div class="leads-container"> 
+  <!-- Header -->
+  <header class="leads-dashboard__header">
+    <div class="leads-dashboard__header-text">
+      <p class="leads-dashboard__badge">Tableau de bord</p>
+      <h1 class="leads-dashboard__title">Gestion des Leads</h1>
+      <p class="leads-dashboard__subtitle">
+        Suivez et gérez tous les prospects entrants — formulaires, simulateurs et newsletters.
+      </p>
+    </div>
+    <a routerLink="/contact" class="leads-dashboard__cta">
+      <ng-icon name="lucideUserPlus" class="leads-dashboard__cta-icon"></ng-icon>
+      Nouveau Lead
+    </a>
+  </header>
+
+  <!-- Stats cards -->
+  <div class="leads-dashboard__stats">
+    <div class="stat-card stat-card--accent">
+      <div class="stat-card__content">
+        <p class="stat-card__label">Total leads</p>
+        <p class="stat-card__value stat-card__value--white">{{ stats().total }}</p>
+        
+      </div>
+      <div class="stat-card__icon-wrap stat-card__icon-wrap--white">
+        <ng-icon name="lucideUsers" class="stat-card__icon"></ng-icon>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__content">
+        <p class="stat-card__label">Nouveaux aujourd'hui</p>
+        <p class="stat-card__value">{{ stats().newToday }}</p>
+      </div>
+      <div class="stat-card__icon-wrap stat-card__icon-wrap--yellow">
+        <ng-icon name="lucideClock" class="stat-card__icon"></ng-icon>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__content">
+        <p class="stat-card__label">Qualifiés</p>
+        <p class="stat-card__value">{{ stats().qualified }}</p>
+       
+      </div>
+      <div class="stat-card__icon-wrap stat-card__icon-wrap--yellow">
+        <ng-icon name="lucideCheckCircle2" class="stat-card__icon"></ng-icon>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__content">
+        <p class="stat-card__label">Convertis</p>
+        <p class="stat-card__value">{{ stats().converted }}</p>
+      </div>
+      <div class="stat-card__icon-wrap stat-card__icon-wrap--yellow">
+        <ng-icon name="lucideTrendingUp" class="stat-card__icon"></ng-icon>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search + Filters -->
+  <div class="leads-dashboard__toolbar">
+    <div class="leads-dashboard__search">
+      <ng-icon name="lucideSearch" class="leads-dashboard__search-icon"></ng-icon>
+      <input
+        type="search"
+        class="leads-dashboard__search-input"
+        placeholder="Rechercher par nom, email ou entreprise..."
+        [value]="search()"
+        (input)="onSearchInput($event)"
+      />
+    </div>
+    <div class="leads-dashboard__filters">
+      <ng-icon name="lucideGlobe" class="leads-dashboard__filter-icon"></ng-icon>
+      <select
+        class="leads-dashboard__select leads-dashboard__select--source"
+        [value]="sourceFilter()"
+        (change)="sourceFilter.set($any($event.target).value)"
+      >
+        <option value="all">Toutes les sources</option>
+        @for (src of sourceOptions(); track src) {
+          <option [value]="src">{{ getSourceLabel(src) }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="leads-dashboard__loading">
+      <div class="leads-dashboard__spinner"></div>
+      <p>Chargement des leads…</p>
+    </div>
+  } @else if (error()) {
+    <div class="leads-dashboard__error">
+      <p>{{ error() }}</p>
+    </div>
+  } @else {
+    <div class="leads-dashboard__table-wrap">
+      <table class="leads-table">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Entreprise</th>
+            <th>Téléphone</th>
+            <th>Source</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (filteredLeads().length === 0) {
+            <tr>
+              <td colspan="5" class="leads-table__empty">
+                Aucun lead trouvé. Essayez d'ajuster vos filtres ou votre recherche.
+              </td>
+            </tr>
+          } @else {
+            @for (lead of filteredLeads(); track lead.email) {
+              <tr>
+                <td>
+                  <div class="leads-table__name-cell">
+                    <span class="leads-table__name">{{ lead.name || '—' }}</span>
+                    <span class="leads-table__email">{{ lead.email }}</span>
+                  </div>
+                </td>
+                <td class="leads-table__company">{{ lead.companyName || '—' }}</td>
+                <td class="leads-table__phone">{{ lead.phoneNumber || '—' }}</td>
+                <td>
+                  <span class="leads-table__source">
+                    <ng-icon [name]="getSourceIcon(lead.source)" class="leads-table__source-icon"></ng-icon>
+                    {{ getSourceLabel(lead.source) }}
+                  </span>
+                </td>
+                <td class="leads-table__date">
+                  {{ lead.createdAt ? (lead.createdAt | date:'d MMM yyyy') : '—' }}
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+      <p class="leads-dashboard__footer">
+        {{ filteredLeads().length }} lead{{ filteredLeads().length > 1 ? 's' : '' }} affiché{{ filteredLeads().length > 1 ? 's' : '' }}
+      </p>
+    </div>
+  }
+</div>
+</div>

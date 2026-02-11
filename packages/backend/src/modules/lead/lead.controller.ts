@@ -6,7 +6,10 @@ import { HTTP400Error } from '@backend/errors/http.error';
 import { Logger } from '@backend/middlewares';
 
 export class LeadController {
-  public createLead = async (req: Request, res: Response<ILead | { message: string }>): Promise<void> => {
+  public createLead = async (
+    req: Request,
+    res: Response<ILead | { message: string }>
+  ): Promise<void> => {
     try {
       // Validate that email is provided
       if (!req.body.email || typeof req.body.email !== 'string' || !req.body.email.trim()) {
@@ -14,7 +17,7 @@ export class LeadController {
       }
 
       const result = await leadService.createLead(req.body);
-      
+
       // If email already exists, return 200 with message
       if ('message' in result && result.message === 'already exist') {
         res.status(HttpStatusCode.OK).json({ message: 'already exist' });
@@ -26,6 +29,16 @@ export class LeadController {
     } catch (error) {
       Logger.error(`Error: Lead not created: ${String(error)}`);
       throw new HTTP400Error('Error: Lead not created', error);
+    }
+  };
+
+  public getLeads = async (_req: Request, res: Response<ILead[]>): Promise<void> => {
+    try {
+      const leads = await leadService.findAll();
+      res.status(HttpStatusCode.OK).json(leads);
+    } catch (error) {
+      Logger.error(`Error: Leads not found: ${String(error)}`);
+      throw new HTTP400Error('Error: Leads not found', error);
     }
   };
 }

@@ -112,6 +112,15 @@ export const routes: Routes = [
     title: 'Prendre rendez-vous | JOYA Energy',
   },
   {
+    path: 'admin/leads',
+    loadComponent: () =>
+      import('./pages/lead-monitoring/lead-monitoring.component').then(
+        (m) => m.LeadMonitoringComponent
+      ),
+    title: 'Leads | JOYA Energy',
+    data: { hideFooter: true },
+  },
+  {
     path: '**',
     redirectTo: '',
   },

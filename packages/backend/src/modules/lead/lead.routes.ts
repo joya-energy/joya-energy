@@ -101,6 +101,23 @@ export const leadRoutes = asyncRouter();
 /**
  * @swagger
  * /api/leads:
+ *   get:
+ *     summary: Get all leads
+ *     description: |
+ *       Returns the list of all leads collected from simulators, contact forms, and newsletter subscriptions.
+ *       This endpoint is intended for internal/admin use (lead monitoring dashboard).
+ *     tags: [Leads]
+ *     responses:
+ *       200:
+ *         description: List of leads
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Lead'
+ *       500:
+ *         description: Server error
  *   post:
  *     summary: Create a new lead or check if email already exists
  *     description: |
@@ -175,4 +192,5 @@ export const leadRoutes = asyncRouter();
  *       500:
  *         description: Server error
  */
+leadRoutes.get('/', leadController.getLeads);
 leadRoutes.post('/', leadController.createLead);
