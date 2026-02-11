@@ -1,5 +1,6 @@
 import asyncRouter from 'express-promise-router';
 import { leadController } from './lead.controller';
+import { adminAuthMiddleware } from '@backend/middlewares/admin-auth.middleware';
 
 /**
  * @swagger
@@ -198,8 +199,7 @@ export const leadRoutes = asyncRouter();
  *       500:
  *         description: Server error
  */
-leadRoutes.get('/', leadController.getLeads);
-leadRoutes.post('/', leadController.createLead);
+// Routes are defined below with proper authentication middleware
 
 /**
  * @swagger
@@ -251,6 +251,9 @@ leadRoutes.post('/', leadController.createLead);
  *       500:
  *         description: Server error
  */
-leadRoutes.patch('/:id/status', leadController.updateLeadStatus);
-leadRoutes.put('/:id', leadController.updateLead);
-leadRoutes.post('/create-or-update', leadController.createOrUpdateLead);
+// Apply admin authentication to all routes except create (used by forms/newsletter)
+leadRoutes.get('/', adminAuthMiddleware, leadController.getLeads);
+leadRoutes.post('/', leadController.createLead); // Public - used by forms
+leadRoutes.patch('/:id/status', adminAuthMiddleware, leadController.updateLeadStatus);
+leadRoutes.put('/:id', adminAuthMiddleware, leadController.updateLead);
+leadRoutes.post('/create-or-update', adminAuthMiddleware, leadController.createOrUpdateLead);

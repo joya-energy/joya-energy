@@ -4,8 +4,10 @@ import {
   signal,
   computed,
   inject,
+  OnInit,
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { Router } from '@angular/router';
 import { RouterLink } from '@angular/router';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
@@ -29,9 +31,11 @@ import {
   lucideAward,
   lucideXCircle,
   lucidePencil,
+  lucideLogOut,
 } from '@ng-icons/lucide';
 import { LeadService, type LeadResponse, type LeadStatus } from '../../core/services/lead.service';
 import { LeadFormModalComponent } from './components/lead-form-modal.component';
+import { AdminAuthService } from '../../core/services/admin-auth.service';
 
 /** Display label and icon for API source value */
 export const SOURCE_CONFIG: Record<string, { label: string; icon: string }> = {
@@ -58,7 +62,7 @@ export const STATUS_OPTIONS: LeadStatus[] = ['nouveau', 'contacté', 'qualifié'
 @Component({
   selector: 'app-lead-monitoring',
   standalone: true,
-  imports: [DatePipe, RouterLink, NgIconComponent, LeadFormModalComponent],
+  imports: [DatePipe, NgIconComponent, LeadFormModalComponent],
   templateUrl: './lead-monitoring.component.html',
   styleUrl: './lead-monitoring.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -84,11 +88,14 @@ export const STATUS_OPTIONS: LeadStatus[] = ['nouveau', 'contacté', 'qualifié'
       lucideAward,
       lucideXCircle,
       lucidePencil,
+      lucideLogOut,
     }),
   ],
 })
-export class LeadMonitoringComponent {
+export class LeadMonitoringComponent implements OnInit {
   private readonly leadService = inject(LeadService);
+  private readonly router = inject(Router);
+  readonly adminAuth = inject(AdminAuthService);
 
   readonly isLoading = signal(true);
   readonly error = signal<string | null>(null);
@@ -150,7 +157,17 @@ export class LeadMonitoringComponent {
     this.search.set(target?.value ?? '');
   }
 
-  constructor() {
+  ngOnInit(): void {
+    // Double-check authentication (backup to route guard)
+    if (typeof window !== 'undefined' && !this.adminAuth.isAuthenticatedSync()) {
+      this.router.navigate(['/admin/leads/login']);
+      return;
+    }
+
+    this.loadLeads();
+  }
+
+  private loadLeads(): void {
     this.leadService.getLeads().subscribe({
       next: (leads) => {
         this.leads.set(leads);
@@ -158,6 +175,14 @@ export class LeadMonitoringComponent {
       },
       error: (err) => {
         console.error('Failed to load leads', err);
+        // If 401 Unauthorized, redirect to login
+        if (err?.status === 401) {
+          this.adminAuth.logout();
+          if (typeof window !== 'undefined') {
+            window.location.href = '/admin/leads/login';
+          }
+          return;
+        }
         this.error.set(
           err?.message ?? 'Impossible de charger les leads pour le moment.'
         );
@@ -261,5 +286,12 @@ export class LeadMonitoringComponent {
         console.error('Failed to refresh leads', err);
       },
     });
+  }
+
+  onLogout(): void {
+    if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+      this.adminAuth.logout();
+      window.location.href = '/';
+    }
   }
 }

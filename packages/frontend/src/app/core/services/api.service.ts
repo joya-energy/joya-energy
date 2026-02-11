@@ -16,31 +16,38 @@ export class ApiService {
     return throwError(() => error);
   }
 
-  get<T>(path: string, params: HttpParams = new HttpParams()): Observable<T> {
-    return this.http.get<T>(`${this.apiUrl}${path}`, { params }).pipe(catchError(this.formatErrors));
+  get<T>(path: string, params: HttpParams = new HttpParams(), extraHeaders: { [key: string]: string } = {}): Observable<T> {
+    const headers = new HttpHeaders(extraHeaders);
+    return this.http.get<T>(`${this.apiUrl}${path}`, { params, headers }).pipe(catchError(this.formatErrors));
   }
 
-  put<T>(path: string, body: Object = {}): Observable<T> {
+  put<T>(path: string, body: Object = {}, extraHeaders: { [key: string]: string } = {}): Observable<T> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      ...extraHeaders,
+    });
     return this.http
-      .put<T>(`${this.apiUrl}${path}`, JSON.stringify(body), {
-        headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
-      })
+      .put<T>(`${this.apiUrl}${path}`, JSON.stringify(body), { headers })
       .pipe(catchError(this.formatErrors));
   }
 
-  patch<T>(path: string, body: Object = {}): Observable<T> {
+  patch<T>(path: string, body: Object = {}, extraHeaders: { [key: string]: string } = {}): Observable<T> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      ...extraHeaders,
+    });
     return this.http
-      .patch<T>(`${this.apiUrl}${path}`, JSON.stringify(body), {
-        headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
-      })
+      .patch<T>(`${this.apiUrl}${path}`, JSON.stringify(body), { headers })
       .pipe(catchError(this.formatErrors));
   }
 
-  post<T>(path: string, body: Object = {}): Observable<T> {
+  post<T>(path: string, body: Object = {}, extraHeaders: { [key: string]: string } = {}): Observable<T> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      ...extraHeaders,
+    });
     return this.http
-      .post<T>(`${this.apiUrl}${path}`, JSON.stringify(body), {
-        headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
-      })
+      .post<T>(`${this.apiUrl}${path}`, JSON.stringify(body), { headers })
       .pipe(catchError(this.formatErrors));
   }
 

@@ -112,6 +112,15 @@ export const routes: Routes = [
     title: 'Prendre rendez-vous | JOYA Energy',
   },
   {
+    path: 'admin/leads/login',
+    loadComponent: () =>
+      import('./pages/lead-monitoring/admin-login.component').then(
+        (m) => m.AdminLoginComponent
+      ),
+    title: 'Connexion Admin | JOYA Energy',
+    data: { hideFooter: true },
+  },
+  {
     path: 'admin/leads',
     loadComponent: () =>
       import('./pages/lead-monitoring/lead-monitoring.component').then(
@@ -119,6 +128,9 @@ export const routes: Routes = [
       ),
     title: 'Leads | JOYA Energy',
     data: { hideFooter: true },
+    canActivate: [
+      () => import('./core/guards/admin-auth.guard').then((m) => m.adminAuthGuard),
+    ],
   },
   {
     path: '**',

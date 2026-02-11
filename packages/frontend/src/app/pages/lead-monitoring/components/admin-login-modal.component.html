@@ -1,0 +1,62 @@
+@if (open()) {
+  <div class="login-backdrop" (click)="onBackdropClick($event)">
+    <div class="login-container" (click)="$event.stopPropagation()">
+      <div class="login-header">
+        <h2 class="login-title">Accès Administrateur</h2>
+        <button class="login-close" (click)="onClose()" type="button" aria-label="Fermer">
+          <ng-icon name="lucideX"></ng-icon>
+        </button>
+      </div>
+
+      <form class="login-form" (ngSubmit)="onSubmit()" #form="ngForm">
+        <div class="login-icon-wrapper">
+          <div class="login-icon">
+            <ng-icon name="lucideLock"></ng-icon>
+          </div>
+        </div>
+
+        <p class="login-description">
+          Cette page est réservée aux administrateurs. Veuillez entrer le mot de passe pour continuer.
+        </p>
+
+        @if (error()) {
+          <div class="login-error">
+            <ng-icon name="lucideAlertCircle" class="login-error-icon"></ng-icon>
+            {{ error() }}
+          </div>
+        }
+
+        <div class="login-input-group">
+          <label class="login-label" for="password">
+            Mot de passe
+          </label>
+          <input
+            id="password"
+            type="password"
+            class="login-input"
+            [(ngModel)]="passwordValue"
+            name="password"
+            required
+            placeholder="Entrez le mot de passe"
+            [disabled]="isLoading()"
+            autofocus
+            (keydown.enter)="onSubmit()"
+          />
+        </div>
+
+        <button
+          type="submit"
+          class="login-button"
+          [disabled]="isLoading() || !passwordValue.trim()"
+        >
+          @if (isLoading()) {
+            <ng-icon name="lucideLoader2" class="login-button-icon login-button-icon-spin"></ng-icon>
+            Vérification...
+          } @else {
+            Accéder
+          }
+        </button>
+      </form>
+    </div>
+  </div>
+}

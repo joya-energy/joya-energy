@@ -9,10 +9,15 @@
         Suivez et gérez tous les prospects entrants — formulaires, simulateurs et newsletters.
       </p>
     </div>
-    <button type="button" class="leads-dashboard__cta" (click)="onNewLeadClick()">
-      <ng-icon name="lucideUserPlus" class="leads-dashboard__cta-icon"></ng-icon>
-      Nouveau Lead
-    </button>
+    <div class="leads-dashboard__header-actions">
+      <button type="button" class="leads-dashboard__cta" (click)="onNewLeadClick()">
+        <ng-icon name="lucideUserPlus" class="leads-dashboard__cta-icon"></ng-icon>
+        Nouveau Lead
+      </button>
+      <button type="button" class="leads-dashboard__logout" (click)="onLogout()" title="Déconnexion">
+        <ng-icon name="lucideLogOut" class="leads-dashboard__logout-icon"></ng-icon>
+      </button>
+    </div>
   </header>
 
   <!-- Stats cards -->
