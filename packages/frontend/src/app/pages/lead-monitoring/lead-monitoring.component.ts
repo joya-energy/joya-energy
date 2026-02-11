@@ -174,7 +174,6 @@ export class LeadMonitoringComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: (err) => {
-        console.error('Failed to load leads', err);
         // If 401 Unauthorized, redirect to login
         if (err?.status === 401) {
           this.adminAuth.logout();
