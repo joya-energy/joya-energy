@@ -81,9 +81,11 @@ COPY --from=builder /app/node_modules ./node_modules
 # Copy Puppeteer Chrome cache from builder (Chrome binary already installed there)
 COPY --from=builder /root/.cache/puppeteer /root/.cache/puppeteer
 
-# Copy built backend (dist + runtime config) and shared package
-COPY --from=builder /app/packages/backend packages/backend
-COPY --from=builder /app/packages/shared packages/shared
+# Copy only built backend dist (includes compiled backend + shared in dist/packages/)
+# The build outputs everything to packages/backend/dist/packages/backend and packages/backend/dist/packages/shared
+COPY --from=builder /app/packages/backend/dist packages/backend/dist
+COPY --from=builder /app/packages/backend/package.json packages/backend/
+COPY --from=builder /app/packages/backend/tsconfig*.json packages/backend/
 
 # Railway sets PORT; default for local Docker
 EXPOSE 3000
