@@ -369,7 +369,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
 
   protected readonly overallProgress = computed(() => {
     const current = this.currentStepData();
-    if (current.isResult) return 0;
+    if (current.isResult) return 100;
     return this.stepProgress()[current.number];
   });
 
