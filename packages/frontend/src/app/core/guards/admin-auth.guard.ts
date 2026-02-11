@@ -11,7 +11,7 @@ export const adminAuthGuard: CanActivateFn = (route, state) => {
   
   if (!isAuth) {
     // Redirect to login page
-    router.navigate(['/admin/leads/login'], { 
+    router.navigate(['/admin-joya-2026/leads/login'], { 
       queryParams: { returnUrl: state.url },
     });
     return false;

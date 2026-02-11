@@ -206,6 +206,8 @@ $status-perdu-border: #fecaca;
 
 .leads-dashboard__logout {
   display: inline-flex;
+  height: 33px;
+  width: 33px;
   align-items: center;
   justify-content: center;
   padding: 0.75rem;
@@ -215,6 +217,7 @@ $status-perdu-border: #fecaca;
   border: 1px solid $border;
   cursor: pointer;
   transition: all 0.2s ease;
+  margin-left: 1rem;
 
   &:hover {
     background: var(--neutral-200, #e5e5e5);

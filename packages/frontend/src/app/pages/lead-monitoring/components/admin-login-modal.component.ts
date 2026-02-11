@@ -70,7 +70,7 @@ export class AdminLoginModalComponent {
           this.open.set(false);
           // Redirect to leads page - use window.location for a hard redirect
           if (typeof window !== 'undefined') {
-            window.location.href = '/admin/leads';
+            window.location.href = '/admin-joya-2026/leads';
           }
         } else {
           this.error.set('Mot de passe incorrect');

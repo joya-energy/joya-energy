@@ -160,7 +160,7 @@ export class LeadMonitoringComponent implements OnInit {
   ngOnInit(): void {
     // Double-check authentication (backup to route guard)
     if (typeof window !== 'undefined' && !this.adminAuth.isAuthenticatedSync()) {
-      this.router.navigate(['/admin/leads/login']);
+      this.router.navigate(['/admin-joya-2026/leads/login']);
       return;
     }
 
@@ -179,7 +179,7 @@ export class LeadMonitoringComponent implements OnInit {
         if (err?.status === 401) {
           this.adminAuth.logout();
           if (typeof window !== 'undefined') {
-            window.location.href = '/admin/leads/login';
+            window.location.href = '/admin-joya-2026/leads/login';
           }
           return;
         }

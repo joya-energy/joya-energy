@@ -112,7 +112,7 @@ export const routes: Routes = [
     title: 'Prendre rendez-vous | JOYA Energy',
   },
   {
-    path: 'admin/leads/login',
+    path: 'admin-joya-2026/leads/login',
     loadComponent: () =>
       import('./pages/lead-monitoring/admin-login.component').then(
         (m) => m.AdminLoginComponent
@@ -121,7 +121,7 @@ export const routes: Routes = [
     data: { hideFooter: true },
   },
   {
-    path: 'admin/leads',
+    path: 'admin-joya-2026/leads',
     loadComponent: () =>
       import('./pages/lead-monitoring/lead-monitoring.component').then(
         (m) => m.LeadMonitoringComponent
