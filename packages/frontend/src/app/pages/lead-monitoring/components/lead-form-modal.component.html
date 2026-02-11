@@ -1,0 +1,149 @@
+@if (open()) {
+  <div class="modal-backdrop" (click)="onBackdropClick($event)">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">{{ title }}</h2>
+        <button class="modal-close" (click)="onClose()" type="button" aria-label="Fermer">
+          <ng-icon name="lucideX"></ng-icon>
+        </button>
+      </div>
+
+      <form class="modal-form" (ngSubmit)="onSubmit()" #form="ngForm">
+        @if (error()) {
+          <div class="form-error">
+            {{ error() }}
+          </div>
+        }
+
+        <div class="form-group">
+          <label class="form-label" for="email">
+            <ng-icon name="lucideMail" class="form-label-icon"></ng-icon>
+            Email <span class="required">*</span>
+          </label>
+          <input
+            id="email"
+            type="email"
+            class="form-input"
+            [(ngModel)]="formData().email"
+            name="email"
+            required
+            placeholder="exemple@email.com"
+            [disabled]="isSaving()"
+          />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="name">
+              <ng-icon name="lucideUser" class="form-label-icon"></ng-icon>
+              Nom
+            </label>
+            <input
+              id="name"
+              type="text"
+              class="form-input"
+              [(ngModel)]="formData().name"
+              name="name"
+              placeholder="Nom complet"
+              [disabled]="isSaving()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="phoneNumber">
+              <ng-icon name="lucidePhone" class="form-label-icon"></ng-icon>
+              Téléphone
+            </label>
+            <input
+              id="phoneNumber"
+              type="tel"
+              class="form-input"
+              [(ngModel)]="formData().phoneNumber"
+              name="phoneNumber"
+              placeholder="+216 XX XXX XXX"
+              [disabled]="isSaving()"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="companyName">
+            <ng-icon name="lucideBuilding" class="form-label-icon"></ng-icon>
+            Entreprise
+          </label>
+          <input
+            id="companyName"
+            type="text"
+            class="form-input"
+            [(ngModel)]="formData().companyName"
+            name="companyName"
+            placeholder="Nom de l'entreprise"
+            [disabled]="isSaving()"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="address">
+            <ng-icon name="lucideMapPin" class="form-label-icon"></ng-icon>
+            Adresse
+          </label>
+          <textarea
+            id="address"
+            class="form-textarea"
+            [(ngModel)]="formData().address"
+            name="address"
+            placeholder="Adresse complète"
+            rows="3"
+            [disabled]="isSaving()"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="source">
+            Source
+          </label>
+          <select
+            id="source"
+            class="form-select"
+            [(ngModel)]="formData().source"
+            name="source"
+            [disabled]="isSaving()"
+          >
+            <option value="">Sélectionner une source</option>
+            <option value="contact-form">Formulaire contact</option>
+            <option value="newsletter">Newsletter</option>
+            <option value="audit-solaire">Simulateur Solaire</option>
+            <option value="audit-energetique">Simulateur Énergétique</option>
+            <option value="carbon-simulator">Simulateur Carbone</option>
+            <option value="financing-comparison">Comparateur Financement</option>
+            <option value="partenaire">Partenaire</option>
+          </select>
+        </div>
+
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="onClose()"
+            [disabled]="isSaving()"
+          >
+            Annuler
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="isSaving() || !formData().email"
+          >
+            @if (isSaving()) {
+              <ng-icon name="lucideLoader2" class="btn-icon btn-icon-spin"></ng-icon>
+              Enregistrement...
+            } @else {
+              <ng-icon name="lucideSave" class="btn-icon"></ng-icon>
+              Enregistrer
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

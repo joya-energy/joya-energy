@@ -1,5 +1,6 @@
 import asyncRouter from 'express-promise-router';
 import { leadController } from './lead.controller';
+import { adminAuthMiddleware } from '@backend/middlewares/admin-auth.middleware';
 
 /**
  * @swagger
@@ -71,6 +72,12 @@ import { leadController } from './lead.controller';
  *           description: Source of the lead
  *           enum: [simulator, contact-form, newsletter]
  *           nullable: true
+ *         status:
+ *           type: string
+ *           description: Lead status
+ *           enum: [nouveau, contacté, qualifié, converti, perdu]
+ *           default: nouveau
+ *           nullable: true
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -101,6 +108,23 @@ export const leadRoutes = asyncRouter();
 /**
  * @swagger
  * /api/leads:
+ *   get:
+ *     summary: Get all leads
+ *     description: |
+ *       Returns the list of all leads collected from simulators, contact forms, and newsletter subscriptions.
+ *       This endpoint is intended for internal/admin use (lead monitoring dashboard).
+ *     tags: [Leads]
+ *     responses:
+ *       200:
+ *         description: List of leads
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Lead'
+ *       500:
+ *         description: Server error
  *   post:
  *     summary: Create a new lead or check if email already exists
  *     description: |
@@ -175,4 +199,61 @@ export const leadRoutes = asyncRouter();
  *       500:
  *         description: Server error
  */
-leadRoutes.post('/', leadController.createLead);
+// Routes are defined below with proper authentication middleware
+
+/**
+ * @swagger
+ * /api/leads/{id}/status:
+ *   patch:
+ *     summary: Update lead status
+ *     description: Updates the status of a lead. All leads start with status "nouveau" by default.
+ *     tags: [Leads]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Lead ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [nouveau, contacté, qualifié, converti, perdu]
+ *                 description: New status for the lead
+ *                 example: "qualifié"
+ *     responses:
+ *       200:
+ *         description: Lead status updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Lead'
+ *       400:
+ *         description: Bad request - Invalid status or missing status field
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Status is required"
+ *       404:
+ *         description: Lead not found
+ *       500:
+ *         description: Server error
+ */
+// Apply admin authentication to all routes except create (used by forms/newsletter)
+leadRoutes.get('/', adminAuthMiddleware, leadController.getLeads);
+leadRoutes.post('/', leadController.createLead); // Public - used by forms
+leadRoutes.patch('/:id/status', adminAuthMiddleware, leadController.updateLeadStatus);
+leadRoutes.put('/:id', adminAuthMiddleware, leadController.updateLead);
+leadRoutes.post('/create-or-update', adminAuthMiddleware, leadController.createOrUpdateLead);

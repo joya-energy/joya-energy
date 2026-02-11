@@ -1,0 +1,239 @@
+@use 'sass:color';
+
+$teal-deep: var(--teal-deep, #0a3d46);
+$orange-solar: var(--orange-solar, #f3a31c);
+$orange-solar-color: #f3a31c;
+$background: var(--bg-page, #ffffff);
+$muted-foreground: var(--text-muted, #64748b);
+$foreground: var(--text-primary, #0a3d46);
+$border: var(--neutral-300, #d4d4d4);
+$error-color: #ef4444;
+
+.login-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fade-in 0.2s ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.login-container {
+  background: $background;
+  border-radius: 1rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 50rem;
+  animation: slide-up 0.3s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid $border;
+}
+
+.login-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: $teal-deep;
+}
+
+.login-close {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: $muted-foreground;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--neutral-100, #f5f5f5);
+    color: $foreground;
+  }
+
+  ng-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}
+
+.login-form {
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.login-icon-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.login-icon {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: rgba($orange-solar-color, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $orange-solar;
+  
+  ng-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+.login-description {
+  margin: 0;
+  text-align: center;
+  font-size: 1.2rem;
+  color: $muted-foreground;
+  line-height: 1.6;
+}
+
+.login-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba($error-color, 0.1);
+  border: 1px solid rgba($error-color, 0.2);
+  border-radius: 0.5rem;
+  color: $error-color;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.login-error-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+}
+
+.login-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.login-label {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: $foreground;
+}
+
+.login-input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  font-size: 1.1rem;
+  color: $foreground;
+  background: $background;
+  border: 2px solid $border;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  font-family: inherit;
+
+  &:focus {
+    outline: none;
+    border-color: $orange-solar;
+    box-shadow: 0 0 0 3px rgba($orange-solar-color, 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: var(--neutral-100, #f5f5f5);
+  }
+
+  &::placeholder {
+    color: $muted-foreground;
+  }
+}
+
+.login-button {
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: white;
+  background: $orange-solar;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 8px rgba($orange-solar-color, 0.3);
+
+  &:hover:not(:disabled) {
+    background: color.adjust($orange-solar-color, $lightness: -5%);
+    box-shadow: 0 4px 12px rgba($orange-solar-color, 0.4);
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.login-button-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.login-button-icon-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
