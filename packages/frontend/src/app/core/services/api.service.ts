@@ -28,6 +28,14 @@ export class ApiService {
       .pipe(catchError(this.formatErrors));
   }
 
+  patch<T>(path: string, body: Object = {}): Observable<T> {
+    return this.http
+      .patch<T>(`${this.apiUrl}${path}`, JSON.stringify(body), {
+        headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+      })
+      .pipe(catchError(this.formatErrors));
+  }
+
   post<T>(path: string, body: Object = {}): Observable<T> {
     return this.http
       .post<T>(`${this.apiUrl}${path}`, JSON.stringify(body), {

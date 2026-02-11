@@ -71,6 +71,12 @@ import { leadController } from './lead.controller';
  *           description: Source of the lead
  *           enum: [simulator, contact-form, newsletter]
  *           nullable: true
+ *         status:
+ *           type: string
+ *           description: Lead status
+ *           enum: [nouveau, contacté, qualifié, converti, perdu]
+ *           default: nouveau
+ *           nullable: true
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -194,3 +200,55 @@ export const leadRoutes = asyncRouter();
  */
 leadRoutes.get('/', leadController.getLeads);
 leadRoutes.post('/', leadController.createLead);
+
+/**
+ * @swagger
+ * /api/leads/{id}/status:
+ *   patch:
+ *     summary: Update lead status
+ *     description: Updates the status of a lead. All leads start with status "nouveau" by default.
+ *     tags: [Leads]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Lead ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [nouveau, contacté, qualifié, converti, perdu]
+ *                 description: New status for the lead
+ *                 example: "qualifié"
+ *     responses:
+ *       200:
+ *         description: Lead status updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Lead'
+ *       400:
+ *         description: Bad request - Invalid status or missing status field
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Status is required"
+ *       404:
+ *         description: Lead not found
+ *       500:
+ *         description: Server error
+ */
+leadRoutes.patch('/:id/status', leadController.updateLeadStatus);

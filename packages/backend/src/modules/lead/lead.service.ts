@@ -20,10 +20,29 @@ export class LeadService extends CommonService<ILead> {
       return { message: 'already exist' };
     }
 
+    // Set default status if not provided
+    const leadPayload: ICreateLead = {
+      ...payload,
+      status: payload.status || 'nouveau',
+    };
+
     // Create new lead
-    const lead = await this.create(payload);
-    Logger.info(`New lead created with email: ${lead.email}`);
+    const lead = await this.create(leadPayload);
+    Logger.info(`New lead created with email: ${lead.email}, status: ${lead.status || 'nouveau'}`);
     return lead;
+  }
+
+  public async updateLeadStatus(id: string, status: string): Promise<ILead | null> {
+    const validStatuses = ['nouveau', 'contacté', 'qualifié', 'converti', 'perdu'];
+    if (!validStatuses.includes(status)) {
+      throw new Error(`Invalid status. Must be one of: ${validStatuses.join(', ')}`);
+    }
+
+    const updated = await this.update(id, { status: status as any });
+    if (updated) {
+      Logger.info(`Lead ${id} status updated to: ${status}`);
+    }
+    return updated;
   }
 }
 

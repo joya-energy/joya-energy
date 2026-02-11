@@ -41,6 +41,36 @@ export class LeadController {
       throw new HTTP400Error('Error: Leads not found', error);
     }
   };
+
+  public updateLeadStatus = async (req: Request, res: Response<ILead>): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      if (!status || typeof status !== 'string') {
+        throw new HTTP400Error('Status is required');
+      }
+
+      const validStatuses = ['nouveau', 'contacté', 'qualifié', 'converti', 'perdu'];
+      if (!validStatuses.includes(status)) {
+        throw new HTTP400Error(`Invalid status. Must be one of: ${validStatuses.join(', ')}`);
+      }
+
+      const updatedLead = await leadService.updateLeadStatus(id, status);
+      
+      if (!updatedLead) {
+        throw new HTTP400Error('Lead not found');
+      }
+
+      res.status(HttpStatusCode.OK).json(updatedLead);
+    } catch (error) {
+      if (error instanceof HTTP400Error) {
+        throw error;
+      }
+      Logger.error(`Error: Lead status not updated: ${String(error)}`);
+      throw new HTTP400Error('Error: Lead status not updated', error);
+    }
+  };
 }
 
 export const leadController = new LeadController();

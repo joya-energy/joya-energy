@@ -11,6 +11,8 @@ export interface CreateLeadPayload {
   source?: string;
 }
 
+export type LeadStatus = 'nouveau' | 'contacté' | 'qualifié' | 'converti' | 'perdu';
+
 export interface LeadResponse {
   id?: string;
   email: string;
@@ -19,6 +21,7 @@ export interface LeadResponse {
   address?: string;
   companyName?: string;
   source?: string;
+  status?: LeadStatus;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -39,5 +42,9 @@ export class LeadService {
 
   getLeads(): Observable<LeadResponse[]> {
     return this.api.get<LeadResponse[]>('/leads');
+  }
+
+  updateLeadStatus(id: string, status: LeadStatus): Observable<LeadResponse> {
+    return this.api.patch<LeadResponse>(`/leads/${id}/status`, { status });
   }
 }

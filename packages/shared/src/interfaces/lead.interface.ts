@@ -1,5 +1,7 @@
 import { BusinessObject, UpdateBusinessObject, CreateBusinessObject } from './buisness.interface';
 
+export type LeadStatus = 'nouveau' | 'contacté' | 'qualifié' | 'converti' | 'perdu';
+
 export interface ILead extends BusinessObject {
   email: string;
   phoneNumber?: string;
@@ -7,6 +9,7 @@ export interface ILead extends BusinessObject {
   address?: string;
   companyName?: string;
   source?: string; // e.g., 'simulator', 'contact-form', 'newsletter'
+  status?: LeadStatus;
   createdAt: Date;
   updatedAt: Date;
 }
