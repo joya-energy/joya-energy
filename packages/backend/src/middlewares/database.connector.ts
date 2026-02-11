@@ -29,7 +29,15 @@ export const dbConnectToPlatform = async (uri?: string): Promise<void> => {
   });
   
   try {
-    await mongoose.connect(uri);
+    await mongoose.connect(uri, {
+      serverSelectionTimeoutMS: 30000, // 30 seconds timeout for server selection
+      connectTimeoutMS: 30000, // 30 seconds timeout for initial connection
+      socketTimeoutMS: 45000, // 45 seconds timeout for socket operations
+      maxPoolSize: 10, // Maximum number of connections in the pool
+      minPoolSize: 2, // Minimum number of connections in the pool
+      retryWrites: true, // Retry writes on network errors
+      retryReads: true, // Retry reads on network errors
+    });
     Logger.info('Database connection established successfully');
   } catch (err) {
     Logger.error(`Failed to connect to database: ${String(err)}`);
