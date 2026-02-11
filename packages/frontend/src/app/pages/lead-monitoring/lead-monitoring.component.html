@@ -9,10 +9,10 @@
         Suivez et gérez tous les prospects entrants — formulaires, simulateurs et newsletters.
       </p>
     </div>
-    <a routerLink="/contact" class="leads-dashboard__cta">
+    <button type="button" class="leads-dashboard__cta" (click)="onNewLeadClick()">
       <ng-icon name="lucideUserPlus" class="leads-dashboard__cta-icon"></ng-icon>
       Nouveau Lead
-    </a>
+    </button>
   </header>
 
   <!-- Stats cards -->
@@ -119,12 +119,13 @@
             <th class="leads-table__source-header">Source</th>
             <th>Statut</th>
             <th class="leads-table__date-header">Date</th>
+            <th class="leads-table__action-header">Action</th>
           </tr>
         </thead>
         <tbody>
           @if (filteredLeads().length === 0) {
             <tr>
-              <td colspan="6" class="leads-table__empty">
+              <td colspan="7" class="leads-table__empty">
                 <ng-icon name="lucideSearch" class="leads-table__empty-icon"></ng-icon>
                 <p>Aucun lead trouvé</p>
                 <p>Essayez d'ajuster vos filtres</p>
@@ -174,6 +175,16 @@
                 <td class="leads-table__date-cell">
                   {{ lead.createdAt ? (lead.createdAt | date:'d MMM yyyy') : '—' }}
                 </td>
+                <td class="leads-table__action-cell">
+                  <button
+                    type="button"
+                    class="leads-table__edit-btn"
+                    (click)="onEditLead(lead)"
+                    title="Modifier le lead"
+                  >
+                    <ng-icon name="lucidePencil" class="leads-table__edit-icon"></ng-icon>
+                  </button>
+                </td>
               </tr>
             }
           }
@@ -184,5 +195,13 @@
       </p>
     </div>
   }
+
+  <!-- Lead Form Modal -->
+  <app-lead-form-modal
+    [lead]="editingLead()"
+    [open]="modalOpen"
+    (close)="onModalClose()"
+    (saved)="onLeadSaved($event)"
+  ></app-lead-form-modal>
 </div>
 </div>

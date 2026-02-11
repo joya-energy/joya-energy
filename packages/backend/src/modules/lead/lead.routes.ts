@@ -252,3 +252,5 @@ leadRoutes.post('/', leadController.createLead);
  *         description: Server error
  */
 leadRoutes.patch('/:id/status', leadController.updateLeadStatus);
+leadRoutes.put('/:id', leadController.updateLead);
+leadRoutes.post('/create-or-update', leadController.createOrUpdateLead);

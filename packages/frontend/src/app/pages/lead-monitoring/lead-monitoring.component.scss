@@ -187,6 +187,8 @@ $status-perdu-border: #fecaca;
   font-size: 1.5rem;
   font-weight: 600;
   text-decoration: none;
+  border: none;
+  cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba($orange-solar-color, 0.3);
 
@@ -526,12 +528,13 @@ $status-perdu-border: #fecaca;
   border-bottom: 1px solid $border;
 }
 
-.leads-table th:nth-child(1) { width: 24%; }
-.leads-table th:nth-child(2) { width: 16%; }
-.leads-table th:nth-child(3) { width: 16%; }
-.leads-table th:nth-child(4) { width: 16%; }
-.leads-table th:nth-child(5) { width: 16%; }
-.leads-table th:nth-child(6) { width: 12%; }
+.leads-table th:nth-child(1) { width: 22%; }
+.leads-table th:nth-child(2) { width: 14%; }
+.leads-table th:nth-child(3) { width: 14%; }
+.leads-table th:nth-child(4) { width: 14%; }
+.leads-table th:nth-child(5) { width: 14%; }
+.leads-table th:nth-child(6) { width: 10%; }
+.leads-table th:nth-child(7) { width: 8%; }
 
 .leads-table td {
   padding: 1rem 1.25rem;
@@ -596,6 +599,12 @@ $status-perdu-border: #fecaca;
   }
 }
 
+.leads-table__action-header,
+.leads-table__action-cell {
+  text-align: center;
+  width: 4rem;
+}
+
 .leads-table__phone-cell {
   font-size: 1.1rem;
   color: $muted-foreground;
@@ -610,8 +619,8 @@ $status-perdu-border: #fecaca;
 }
 
 .leads-table__source-icon {
-  width: 1.1rem;
-  height: 1.1rem;
+  width: 1.5rem;
+  height: 1.5rem;
   color: $muted-foreground;
   flex-shrink: 0;
 }
@@ -706,6 +715,34 @@ $status-perdu-border: #fecaca;
     font-size: 0.9375rem;
     font-weight: normal;
   }
+}
+
+.leads-table__edit-btn {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: $muted-foreground;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--neutral-100, #f5f5f5);
+    color: $orange-solar;
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.leads-table__edit-icon {
+  width: 1rem;
+  height: 1rem;
 }
 
 .leads-dashboard__footer {

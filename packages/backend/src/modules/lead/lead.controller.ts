@@ -71,6 +71,43 @@ export class LeadController {
       throw new HTTP400Error('Error: Lead status not updated', error);
     }
   };
+
+  public updateLead = async (req: Request, res: Response<ILead>): Promise<void> => {
+    try {
+      const { id } = req.params;
+
+      const updatedLead = await leadService.updateLead(id, req.body);
+      
+      if (!updatedLead) {
+        throw new HTTP400Error('Lead not found');
+      }
+
+      res.status(HttpStatusCode.OK).json(updatedLead);
+    } catch (error) {
+      if (error instanceof HTTP400Error) {
+        throw error;
+      }
+      Logger.error(`Error: Lead not updated: ${String(error)}`);
+      throw new HTTP400Error('Error: Lead not updated', error);
+    }
+  };
+
+  public createOrUpdateLead = async (
+    req: Request,
+    res: Response<ILead | { message: string }>
+  ): Promise<void> => {
+    try {
+      if (!req.body.email || typeof req.body.email !== 'string' || !req.body.email.trim()) {
+        throw new HTTP400Error('Email is required');
+      }
+
+      const result = await leadService.createOrUpdateLead(req.body);
+      res.status(HttpStatusCode.OK).json(result);
+    } catch (error) {
+      Logger.error(`Error: Lead not created/updated: ${String(error)}`);
+      throw new HTTP400Error('Error: Lead not created/updated', error);
+    }
+  };
 }
 
 export const leadController = new LeadController();

@@ -47,4 +47,12 @@ export class LeadService {
   updateLeadStatus(id: string, status: LeadStatus): Observable<LeadResponse> {
     return this.api.patch<LeadResponse>(`/leads/${id}/status`, { status });
   }
+
+  updateLead(id: string, payload: Partial<CreateLeadPayload>): Observable<LeadResponse> {
+    return this.api.put<LeadResponse>(`/leads/${id}`, payload);
+  }
+
+  createOrUpdateLead(payload: CreateLeadPayload): Observable<LeadResponse> {
+    return this.api.post<LeadResponse>('/leads/create-or-update', payload);
+  }
 }

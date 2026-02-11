@@ -28,8 +28,10 @@ import {
   lucidePhone,
   lucideAward,
   lucideXCircle,
+  lucidePencil,
 } from '@ng-icons/lucide';
 import { LeadService, type LeadResponse, type LeadStatus } from '../../core/services/lead.service';
+import { LeadFormModalComponent } from './components/lead-form-modal.component';
 
 /** Display label and icon for API source value */
 export const SOURCE_CONFIG: Record<string, { label: string; icon: string }> = {
@@ -56,7 +58,7 @@ export const STATUS_OPTIONS: LeadStatus[] = ['nouveau', 'contacté', 'qualifié'
 @Component({
   selector: 'app-lead-monitoring',
   standalone: true,
-  imports: [DatePipe, RouterLink, NgIconComponent],
+  imports: [DatePipe, RouterLink, NgIconComponent, LeadFormModalComponent],
   templateUrl: './lead-monitoring.component.html',
   styleUrl: './lead-monitoring.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -81,6 +83,7 @@ export const STATUS_OPTIONS: LeadStatus[] = ['nouveau', 'contacté', 'qualifié'
       lucidePhone,
       lucideAward,
       lucideXCircle,
+      lucidePencil,
     }),
   ],
 })
@@ -94,6 +97,8 @@ export class LeadMonitoringComponent {
   readonly statusFilter = signal<string>('all');
   readonly sourceFilter = signal<string>('all');
   readonly updatingStatus = signal<Set<string>>(new Set());
+  readonly modalOpen = signal(false);
+  readonly editingLead = signal<LeadResponse | null>(null);
 
   readonly sourceConfig = SOURCE_CONFIG;
   readonly statusConfig = STATUS_CONFIG;
@@ -227,6 +232,33 @@ export class LeadMonitoringComponent {
           return newSet;
         });
         alert('Erreur lors de la mise à jour du statut');
+      },
+    });
+  }
+
+  onNewLeadClick(): void {
+    this.editingLead.set(null);
+    this.modalOpen.set(true);
+  }
+
+  onEditLead(lead: LeadResponse): void {
+    this.editingLead.set(lead);
+    this.modalOpen.set(true);
+  }
+
+  onModalClose(): void {
+    this.modalOpen.set(false);
+    this.editingLead.set(null);
+  }
+
+  onLeadSaved(updatedLead: LeadResponse): void {
+    // Refresh leads list
+    this.leadService.getLeads().subscribe({
+      next: (leads) => {
+        this.leads.set(leads);
+      },
+      error: (err) => {
+        console.error('Failed to refresh leads', err);
       },
     });
   }
