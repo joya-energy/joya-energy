@@ -42,13 +42,13 @@ export const SOURCE_CONFIG: Record<string, { label: string; icon: string }> = {
   partenaire: { label: 'Partenaire', icon: 'lucideHand' },
 };
 
-/** Status configuration with labels, colors, and icons */
-export const STATUS_CONFIG: Record<LeadStatus, { label: string; color: string; icon: string }> = {
-  nouveau: { label: 'Nouveau', color: '#3b82f6', icon: 'lucideSparkles' }, // blue
-  contacté: { label: 'Contacté', color: '#8b5cf6', icon: 'lucidePhone' }, // purple
-  qualifié: { label: 'Qualifié', color: '#10b981', icon: 'lucideCheckCircle2' }, // green
-  converti: { label: 'Converti', color: '#059669', icon: 'lucideAward' }, // emerald
-  perdu: { label: 'Perdu', color: '#ef4444', icon: 'lucideXCircle' }, // red
+/** Status configuration with labels, colors, and icons - matching React design */
+export const STATUS_CONFIG: Record<LeadStatus, { label: string; bgColor: string; textColor: string; borderColor: string; icon: string }> = {
+  nouveau: { label: 'Nouveau', bgColor: '#dbeafe', textColor: '#1e40af', borderColor: '#bfdbfe', icon: 'lucideSparkles' }, // blue-100/blue-700/blue-200
+  contacté: { label: 'Contacté', bgColor: '#fef3c7', textColor: '#b45309', borderColor: '#fde68a', icon: 'lucidePhone' }, // amber-100/amber-700/amber-200
+  qualifié: { label: 'Qualifié', bgColor: '#f3e8ff', textColor: '#6b21a8', borderColor: '#e9d5ff', icon: 'lucideCheckCircle2' }, // purple-100/purple-700/purple-200
+  converti: { label: 'Converti', bgColor: '#d1fae5', textColor: '#065f46', borderColor: '#a7f3d0', icon: 'lucideAward' }, // emerald-100/emerald-700/emerald-200
+  perdu: { label: 'Perdu', bgColor: '#fee2e2', textColor: '#b91c1c', borderColor: '#fecaca', icon: 'lucideXCircle' }, // red-100/red-700/red-200
 };
 
 export const STATUS_OPTIONS: LeadStatus[] = ['nouveau', 'contacté', 'qualifié', 'converti', 'perdu'];
@@ -176,9 +176,19 @@ export class LeadMonitoringComponent {
     return STATUS_CONFIG[s]?.label ?? s;
   }
 
-  getStatusColor(status: LeadStatus | undefined): string {
+  getStatusBgColor(status: LeadStatus | undefined): string {
     const s = status || 'nouveau';
-    return STATUS_CONFIG[s]?.color ?? '#3b82f6';
+    return STATUS_CONFIG[s]?.bgColor ?? '#dbeafe';
+  }
+
+  getStatusTextColor(status: LeadStatus | undefined): string {
+    const s = status || 'nouveau';
+    return STATUS_CONFIG[s]?.textColor ?? '#1e40af';
+  }
+
+  getStatusBorderColor(status: LeadStatus | undefined): string {
+    const s = status || 'nouveau';
+    return STATUS_CONFIG[s]?.borderColor ?? '#bfdbfe';
   }
 
   getStatusIcon(status: LeadStatus | undefined): string {

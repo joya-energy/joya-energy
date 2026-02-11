@@ -70,28 +70,32 @@
       />
     </div>
     <div class="leads-dashboard__filters">
-      <ng-icon name="lucideFilter" class="leads-dashboard__filter-icon"></ng-icon>
-      <select
-        class="leads-dashboard__select leads-dashboard__select--status"
-        [value]="statusFilter()"
-        (change)="statusFilter.set($any($event.target).value)"
-      >
-        <option value="all">Tous les statuts</option>
-        @for (status of statusOptions; track status) {
-          <option [value]="status">{{ getStatusLabel(status) }}</option>
-        }
-      </select>
-      <ng-icon name="lucideGlobe" class="leads-dashboard__filter-icon"></ng-icon>
-      <select
-        class="leads-dashboard__select leads-dashboard__select--source"
-        [value]="sourceFilter()"
-        (change)="sourceFilter.set($any($event.target).value)"
-      >
-        <option value="all">Toutes les sources</option>
-        @for (src of sourceOptions(); track src) {
-          <option [value]="src">{{ getSourceLabel(src) }}</option>
-        }
-      </select>
+      <div class="leads-dashboard__select-wrapper">
+        <ng-icon name="lucideFilter" class="leads-dashboard__select-icon"></ng-icon>
+        <select
+          class="leads-dashboard__select leads-dashboard__select--status"
+          [value]="statusFilter()"
+          (change)="statusFilter.set($any($event.target).value)"
+        >
+          <option value="all">Tous les statuts</option>
+          @for (status of statusOptions; track status) {
+            <option [value]="status">{{ getStatusLabel(status) }}</option>
+          }
+        </select>
+      </div>
+      <div class="leads-dashboard__select-wrapper">
+        <ng-icon name="lucideGlobe" class="leads-dashboard__select-icon"></ng-icon>
+        <select
+          class="leads-dashboard__select leads-dashboard__select--source"
+          [value]="sourceFilter()"
+          (change)="sourceFilter.set($any($event.target).value)"
+        >
+          <option value="all">Toutes les sources</option>
+          @for (src of sourceOptions(); track src) {
+            <option [value]="src">{{ getSourceLabel(src) }}</option>
+          }
+        </select>
+      </div>
     </div>
   </div>
 
@@ -111,17 +115,19 @@
           <tr>
             <th>Nom</th>
             <th>Entreprise</th>
-            <th>Téléphone</th>
-            <th>Source</th>
+            <th class="leads-table__phone-header">Téléphone</th>
+            <th class="leads-table__source-header">Source</th>
             <th>Statut</th>
-            <th>Date</th>
+            <th class="leads-table__date-header">Date</th>
           </tr>
         </thead>
         <tbody>
           @if (filteredLeads().length === 0) {
             <tr>
               <td colspan="6" class="leads-table__empty">
-                Aucun lead trouvé. Essayez d'ajuster vos filtres ou votre recherche.
+                <ng-icon name="lucideSearch" class="leads-table__empty-icon"></ng-icon>
+                <p>Aucun lead trouvé</p>
+                <p>Essayez d'ajuster vos filtres</p>
               </td>
             </tr>
           } @else {
@@ -134,8 +140,8 @@
                   </div>
                 </td>
                 <td class="leads-table__company">{{ lead.companyName || '—' }}</td>
-                <td class="leads-table__phone">{{ lead.phoneNumber || '—' }}</td>
-                <td>
+                <td class="leads-table__phone-cell">{{ lead.phoneNumber || '—' }}</td>
+                <td class="leads-table__source-cell">
                   <span class="leads-table__source">
                     <ng-icon [name]="getSourceIcon(lead.source)" class="leads-table__source-icon"></ng-icon>
                     {{ getSourceLabel(lead.source) }}
@@ -147,8 +153,9 @@
                       class="leads-table__status-select"
                       [value]="lead.status || 'nouveau'"
                       [disabled]="isUpdatingStatus(lead.id)"
-                      [style.background-color]="getStatusColor(lead.status) + '20'"
-                      [style.color]="getStatusColor(lead.status)"
+                      [style.background-color]="getStatusBgColor(lead.status)"
+                      [style.color]="getStatusTextColor(lead.status)"
+                      [style.border-color]="getStatusBorderColor(lead.status)"
                       (change)="onStatusChange(lead, $any($event.target).value)"
                     >
                       @for (status of statusOptions; track status) {
@@ -160,11 +167,11 @@
                     <ng-icon 
                       [name]="getStatusIcon(lead.status)" 
                       class="leads-table__status-icon"
-                      [style.color]="getStatusColor(lead.status)"
+                      [style.color]="getStatusTextColor(lead.status)"
                     ></ng-icon>
                   </div>
                 </td>
-                <td class="leads-table__date">
+                <td class="leads-table__date-cell">
                   {{ lead.createdAt ? (lead.createdAt | date:'d MMM yyyy') : '—' }}
                 </td>
               </tr>
