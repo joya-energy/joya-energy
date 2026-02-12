@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://joya-energy.com/sitemap.xml
+
+# Disallow admin pages
+Disallow: /admin-joya-2026/
+
+# Allow all other pages
+Allow: /notre-solution
+Allow: /audit-energetique
+Allow: /plateforme-digitale
+Allow: /ressources
+Allow: /contact
+Allow: /audit-solaire
+Allow: /comparaison-financements
+Allow: /bilan-carbon
+Allow: /prendre-rendez-vous
+Allow: /faq

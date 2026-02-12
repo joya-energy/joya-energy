@@ -1,7 +1,8 @@
-import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { SEOService } from '../../core/services/seo.service';
 
 export interface BackendHealth {
   status: string;
@@ -18,7 +19,9 @@ export interface BackendHealth {
   styleUrl: './status.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class StatusComponent {
+export class StatusComponent implements OnInit {
+  private readonly seoService = inject(SEOService);
+  
   /** 'loading' | 'ok' | 'error' */
   readonly state = signal<'loading' | 'ok' | 'error'>('loading');
   readonly payload = signal<BackendHealth | null>(null);
@@ -35,6 +38,15 @@ export class StatusComponent {
         this.errorMessage.set(err?.message ?? err?.statusText ?? 'Request failed');
         this.state.set('error');
       },
+    });
+  }
+
+  ngOnInit(): void {
+    this.seoService.setSEO({
+      title: 'État des services | JOYA Energy',
+      description: 'Vérifiez l\'état des services JOYA Energy en Tunisie. Statut de disponibilité de nos plateformes et services énergétiques.',
+      url: 'https://joya-energy.com/status',
+      keywords: 'statut services JOYA Energy, disponibilité plateforme Tunisie',
     });
   }
 }

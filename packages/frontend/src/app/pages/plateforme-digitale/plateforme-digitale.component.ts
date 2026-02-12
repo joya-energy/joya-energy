@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PlateformeDigitaleHeroComponent } from './sections/plateforme-digitale-hero/plateforme-digitale-hero.component';
 import { PlateformeDigitaleIntroComponent } from './sections/plateforme-digitale-intro/plateforme-digitale-intro.component';
@@ -8,6 +8,7 @@ import { PlateformeDigitaleContinuousMonitoringComponent } from './sections/plat
 import { PlateformeDigitaleTransparencyComponent } from './sections/plateforme-digitale-transparency/plateforme-digitale-transparency.component';
 import { PlateformeDigitaleIntegratedSolutionComponent } from './sections/plateforme-digitale-integrated-solution/plateforme-digitale-integrated-solution.component';
 import { PlateformeDigitaleFinalCtaComponent } from './sections/plateforme-digitale-final-cta/plateforme-digitale-final-cta.component';
+import { SEOService } from '../../core/services/seo.service';
 
 @Component({
   selector: 'app-plateforme-digitale',
@@ -27,4 +28,15 @@ import { PlateformeDigitaleFinalCtaComponent } from './sections/plateforme-digit
   styleUrl: './plateforme-digitale.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PlateformeDigitaleComponent {}
+export class PlateformeDigitaleComponent implements OnInit {
+  private seoService = inject(SEOService);
+
+  ngOnInit(): void {
+    this.seoService.setSEO({
+      title: 'Plateforme digitale | JOYA Energy',
+      description: 'Suivez en temps réel votre consommation, votre production solaire et les économies réalisées en Tunisie grâce à notre plateforme digitale dédiée.',
+      url: 'https://joya-energy.com/plateforme-digitale',
+      keywords: 'plateforme digitale Tunisie, suivi énergétique Tunisie, monitoring énergie Tunisie, dashboard énergétique, gestion énergie Tunisie, Tunisia',
+    });
+  }
+}

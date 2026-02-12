@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   ReactiveFormsModule,
@@ -10,6 +10,7 @@ import {
 import { RouterLink } from '@angular/router';
 import { ContactService, ContactSubject } from '../../core/services/contact.service';
 import { NotificationStore } from '../../core/notifications/notification.store';
+import { SEOService } from '../../core/services/seo.service';
 import { finalize } from 'rxjs/operators';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
@@ -61,10 +62,20 @@ interface ContactForm {
   styleUrl: './contact.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ContactComponent {
+export class ContactComponent implements OnInit {
   private fb = inject(FormBuilder);
   private contactService = inject(ContactService);
   private notificationStore = inject(NotificationStore);
+  private seoService = inject(SEOService);
+
+  ngOnInit(): void {
+    this.seoService.setSEO({
+      title: 'Contactez-nous | JOYA Energy',
+      description: 'Prenez contact avec nos experts en Tunisie pour discuter de votre projet énergétique et obtenir un accompagnement personnalisé.',
+      url: 'https://joya-energy.com/contact',
+      keywords: 'contact JOYA Energy Tunisie, devis énergie solaire Tunisie, conseil énergétique Tunisie, Tunisia',
+    });
+  }
 
   protected subjects = Object.values(ContactSubject);
   protected isSubmitting = signal(false);

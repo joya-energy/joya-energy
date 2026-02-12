@@ -58,6 +58,7 @@ import { UploadCardComponent, UploadCardConfig } from '../../shared/components/u
 
 // Services and Types
 import { NotificationStore } from '../../core/notifications/notification.store';
+import { SEOService } from '../../core/services/seo.service';
 import {
   AuditSolaireService,
   CreateSimulationPayload,
@@ -150,6 +151,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   private readonly auditService = inject(AuditSolaireService);
   private readonly auditEnergetiqueService = inject(AuditEnergetiqueService);
   private readonly notificationStore = inject(NotificationStore);
+  private readonly seoService = inject(SEOService);
   private readonly cdr = inject(ChangeDetectorRef);
 
   // Surplus sale tariff (injection) used for MT surplus revenue calculations (DT/kWh)
@@ -479,6 +481,13 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.seoService.setSEO({
+      title: 'Audit Solaire | JOYA Energy',
+      description: 'Estimez votre potentiel solaire en Tunisie avec JOYA Energy. Obtenez une simulation personnalisée de votre installation photovoltaïque et découvrez vos économies énergétiques potentielles.',
+      url: 'https://joya-energy.com/audit-solaire',
+      keywords: 'audit solaire Tunisie, simulation panneaux solaires, potentiel solaire Tunisie, énergie solaire Tunisie, panneaux photovoltaïques Tunisie',
+    });
+
     // Bill upload feature temporarily disabled
     // Set default value for hasInvoice to avoid form validation errors
     const hasInvoiceControl = this.form.get('consumption.hasInvoice');

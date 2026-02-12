@@ -16,7 +16,7 @@ export const routes: Routes = [
     path: '',
     loadComponent: () =>
       import('./pages/landing/landing.component').then((m) => m.LandingComponent),
-    title: 'Landing | JOYA Energy',
+    title: 'Passez au solaire sans investissement initial avec JOYA Energy',
     data: { hideFooter: false },
   },
   {

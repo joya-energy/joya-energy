@@ -39,6 +39,7 @@ import { UiSelectComponent } from '../../shared/components/ui-select/ui-select.c
 import { UiInputComponent } from '../../shared/components/ui-input/ui-input.component';
 import { BilanCarbonFormService } from './bilan-carbon.form.service';
 import { CarbonSimulatorService } from '../../core/services/carbon-simulator.service';
+import { SEOService } from '../../core/services/seo.service';
 import {
   SECTOR_CARD_CONFIG,
   ZONE_OPTIONS,
@@ -130,6 +131,7 @@ interface SimulatorStep {
 export class BilanCarbonComponent implements OnInit, OnDestroy {
   private formService = inject(BilanCarbonFormService);
   private carbonService = inject(CarbonSimulatorService);
+  private seoService = inject(SEOService);
 
   protected form = this.formService.buildForm();
   protected result = signal<CarbonFootprintSummaryResult | null>(null);
@@ -143,6 +145,13 @@ export class BilanCarbonComponent implements OnInit, OnDestroy {
   private formSubscription: { unsubscribe: () => void } | null = null;
 
   ngOnInit(): void {
+    this.seoService.setSEO({
+      title: 'Bilan Carbone | JOYA Energy',
+      description: 'Calculez l\'empreinte carbone de votre entreprise en Tunisie avec JOYA Energy. Identifiez vos sources d\'émissions et découvrez comment réduire votre impact environnemental.',
+      url: 'https://joya-energy.com/bilan-carbon',
+      keywords: 'bilan carbone Tunisie, empreinte carbone entreprise, calcul CO2 Tunisie, réduction émissions Tunisie, transition énergétique Tunisie',
+    });
+
     this.formSubscription = this.form.valueChanges.subscribe(() => {
       this.formUpdateTrigger.update((v) => v + 1);
     });

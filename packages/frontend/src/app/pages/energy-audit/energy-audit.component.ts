@@ -54,6 +54,7 @@ import { StepPersonalComponent } from './steps/step-personal/step-personal.compo
 import { EnergyAuditFormService } from './services/energy-audit-form.service';
 import { EnergyAuditService } from './services/energy-audit.service';
 import { NotificationStore } from '../../core/notifications/notification.store';
+import { SEOService } from '../../core/services/seo.service';
 import { SimulatorStep, StepField, EnergyAuditRequest } from './types/energy-audit.types';
 import { AuditEnergetiqueResponse } from '../../core/services/audit-energetique.service';
 
@@ -127,6 +128,7 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
   private readonly formService = inject(EnergyAuditFormService);
   private auditService = inject(EnergyAuditService);
   private notificationStore = inject(NotificationStore);
+  private seoService = inject(SEOService);
   private cdr = inject(ChangeDetectorRef);
 
   protected readonly form = this.formService.buildForm();
@@ -148,6 +150,12 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
   private readonly formUpdateTrigger = signal(0);
 
   ngOnInit(): void {
+    this.seoService.setSEO({
+      title: 'Audit Énergétique | JOYA Energy',
+      description: 'Analyse complète de votre consommation, de vos usages et de votre facture énergétique en Tunisie pour identifier les leviers d\'optimisation les plus pertinents.',
+      url: 'https://joya-energy.com/audit-energetique',
+      keywords: 'audit énergétique Tunisie, diagnostic énergétique Tunisie, analyse consommation énergie Tunisie, optimisation énergétique Tunisie, Tunisia',
+    });
     // Subscribe to form value changes to trigger progress updates
     this.form.valueChanges.subscribe(() => {
       // Update validity for all controls

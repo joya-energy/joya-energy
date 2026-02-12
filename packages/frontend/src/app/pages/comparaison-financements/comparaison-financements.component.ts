@@ -38,6 +38,7 @@ import {
 } from '../../features/financing-comparison/services/financing-comparison.service';
 import { Governorates } from '@shared';
 import { NotificationStore } from '../../core/notifications/notification.store';
+import { SEOService } from '../../core/services/seo.service';
 
 interface SimulatorStep {
   number: number;
@@ -97,6 +98,7 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly financingService = inject(FinancingComparisonService);
   private readonly notificationStore = inject(NotificationStore);
+  private readonly seoService = inject(SEOService);
 
   protected readonly steps: SimulatorStep[] = [
     { number: 1, title: 'Introduction', isResult: false },
@@ -157,6 +159,12 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.seoService.setSEO({
+      title: 'Comparateur de Financements | JOYA Energy',
+      description: 'Comparez les différentes options de financement pour votre projet solaire en Tunisie : ESCO, crédit bancaire, leasing ou comptant. Trouvez la solution la plus adaptée à votre entreprise.',
+      url: 'https://joya-energy.com/comparaison-financements',
+      keywords: 'financement solaire Tunisie, comparateur financement énergie solaire, ESCO Tunisie, crédit panneaux solaires Tunisie, leasing solaire Tunisie',
+    });
     if (isPlatformBrowser(this.platformId)) {
       this.financingService.fetchLocations().subscribe();
       this.financingService.fetchAdvantages().subscribe();
