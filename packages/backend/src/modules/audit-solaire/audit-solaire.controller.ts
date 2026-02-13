@@ -7,7 +7,7 @@ import { Logger } from '@backend/middlewares';
 import { requireNumber, requireString } from '../common/validation.utils';
 import { BuildingTypes, ClimateZones } from '@shared/enums/audit-general.enum';
 import { type OperatingHoursCase } from './config';
-import { billExtractionService } from '../audit-energetique/bill-extraction.service';
+import { billExtractionService } from '../bill-extraction/bill-extraction.service';
 import { LeadCollectorService } from '../lead/lead-collector.service';
 
 export class AuditSolaireSimulationController {

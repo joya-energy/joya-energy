@@ -18,6 +18,7 @@ import { comparisonRoutes } from './interfaces/financing-comparison';
 import { fileRoutes } from './modules/file/file.routes';
 import { carbonSimulatorRoutes } from './modules/carbon-simulator/carbon-simulator.routes';
 import { leadRoutes } from './modules/lead/lead.routes';
+import { billExtractionRoutes } from './modules/bill-extraction/bill-extraction.routes';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './configs/swagger.config';
 import { HttpStatusCode } from '@shared';
@@ -85,11 +86,16 @@ const createApp = async (): Promise<http.Server> => {
           'https://www.joya-energy.com',
         ];
 
+        // In development, allow localhost on any port (for Swagger UI and local testing)
+        const isDevelopment = ServerConfig.isEnv(NodeEnv.DEV);
+        const isLocalhost = origin && /^https?:\/\/localhost(:\d+)?$/.test(origin);
+
         // Allow Vercel preview deployments (*.vercel.app)
         if (
           !origin ||
           allowedOrigins.includes(origin) ||
-          origin.endsWith('.vercel.app')
+          origin.endsWith('.vercel.app') ||
+          (isDevelopment && isLocalhost)
         ) {
           callback(null, true);
         } else {
@@ -123,6 +129,7 @@ const createApp = async (): Promise<http.Server> => {
 
   // Mount routes BEFORE other middleware to ensure they are matched
   router.use('/api/contacts', contactRoutes);
+  router.use('/api/bill-extraction', billExtractionRoutes);
   router.use(
     '/api/audit-energetique-simulations',
     auditEnergetiqueSimulationRoutes

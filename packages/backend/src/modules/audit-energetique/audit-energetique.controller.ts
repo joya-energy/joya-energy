@@ -3,7 +3,7 @@ import { auditSimulationService } from './audit-energetique.service';
 import { HttpStatusCode } from '@shared';
 import { HTTP400Error, HTTP404Error } from '@backend/errors/http.error';
 import { Logger } from '@backend/middlewares';
-import { billExtractionService } from './bill-extraction.service';
+import { billExtractionService } from '../bill-extraction/bill-extraction.service';
 import {type AuditEnergetiqueResponseDto, toAuditEnergetiqueResponseDto} from './dto/audit-energetique-response.dto';
 import { AuditRequestPayload,ExtractedAuditData,mergeExtractedValues,sanitizeAuditPayload} from './utils/payload-normalizer';
 import { LeadCollectorService } from '../lead/lead-collector.service';

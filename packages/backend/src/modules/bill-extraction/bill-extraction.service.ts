@@ -189,4 +189,3 @@ export class BillExtractionService {
 }
 
 export const billExtractionService = new BillExtractionService();
-

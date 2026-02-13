@@ -37,9 +37,9 @@ jest.mock('@backend/middlewares', () => ({
 }));
 
 // Mock BillExtractionService to avoid OpenAI API key requirement
-jest.mock('./bill-extraction.service', () => ({
+jest.mock('../bill-extraction/bill-extraction.service', () => ({
   billExtractionService: {
-    extractBillData: jest.fn()
+    extractDataFromImage: jest.fn()
   }
 }));
 

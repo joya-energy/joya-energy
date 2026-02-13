@@ -128,7 +128,7 @@ export class AuditEnergetiqueService {
   private api = inject(ApiService);
 
   extractBillData(formData: FormData): Observable<ExtractBillResponse> {
-    return this.api.postFormData<ExtractBillResponse>('/audit-energetique-simulations/extract-bill-data', formData);
+    return this.api.postFormData<ExtractBillResponse>('/bill-extraction/extract', formData);
   }
 
   createSimulation(payload: AuditEnergetiqueRequest): Observable<AuditEnergetiqueResponse> {

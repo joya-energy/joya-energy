@@ -1,7 +1,6 @@
 import asyncRouter from 'express-promise-router';
 import multer from 'multer';
 import { auditEnergetiqueSimulationController } from './audit-energetique.controller';
-import { billExtractionController } from './bill-extraction.controller';
 import { auditReportController } from './audit-report.controller';
 import { pvReportController } from './pv-report.controller';
 
@@ -345,49 +344,6 @@ const upload = multer({
  *   name: Audit Simulation
  *   description: Energy audit simulation endpoints
  */
-
-/**
- * @swagger
- * /audit-energetique-simulations/extract-bill-data:
- *   post:
- *     summary: Extract structured data from a bill image
- *     tags: [Audit Simulation]
- *     description: Uploads an image (STEG bill) and extracts consumption data using AI.
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               billImage:
- *                 type: string
- *                 format: binary
- *                 description: The image file of the bill (JPG/PNG)
- *     responses:
- *       200:
- *         description: Data extracted successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   $ref: '#/components/schemas/ExtractedBillData'
- *       400:
- *         description: Invalid file or bad request
- *       500:
- *         description: Extraction failed
- */
-// Remove inline logs to keep code clean after debugging
-auditEnergetiqueSimulationRoutes.post(
-  '/extract-bill-data',
-  upload.single('billImage'),
-  billExtractionController.extractBillData
-);
 
 /**
  * @swagger
