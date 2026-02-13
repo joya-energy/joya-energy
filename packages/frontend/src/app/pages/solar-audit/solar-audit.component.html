@@ -1177,7 +1177,7 @@
           <button
             type="button"
             class="hero__btn hero__btn--primary"
-            [disabled]="isSubmitting()"
+            [disabled]="!canProceed() || isSubmitting()"
             (click)="nextStep()"
           >
             Suivant
@@ -1187,7 +1187,7 @@
           <button
             type="button"
             class="hero__btn hero__btn--primary"
-            [disabled]="isSubmitting()"
+            [disabled]="!canProceed() || isSubmitting()"
             (click)="nextStep()"
           >
             @if (isSubmitting()) {
@@ -1239,7 +1239,7 @@
         <button
           type="button"
           class="hero__btn hero__btn--primary"
-          [disabled]="isSubmitting()"
+          [disabled]="!canProceed() || isSubmitting()"
           (click)="nextStep()"
         >
           Suivant
@@ -1249,7 +1249,7 @@
         <button
           type="button"
           class="hero__btn hero__btn--primary"
-          [disabled]="isSubmitting()"
+          [disabled]="!canProceed() || isSubmitting()"
           (click)="nextStep()"
         >
           @if (isSubmitting()) {

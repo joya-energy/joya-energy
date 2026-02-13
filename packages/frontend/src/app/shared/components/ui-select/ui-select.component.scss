@@ -236,7 +236,7 @@
   align-items: center;
   justify-content: center;
   padding: 1rem 1.25rem;
-  
+
   border: 1px solid var(--select-box-border);
   border-radius: 0.75rem;
   font-size: var(--font-size-base);
@@ -250,6 +250,18 @@
   height: 5rem;
   box-sizing: border-box;
   text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: var(--font-size-xs);
+    padding: 0.625rem 0.75rem;
+    min-height: 3rem;
+    height: auto;
+  }
+
+  @media (max-width: 480px) {
+    font-size: var(--font-size-xs);
+    padding: 0.5rem 0.625rem;
+  }
 
   &:hover:not(.disabled) {
     background: var(--select-box-bg-hover);
@@ -312,8 +324,19 @@
   .icon-left & {
     text-align: left;
   }
+
   @media (max-width: 1105px) {
     font-size: var(--font-size-sm);
+  }
+
+  @media (max-width: 768px) {
+    font-size: var(--font-size-xs);
+    -webkit-line-clamp: 3; // Allow 3 lines on mobile so long labels (e.g. Chauffage par climatisation) fit
+  }
+
+  @media (max-width: 480px) {
+    font-size: var(--font-size-xs);
+    -webkit-line-clamp: 3;
   }
 }
 
