@@ -33,78 +33,82 @@ export class BillExtractionService {
       );
 
       const prompt = `
-        Analyze this electricity bill (STEG Tunisia). Extract the following information and return it in JSON format.
-        For each field, also provide a brief "explanation" (in French) of what this value represents on the bill, suitable for a user tooltip.
+      Analyze this electricity bill (STEG Tunisia). Extract the following information and return it in JSON format.
+      For each field, also provide a brief "explanation" (in French) of what this value represents on the bill, suitable for a user tooltip.
 
-        IMPORTANT EXTRACTION RULES:
-        - monthlyBillAmount: 
-            value: Look for "Montant HT" (this is the MAIN electricity amount, NOT "Total Consommation & Services" or "Montant Total" or "Montant à payer" or "Total Electricité").
-            explanation: "Le montant total de l'électricité consommée hors taxes (HT)."
-        
-        - recentBillConsumption: 
-            value: The electricity consumption in kWh. The consumption value is in the "Quantité" column of the "Electricité" table. 
-            explanation: "Votre consommation d'électricité mesurée en kilowattheures (kWh) pour la période facturée."
-        
-        
-        - contractedPower: 
-            value: In the 'CONSOMMATION & SERVICES' table, for the row containing 'Electricité' (libellé like 'ECLAIRAGE'), return only the value under the column header 'Puissance / Débit' (ignore 'Nbre de Mois' , the entire “Taxes” box and any “P.U” values—return the number only.).
-            explanation: "La puissance souscrite dans votre contrat en kVA, déterminant votre capacité maximale instantanée."
-        
-        - periodStart: 
-            value: The start date of the billing period (YYYY-MM-DD). Look for the date in the consumption table or billing period section.
-            explanation: "La date de début de la période de consommation facturée."
-        
-        - periodEnd: 
-            value: The end date of the billing period (YYYY-MM-DD). This is typically shown as "FACTURE ESTIMEE" date or period end.
-            explanation: "La date de fin de la période de consommation facturée."
-        - period:
-            value: The billing period, number of months. Look for "Nber de Mois" in the table and you will find under it the number of months. (e.g 2 that means that the bill is for 2 months, return 2)
-            explanation: "La période de facturation (YYYY-MM)."
-        - tariffType: 
-            value: Infer from the tariff code or description. Look for codes like "BT" (Basse Tension), "MT" (Moyenne Tension), or "HT" (Haute Tension). Return EXACTLY one of: 'Basse Tension', 'Moyenne Tension', 'Haute Tension'.
-            explanation: "La catégorie de tarification appliquée par la STEG."
-        
-        - address: 
-            value: The full address of the client/building. Look at the top section of the bill under the reference.
-            explanation: "L'adresse du point de consommation telle qu'indiquée sur la facture."
-        
-        - clientName: 
-            value: The name of the client (individual or company). For businesses, use the company name (e.g., "STE IMMOBILIERE ORACLE"). For individuals, use the person's name.
-            explanation: "Le nom du titulaire du contrat (entreprise ou particulier)."
-        
-        - governorate: 
-            value: Extract from the address or district field. Return EXACTLY one of these: 'Tunis', 'Ariana', 'Ben Arous', 'Manouba', 'Bizerte', 'Béja', 'Jendouba', 'Kairouan', 'Kasserine', 'Médenine', 'Monastir', 'Nabeul', 'Sfax', 'Sousse', 'Tataouine', 'Tozeur', 'Zaghouan', 'Siliana', 'Le Kef', 'Mahdia', 'Sidi Bouzid', 'Gabès', 'Gafsa'.
-            explanation: "Le gouvernorat de localisation, déduit de l'adresse ou du district."
-        
-        - meterNumber:
-            value: The meter number. Look for "N°Dépannage" or meter identifier at the top of the bill.
-            explanation: "Le numéro d'identification unique de votre compteur électrique."
-        
-        - reference:
-            value: The bill reference number shown at the top (e.g., "18087 630 1").
-            explanation: "La référence unique de cette facture pour le suivi administratif."
-        
-        - district:
-            value: The district name (e.g., "EL MENZAH"). This is shown near the top of the bill under "District".
-            explanation: "Le nom du district de la STEG dont vous dépendez."
-        -BillAmountDividedByPeriod:    
-            value: The monthly bill amount divided by the number of months. Divide the value of monthlyBillAmount by the value of period. and return the result.
-            explanation: "Le montant total de l'électricité consommée hors taxes (HT) divisé par le nombre de mois."
-        Structure the response like this:
-        {
-          "monthlyBillAmount": { "value": 123.45, "explanation": "..." },
-          "recentBillConsumption": { "value": 450, "explanation": "..." },
-          ...
-        }
-        
-        If a value is not found, use null for value but still provide the explanation.
-        
-        Return ONLY raw JSON, no markdown or code blocks.
-      `;
+      IMPORTANT EXTRACTION RULES:
+      - monthlyBillAmount: 
+          value: In the TOP table titled "CONSOMMATION & SERVICES", locate the main electricity consumption row (the row whose "Libellés" contains "Electricité" and usually "ECLAIRAGE"). Extract the number under the column "Montant HT" (or "Montant Hors taxes") from that same row. DO NOT use "Total Electricité", "Total Consommation & Services", "Montant Total", "Montant à payer", or any value inside the "Taxes" box.
+          explanation: "Le montant total de l'électricité consommée hors taxes (HT)."
+      
+      - recentBillConsumption: 
+          value: In the "CONSOMMATION & SERVICES" table, locate the row whose "Libellés" contains "Electricité" (often with "ECLAIRAGE"). Extract the value in the column "Quantité" (or "Qté") from that same row. Ignore any quantity shown in the "Taxes" section.
+          explanation: "Votre consommation d'électricité mesurée en kilowattheures (kWh) pour la période facturée."
+      
+      
+      - contractedPower: 
+          value: In the TOP "CONSOMMATION & SERVICES" table, locate the row whose "Libellés" contains "Electricité" (often "ECLAIRAGE"). Identify the column header "Puissance / Débit" in the same table header row (it is usually positioned between "Nbre de Mois" and "Libellés"). Extract ONLY the number at the intersection of that row and that column. HARD EXCLUSIONS: ignore the "Taxes" box entirely, ignore any "P.U" values, and ignore the value under "Nbre de Mois". The contracted power is typically a small integer (e.g. between 2 and 60).
+          explanation: "La puissance souscrite dans votre contrat en kVA, déterminant votre capacité maximale instantanée."
+      
+      - periodStart: 
+          value: Extract the start date of the billing period from the header area where the period is written as "Du YYYY-MM-DD" (French) or "من YYYY-MM-DD" (Arabic). Return the date in format YYYY-MM-DD.
+          explanation: "La date de début de la période de consommation facturée."
+      
+      - periodEnd: 
+          value: Extract the end date of the billing period from the header area where the period is written as "Au YYYY-MM-DD" (French) or "إلى YYYY-MM-DD" (Arabic). Return the date in format YYYY-MM-DD.
+          explanation: "La date de fin de la période de consommation facturée."
+      
+      - period:
+          value: In the TOP "CONSOMMATION & SERVICES" table, locate the column "Nbre de Mois" and extract the value from the same row as "Electricité". Convert values like "001" into the integer 1.
+          explanation: "La période de facturation en nombre de mois."
+      
+      - tariffType: 
+          value: Read the tariff indicator printed near the top of the bill (often near "FACTURE" or under the logo). If you see "BT" return exactly "Basse Tension". If "MT" return exactly "Moyenne Tension". If "HT" return exactly "Haute Tension".
+          explanation: "La catégorie de tarification appliquée par la STEG."
+      
+      - address: 
+          value: Extract the full address block printed under the client name near the top-left section of the bill (below "Référence").
+          explanation: "L'adresse du point de consommation telle qu'indiquée sur la facture."
+      
+      - clientName: 
+          value: Extract the contract holder name printed near the top-left section above the address (company or individual name).
+          explanation: "Le nom du titulaire du contrat (entreprise ou particulier)."
+      
+      - governorate: 
+          value: Infer from the address or district field. Return EXACTLY one of these: 'Tunis', 'Ariana', 'Ben Arous', 'Manouba', 'Bizerte', 'Béja', 'Jendouba', 'Kairouan', 'Kasserine', 'Médenine', 'Monastir', 'Nabeul', 'Sfax', 'Sousse', 'Tataouine', 'Tozeur', 'Zaghouan', 'Siliana', 'Le Kef', 'Mahdia', 'Sidi Bouzid', 'Gabès', 'Gafsa'.
+          explanation: "Le gouvernorat de localisation, déduit de l'adresse ou du district."
+      
+      - meterNumber:
+          value: Extract the identifier labeled "N° Dépannage" (or Arabic equivalent) from the top section of the bill. Do NOT confuse it with "Référence".
+          explanation: "Le numéro d'identification unique de votre compteur électrique."
+      
+      - reference:
+          value: Extract the value next to "Référence" in the top-left section of the bill.
+          explanation: "La référence unique de cette facture pour le suivi administratif."
+      
+      - district:
+          value: Extract the value next to "District" in the header box near the top of the bill.
+          explanation: "Le nom du district de la STEG dont vous dépendez."
+      
+      - BillAmountDividedByPeriod:    
+          value: Divide monthlyBillAmount.value by period.value. If one of them is null, return null.
+          explanation: "Le montant total de l'électricité consommée hors taxes (HT) divisé par le nombre de mois."
+
+      Structure the response like this:
+      {
+        "monthlyBillAmount": { "value": 123.45, "explanation": "..." },
+        "recentBillConsumption": { "value": 450, "explanation": "..." },
+        ...
+      }
+      
+      If a value is not found, use null for value but still provide the explanation.
+      
+      Return ONLY raw JSON, no markdown or code blocks.
+    `;
 
       const startTime = Date.now();
       const response = await this.openai.chat.completions.create({
-        model: 'gpt-4o-mini', // Switch to mini to save costs/quota
+        model: 'gpt-4o', // Switch to mini to save costs/quota
         messages: [
           {
             role: 'system',
