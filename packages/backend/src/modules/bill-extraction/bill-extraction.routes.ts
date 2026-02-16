@@ -16,119 +16,70 @@ const upload = multer({
  * @swagger
  * components:
  *   schemas:
+ *     AmountValue:
+ *       type: object
+ *       properties:
+ *         total:
+ *           type: number
+ *           description: The total amount value
+ *     ExtractedField:
+ *       type: object
+ *       properties:
+ *         value:
+ *           oneOf:
+ *             - type: object
+ *             - type: string
+ *             - type: number
+ *             - type: "null"
+ *           description: The extracted value, or null if not found
+ *         explanation:
+ *           type: string
+ *           description: French explanation of what this value represents
  *     ExtractedBillData:
  *       type: object
  *       properties:
  *         monthlyBillAmount:
- *           type: object
- *           properties:
- *             value:
- *               type: number
- *               description: Total amount to pay in TND
- *             explanation:
- *               type: string
- *               description: Explanation of the value
+ *           $ref: '#/components/schemas/ExtractedField'
+ *           description: Monthly bill amount (HT) as an object with total property
  *         recentBillConsumption:
- *           type: object
- *           properties:
- *             value:
- *               type: number
- *               description: Total energy consumption in kWh
- *             explanation:
- *               type: string
- *               description: Explanation of the value
+ *           $ref: '#/components/schemas/ExtractedField'
+ *           description: Recent bill consumption in kWh as an object with total property
  *         periodStart:
- *           type: object
- *           properties:
- *             value:
- *               type: string
- *               format: date
- *               description: Start date of billing period
- *             explanation:
- *               type: string
- *               description: Explanation of the value
+ *           $ref: '#/components/schemas/ExtractedField'
+ *           description: Billing period start date in YYYY-MM-DD format
  *         periodEnd:
- *           type: object
- *           properties:
- *             value:
- *               type: string
- *               format: date
- *               description: End date of billing period
- *             explanation:
- *               type: string
- *               description: Explanation of the value
+ *           $ref: '#/components/schemas/ExtractedField'
+ *           description: Billing period end date in YYYY-MM-DD format (may be null for MT bills)
+ *         period:
+ *           $ref: '#/components/schemas/ExtractedField'
+ *           description: Number of months in the billing period
  *         tariffType:
- *           type: object
- *           properties:
- *             value:
- *               type: string
- *               enum: [Basse Tension, Moyenne Tension, Haute Tension]
- *             explanation:
- *               type: string
- *               description: Explanation of the value
+ *           $ref: '#/components/schemas/ExtractedField'
+ *           description: Tariff type (Basse Tension, Moyenne Tension, or Haute Tension)
  *         contractedPower:
- *           type: object
- *           properties:
- *             value:
- *               type: number
- *               description: Contracted power in kVA
- *             explanation:
- *               type: string
- *               description: Explanation of the value
+ *           $ref: '#/components/schemas/ExtractedField'
+ *           description: Contracted power in kVA
  *         address:
- *           type: object
- *           properties:
- *             value:
- *               type: string
- *               description: Extracted address
- *             explanation:
- *               type: string
- *               description: Explanation of the value
+ *           $ref: '#/components/schemas/ExtractedField'
+ *           description: Full address of the consumption point
  *         clientName:
- *           type: object
- *           properties:
- *             value:
- *               type: string
- *               description: Extracted client name
- *             explanation:
- *               type: string
- *               description: Explanation of the value
+ *           $ref: '#/components/schemas/ExtractedField'
+ *           description: Client/company name (contract holder)
  *         governorate:
- *           type: object
- *           properties:
- *             value:
- *               type: string
- *               description: Extracted governorate
- *             explanation:
- *               type: string
- *               description: Explanation of the value
+ *           $ref: '#/components/schemas/ExtractedField'
+ *           description: Governorate name (one of 24 Tunisian governorates)
  *         meterNumber:
- *           type: object
- *           properties:
- *             value:
- *               type: string
- *               description: Meter number
- *             explanation:
- *               type: string
- *               description: Explanation of the value
+ *           $ref: '#/components/schemas/ExtractedField'
+ *           description: Meter number identifier
  *         reference:
- *           type: object
- *           properties:
- *             value:
- *               type: string
- *               description: Bill reference number
- *             explanation:
- *               type: string
- *               description: Explanation of the value
+ *           $ref: '#/components/schemas/ExtractedField'
+ *           description: Bill reference number
  *         district:
- *           type: object
- *           properties:
- *             value:
- *               type: string
- *               description: STEG district name
- *             explanation:
- *               type: string
- *               description: Explanation of the value
+ *           $ref: '#/components/schemas/ExtractedField'
+ *           description: STEG district name
+ *         BillAmountDividedByPeriod:
+ *           $ref: '#/components/schemas/ExtractedField'
+ *           description: Calculated field - monthlyBillAmount.value.total divided by period.value
  */
 
 /**

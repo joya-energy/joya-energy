@@ -1,16 +1,16 @@
 # Electricity Bill Extraction Service - Analysis & Testing Guide
 
 ## Overview
-This service receives an electricity bill (image or PDF) and uses OpenAI Vision API to extract structured data from STEG (Tunisia) electricity bills.
+This is a **standalone service** that receives an electricity bill (image or PDF) and uses OpenAI Vision API to extract structured data from STEG (Tunisia) electricity bills. The service has been refactored into its own module (`bill-extraction`) and can be used by any other service that needs bill data extraction.
 
 ---
 
 ## How It Works - Step by Step
 
 ### Step 1: Request Reception
-**Endpoint:** `POST /api/audit-energetique-simulations/extract-bill-data`
+**Endpoint:** `POST /api/bill-extraction/extract`
 
-**Location:** `packages/backend/src/modules/audit-energetique/bill-extraction.controller.ts`
+**Location:** `packages/backend/src/modules/bill-extraction/bill-extraction.controller.ts`
 
 - The endpoint receives a multipart/form-data request with a file field named `billImage`
 - File is validated:
@@ -76,15 +76,15 @@ const upload = multer({
   },
 });
 
-auditEnergetiqueSimulationRoutes.post(
-  '/extract-bill-data',
+billExtractionRoutes.post(
+  '/extract',
   upload.single('billImage'),
   billExtractionController.extractBillData
 );
 ```
 
 ### Step 2: File Preparation
-**Location:** `packages/backend/src/modules/audit-energetique/bill-extraction.service.ts` → `prepareInputBuffer()`
+**Location:** `packages/backend/src/modules/bill-extraction/bill-extraction.service.ts` → `prepareInputBuffer()`
 
 - **If PDF:** Converts first page to PNG using `pdf-to-png-converter`
   - High resolution (viewportScale: 5.5) for better OCR accuracy
@@ -339,7 +339,7 @@ export const billExtractionService = new BillExtractionService();
 
 ### Endpoint
 ```
-POST /api/audit-energetique-simulations/extract-bill-data
+POST /api/bill-extraction/extract
 ```
 
 ### Request Format
@@ -421,8 +421,8 @@ POST /api/audit-energetique-simulations/extract-bill-data
 3. Swagger UI will display all available endpoints
 
 ### Step 2: Find the Endpoint
-- Look for the **"Audit Simulation"** tag
-- Find: `POST /audit-energetique-simulations/extract-bill-data`
+- Look for the **"Bill Extraction"** tag
+- Find: `POST /bill-extraction/extract`
 - Click on it to expand
 
 ### Step 3: Test the Endpoint
@@ -443,7 +443,7 @@ POST /api/audit-energetique-simulations/extract-bill-data
 ## Testing with cURL
 
 ```bash
-curl -X POST "http://localhost:3000/api/audit-energetique-simulations/extract-bill-data" \
+curl -X POST "http://localhost:3000/api/bill-extraction/extract" \
   -H "Content-Type: multipart/form-data" \
   -F "billImage=@/path/to/your/bill.jpg"
 ```
@@ -453,7 +453,7 @@ curl -X POST "http://localhost:3000/api/audit-energetique-simulations/extract-bi
 ## Testing with Postman
 
 1. **Method:** POST
-2. **URL:** `http://localhost:3000/api/audit-energetique-simulations/extract-bill-data`
+2. **URL:** `http://localhost:3000/api/bill-extraction/extract`
 3. **Body Tab:**
    - Select `form-data`
    - Add key: `billImage` (type: File)
@@ -469,7 +469,7 @@ curl -X POST "http://localhost:3000/api/audit-energetique-simulations/extract-bi
 const formData = new FormData();
 formData.append('billImage', fileInput.files[0]);
 
-const response = await fetch('http://localhost:3000/api/audit-energetique-simulations/extract-bill-data', {
+const response = await fetch('http://localhost:3000/api/bill-extraction/extract', {
   method: 'POST',
   body: formData
 });
@@ -515,7 +515,7 @@ export class AuditEnergetiqueService {
   private api = inject(ApiService);
 
   extractBillData(formData: FormData): Observable<ExtractBillResponse> {
-    return this.api.postFormData<ExtractBillResponse>('/audit-energetique-simulations/extract-bill-data', formData);
+    return this.api.postFormData<ExtractBillResponse>('/bill-extraction/extract', formData);
   }
 }
 ```
@@ -565,20 +565,20 @@ protected onExtractFromBill(): void {
 ## Key Files Reference
 
 ### 1. Controller
-**File:** `packages/backend/src/modules/audit-energetique/bill-extraction.controller.ts`
+**File:** `packages/backend/src/modules/bill-extraction/bill-extraction.controller.ts`
 - Handles HTTP request/response
 - Validates file upload
 - See code above in Step 1
 
 ### 2. Service
-**File:** `packages/backend/src/modules/audit-energetique/bill-extraction.service.ts`
+**File:** `packages/backend/src/modules/bill-extraction/bill-extraction.service.ts`
 - Core extraction logic
 - OpenAI API integration
 - PDF to image conversion
 - See code above in Steps 2 and 4
 
 ### 3. Routes
-**File:** `packages/backend/src/modules/audit-energetique/audit-energetique.routes.ts`
+**File:** `packages/backend/src/modules/bill-extraction/bill-extraction.routes.ts`
 - Route definition with Swagger documentation
 - Multer configuration for file uploads
 - See route configuration code above in Step 1

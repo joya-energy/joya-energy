@@ -95,6 +95,7 @@ interface BuildingTypeCard {
     UiInputComponent,
     FieldTooltipComponent,
     GoogleMapsInputComponent,
+    UploadCardComponent,
     DatePipe,
   ],
   templateUrl: './solar-audit.component.html',
@@ -559,96 +560,12 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Handle extraction from bill (currently disabled - service being reworked)
+   */
   protected onExtractFromBill(): void {
-    const billFile = this.form.get('consumption.billAttachment')?.value as File | null;
-
-    if (!billFile) {
-      this.notificationStore.addNotification({
-        type: 'warning',
-        title: 'Aucun fichier',
-        message: "Veuillez d'abord sélectionner un fichier de facture.",
-      });
-      return;
-    }
-
-    // Create FormData for extraction
-    const formData = new FormData();
-    formData.append('billImage', billFile);
-
-    this.isSubmitting.set(true);
-
-    // Call extraction endpoint (reusing energy audit endpoint)
-    this.auditEnergetiqueService
-      .extractBillData(formData)
-      .pipe(finalize(() => this.isSubmitting.set(false)))
-      .subscribe({
-        next: (response) => {
-          if (response.success && response.data) {
-            const extracted = response.data;
-
-            // Populate form fields with extracted data
-            const consumptionControl = this.form.get('consumption');
-            if (consumptionControl) {
-              // Map monthlyBillAmount to measuredAmountTnd
-              if (extracted.monthlyBillAmount?.value !== undefined) {
-                consumptionControl
-                  .get('measuredAmountTnd')
-                  ?.setValue(extracted.monthlyBillAmount.value);
-              }
-
-              // Derive referenceMonth from periodEnd or periodStart
-              // Note: referenceMonth field expects month label (string), not number
-              if (extracted.periodEnd?.value) {
-                try {
-                  const periodEndDate = new Date(extracted.periodEnd.value);
-                  const monthNumber = periodEndDate.getMonth() + 1; // getMonth() returns 0-11
-                  if (monthNumber >= 1 && monthNumber <= 12) {
-                    const monthLabel = this.months.find((m) => m.value === monthNumber)?.label;
-                    if (monthLabel) {
-                      consumptionControl.get('referenceMonth')?.setValue(monthLabel);
-                    }
-                  }
-                } catch (error) {
-                  console.warn('Failed to parse periodEnd date:', extracted.periodEnd.value);
-                }
-              } else if (extracted.periodStart?.value) {
-                try {
-                  const periodStartDate = new Date(extracted.periodStart.value);
-                  const monthNumber = periodStartDate.getMonth() + 1;
-                  if (monthNumber >= 1 && monthNumber <= 12) {
-                    const monthLabel = this.months.find((m) => m.value === monthNumber)?.label;
-                    if (monthLabel) {
-                      consumptionControl.get('referenceMonth')?.setValue(monthLabel);
-                    }
-                  }
-                } catch (error) {
-                  console.warn('Failed to parse periodStart date:', extracted.periodStart.value);
-                }
-              }
-            }
-
-            this.notificationStore.addNotification({
-              type: 'success',
-              title: 'Données extraites',
-              message:
-                'Les données de votre facture ont été extraites avec succès. Veuillez vérifier et continuer.',
-            });
-
-            // Proceed to next step
-            this.nextStep();
-          }
-        },
-        error: (error) => {
-          console.error('Error extracting bill data:', error);
-          this.notificationStore.addNotification({
-            type: 'error',
-            title: "Erreur d'extraction",
-            message:
-              error.error?.message ||
-              "Impossible d'extraire les données de la facture. Veuillez saisir les informations manuellement.",
-          });
-        },
-      });
+    // Bill extraction service is being reworked
+    // This method will be re-implemented when the new service is ready
   }
 
   // Temporarily disabled - bill upload feature
