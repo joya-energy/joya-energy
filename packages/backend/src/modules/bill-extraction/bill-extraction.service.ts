@@ -188,7 +188,7 @@ export class BillExtractionService {
             ],
           },
         ],
-        max_tokens: 1000,
+        max_tokens: 2000,
         temperature: 0.1,
       });
       Logger.info(`OpenAI response received in ${Date.now() - startTime}ms`);
