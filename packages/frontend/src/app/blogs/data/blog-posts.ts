@@ -18,13 +18,13 @@ export interface BlogPost {
 export const BLOG_POSTS: BlogPost[] = [
   {
     id: '1',
-    title: "Guide complet : passer au solaire sans investissement initial",
+    title: "Pourquoi le photovoltaïque est devenu un levier majeur d'économies pour les entreprises",
     excerpt:
       "Découvrez comment le modèle ESCO de JOYA Energy permet aux entreprises tunisiennes de s'équiper en panneaux solaires sans mise de fonds. Financement, économies et impact carbone expliqués.",
     imageUrl: '/blog1.png',
     date: '02 Feb 2026',
     category: 'Énergie solaire',
-    content: `Pourquoi le photovoltaïque est devenu un levier majeur d'économies pour les entreprises
+    content: `
 
 Pendant longtemps, le solaire était perçu comme un choix écologique.
 Aujourd'hui, il est devenu un choix économique.
