@@ -250,6 +250,7 @@ export class UiBillExtractorComponent {
       data.meterNumber?.value,
       data.reference?.value,
       data.district?.value,
+      data.MonthOfReferance?.value,
     ];
 
     // Count non-null values

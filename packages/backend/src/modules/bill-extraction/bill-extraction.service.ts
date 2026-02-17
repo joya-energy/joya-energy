@@ -153,6 +153,10 @@ export class BillExtractionService {
             value:
               Divide monthlyBillAmount.value.total by period.value. If any required value is null, return null.
             explanation: "Le montant total de l'électricité consommée hors taxes (HT) divisé par le nombre de mois."
+          
+        - MonthOfReferance:
+            value: Extract the month from the periodStart date. return the month as a number between 1 and 12.
+            explanation: "Le mois de référence de la facture. retourne le mois en tant que nombre entre 1 et 12."
 
         Structure the response like this:
         {

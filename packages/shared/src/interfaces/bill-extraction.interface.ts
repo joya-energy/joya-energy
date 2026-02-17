@@ -76,6 +76,9 @@ export interface ExtractedBillData {
   
   /** Calculated field: monthlyBillAmount.value.total divided by period.value */
   BillAmountDividedByPeriod: ExtractedField<number>;
+  
+  /** Month of reference extracted from periodStart date (1-12) */
+  MonthOfReferance: ExtractedField<number>;
 }
 
 /**
