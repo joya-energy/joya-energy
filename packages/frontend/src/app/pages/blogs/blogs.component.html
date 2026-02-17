@@ -1,0 +1,120 @@
+<div class="blog-page">
+  <section class="blog-hero">
+    <div class="blog-hero__overlay"></div>
+    <div class="blog-hero__container">
+      <h1 class="blog-hero__title">Blog JOYA Energy</h1>
+      <p class="blog-hero__subtitle">
+        Découvrez nos derniers articles et insights sur l'énergie solaire
+      </p>
+    </div>
+  </section>
+
+  <main class="blog-main">
+    <section class="blog-grid-section">
+      <div class="blog-grid">
+        @if (featuredPost(); as fp) {
+          <article class="blog-card-horizontal">
+            <a [routerLink]="['/blogs', fp.id]" class="blog-card-horizontal__link">
+              <div class="blog-card-horizontal__image-wrap">
+                <img
+                  [src]="fp.imageUrl"
+                  [alt]="fp.title"
+                  class="blog-card-horizontal__image"
+                  loading="eager"
+                />
+              </div>
+              <div class="blog-card-horizontal__content">
+                <div class="blog-card-horizontal__meta">
+                  <time class="blog-card-horizontal__date" [attr.datetime]="fp.date">
+                    {{ fp.date }}
+                  </time>
+                  <span class="blog-card-horizontal__tag">{{ fp.category }}</span>
+                </div>
+                <h2 class="blog-card-horizontal__title">{{ fp.title }}</h2>
+                <p class="blog-card-horizontal__excerpt">{{ fp.excerpt }}</p>
+                @if (fp.author) {
+                  <div class="blog-author">
+                    <span class="blog-author__avatar" [attr.aria-hidden]="true">
+                      {{ getAuthorInitial(fp.author.name) }}
+                    </span>
+                    <div class="blog-author__info">
+                      <span class="blog-author__name">{{ fp.author.name }}</span>
+                      <span class="blog-author__role">{{ fp.author.role }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </a>
+          </article>
+        }
+
+        @for (post of gridPosts(); track post.id) {
+          <article class="blog-card">
+            <a [routerLink]="['/blogs', post.id]" class="blog-card__link">
+              <div class="blog-card__image-wrap">
+                <img
+                  [src]="post.imageUrl"
+                  [alt]="post.title"
+                  class="blog-card__image"
+                  loading="lazy"
+                />
+              </div>
+              <div class="blog-card__body">
+                <div class="blog-card__meta">
+                  <time class="blog-card__date" [attr.datetime]="post.date">{{ post.date }}</time>
+                  <span class="blog-card__tag">{{ post.category }}</span>
+                </div>
+                <h3 class="blog-card__title">{{ post.title }}</h3>
+                <p class="blog-card__excerpt">{{ post.excerpt }}</p>
+                @if (post.author) {
+                  <div class="blog-author blog-author--small">
+                    <span class="blog-author__avatar blog-author__avatar--small" [attr.aria-hidden]="true">
+                      {{ getAuthorInitial(post.author.name) }}
+                    </span>
+                    <div class="blog-author__info">
+                      <span class="blog-author__name">{{ post.author.name }}</span>
+                      <span class="blog-author__role">{{ post.author.role }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </a>
+          </article>
+        }
+      </div>
+    </section>
+
+    <nav class="blog-pagination" aria-label="Pagination des articles">
+      <button
+        type="button"
+        class="blog-pagination__arrow"
+        [disabled]="currentPage() <= 1"
+        (click)="setPage(currentPage() - 1)"
+        aria-label="Page précédente"
+      >
+        ‹
+      </button>
+      @for (p of pageNumbers(); track p) {
+        <button
+          type="button"
+          class="blog-pagination__num"
+          [class.blog-pagination__num--active]="currentPage() === p"
+          (click)="setPage(p)"
+          [attr.aria-current]="currentPage() === p ? 'page' : null"
+          [attr.aria-label]="'Page ' + p"
+        >
+          {{ p }}
+        </button>
+      }
+      <button
+        type="button"
+        class="blog-pagination__arrow"
+        [disabled]="currentPage() >= totalPages()"
+        (click)="setPage(currentPage() + 1)"
+        aria-label="Page suivante"
+      >
+        ›
+      </button>
+    </nav>
+  </main>
+</div>
