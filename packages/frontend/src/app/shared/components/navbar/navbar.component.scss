@@ -7,6 +7,14 @@
  * Desktop: >= 1024px (fixed transparent navbar)
  */
 
+@mixin navbar-scrolled-solid {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--neutral-200);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
 :host {
   display: block;
   width: 100%;
@@ -46,7 +54,6 @@
     }
   }
 
-  // DESKTOP (>= 1024px): Fixed transparent navbar that changes on scroll
   @media (min-width: 1024px) {
     background: transparent;
     border-bottom: none;
@@ -56,11 +63,41 @@
   }
 
   &--scrolled {
-    background: rgba(255, 255, 255, 0.95);
+    @include navbar-scrolled-solid;
+  }
+}
+
+:host-context(body.blog-route) .navbar {
+  background: var(--landing-primary-lightest);
+  border-bottom: none;
+  box-shadow: none;
+
+  @media (min-width: 1024px) {
+    background: var(--landing-primary-lightest);
+  }
+
+  &.navbar--scrolled {
+    background: var(--landing-primary-lightest);
+    border-bottom: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  }
+}
+
+:host-context(body.blog-detail-route) .navbar {
+  background: transparent;
+  border-bottom: none;
+  box-shadow: none;
+
+  @media (min-width: 1024px) {
+    background: transparent;
+  }
+
+  &.navbar--scrolled {
+    background: var(--landing-primary-lightest, #f7ece9);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--neutral-200);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   }
 }
 
@@ -111,7 +148,6 @@
     gap: 4rem;
   }
 
-  // Very wide screens: scale down to fit better
   @media (min-width: 1410px) {
     height: 8rem;
     gap: 1.5rem;
@@ -154,7 +190,6 @@
     margin-bottom: 0.5rem;
   }
 
-  // Desktop: larger size
   @media (min-width: 1024px) and (max-width: 1409px) {
     height: 4rem;
   }

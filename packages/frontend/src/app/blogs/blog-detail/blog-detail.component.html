@@ -1,0 +1,59 @@
+@if (post(); as p) {
+  <div class="blog-detail-page">
+    <!-- Full-width hero image (irregular bottom edge) -->
+    <div class="blog-detail-hero">
+      <img [src]="p.imageUrl" [alt]="p.title" class="blog-detail-hero__image" />
+    </div>
+
+    <div class="blog-detail-container">
+      <!-- Main content column -->
+      <main class="blog-detail-main">
+        <a routerLink="/blogs" class="blog-detail__back">← Retour au blog</a>
+        <h1 class="blog-detail__title">{{ p.title }}</h1>
+        <div class="blog-detail__meta">
+          <time class="blog-detail__date" [attr.datetime]="p.date">{{ p.date }}</time>
+          <span class="blog-detail__tag">{{ p.category }}</span>
+        </div>
+        <div class="blog-author blog-author--detail">
+          <span class="blog-author__avatar" [attr.aria-hidden]="true">
+            {{ getAuthorInitial(p.author.name) }}
+          </span>
+          <div class="blog-author__info">
+            <span class="blog-author__name">{{ p.author.name }}</span>
+            <span class="blog-author__role">{{ p.author.role }}</span>
+          </div>
+        </div>
+        <div class="blog-detail__body">
+          <p class="blog-detail__excerpt">{{ p.excerpt }}</p>
+        </div>
+      </main>
+
+      <!-- Sidebar: related articles -->
+      <aside class="blog-detail-sidebar" aria-label="Articles associés">
+        <h2 class="blog-detail-sidebar__title">Articles associés</h2>
+        <ul class="blog-detail-related">
+          @for (related of relatedPosts(); track related.id) {
+            <li class="blog-detail-related__item">
+              <a [routerLink]="['/blogs', related.id]" class="blog-detail-related__link">
+                <div class="blog-detail-related__thumb">
+                  <img [src]="related.imageUrl" [alt]="related.title" />
+                </div>
+                <div class="blog-detail-related__content">
+                  <span class="blog-detail-related__title">{{ related.title }}</span>
+                  <time class="blog-detail-related__date" [attr.datetime]="related.date">
+                    {{ related.date }}
+                  </time>
+                </div>
+              </a>
+            </li>
+          }
+        </ul>
+      </aside>
+    </div>
+  </div>
+} @else {
+  <div class="blog-detail-page blog-detail-page--not-found">
+    <p>Article introuvable.</p>
+    <a routerLink="/blogs" class="blog-detail__back">← Retour au blog</a>
+  </div>
+}

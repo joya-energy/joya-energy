@@ -42,6 +42,18 @@ export const routes: Routes = [
     title: 'Ressources | JOYA Energy',
   },
   {
+    path: 'blogs',
+    loadComponent: () =>
+      import('./pages/blogs/blogs.component').then((m) => m.BlogsComponent),
+    title: 'Blogs | JOYA Energy',
+  },
+  {
+    path: 'blogs/:id',
+    loadComponent: () =>
+      import('./blogs/blog-detail/blog-detail.component').then((m) => m.BlogDetailComponent),
+    title: 'Article | JOYA Energy',
+  },
+  {
     path: 'contact',
     loadComponent: () =>
       import('./pages/contact/contact.component').then((m) => m.ContactComponent),
