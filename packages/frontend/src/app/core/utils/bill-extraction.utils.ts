@@ -10,6 +10,10 @@ export interface SolarAuditBillFields {
   referenceMonth: number;
   /** Tariff tension: 'BT' or 'MT' (derived from tariffType) */
   tariffTension: 'BT' | 'MT';
+  /** Tariff regime for MT: 'uniforme' or 'horaire' (derived from monthlyBillAmount structure) */
+  tariffRegime?: 'uniforme' | 'horaire' | null;
+  /** Operating hours case for MT: defaults to '24_7' */
+  operatingHoursCase?: 'jour' | 'jour_soir' | '24_7' | null;
 }
 
 /**
@@ -70,10 +74,41 @@ export function extractSolarAuditFields(
     tariffTension = 'BT';
   }
 
+  // Determine tariffRegime for MT bills based on monthlyBillAmount structure
+  let tariffRegime: 'uniforme' | 'horaire' | null = null;
+  let operatingHoursCase: 'jour' | 'jour_soir' | '24_7' | null = null;
+
+  if (tariffTension === 'MT') {
+    // Default operatingHoursCase to '24_7' for MT
+    operatingHoursCase = '24_7';
+
+    // Check monthlyBillAmount structure to determine tariffRegime
+    const monthlyBillAmountValue = extractedData.monthlyBillAmount?.value;
+
+    if (monthlyBillAmountValue && typeof monthlyBillAmountValue === 'object') {
+      // Count properties in the object (excluding null/undefined values)
+      const propertyKeys = Object.keys(monthlyBillAmountValue).filter(
+        (key) => monthlyBillAmountValue[key] !== null && monthlyBillAmountValue[key] !== undefined
+      );
+
+      // If only 'total' property exists → uniforme
+      // If multiple properties exist (total + other elements) → horaire
+      if (propertyKeys.length === 1 && propertyKeys[0] === 'total') {
+        tariffRegime = 'uniforme';
+      } else if (propertyKeys.length > 1) {
+        // Has total + other properties (elements) → horaire
+        tariffRegime = 'horaire';
+      }
+      // If structure is unclear, leave as null (user can select manually)
+    }
+  }
+
   return {
     measuredAmountTnd: billAmount,
     referenceMonth: monthOfReference,
     tariffTension,
+    tariffRegime: tariffRegime ?? null,
+    operatingHoursCase: operatingHoursCase ?? null,
   };
 }
 

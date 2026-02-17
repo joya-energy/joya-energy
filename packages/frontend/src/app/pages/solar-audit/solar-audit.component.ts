@@ -494,6 +494,8 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
         const measuredAmountControl = this.form.get('consumption.measuredAmountTnd');
         const referenceMonthControl = this.form.get('consumption.referenceMonth');
         const tariffTensionControl = this.form.get('consumption.tariffTension');
+        const tariffRegimeControl = this.form.get('consumption.tariffRegime');
+        const operatingHoursCaseControl = this.form.get('consumption.operatingHoursCase');
 
         if (
           !measuredAmountControl?.value ||
@@ -517,25 +519,65 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
             return;
           }
         }
+
+        // For MT bills, verify tariffRegime and operatingHoursCase are populated
+        if (tariffTensionControl?.value === 'MT') {
+          if (!tariffRegimeControl?.value || !operatingHoursCaseControl?.value) {
+            // Auto-populate MT fields if not already done
+            this.autoPopulateFromBillExtraction();
+            // Re-check after auto-population
+            if (!tariffRegimeControl?.value || !operatingHoursCaseControl?.value) {
+              this.notificationStore.addNotification({
+                type: 'warning',
+                title: 'Informations MT manquantes',
+                message:
+                  'Veuillez sélectionner le régime tarifaire (uniforme/horaire) et l\'horaire de fonctionnement pour les tarifs MT.',
+              });
+              tariffRegimeControl?.markAsTouched();
+              operatingHoursCaseControl?.markAsTouched();
+              return;
+            }
+          }
+        }
       } else {
         // Manual entry - validate required fields
         const measuredAmountControl = this.form.get('consumption.measuredAmountTnd');
         const referenceMonthControl = this.form.get('consumption.referenceMonth');
+        const tariffTensionControl = this.form.get('consumption.tariffTension');
+        const tariffRegimeControl = this.form.get('consumption.tariffRegime');
+        const operatingHoursCaseControl = this.form.get('consumption.operatingHoursCase');
 
         if (
           !measuredAmountControl?.value ||
           !referenceMonthControl?.value ||
+          !tariffTensionControl?.value ||
           measuredAmountControl.invalid ||
           referenceMonthControl.invalid
         ) {
           measuredAmountControl?.markAsTouched();
           referenceMonthControl?.markAsTouched();
+          tariffTensionControl?.markAsTouched();
           this.notificationStore.addNotification({
             type: 'warning',
             title: 'Informations manquantes',
-            message: 'Veuillez saisir votre montant mensuel et le mois de référence.',
+            message: 'Veuillez saisir votre montant mensuel, le mois de référence et le régime tarifaire.',
           });
           return;
+        }
+
+        // For MT bills, validate tariffRegime and operatingHoursCase
+        if (tariffTensionControl.value === 'MT') {
+          if (!tariffRegimeControl?.value || !operatingHoursCaseControl?.value) {
+            tariffRegimeControl?.markAsTouched();
+            operatingHoursCaseControl?.markAsTouched();
+            this.notificationStore.addNotification({
+              type: 'warning',
+              title: 'Informations MT manquantes',
+              message:
+                'Veuillez sélectionner le régime tarifaire (uniforme/horaire) et l\'horaire de fonctionnement pour les tarifs MT.',
+            });
+            return;
+          }
         }
       }
     }
@@ -589,34 +631,23 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   private autoPopulateFromBillExtraction(): void {
     const extractedData = this.billExtractionStore.getExtractedData();
     if (!extractedData) {
-      console.log('🔍 Auto-populate: No extracted bill data found');
       return;
     }
 
     const solarAuditFields = extractSolarAuditFields(extractedData);
     if (!solarAuditFields) {
-      console.log('⚠️ Auto-populate: Bill data exists but required fields are missing');
       return;
     }
 
-    console.group('🔄 Auto-populating form fields from bill extraction');
-    console.log('📊 Extracted fields:', solarAuditFields);
-
     // Populate fields (allow overwriting for bill extraction flow)
     const measuredAmountControl = this.form.get('consumption.measuredAmountTnd');
-    const oldMeasuredAmount = measuredAmountControl?.value;
     if (measuredAmountControl) {
       measuredAmountControl.setValue(solarAuditFields.measuredAmountTnd, {
-        emitEvent: true, // Emit event to trigger validation
-      });
-      console.log('💰 measuredAmountTnd:', {
-        old: oldMeasuredAmount,
-        new: solarAuditFields.measuredAmountTnd,
+        emitEvent: true,
       });
     }
 
     const referenceMonthControl = this.form.get('consumption.referenceMonth');
-    const oldReferenceMonth = referenceMonthControl?.value;
     if (referenceMonthControl) {
       // Find the month label that matches the reference month number
       const monthOption = this.months.find(
@@ -624,27 +655,33 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       );
       if (monthOption) {
         referenceMonthControl.setValue(monthOption.label, { emitEvent: true });
-        console.log('📅 referenceMonth:', {
-          old: oldReferenceMonth,
-          new: monthOption.label,
-          numericValue: solarAuditFields.referenceMonth,
-        });
       }
     }
 
     const tariffTensionControl = this.form.get('consumption.tariffTension');
-    const oldTariffTension = tariffTensionControl?.value;
     if (tariffTensionControl) {
       tariffTensionControl.setValue(solarAuditFields.tariffTension, {
         emitEvent: true,
       });
-      console.log('⚡ tariffTension:', {
-        old: oldTariffTension,
-        new: solarAuditFields.tariffTension,
-      });
     }
 
-    console.groupEnd();
+    // Populate tariffRegime and operatingHoursCase for MT bills
+    if (solarAuditFields.tariffTension === 'MT') {
+      const tariffRegimeControl = this.form.get('consumption.tariffRegime');
+      if (tariffRegimeControl && solarAuditFields.tariffRegime) {
+        tariffRegimeControl.setValue(solarAuditFields.tariffRegime, {
+          emitEvent: true,
+        });
+      }
+
+      const operatingHoursCaseControl = this.form.get('consumption.operatingHoursCase');
+      if (operatingHoursCaseControl && solarAuditFields.operatingHoursCase) {
+        operatingHoursCaseControl.setValue(solarAuditFields.operatingHoursCase, {
+          emitEvent: true,
+        });
+      }
+    }
+
     this.cdr.markForCheck();
   }
 
@@ -657,30 +694,19 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   private autoPopulatePersonalInfoFromBillExtraction(): void {
     const extractedData = this.billExtractionStore.getExtractedData();
     if (!extractedData) {
-      console.log('🔍 Auto-populate personal info: No extracted bill data found');
       return;
     }
 
     const personalInfoFields = extractPersonalInfoFields(extractedData);
+    
     if (!personalInfoFields.clientName && !personalInfoFields.address) {
-      console.log('⚠️ Auto-populate personal info: No personal info fields available in bill data');
       return;
     }
-
-    console.group('🔄 Auto-populating personal info fields from bill extraction');
-    console.log('📊 Full extracted bill data:', extractedData);
-    console.log('📊 Extracted personal info:', personalInfoFields);
-    console.log('📊 Address field details:', {
-      addressField: extractedData.address,
-      addressValue: extractedData.address?.value,
-      addressExplanation: extractedData.address?.explanation,
-    });
 
     // Populate fullName from clientName (only if empty)
     const fullNameControl = this.form.get('personal.fullName');
     if (fullNameControl && !fullNameControl.value && personalInfoFields.clientName) {
       fullNameControl.setValue(personalInfoFields.clientName, { emitEvent: true });
-      console.log('👤 fullName populated:', personalInfoFields.clientName);
     }
 
     // Populate companyName from clientName (only if empty)
@@ -688,47 +714,22 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     const companyNameControl = this.form.get('personal.companyName');
     if (companyNameControl && !companyNameControl.value && personalInfoFields.clientName) {
       companyNameControl.setValue(personalInfoFields.clientName, { emitEvent: true });
-      console.log('🏢 companyName populated:', personalInfoFields.clientName);
     }
 
     // Populate address (only if empty)
     const addressControl = this.form.get('location.address');
     const currentAddressValue = addressControl?.value;
     const isEmpty = !currentAddressValue || currentAddressValue === '' || currentAddressValue === null;
-    
-    console.log('📍 Address field check:', {
-      hasControl: !!addressControl,
-      currentValue: currentAddressValue,
-      currentValueType: typeof currentAddressValue,
-      isEmpty: isEmpty,
-      extractedAddress: personalInfoFields.address,
-      extractedAddressType: typeof personalInfoFields.address,
-      willPopulate: isEmpty && !!personalInfoFields.address,
-    });
 
-    if (addressControl && personalInfoFields.address) {
-      if (isEmpty) {
-        // Use patchValue to ensure the form group is updated correctly
-        this.form.patchValue(
-          { location: { address: personalInfoFields.address } },
-          { emitEvent: true }
-        );
-        addressControl.markAsTouched();
-        console.log('✅ address populated via patchValue:', personalInfoFields.address);
-        console.log('📍 address control value after patch:', addressControl.value);
-        console.log('📍 form location group value:', this.form.get('location')?.value);
-      } else {
-        console.log('ℹ️ Address field already has a value:', currentAddressValue, '- skipping auto-population');
-      }
-    } else if (!personalInfoFields.address) {
-      console.log('⚠️ No address data available in bill extraction');
-    } else if (!addressControl) {
-      console.log('⚠️ Address control not found in form');
+    if (addressControl && personalInfoFields.address && isEmpty) {
+      // Use patchValue to ensure the form group is updated correctly
+      this.form.patchValue(
+        { location: { address: personalInfoFields.address } },
+        { emitEvent: true }
+      );
+      addressControl.markAsTouched();
     }
 
-    // Email and phone are not available in bill extraction, so we skip them
-    console.log('ℹ️ Email and phone not available in bill extraction - user must enter manually');
-    console.groupEnd();
     this.cdr.markForCheck();
   }
 
@@ -948,40 +949,6 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       tariffRegime: tariffRegime ?? undefined,
     };
 
-    // Debug logging: Log extracted bill data and final payload
-    console.group('🔍 Solar Audit Form Submission Debug');
-    console.log('📋 Raw Form Values:', value);
-    console.log('📄 Consumption Values:', {
-      measuredAmountTnd: value.consumption?.measuredAmountTnd,
-      rawReferenceMonth: value.consumption?.referenceMonth,
-      convertedReferenceMonth: referenceMonth,
-      tariffTension: tariffTension,
-      operatingHoursCase: operatingHoursCase,
-      tariffRegime: tariffRegime,
-      hasInvoice: value.consumption?.hasInvoice,
-    });
-
-    // Log extracted bill data if available
-    const extractedData = this.billExtractionStore.getExtractedData();
-    if (extractedData) {
-      console.log('🧾 Extracted Bill Data from Store:', extractedData);
-      const solarAuditFields = extractSolarAuditFields(extractedData);
-      console.log('✅ Extracted Solar Audit Fields:', solarAuditFields);
-      console.log('🔗 Comparison:', {
-        'Form measuredAmountTnd': value.consumption?.measuredAmountTnd,
-        'Extracted measuredAmountTnd': solarAuditFields?.measuredAmountTnd,
-        'Form referenceMonth (raw)': value.consumption?.referenceMonth,
-        'Form referenceMonth (converted)': referenceMonth,
-        'Extracted referenceMonth': solarAuditFields?.referenceMonth,
-        'Form tariffTension': tariffTension,
-        'Extracted tariffTension': solarAuditFields?.tariffTension,
-      });
-    } else {
-      console.log('⚠️ No extracted bill data found in store');
-    }
-
-    console.log('📤 Final Payload Being Sent:', payload);
-    console.groupEnd();
 
     this.isSubmitting.set(true);
 
@@ -1017,7 +984,6 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
           });
         },
         error: (error) => {
-          console.error('Error creating simulation:', error);
           this.notificationStore.addNotification({
             type: 'error',
             title: 'Erreur',

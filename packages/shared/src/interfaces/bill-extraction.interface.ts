@@ -20,10 +20,15 @@ export interface ExtractedField<T> {
 /**
  * Structure for amount fields that have a total value
  * Used for monthlyBillAmount and recentBillConsumption
+ * 
+ * For uniform tariff: only contains { total: number }
+ * For horaire tariff: contains { total: number, ...other properties }
  */
 export interface AmountValue {
   /** The total amount value */
   total: number;
+  /** Additional properties may exist for horaire tariff (e.g., time-slot breakdowns) */
+  [key: string]: number | unknown;
 }
 
 /**
