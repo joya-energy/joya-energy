@@ -25,12 +25,37 @@ export class BillExtractionService {
   ): Promise<ExtractedBillData> {
     try {
       Logger.info('Starting bill extraction...');
+      Logger.info(`Input: size=${imageBuffer.length} bytes, mimeType=${mimeType}`);
+      
       const { buffer: preparedBuffer, mimeType: preparedMimeType } =
         await this.prepareInputBuffer(imageBuffer, mimeType);
+      
+      Logger.info(
+        `Image prepared: original=${imageBuffer.length} bytes, ` +
+        `prepared=${preparedBuffer.length} bytes, ` +
+        `mimeType=${preparedMimeType}`
+      );
+      
+      // Validate prepared buffer
+      if (preparedBuffer.length === 0) {
+        throw new HTTP400Error('Image preparation failed. The prepared image buffer is empty.');
+      }
+      
+      // Check if buffer is too large (OpenAI has limits)
+      const MAX_IMAGE_SIZE = 20 * 1024 * 1024; // 20MB
+      if (preparedBuffer.length > MAX_IMAGE_SIZE) {
+        Logger.warn(
+          `Prepared image is very large (${preparedBuffer.length} bytes). ` +
+          `This might cause issues with OpenAI API.`
+        );
+      }
+      
       const base64Image = preparedBuffer.toString('base64');
       const dataUrl = `data:${preparedMimeType};base64,${base64Image}`;
+      
       Logger.info(
-        `Image prepared (size: ${imageBuffer.length} bytes), sending to OpenAI...`
+        `Base64 encoding complete. Data URL length: ${dataUrl.length} characters. ` +
+        `Sending to OpenAI Vision API...`
       );
 
       const prompt = `
@@ -171,8 +196,12 @@ export class BillExtractionService {
       `;
 
       const startTime = Date.now();
+      
+      Logger.info('Sending request to OpenAI Vision API...');
+      Logger.info(`Request details: model=gpt-4o, dataUrl length=${dataUrl.length} chars, prompt length=${prompt.length} chars`);
+      
       const response = await this.openai.chat.completions.create({
-        model: 'gpt-4o', // Switch to mini to save costs/quota
+        model: 'gpt-4o', // Using gpt-4o for better accuracy
         messages: [
           {
             role: 'system',
@@ -187,6 +216,7 @@ export class BillExtractionService {
                 type: 'image_url',
                 image_url: {
                   url: dataUrl,
+                  detail: 'high', // Request high detail for better OCR accuracy
                 },
               },
             ],
@@ -195,15 +225,24 @@ export class BillExtractionService {
         max_tokens: 2000,
         temperature: 0.1,
       });
-      Logger.info(`OpenAI response received in ${Date.now() - startTime}ms`);
+      
+      const responseTime = Date.now() - startTime;
+      Logger.info(`OpenAI response received in ${responseTime}ms`);
 
       const content = response.choices[0]?.message?.content;
 
       if (content === null || content === undefined || content === '') {
+        Logger.error('OpenAI returned empty content');
+        Logger.error('Response structure:', {
+          choices: response.choices?.length,
+          firstChoice: response.choices?.[0],
+          finishReason: response.choices?.[0]?.finish_reason,
+        });
         throw new Error('No content returned from OpenAI');
       }
 
-      Logger.info('OpenAI content received, parsing JSON...');
+      Logger.info(`OpenAI content received (length: ${content.length} chars), parsing JSON...`);
+      Logger.debug('Raw OpenAI content (first 500 chars):', content.substring(0, 500));
 
       // Clean up code blocks if present
       const jsonString = content
@@ -211,7 +250,90 @@ export class BillExtractionService {
         .replace(/```/g, '')
         .trim();
 
-      return JSON.parse(jsonString);
+      Logger.info(`Cleaned JSON string length: ${jsonString.length} chars`);
+
+      let extractedData: ExtractedBillData;
+      try {
+        extractedData = JSON.parse(jsonString);
+        Logger.info('JSON parsed successfully');
+      } catch (parseError) {
+        Logger.error('JSON parsing failed:', parseError);
+        Logger.error('JSON string (first 1000 chars):', jsonString.substring(0, 1000));
+        throw new HTTP400Error(
+          'Failed to parse extraction response. The AI response was not valid JSON.',
+          parseError
+        );
+      }
+
+      // Post-process: Calculate BillAmountDividedByPeriod if missing or null
+      if (
+        (!extractedData.BillAmountDividedByPeriod ||
+          extractedData.BillAmountDividedByPeriod.value === null ||
+          extractedData.BillAmountDividedByPeriod.value === undefined) &&
+        extractedData.monthlyBillAmount?.value?.total !== null &&
+        extractedData.monthlyBillAmount?.value?.total !== undefined &&
+        extractedData.period?.value !== null &&
+        extractedData.period?.value !== undefined &&
+        extractedData.period.value > 0
+      ) {
+        const calculated = extractedData.monthlyBillAmount.value.total / extractedData.period.value;
+        extractedData.BillAmountDividedByPeriod = {
+          value: calculated,
+          explanation:
+            'Le montant total de l\'électricité consommée hors taxes (HT) divisé par le nombre de mois (calculé automatiquement).',
+        };
+        Logger.info(
+          `Calculated BillAmountDividedByPeriod: ${calculated} (from ${extractedData.monthlyBillAmount.value.total} / ${extractedData.period.value})`
+        );
+      }
+
+      // Post-process: Calculate MonthOfReferance if missing or null
+      if (
+        (!extractedData.MonthOfReferance ||
+          extractedData.MonthOfReferance.value === null ||
+          extractedData.MonthOfReferance.value === undefined) &&
+        extractedData.periodStart?.value
+      ) {
+        try {
+          // Parse YYYY-MM-DD format
+          const dateMatch = extractedData.periodStart.value.match(/(\d{4})-(\d{2})-(\d{2})/);
+          if (dateMatch) {
+            const month = parseInt(dateMatch[2]!, 10);
+            if (month >= 1 && month <= 12) {
+              extractedData.MonthOfReferance = {
+                value: month,
+                explanation:
+                  'Le mois de référence de la facture, extrait de la date de début de période (calculé automatiquement).',
+              };
+              Logger.info(`Calculated MonthOfReferance: ${month} (from periodStart: ${extractedData.periodStart.value})`);
+            }
+          }
+        } catch (error) {
+          Logger.warn(`Failed to calculate MonthOfReferance from periodStart: ${String(error)}`);
+        }
+      }
+
+      // Log extracted data structure for debugging
+      Logger.info('Extracted bill data structure:', {
+        hasMonthlyBillAmount: !!extractedData.monthlyBillAmount?.value?.total,
+        monthlyBillAmountTotal: extractedData.monthlyBillAmount?.value?.total,
+        hasPeriod: !!extractedData.period?.value,
+        periodValue: extractedData.period?.value,
+        hasBillAmountDividedByPeriod: !!extractedData.BillAmountDividedByPeriod?.value,
+        billAmountDividedByPeriod: extractedData.BillAmountDividedByPeriod?.value,
+        hasPeriodStart: !!extractedData.periodStart?.value,
+        periodStartValue: extractedData.periodStart?.value,
+        hasMonthOfReferance: !!extractedData.MonthOfReferance?.value,
+        monthOfReferance: extractedData.MonthOfReferance?.value,
+        hasTariffType: !!extractedData.tariffType?.value,
+        tariffType: extractedData.tariffType?.value,
+        hasClientName: !!extractedData.clientName?.value,
+        clientName: extractedData.clientName?.value,
+        hasAddress: !!extractedData.address?.value,
+        address: extractedData.address?.value,
+      });
+
+      return extractedData;
     } catch (error: unknown) {
       Logger.error(`OpenAI extraction error: ${String(error)}`);
 
@@ -293,21 +415,31 @@ export class BillExtractionService {
   ): Promise<{ buffer: Buffer; mimeType: string }> {
     if (mimeType === 'application/pdf') {
       Logger.info(
-        'PDF detected. Converting first page to ultra high-resolution PNG for OpenAI vision processing...'
+        `PDF detected (size: ${buffer.length} bytes). Converting first page to high-resolution PNG for OpenAI vision processing...`
       );
       try {
-        const pngPages = await pdfToPng(buffer, {
-          pagesToProcess: [1],
-          viewportScale: 5.5,
+        // Try multiple viewport scales to find the best quality
+        // Start with a moderate scale that balances quality and file size
+        const conversionOptions = {
+          pagesToProcess: [1] as [number],
+          viewportScale: 3.0, // Reduced from 5.5 to avoid memory issues and improve reliability
           disableFontFace: false,
           useSystemFonts: true,
-          outputType: 'png',
-          responseType: 'buffer',
+          outputType: 'png' as const,
+          responseType: 'buffer' as const,
           useWorker: false,
           enableXfa: true,
-        });
+          // Additional options for better quality
+          strict: false, // Don't fail on minor issues
+        };
+
+        Logger.info('Starting PDF to PNG conversion with options:', conversionOptions);
+        const pngPages = await pdfToPng(buffer, conversionOptions);
+
+        Logger.info(`PDF conversion completed. Received ${pngPages.length} page(s).`);
 
         if (pngPages.length === 0) {
+          Logger.error('PDF conversion returned empty array');
           throw new HTTP400Error(
             'Unable to convert PDF to image. Please provide a clear document.'
           );
@@ -315,28 +447,73 @@ export class BillExtractionService {
 
         const firstPage = pngPages[0];
         if (firstPage === null || firstPage === undefined) {
+          Logger.error('PDF conversion returned null/undefined first page');
           throw new HTTP400Error(
             'Unable to convert PDF to image. Please provide a clear document.'
           );
         }
         if (firstPage.content === null || firstPage.content === undefined) {
+          Logger.error('PDF conversion first page has no content');
           throw new HTTP400Error(
             'Unable to convert PDF to image. Please provide a clear document.'
           );
         }
 
         const firstPageBuffer = firstPage.content as Buffer;
+        
+        // Validate the converted image buffer
+        if (!Buffer.isBuffer(firstPageBuffer)) {
+          Logger.error('PDF conversion did not return a valid Buffer');
+          throw new HTTP400Error(
+            'PDF conversion produced invalid image data. Please try uploading a JPG/PNG image instead.'
+          );
+        }
+
+        if (firstPageBuffer.length === 0) {
+          Logger.error('PDF conversion produced empty buffer');
+          throw new HTTP400Error(
+            'PDF conversion produced empty image. Please provide a clear document.'
+          );
+        }
+
+        // Check if it's a valid PNG by checking the PNG signature
+        const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+        const isValidPng = firstPageBuffer.subarray(0, 8).equals(pngSignature);
+        
+        if (!isValidPng) {
+          Logger.warn('Converted image does not have valid PNG signature. Proceeding anyway...');
+        }
+
+        Logger.info(
+          `PDF conversion successful. PNG size: ${firstPageBuffer.length} bytes, ` +
+          `PNG signature valid: ${isValidPng}, ` +
+          `Original PDF size: ${buffer.length} bytes`
+        );
+
         return { buffer: firstPageBuffer, mimeType: 'image/png' };
       } catch (error) {
         Logger.error(`PDF to PNG conversion failed: ${String(error)}`);
+        Logger.error('Error details:', {
+          errorName: error instanceof Error ? error.name : 'Unknown',
+          errorMessage: error instanceof Error ? error.message : String(error),
+          errorStack: error instanceof Error ? error.stack : undefined,
+        });
+        
         if (error instanceof HTTP400Error) throw error;
         throw new HTTP400Error(
-          'PDF conversion failed. Please upload a JPG/PNG image instead.',
+          'PDF conversion failed. Please upload a JPG/PNG image instead, or ensure the PDF is not corrupted.',
           error
         );
       }
     }
 
+    // For non-PDF files (images), validate the buffer
+    if (buffer.length === 0) {
+      Logger.error('Received empty image buffer');
+      throw new HTTP400Error('Invalid image file. The file appears to be empty.');
+    }
+
+    Logger.info(`Using image directly (size: ${buffer.length} bytes, type: ${mimeType})`);
     return { buffer, mimeType };
   }
 }

@@ -4,7 +4,7 @@
  * A standalone component for extracting data from electricity bills.
  * 
  * Features:
- * - File upload (PNG, JPG, PDF)
+ * - File upload (PNG, JPG)
  * - Loading state during extraction
  * - Success/error state display
  * - Automatic storage of results in BillExtractionStore
@@ -76,7 +76,7 @@ export class UiBillExtractorComponent {
 
   // File validation
   private readonly MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-  private readonly ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+  private readonly ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png'];
 
   constructor() {
     // Sync with store
@@ -216,7 +216,7 @@ export class UiBillExtractorComponent {
     // Check file type
     if (!this.ACCEPTED_TYPES.includes(file.type)) {
       this.error.set(
-        'Type de fichier non supporté. Veuillez télécharger une image (JPG, PNG) ou un PDF.'
+        'Type de fichier non supporté. Veuillez télécharger une image (JPG, PNG).'
       );
       return false;
     }
