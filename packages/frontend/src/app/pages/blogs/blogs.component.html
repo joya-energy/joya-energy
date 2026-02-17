@@ -32,15 +32,17 @@
                 </div>
                 <h2 class="blog-card-horizontal__title">{{ fp.title }}</h2>
                 <p class="blog-card-horizontal__excerpt">{{ fp.excerpt }}</p>
-                <div class="blog-author">
-                  <span class="blog-author__avatar" [attr.aria-hidden]="true">
-                    {{ getAuthorInitial(fp.author.name) }}
-                  </span>
-                  <div class="blog-author__info">
-                    <span class="blog-author__name">{{ fp.author.name }}</span>
-                    <span class="blog-author__role">{{ fp.author.role }}</span>
+                @if (fp.author) {
+                  <div class="blog-author">
+                    <span class="blog-author__avatar" [attr.aria-hidden]="true">
+                      {{ getAuthorInitial(fp.author.name) }}
+                    </span>
+                    <div class="blog-author__info">
+                      <span class="blog-author__name">{{ fp.author.name }}</span>
+                      <span class="blog-author__role">{{ fp.author.role }}</span>
+                    </div>
                   </div>
-                </div>
+                }
               </div>
             </a>
           </article>
@@ -64,15 +66,17 @@
                 </div>
                 <h3 class="blog-card__title">{{ post.title }}</h3>
                 <p class="blog-card__excerpt">{{ post.excerpt }}</p>
-                <div class="blog-author blog-author--small">
-                  <span class="blog-author__avatar blog-author__avatar--small" [attr.aria-hidden]="true">
-                    {{ getAuthorInitial(post.author.name) }}
-                  </span>
-                  <div class="blog-author__info">
-                    <span class="blog-author__name">{{ post.author.name }}</span>
-                    <span class="blog-author__role">{{ post.author.role }}</span>
+                @if (post.author) {
+                  <div class="blog-author blog-author--small">
+                    <span class="blog-author__avatar blog-author__avatar--small" [attr.aria-hidden]="true">
+                      {{ getAuthorInitial(post.author.name) }}
+                    </span>
+                    <div class="blog-author__info">
+                      <span class="blog-author__name">{{ post.author.name }}</span>
+                      <span class="blog-author__role">{{ post.author.role }}</span>
+                    </div>
                   </div>
-                </div>
+                }
               </div>
             </a>
           </article>

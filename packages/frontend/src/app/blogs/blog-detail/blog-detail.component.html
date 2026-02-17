@@ -14,17 +14,29 @@
           <time class="blog-detail__date" [attr.datetime]="p.date">{{ p.date }}</time>
           <span class="blog-detail__tag">{{ p.category }}</span>
         </div>
-        <div class="blog-author blog-author--detail">
-          <span class="blog-author__avatar" [attr.aria-hidden]="true">
-            {{ getAuthorInitial(p.author.name) }}
-          </span>
-          <div class="blog-author__info">
-            <span class="blog-author__name">{{ p.author.name }}</span>
-            <span class="blog-author__role">{{ p.author.role }}</span>
+        @if (p.author) {
+          <div class="blog-author blog-author--detail">
+            <span class="blog-author__avatar" [attr.aria-hidden]="true">
+              {{ getAuthorInitial(p.author.name) }}
+            </span>
+            <div class="blog-author__info">
+              <span class="blog-author__name">{{ p.author.name }}</span>
+              <span class="blog-author__role">{{ p.author.role }}</span>
+            </div>
           </div>
-        </div>
+        }
         <div class="blog-detail__body">
-          <p class="blog-detail__excerpt">{{ p.excerpt }}</p>
+          @if (p.content) {
+            @for (block of getContentBlocks(p.content); track $index) {
+              @if (block.type === 'heading') {
+                <h2 class="blog-detail__heading">{{ block.text }}</h2>
+              } @else {
+                <p class="blog-detail__paragraph">{{ block.text }}</p>
+              }
+            }
+          } @else {
+            <p class="blog-detail__excerpt">{{ p.excerpt }}</p>
+          }
         </div>
       </main>
 

@@ -73,4 +73,16 @@ export class BlogDetailComponent implements OnInit, OnDestroy {
   protected getAuthorInitial(name: string): string {
     return name.charAt(0).toUpperCase();
   }
+
+  /** Splits full article content into heading/paragraph blocks for display. */
+  protected getContentBlocks(content: string): { type: 'heading' | 'paragraph'; text: string }[] {
+    return content
+      .split(/\n\n+/)
+      .map((block) => block.trim())
+      .filter(Boolean)
+      .map((block) => ({
+        type: block.includes('\n') ? 'paragraph' : 'heading',
+        text: block,
+      }));
+  }
 }
