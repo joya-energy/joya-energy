@@ -30,16 +30,21 @@ import { auditSolaireSimulationController } from './audit-solaire.controller';
  *           type: string
  *           enum: ['Nord', 'Centre', 'Sud']
  *           example: "Nord"
- *         measuredAmount:
+ *         measuredAmountTnd:
  *           type: number
- *           description: Monthly electricity bill amount (TND)
+ *           description: Monthly electricity bill amount (TND). Can be extracted from bill or entered manually.
  *           example: 234
  *         referenceMonth:
  *           type: integer
- *           description: Month of the measured consumption (1-12)
+ *           description: Month of the measured consumption (1-12). Can be extracted from bill or entered manually.
  *           minimum: 1
  *           maximum: 12
  *           example: 7
+ *         tariffTension:
+ *           type: string
+ *           enum: [BT, MT]
+ *           description: Tariff tension (BT = Basse Tension, MT = Moyenne Tension). Can be extracted from bill or entered manually. Defaults to BT if not provided.
+ *           example: "BT"
  *         latitude:
  *           type: number
  *           description: Optional latitude (will be geocoded if not provided)
