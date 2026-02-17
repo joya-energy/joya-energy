@@ -6,8 +6,9 @@ import {
   inject,
   signal,
   computed,
+  PLATFORM_ID,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SEOService } from '../../core/services/seo.service';
 import { getBlogPostById, getRelatedPosts } from '../data/blog-posts';
@@ -24,6 +25,7 @@ import { Subscription } from 'rxjs';
 export class BlogDetailComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly seoService = inject(SEOService);
+  private readonly platformId = inject(PLATFORM_ID);
 
   private readonly id = signal<string | null>(null);
   private paramSub?: Subscription;
@@ -39,7 +41,9 @@ export class BlogDetailComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit(): void {
-    document.body.classList.add('blog-route', 'blog-detail-route');
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.classList.add('blog-route', 'blog-detail-route');
+    }
     const updateId = (id: string | null) => {
       this.id.set(id);
       const p = getBlogPostById(id ?? '');
@@ -60,7 +64,9 @@ export class BlogDetailComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.paramSub?.unsubscribe();
-    document.body.classList.remove('blog-route', 'blog-detail-route');
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.classList.remove('blog-route', 'blog-detail-route');
+    }
   }
 
   /** Reused from blog-list: same author initial logic. */

@@ -6,8 +6,9 @@ import {
   inject,
   signal,
   computed,
+  PLATFORM_ID,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { SEOService } from '../../core/services/seo.service';
 import { BLOG_POSTS } from '../../blogs/data/blog-posts';
@@ -25,6 +26,7 @@ const PAGE_OTHER_SIZE = 6;
 })
 export class BlogsComponent implements OnInit, OnDestroy {
   private readonly seoService = inject(SEOService);
+  private readonly platformId = inject(PLATFORM_ID);
 
   protected readonly currentPage = signal(1);
 
@@ -55,7 +57,9 @@ export class BlogsComponent implements OnInit, OnDestroy {
   protected readonly isPageOne = computed(() => this.currentPage() === 1);
 
   ngOnInit(): void {
-    document.body.classList.add('blog-route');
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.classList.add('blog-route');
+    }
     this.seoService.setSEO({
       title: 'Blogs | JOYA Energy',
       description:
@@ -67,7 +71,9 @@ export class BlogsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    document.body.classList.remove('blog-route');
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.classList.remove('blog-route');
+    }
   }
 
   protected getAuthorInitial(name: string): string {
