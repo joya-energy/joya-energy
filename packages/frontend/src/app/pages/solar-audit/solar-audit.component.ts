@@ -95,7 +95,7 @@ interface BuildingTypeCard {
     UiInputComponent,
     FieldTooltipComponent,
     GoogleMapsInputComponent,
-    UploadCardComponent,
+
     DatePipe,
   ],
   templateUrl: './solar-audit.component.html',
@@ -484,9 +484,11 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.seoService.setSEO({
       title: 'Audit Solaire | JOYA Energy',
-      description: 'Estimez votre potentiel solaire en Tunisie avec JOYA Energy. Obtenez une simulation personnalisée de votre installation photovoltaïque et découvrez vos économies énergétiques potentielles.',
+      description:
+        'Estimez votre potentiel solaire en Tunisie avec JOYA Energy. Obtenez une simulation personnalisée de votre installation photovoltaïque et découvrez vos économies énergétiques potentielles.',
       url: 'https://joya-energy.com/audit-solaire',
-      keywords: 'audit solaire Tunisie, simulation panneaux solaires, potentiel solaire Tunisie, énergie solaire Tunisie, panneaux photovoltaïques Tunisie',
+      keywords:
+        'audit solaire Tunisie, simulation panneaux solaires, potentiel solaire Tunisie, énergie solaire Tunisie, panneaux photovoltaïques Tunisie',
     });
 
     // Bill upload feature temporarily disabled
@@ -527,14 +529,12 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     });
 
     // When user switches to MT, scroll to the newly revealed options
-    this.form
-      .get('consumption.tariffTension')
-      ?.valueChanges.subscribe((value: 'BT' | 'MT') => {
-        if (value === 'MT') {
-          // Wait for the view to render the mtOptionsContainer, then scroll
-          setTimeout(() => this.scrollToMtOptions(), 0);
-        }
-      });
+    this.form.get('consumption.tariffTension')?.valueChanges.subscribe((value: 'BT' | 'MT') => {
+      if (value === 'MT') {
+        // Wait for the view to render the mtOptionsContainer, then scroll
+        setTimeout(() => this.scrollToMtOptions(), 0);
+      }
+    });
   }
 
   private scrollToMtOptions(): void {
@@ -619,9 +619,15 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
 
     const value = this.form.getRawValue() as any;
     // Read Régime tarifaire (BT/MT) and MT options directly from controls so payload always matches UI selection
-    const tariffTension = (this.form.get('consumption.tariffTension')?.value === 'MT' ? 'MT' : 'BT') as 'BT' | 'MT';
-    const operatingHoursCase = tariffTension === 'MT' ? this.form.get('consumption.operatingHoursCase')?.value ?? null : null;
-    const tariffRegime = tariffTension === 'MT' ? this.form.get('consumption.tariffRegime')?.value ?? null : null;
+    const tariffTension = (
+      this.form.get('consumption.tariffTension')?.value === 'MT' ? 'MT' : 'BT'
+    ) as 'BT' | 'MT';
+    const operatingHoursCase =
+      tariffTension === 'MT'
+        ? this.form.get('consumption.operatingHoursCase')?.value ?? null
+        : null;
+    const tariffRegime =
+      tariffTension === 'MT' ? this.form.get('consumption.tariffRegime')?.value ?? null : null;
     // Bill upload feature temporarily disabled
     // const billFile = value.consumption?.billAttachment as File | null;
     // if (billFile && this.invoiceChoice() === 'yes') {
@@ -662,7 +668,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       companyName: value.personal?.companyName ?? '',
       email: value.personal?.email ?? '',
       phoneNumber: value.personal?.phoneNumber ?? '',
-      // MT / BT + operating-hours 
+      // MT / BT + operating-hours
       tariffTension,
       operatingHoursCase: operatingHoursCase ?? undefined,
       tariffRegime: tariffRegime ?? undefined,
