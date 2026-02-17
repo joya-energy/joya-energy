@@ -1,0 +1,131 @@
+<div class="bill-extractor">
+  <!-- File Upload Area -->
+  @if (!hasFile()) {
+    <div
+      class="bill-extractor-upload"
+      [class.bill-extractor-upload--dragover]="dragOver()"
+      (click)="onCardClick()"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+    >
+      <input
+        id="bill-extractor-input"
+        type="file"
+        (change)="onFileSelected($event)"
+        accept="image/jpeg,image/jpg,image/png,application/pdf"
+        hidden
+      />
+
+      <div class="bill-extractor-upload-content">
+        <div class="bill-extractor-icon">
+          <ng-icon name="lucideUpload" size="32"></ng-icon>
+        </div>
+        <h3 class="bill-extractor-title">Téléchargez votre facture</h3>
+        <p class="bill-extractor-subtitle">
+          Glissez-déposez votre fichier ici ou cliquez pour sélectionner
+        </p>
+        <p class="bill-extractor-formats">Formats acceptés: JPG, PNG, PDF (max 5MB)</p>
+      </div>
+    </div>
+
+    <!-- Document Requirements Notice -->
+    <div class="bill-extractor-notice">
+      <div class="bill-extractor-notice-icon">
+        <ng-icon name="lucideAlertCircle" size="18"></ng-icon>
+      </div>
+      <div class="bill-extractor-notice-content">
+        <p class="bill-extractor-notice-title">Pour une meilleure extraction :</p>
+        <ul class="bill-extractor-notice-list">
+          <li>Assurez-vous que le document est <strong>clair et net</strong></li>
+          <li>Évitez les photos <strong>floues ou mal éclairées</strong></li>
+          <li>Prenez la photo <strong>de près</strong> pour une meilleure lisibilité</li>
+          <li>Vérifiez que tous les <strong>textes sont visibles</strong></li>
+        </ul>
+      </div>
+    </div>
+  } @else {
+    <div class="bill-extractor-file-selected">
+      <div class="bill-extractor-file-info">
+        <div class="bill-extractor-file-icon">
+          <ng-icon name="lucideFileText" size="24"></ng-icon>
+        </div>
+        <div class="bill-extractor-file-details">
+          <p class="bill-extractor-file-name">{{ selectedFile()?.name }}</p>
+          <p class="bill-extractor-file-size">
+            {{ selectedFile() ? formatFileSize(selectedFile()!.size) : '' }}
+          </p>
+        </div>
+        <button
+          class="bill-extractor-clear-btn"
+          (click)="onClear()"
+          type="button"
+          aria-label="Supprimer le fichier"
+        >
+          <ng-icon name="lucideX" size="18"></ng-icon>
+        </button>
+      </div>
+
+      <!-- Extract Button -->
+      <button
+        class="bill-extractor-extract-btn"
+        (click)="onExtract()"
+        [disabled]="!canExtract()"
+        type="button"
+      >
+        @if (isExtracting()) {
+          <ng-icon name="lucideLoader2" size="20" class="spinning"></ng-icon>
+          <span>Extraction en cours...</span>
+        } @else {
+          <ng-icon name="lucideSparkles" size="20"></ng-icon>
+          <span>Extraire les données</span>
+        }
+      </button>
+    </div>
+  }
+
+  <!-- Success State -->
+  @if (showSuccess()) {
+    <div class="bill-extractor-success">
+      <div class="bill-extractor-success-icon">
+        <ng-icon name="lucideCheckCircle2" size="32"></ng-icon>
+      </div>
+      <h3 class="bill-extractor-success-title">Extraction réussie !</h3>
+      <p class="bill-extractor-success-message">
+        Les données de votre facture ont été extraites avec succès et sont prêtes à être utilisées.
+      </p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (showError()) {
+    <div class="bill-extractor-error">
+      <div class="bill-extractor-error-header">
+        <div class="bill-extractor-error-icon">
+          <ng-icon name="lucideAlertCircle" size="24"></ng-icon>
+        </div>
+        <h3 class="bill-extractor-error-title">Erreur d'extraction</h3>
+        <button
+          class="bill-extractor-error-dismiss"
+          (click)="onDismissError()"
+          type="button"
+          aria-label="Fermer"
+        >
+          <ng-icon name="lucideX" size="18"></ng-icon>
+        </button>
+      </div>
+      <p class="bill-extractor-error-message">{{ error() }}</p>
+      <div class="bill-extractor-error-help">
+        <p>Conseils pour réussir l'extraction :</p>
+        <ul>
+          <li>Assurez-vous que la facture est bien une facture STEG (Tunisie)</li>
+          <li>Vérifiez que le document est <strong>clair, net et bien éclairé</strong></li>
+          <li>Prenez la photo <strong>de près</strong> pour une meilleure lisibilité</li>
+          <li>Évitez les photos floues ou prises de trop loin</li>
+          <li>Vérifiez que tous les textes sont visibles et lisibles</li>
+          <li>Si vous utilisez un PDF, essayez avec une image à la place</li>
+        </ul>
+      </div>
+    </div>
+  }
+</div>

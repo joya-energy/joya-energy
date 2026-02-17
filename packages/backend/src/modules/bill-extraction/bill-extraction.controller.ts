@@ -42,4 +42,3 @@ export class BillExtractionController {
 }
 
 export const billExtractionController = new BillExtractionController();
-

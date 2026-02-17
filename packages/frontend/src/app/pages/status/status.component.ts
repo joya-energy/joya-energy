@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { SEOService } from '../../core/services/seo.service';
+import { UiBillExtractorComponent } from 'src/app/shared/components/ui-bill-extractor/ui-bill-extractor.component';
 
 export interface BackendHealth {
   status: string;
@@ -14,14 +15,14 @@ export interface BackendHealth {
 @Component({
   selector: 'app-status',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, UiBillExtractorComponent],
   templateUrl: './status.component.html',
   styleUrl: './status.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StatusComponent implements OnInit {
   private readonly seoService = inject(SEOService);
-  
+
   /** 'loading' | 'ok' | 'error' */
   readonly state = signal<'loading' | 'ok' | 'error'>('loading');
   readonly payload = signal<BackendHealth | null>(null);
@@ -44,7 +45,8 @@ export class StatusComponent implements OnInit {
   ngOnInit(): void {
     this.seoService.setSEO({
       title: 'État des services | JOYA Energy',
-      description: 'Vérifiez l\'état des services JOYA Energy en Tunisie. Statut de disponibilité de nos plateformes et services énergétiques.',
+      description:
+        "Vérifiez l'état des services JOYA Energy en Tunisie. Statut de disponibilité de nos plateformes et services énergétiques.",
       url: 'https://joya-energy.com/status',
       keywords: 'statut services JOYA Energy, disponibilité plateforme Tunisie',
     });

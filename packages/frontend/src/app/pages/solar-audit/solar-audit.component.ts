@@ -55,6 +55,7 @@ import {
   AddressData,
 } from '../../shared/components/google-maps-input/google-maps-input.component';
 import { UploadCardComponent, UploadCardConfig } from '../../shared/components/upload-card';
+import { UiBillExtractorComponent } from '../../shared/components/ui-bill-extractor/ui-bill-extractor.component';
 
 // Services and Types
 import { NotificationStore } from '../../core/notifications/notification.store';
@@ -68,6 +69,11 @@ import { AuditSolaireFormService } from '../audit-solaire/audit-solaire.form.ser
 import { AuditSolaireFormStep } from '../audit-solaire/audit-solaire.types';
 import { IAuditSolaireSimulation } from '@shared/interfaces';
 import { BuildingTypes } from '@shared';
+import { BillExtractionStore } from '../../core/stores/bill-extraction.store';
+import {
+  extractSolarAuditFields,
+  extractPersonalInfoFields,
+} from '../../core/utils/bill-extraction.utils';
 import { SimulatorStep, StepField } from '../energy-audit/types/energy-audit.types';
 
 import {
@@ -95,6 +101,7 @@ interface BuildingTypeCard {
     UiInputComponent,
     FieldTooltipComponent,
     GoogleMapsInputComponent,
+    UiBillExtractorComponent,
     DatePipe,
   ],
   templateUrl: './solar-audit.component.html',
@@ -152,7 +159,8 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   private readonly auditEnergetiqueService = inject(AuditEnergetiqueService);
   private readonly notificationStore = inject(NotificationStore);
   private readonly seoService = inject(SEOService);
-  private readonly cdr = inject(ChangeDetectorRef);
+  protected readonly cdr = inject(ChangeDetectorRef);
+  private readonly billExtractionStore = inject(BillExtractionStore);
 
   // Surplus sale tariff (injection) used for MT surplus revenue calculations (DT/kWh)
   protected readonly surplusBuybackTariffDtPerKwh = 0.08;
@@ -167,21 +175,36 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       title: 'Facture & consommation',
       description: "Indiquez le montant de votre facture mensuelle d'électricité.",
       fields: [
-        // Bill upload feature temporarily disabled
-        // { name: 'consumption.hasInvoice', label: 'Facture disponible', type: 'select', required: true },
+        {
+          name: 'consumption.hasInvoice',
+          label: 'Avez-vous une facture photo ?',
+          type: 'select',
+          required: true,
+        } as StepField,
         {
           name: 'consumption.measuredAmountTnd',
           label: 'Montant mensuel (TND)',
           type: 'number',
           required: true,
-          // condition: (value) => value?.consumption?.hasInvoice === 'no' // Temporarily disabled
+          // Field is always required, but UI visibility depends on hasInvoice
+          // When hasInvoice === 'yes', it's auto-populated from bill extraction
+          condition: (value) => value?.consumption?.hasInvoice === 'no',
         } as StepField,
         {
           name: 'consumption.referenceMonth',
           label: 'Mois de référence',
           type: 'select',
           required: true,
-          // condition: (value) => value?.consumption?.hasInvoice === 'no' // Temporarily disabled
+          // Field is always required, but UI visibility depends on hasInvoice
+          // When hasInvoice === 'yes', it's auto-populated from bill extraction
+          condition: (value) => value?.consumption?.hasInvoice === 'no',
+        } as StepField,
+        {
+          name: 'consumption.tariffTension',
+          label: 'Régime tarifaire',
+          type: 'select',
+          required: true,
+          // Always visible, but when hasInvoice === 'yes', it's auto-populated from bill extraction
         } as StepField,
       ],
     },
@@ -263,9 +286,16 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
 
   // Invoice choice options for ui-select
   protected readonly invoiceOptions = [
-    { label: "Oui, j'ai une facture récente", value: 'yes' },
-    { label: 'Non, je souhaite saisir manuellement', value: 'no' },
+    { label: 'Oui', value: 'yes' },
+    { label: 'Non', value: 'no' },
   ];
+
+  // Signal for invoice choice - tracks form value changes reactively
+  private readonly hasInvoiceValue = signal<'yes' | 'no' | null>('yes');
+  
+  protected readonly hasInvoice = computed(() => {
+    return this.hasInvoiceValue() === 'yes';
+  });
 
   // Helper getters for MT / BT selection (used in template conditions & logic)
   protected get isMediumTensionSelected(): boolean {
@@ -320,7 +350,6 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   @ViewChild('lineChartSvgContainer') private lineChartSvgContainer?: ElementRef<HTMLElement>;
 
   // Invoice choice mirror for easier template binding
-  protected readonly invoiceChoice = signal<'yes' | 'no' | null>(null);
 
   // Force recomputation when form changes
   private readonly formUpdateTrigger = signal(0);
@@ -338,13 +367,29 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
         return;
       }
 
-      const visibleFields = step.fields.filter((field) => this.isFieldVisible(field));
-      if (visibleFields.length === 0) {
+      // Special handling for step 1: when hasInvoice === 'yes', we need to count
+      // measuredAmountTnd and referenceMonth even though they're not visible (auto-populated)
+      let fieldsToCount: StepField[] = [];
+      if (step.number === 1) {
+        const hasInvoice = this.form.get('consumption.hasInvoice')?.value === 'yes';
+        if (hasInvoice) {
+          // When hasInvoice === 'yes', count all fields including hidden ones that are auto-populated
+          fieldsToCount = step.fields;
+        } else {
+          // When hasInvoice === 'no', only count visible fields
+          fieldsToCount = step.fields.filter((field) => this.isFieldVisible(field));
+        }
+      } else {
+        // For other steps, only count visible fields
+        fieldsToCount = step.fields.filter((field) => this.isFieldVisible(field));
+      }
+
+      if (fieldsToCount.length === 0) {
         progress[step.number] = 0;
         return;
       }
 
-      const filledFields = visibleFields.filter((field) => {
+      const filledFields = fieldsToCount.filter((field) => {
         const control = this.form.get(field.name);
         if (!control) return false;
 
@@ -359,7 +404,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
         return isFilled && isValid;
       });
 
-      progress[step.number] = Math.round((filledFields.length / visibleFields.length) * 100);
+      progress[step.number] = Math.round((filledFields.length / fieldsToCount.length) * 100);
     });
 
     return progress;
@@ -406,36 +451,97 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     if (stepNumber < this.currentStep()) {
       this.currentStep.set(stepNumber);
     }
+    // Auto-populate personal info when navigating to step 3
+    if (stepNumber === 3) {
+      this.autoPopulatePersonalInfoFromBillExtraction();
+    }
   }
 
   protected nextStep(): void {
     const stepNumber = this.currentStep();
 
     if (stepNumber === 1) {
-      // Bill upload feature temporarily disabled - only manual entry validation
-      // Check only the fields we care about (ignore hasInvoice)
-      const measuredAmountControl = this.form.get('consumption.measuredAmountTnd');
-      const referenceMonthControl = this.form.get('consumption.referenceMonth');
-
-      if (
-        !measuredAmountControl?.value ||
-        !referenceMonthControl?.value ||
-        measuredAmountControl.invalid ||
-        referenceMonthControl.invalid
-      ) {
-        measuredAmountControl?.markAsTouched();
-        referenceMonthControl?.markAsTouched();
+      // Validate hasInvoice selection
+      const hasInvoiceControl = this.form.get('consumption.hasInvoice');
+      if (!hasInvoiceControl?.value || hasInvoiceControl.invalid) {
+        hasInvoiceControl?.markAsTouched();
         this.notificationStore.addNotification({
           type: 'warning',
-          title: 'Informations manquantes',
-          message: 'Veuillez saisir votre montant mensuel et le mois de référence.',
+          title: 'Sélection requise',
+          message: 'Veuillez indiquer si vous avez une facture photo ou non.',
         });
         return;
       }
+
+      const hasInvoice = hasInvoiceControl.value === 'yes';
+
+      if (hasInvoice) {
+        // If user chose to upload bill, check if bill extraction was successful
+        const extractedData = this.billExtractionStore.getExtractedData();
+        const solarAuditFields = extractSolarAuditFields(extractedData);
+
+        if (!solarAuditFields) {
+          this.notificationStore.addNotification({
+            type: 'warning',
+            title: 'Extraction incomplète',
+            message:
+              'Veuillez télécharger et extraire votre facture, ou choisissez de saisir manuellement.',
+          });
+          return;
+        }
+
+        // Verify the extracted fields are populated in the form
+        const measuredAmountControl = this.form.get('consumption.measuredAmountTnd');
+        const referenceMonthControl = this.form.get('consumption.referenceMonth');
+        const tariffTensionControl = this.form.get('consumption.tariffTension');
+
+        if (
+          !measuredAmountControl?.value ||
+          !referenceMonthControl?.value ||
+          !tariffTensionControl?.value
+        ) {
+          // Auto-populate if not already done
+          this.autoPopulateFromBillExtraction();
+          // Re-check after auto-population
+          if (
+            !measuredAmountControl?.value ||
+            !referenceMonthControl?.value ||
+            !tariffTensionControl?.value
+          ) {
+            this.notificationStore.addNotification({
+              type: 'warning',
+              title: 'Extraction incomplète',
+              message:
+                'Impossible d\'extraire toutes les informations nécessaires. Veuillez réessayer ou saisir manuellement.',
+            });
+            return;
+          }
+        }
+      } else {
+        // Manual entry - validate required fields
+        const measuredAmountControl = this.form.get('consumption.measuredAmountTnd');
+        const referenceMonthControl = this.form.get('consumption.referenceMonth');
+
+        if (
+          !measuredAmountControl?.value ||
+          !referenceMonthControl?.value ||
+          measuredAmountControl.invalid ||
+          referenceMonthControl.invalid
+        ) {
+          measuredAmountControl?.markAsTouched();
+          referenceMonthControl?.markAsTouched();
+          this.notificationStore.addNotification({
+            type: 'warning',
+            title: 'Informations manquantes',
+            message: 'Veuillez saisir votre montant mensuel et le mois de référence.',
+          });
+          return;
+        }
+      }
     }
 
-    // For step 1, we already validated above, so skip canProceed check
-    if (stepNumber !== 1 && !this.canProceed()) {
+    // Use canProceed for all steps including step 1
+    if (!this.canProceed()) {
       const currentStep = this.currentStepData();
       currentStep.fields.forEach((field) => {
         const control = this.form.get(field.name);
@@ -455,6 +561,10 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     const next = stepNumber + 1;
     if (next <= this.lastFormStepNumber) {
       this.currentStep.set(next);
+      // Auto-populate personal info when moving to step 3
+      if (next === 3) {
+        this.autoPopulatePersonalInfoFromBillExtraction();
+      }
       return;
     }
 
@@ -470,40 +580,196 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     }
   }
 
-  protected handleInvoiceChoice(choice: 'yes' | 'no'): void {
-    this.invoiceChoice.set(choice);
-    const control = this.form.get('consumption.hasInvoice');
-    if (control) {
-      control.setValue(choice);
-      control.markAsDirty();
-      control.markAsTouched();
+
+  /**
+   * Auto-populate form fields from bill extraction store if available
+   * Extracts: measuredAmountTnd, referenceMonth, tariffTension
+   * This method will populate fields even if they have values (for bill extraction flow)
+   */
+  private autoPopulateFromBillExtraction(): void {
+    const extractedData = this.billExtractionStore.getExtractedData();
+    if (!extractedData) {
+      console.log('🔍 Auto-populate: No extracted bill data found');
+      return;
     }
+
+    const solarAuditFields = extractSolarAuditFields(extractedData);
+    if (!solarAuditFields) {
+      console.log('⚠️ Auto-populate: Bill data exists but required fields are missing');
+      return;
+    }
+
+    console.group('🔄 Auto-populating form fields from bill extraction');
+    console.log('📊 Extracted fields:', solarAuditFields);
+
+    // Populate fields (allow overwriting for bill extraction flow)
+    const measuredAmountControl = this.form.get('consumption.measuredAmountTnd');
+    const oldMeasuredAmount = measuredAmountControl?.value;
+    if (measuredAmountControl) {
+      measuredAmountControl.setValue(solarAuditFields.measuredAmountTnd, {
+        emitEvent: true, // Emit event to trigger validation
+      });
+      console.log('💰 measuredAmountTnd:', {
+        old: oldMeasuredAmount,
+        new: solarAuditFields.measuredAmountTnd,
+      });
+    }
+
+    const referenceMonthControl = this.form.get('consumption.referenceMonth');
+    const oldReferenceMonth = referenceMonthControl?.value;
+    if (referenceMonthControl) {
+      // Find the month label that matches the reference month number
+      const monthOption = this.months.find(
+        (m) => m.value === solarAuditFields.referenceMonth
+      );
+      if (monthOption) {
+        referenceMonthControl.setValue(monthOption.label, { emitEvent: true });
+        console.log('📅 referenceMonth:', {
+          old: oldReferenceMonth,
+          new: monthOption.label,
+          numericValue: solarAuditFields.referenceMonth,
+        });
+      }
+    }
+
+    const tariffTensionControl = this.form.get('consumption.tariffTension');
+    const oldTariffTension = tariffTensionControl?.value;
+    if (tariffTensionControl) {
+      tariffTensionControl.setValue(solarAuditFields.tariffTension, {
+        emitEvent: true,
+      });
+      console.log('⚡ tariffTension:', {
+        old: oldTariffTension,
+        new: solarAuditFields.tariffTension,
+      });
+    }
+
+    console.groupEnd();
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Auto-populate personal information and location fields from bill extraction store if available
+   * Extracts: clientName (for fullName/companyName), address
+   * Note: Email and phone are not available in bill extraction data
+   * Only populates fields that are currently empty (doesn't overwrite user input)
+   */
+  private autoPopulatePersonalInfoFromBillExtraction(): void {
+    const extractedData = this.billExtractionStore.getExtractedData();
+    if (!extractedData) {
+      console.log('🔍 Auto-populate personal info: No extracted bill data found');
+      return;
+    }
+
+    const personalInfoFields = extractPersonalInfoFields(extractedData);
+    if (!personalInfoFields.clientName && !personalInfoFields.address) {
+      console.log('⚠️ Auto-populate personal info: No personal info fields available in bill data');
+      return;
+    }
+
+    console.group('🔄 Auto-populating personal info fields from bill extraction');
+    console.log('📊 Full extracted bill data:', extractedData);
+    console.log('📊 Extracted personal info:', personalInfoFields);
+    console.log('📊 Address field details:', {
+      addressField: extractedData.address,
+      addressValue: extractedData.address?.value,
+      addressExplanation: extractedData.address?.explanation,
+    });
+
+    // Populate fullName from clientName (only if empty)
+    const fullNameControl = this.form.get('personal.fullName');
+    if (fullNameControl && !fullNameControl.value && personalInfoFields.clientName) {
+      fullNameControl.setValue(personalInfoFields.clientName, { emitEvent: true });
+      console.log('👤 fullName populated:', personalInfoFields.clientName);
+    }
+
+    // Populate companyName from clientName (only if empty)
+    // Note: We use clientName for both, user can modify as needed
+    const companyNameControl = this.form.get('personal.companyName');
+    if (companyNameControl && !companyNameControl.value && personalInfoFields.clientName) {
+      companyNameControl.setValue(personalInfoFields.clientName, { emitEvent: true });
+      console.log('🏢 companyName populated:', personalInfoFields.clientName);
+    }
+
+    // Populate address (only if empty)
+    const addressControl = this.form.get('location.address');
+    const currentAddressValue = addressControl?.value;
+    const isEmpty = !currentAddressValue || currentAddressValue === '' || currentAddressValue === null;
+    
+    console.log('📍 Address field check:', {
+      hasControl: !!addressControl,
+      currentValue: currentAddressValue,
+      currentValueType: typeof currentAddressValue,
+      isEmpty: isEmpty,
+      extractedAddress: personalInfoFields.address,
+      extractedAddressType: typeof personalInfoFields.address,
+      willPopulate: isEmpty && !!personalInfoFields.address,
+    });
+
+    if (addressControl && personalInfoFields.address) {
+      if (isEmpty) {
+        // Use patchValue to ensure the form group is updated correctly
+        this.form.patchValue(
+          { location: { address: personalInfoFields.address } },
+          { emitEvent: true }
+        );
+        addressControl.markAsTouched();
+        console.log('✅ address populated via patchValue:', personalInfoFields.address);
+        console.log('📍 address control value after patch:', addressControl.value);
+        console.log('📍 form location group value:', this.form.get('location')?.value);
+      } else {
+        console.log('ℹ️ Address field already has a value:', currentAddressValue, '- skipping auto-population');
+      }
+    } else if (!personalInfoFields.address) {
+      console.log('⚠️ No address data available in bill extraction');
+    } else if (!addressControl) {
+      console.log('⚠️ Address control not found in form');
+    }
+
+    // Email and phone are not available in bill extraction, so we skip them
+    console.log('ℹ️ Email and phone not available in bill extraction - user must enter manually');
+    console.groupEnd();
+    this.cdr.markForCheck();
   }
 
   ngOnInit(): void {
     this.seoService.setSEO({
       title: 'Audit Solaire | JOYA Energy',
-      description: 'Estimez votre potentiel solaire en Tunisie avec JOYA Energy. Obtenez une simulation personnalisée de votre installation photovoltaïque et découvrez vos économies énergétiques potentielles.',
+      description:
+        'Estimez votre potentiel solaire en Tunisie avec JOYA Energy. Obtenez une simulation personnalisée de votre installation photovoltaïque et découvrez vos économies énergétiques potentielles.',
       url: 'https://joya-energy.com/audit-solaire',
-      keywords: 'audit solaire Tunisie, simulation panneaux solaires, potentiel solaire Tunisie, énergie solaire Tunisie, panneaux photovoltaïques Tunisie',
+      keywords:
+        'audit solaire Tunisie, simulation panneaux solaires, potentiel solaire Tunisie, énergie solaire Tunisie, panneaux photovoltaïques Tunisie',
     });
 
-    // Bill upload feature temporarily disabled
-    // Set default value for hasInvoice to avoid form validation errors
+    // Set default value for hasInvoice (defaults to 'yes' to show bill extractor)
     const hasInvoiceControl = this.form.get('consumption.hasInvoice');
-    if (hasInvoiceControl) {
-      hasInvoiceControl.setValue('no', { emitEvent: false });
-      hasInvoiceControl.clearValidators();
-      hasInvoiceControl.updateValueAndValidity({ emitEvent: false });
+    if (hasInvoiceControl && !hasInvoiceControl.value) {
+      hasInvoiceControl.setValue('yes', { emitEvent: false });
     }
 
-    // Bill upload feature temporarily disabled
-    // Watch for invoice choice changes from ui-select
-    // this.form.get('consumption.hasInvoice')?.valueChanges.subscribe((value: 'yes' | 'no' | null) => {
-    //   if (value === 'yes' || value === 'no') {
-    //     this.invoiceChoice.set(value);
-    //   }
-    // });
+    // Watch for hasInvoice changes to show/hide bill extractor
+    hasInvoiceControl?.valueChanges.subscribe((value: 'yes' | 'no' | null) => {
+      // Update the signal to trigger computed signal updates
+      this.hasInvoiceValue.set(value ?? 'yes');
+      if (value === 'no') {
+        // Clear bill extraction data when switching to manual entry
+        this.billExtractionStore.clear();
+      }
+      this.cdr.markForCheck();
+    });
+    
+    // Initialize the signal with current form value (defaults to 'yes')
+    this.hasInvoiceValue.set(hasInvoiceControl?.value ?? 'yes');
+
+    // Auto-populate form fields from bill extraction store if available (only if hasInvoice is 'yes')
+    if (hasInvoiceControl?.value === 'yes') {
+      // Auto-populate consumption fields (step 1)
+      this.autoPopulateFromBillExtraction();
+      // Auto-populate personal info fields (step 3) - will populate when user reaches step 3
+      // Also populate now if data is available
+      this.autoPopulatePersonalInfoFromBillExtraction();
+    }
 
     this.form.valueChanges.subscribe(() => {
       // Update validity for all controls
@@ -525,15 +791,24 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       this.cdr.markForCheck();
     });
 
+    // Subscribe to bill extraction store changes to auto-populate when bill is extracted
+    // Only auto-populate if user has selected 'yes' for hasInvoice
+    this.billExtractionStore.extractedData$.subscribe((extractedData) => {
+      if (extractedData && hasInvoiceControl?.value === 'yes') {
+        // Auto-populate consumption fields (step 1)
+        this.autoPopulateFromBillExtraction();
+        // Auto-populate personal info fields (step 3)
+        this.autoPopulatePersonalInfoFromBillExtraction();
+      }
+    });
+
     // When user switches to MT, scroll to the newly revealed options
-    this.form
-      .get('consumption.tariffTension')
-      ?.valueChanges.subscribe((value: 'BT' | 'MT') => {
-        if (value === 'MT') {
-          // Wait for the view to render the mtOptionsContainer, then scroll
-          setTimeout(() => this.scrollToMtOptions(), 0);
-        }
-      });
+    this.form.get('consumption.tariffTension')?.valueChanges.subscribe((value: 'BT' | 'MT') => {
+      if (value === 'MT') {
+        // Wait for the view to render the mtOptionsContainer, then scroll
+        setTimeout(() => this.scrollToMtOptions(), 0);
+      }
+    });
   }
 
   private scrollToMtOptions(): void {
@@ -559,96 +834,12 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Handle extraction from bill (currently disabled - service being reworked)
+   */
   protected onExtractFromBill(): void {
-    const billFile = this.form.get('consumption.billAttachment')?.value as File | null;
-
-    if (!billFile) {
-      this.notificationStore.addNotification({
-        type: 'warning',
-        title: 'Aucun fichier',
-        message: "Veuillez d'abord sélectionner un fichier de facture.",
-      });
-      return;
-    }
-
-    // Create FormData for extraction
-    const formData = new FormData();
-    formData.append('billImage', billFile);
-
-    this.isSubmitting.set(true);
-
-    // Call extraction endpoint (reusing energy audit endpoint)
-    this.auditEnergetiqueService
-      .extractBillData(formData)
-      .pipe(finalize(() => this.isSubmitting.set(false)))
-      .subscribe({
-        next: (response) => {
-          if (response.success && response.data) {
-            const extracted = response.data;
-
-            // Populate form fields with extracted data
-            const consumptionControl = this.form.get('consumption');
-            if (consumptionControl) {
-              // Map monthlyBillAmount to measuredAmountTnd
-              if (extracted.monthlyBillAmount?.value !== undefined) {
-                consumptionControl
-                  .get('measuredAmountTnd')
-                  ?.setValue(extracted.monthlyBillAmount.value);
-              }
-
-              // Derive referenceMonth from periodEnd or periodStart
-              // Note: referenceMonth field expects month label (string), not number
-              if (extracted.periodEnd?.value) {
-                try {
-                  const periodEndDate = new Date(extracted.periodEnd.value);
-                  const monthNumber = periodEndDate.getMonth() + 1; // getMonth() returns 0-11
-                  if (monthNumber >= 1 && monthNumber <= 12) {
-                    const monthLabel = this.months.find((m) => m.value === monthNumber)?.label;
-                    if (monthLabel) {
-                      consumptionControl.get('referenceMonth')?.setValue(monthLabel);
-                    }
-                  }
-                } catch (error) {
-                  console.warn('Failed to parse periodEnd date:', extracted.periodEnd.value);
-                }
-              } else if (extracted.periodStart?.value) {
-                try {
-                  const periodStartDate = new Date(extracted.periodStart.value);
-                  const monthNumber = periodStartDate.getMonth() + 1;
-                  if (monthNumber >= 1 && monthNumber <= 12) {
-                    const monthLabel = this.months.find((m) => m.value === monthNumber)?.label;
-                    if (monthLabel) {
-                      consumptionControl.get('referenceMonth')?.setValue(monthLabel);
-                    }
-                  }
-                } catch (error) {
-                  console.warn('Failed to parse periodStart date:', extracted.periodStart.value);
-                }
-              }
-            }
-
-            this.notificationStore.addNotification({
-              type: 'success',
-              title: 'Données extraites',
-              message:
-                'Les données de votre facture ont été extraites avec succès. Veuillez vérifier et continuer.',
-            });
-
-            // Proceed to next step
-            this.nextStep();
-          }
-        },
-        error: (error) => {
-          console.error('Error extracting bill data:', error);
-          this.notificationStore.addNotification({
-            type: 'error',
-            title: "Erreur d'extraction",
-            message:
-              error.error?.message ||
-              "Impossible d'extraire les données de la facture. Veuillez saisir les informations manuellement.",
-          });
-        },
-      });
+    // Bill extraction service is being reworked
+    // This method will be re-implemented when the new service is ready
   }
 
   // Temporarily disabled - bill upload feature
@@ -702,9 +893,15 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
 
     const value = this.form.getRawValue() as any;
     // Read Régime tarifaire (BT/MT) and MT options directly from controls so payload always matches UI selection
-    const tariffTension = (this.form.get('consumption.tariffTension')?.value === 'MT' ? 'MT' : 'BT') as 'BT' | 'MT';
-    const operatingHoursCase = tariffTension === 'MT' ? this.form.get('consumption.operatingHoursCase')?.value ?? null : null;
-    const tariffRegime = tariffTension === 'MT' ? this.form.get('consumption.tariffRegime')?.value ?? null : null;
+    const tariffTension = (
+      this.form.get('consumption.tariffTension')?.value === 'MT' ? 'MT' : 'BT'
+    ) as 'BT' | 'MT';
+    const operatingHoursCase =
+      tariffTension === 'MT'
+        ? this.form.get('consumption.operatingHoursCase')?.value ?? null
+        : null;
+    const tariffRegime =
+      tariffTension === 'MT' ? this.form.get('consumption.tariffRegime')?.value ?? null : null;
     // Bill upload feature temporarily disabled
     // const billFile = value.consumption?.billAttachment as File | null;
     // if (billFile && this.invoiceChoice() === 'yes') {
@@ -745,11 +942,46 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       companyName: value.personal?.companyName ?? '',
       email: value.personal?.email ?? '',
       phoneNumber: value.personal?.phoneNumber ?? '',
-      // MT / BT + operating-hours 
+      // MT / BT + operating-hours
       tariffTension,
       operatingHoursCase: operatingHoursCase ?? undefined,
       tariffRegime: tariffRegime ?? undefined,
     };
+
+    // Debug logging: Log extracted bill data and final payload
+    console.group('🔍 Solar Audit Form Submission Debug');
+    console.log('📋 Raw Form Values:', value);
+    console.log('📄 Consumption Values:', {
+      measuredAmountTnd: value.consumption?.measuredAmountTnd,
+      rawReferenceMonth: value.consumption?.referenceMonth,
+      convertedReferenceMonth: referenceMonth,
+      tariffTension: tariffTension,
+      operatingHoursCase: operatingHoursCase,
+      tariffRegime: tariffRegime,
+      hasInvoice: value.consumption?.hasInvoice,
+    });
+
+    // Log extracted bill data if available
+    const extractedData = this.billExtractionStore.getExtractedData();
+    if (extractedData) {
+      console.log('🧾 Extracted Bill Data from Store:', extractedData);
+      const solarAuditFields = extractSolarAuditFields(extractedData);
+      console.log('✅ Extracted Solar Audit Fields:', solarAuditFields);
+      console.log('🔗 Comparison:', {
+        'Form measuredAmountTnd': value.consumption?.measuredAmountTnd,
+        'Extracted measuredAmountTnd': solarAuditFields?.measuredAmountTnd,
+        'Form referenceMonth (raw)': value.consumption?.referenceMonth,
+        'Form referenceMonth (converted)': referenceMonth,
+        'Extracted referenceMonth': solarAuditFields?.referenceMonth,
+        'Form tariffTension': tariffTension,
+        'Extracted tariffTension': solarAuditFields?.tariffTension,
+      });
+    } else {
+      console.log('⚠️ No extracted bill data found in store');
+    }
+
+    console.log('📤 Final Payload Being Sent:', payload);
+    console.groupEnd();
 
     this.isSubmitting.set(true);
 
@@ -925,7 +1157,6 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     this.form.reset();
     this.simulationResult.set(null);
     this.currentStep.set(1);
-    this.invoiceChoice.set(null);
     this.notificationStore.addNotification({
       type: 'info',
       title: 'Formulaire réinitialisé',

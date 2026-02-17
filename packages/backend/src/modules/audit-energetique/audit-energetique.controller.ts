@@ -3,9 +3,8 @@ import { auditSimulationService } from './audit-energetique.service';
 import { HttpStatusCode } from '@shared';
 import { HTTP400Error, HTTP404Error } from '@backend/errors/http.error';
 import { Logger } from '@backend/middlewares';
-import { billExtractionService } from './bill-extraction.service';
 import {type AuditEnergetiqueResponseDto, toAuditEnergetiqueResponseDto} from './dto/audit-energetique-response.dto';
-import { AuditRequestPayload,ExtractedAuditData,mergeExtractedValues,sanitizeAuditPayload} from './utils/payload-normalizer';
+import { AuditRequestPayload, sanitizeAuditPayload} from './utils/payload-normalizer';
 import { LeadCollectorService } from '../lead/lead-collector.service';
 
 export class AuditEnergetiqueSimulationController {
@@ -42,42 +41,6 @@ export class AuditEnergetiqueSimulationController {
     }
   };
 
-  public createSimulationWithBill = async (req: Request, res: Response<AuditEnergetiqueResponseDto>): Promise<void> => {
-    try {
-      if (!req.file) {
-        throw new HTTP400Error('No bill file uploaded. Please provide an image or PDF file.');
-      }
-
-      const extracted = await billExtractionService.extractDataFromImage(req.file.buffer,req.file.mimetype);
-      const mergedBody = mergeExtractedValues(req.body as AuditRequestPayload, extracted as ExtractedAuditData);
-
-      const input = sanitizeAuditPayload(mergedBody);
-      const simulation = await auditSimulationService.createSimulation(input);
-      const response = toAuditEnergetiqueResponseDto(simulation);
-      
-      // Collect lead asynchronously (non-blocking)
-      if (input.email) {
-        LeadCollectorService.collectLead({
-          email: input.email,
-          phoneNumber: input.phoneNumber,
-          name: input.fullName,
-          address: input.address,
-          companyName: input.companyName,
-          source: 'audit-energetique',
-        }).catch(() => {
-          // Silently ignored - lead collection never fails the main operation
-        });
-      }
-      
-      res.status(HttpStatusCode.CREATED).json(response);
-    } catch (error) {
-      if (error instanceof HTTP400Error) {
-        throw error;
-      }
-      Logger.error(`Error: Audit energetique simulation (full upload) failed: ${String(error)}`);
-      throw new HTTP400Error('Error: Audit energetique simulation not created', error);
-    }
-  };
 
   public getSimulationById = async (req: Request, res: Response<AuditEnergetiqueResponseDto>): Promise<void> => {
     try {

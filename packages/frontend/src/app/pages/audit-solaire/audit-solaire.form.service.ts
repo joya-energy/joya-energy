@@ -158,9 +158,7 @@ export class AuditSolaireFormService {
         address: this.fb.nonNullable.control('', [Validators.required])
       }),
       consumption: this.fb.group<ConsumptionForm>({
-        // Bill upload feature temporarily disabled
-        // hasInvoice: this.fb.nonNullable.control<'yes' | 'no' | null>(null, [Validators.required]),
-        hasInvoice: this.fb.nonNullable.control<'yes' | 'no' | null>('no', []), // Set default to 'no' and remove required
+        hasInvoice: this.fb.nonNullable.control<'yes' | 'no' | null>('yes', [Validators.required]),
         measuredAmountTnd: this.fb.control<number | null>(null, [Validators.required, Validators.min(MIN_NUMERIC)]),
         referenceMonth: this.fb.control<number | null>(null, [
           Validators.required,

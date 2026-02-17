@@ -1,3 +1,24 @@
+/**
+ * Upload Card Component
+ * 
+ * A reusable component for uploading files (images or PDFs).
+ * 
+ * Features:
+ * - File upload with validation
+ * - Simple file selection interface
+ * 
+ * Usage:
+ * ```html
+ * <app-upload-card
+ *   [config]="uploadCardConfig"
+ *   [selectedFile]="form.get('billAttachment')?.value"
+ *   (fileSelected)="onFileSelected($event)"
+ *   (extractClicked)="onExtractClick()"
+ *   (manualEntryClicked)="onManualEntry()">
+ * </app-upload-card>
+ * ```
+ */
+
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';

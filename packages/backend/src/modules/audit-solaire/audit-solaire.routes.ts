@@ -1,5 +1,4 @@
 import asyncRouter from 'express-promise-router';
-import multer from 'multer';
 import { auditSolaireSimulationController } from './audit-solaire.controller';
 
 /**
@@ -31,16 +30,21 @@ import { auditSolaireSimulationController } from './audit-solaire.controller';
  *           type: string
  *           enum: ['Nord', 'Centre', 'Sud']
  *           example: "Nord"
- *         measuredAmount:
+ *         measuredAmountTnd:
  *           type: number
- *           description: Monthly electricity bill amount (TND)
+ *           description: Monthly electricity bill amount (TND). Can be extracted from bill or entered manually.
  *           example: 234
  *         referenceMonth:
  *           type: integer
- *           description: Month of the measured consumption (1-12)
+ *           description: Month of the measured consumption (1-12). Can be extracted from bill or entered manually.
  *           minimum: 1
  *           maximum: 12
  *           example: 7
+ *         tariffTension:
+ *           type: string
+ *           enum: [BT, MT]
+ *           description: Tariff tension (BT = Basse Tension, MT = Moyenne Tension). Can be extracted from bill or entered manually. Defaults to BT if not provided.
+ *           example: "BT"
  *         latitude:
  *           type: number
  *           description: Optional latitude (will be geocoded if not provided)
@@ -246,14 +250,6 @@ import { auditSolaireSimulationController } from './audit-solaire.controller';
 
 export const auditSolaireSimulationRoutes = asyncRouter();
 
-// Configure multer for memory storage (buffer access)
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  },
-});
-
 /**
  * @swagger
  * /audit-solaire-simulations:
@@ -292,71 +288,6 @@ const upload = multer({
 auditSolaireSimulationRoutes.post(
   '/',
   auditSolaireSimulationController.createSimulation
-);
-
-/**
- * @swagger
- * /audit-solaire-simulations/with-bill:
- *   post:
- *     summary: Create a solar audit simulation with bill upload
- *     tags: [Solar Audit]
- *     description: |
- *       Uploads a bill image/PDF, extracts consumption data using AI, and creates a solar audit simulation.
- *       The extracted monthlyBillAmount is mapped to measuredAmountTnd, and referenceMonth is derived from the billing period.
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             required:
- *               - billImage
- *               - address
- *               - buildingType
- *               - climateZone
- *             properties:
- *               billImage:
- *                 type: string
- *                 format: binary
- *                 description: The image or PDF file of the bill (JPG/PNG/PDF)
- *               address:
- *                 type: string
- *               measuredAmountTnd:
- *                 type: number
- *                 description: Monthly bill amount (will be extracted from bill if not provided)
- *               referenceMonth:
- *                 type: integer
- *                 minimum: 1
- *                 maximum: 12
- *                 description: Month of reference (will be derived from bill period if not provided)
- *               buildingType:
- *                 type: string
- *               climateZone:
- *                 type: string
- *               fullName:
- *                 type: string
- *               companyName:
- *                 type: string
- *               email:
- *                 type: string
- *               phoneNumber:
- *                 type: string
- *     responses:
- *       201:
- *         description: Simulation created successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/AuditSolaireResponse'
- *       400:
- *         description: Validation error or missing fields
- *       500:
- *         description: Server error
- */
-auditSolaireSimulationRoutes.post(
-  '/with-bill',
-  upload.single('billImage'),
-  auditSolaireSimulationController.createSimulationWithBill
 );
 
 /**

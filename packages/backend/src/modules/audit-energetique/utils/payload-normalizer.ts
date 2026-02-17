@@ -14,6 +14,7 @@ import {
 } from '@shared/enums/audit-batiment.enum';
 import { EnergyTariffTypes } from '@shared/enums/audit-energy-tariff';
 import { EquipmentCategories, ExistingMeasures, LightingTypes } from '@shared/enums/audit-usage.enum';
+import { ExtractedBillData, AmountValue } from '@shared/interfaces/bill-extraction.interface';
 import {
   enumArray,
   optionalNumber,
@@ -29,17 +30,17 @@ import { type AuditEnergetiqueCreateInput } from '../audit-energetique.service';
 export type PayloadValue = string | number | boolean | string[] | number[] | null | undefined;
 export type AuditRequestPayload = Record<string, PayloadValue>;
 
-export interface ExtractedField<T> {
-  value?: T;
-}
-
+/**
+ * Partial extracted audit data used for merging with form payload
+ * Only includes fields that are relevant for audit simulation
+ */
 export interface ExtractedAuditData {
-  monthlyBillAmount?: ExtractedField<number>;
-  recentBillConsumption?: ExtractedField<number>;
-  tariffType?: ExtractedField<string>;
-  contractedPower?: ExtractedField<number>;
-  address?: ExtractedField<string>;
-  governorate?: ExtractedField<string>;
+  monthlyBillAmount?: ExtractedBillData['monthlyBillAmount'];
+  recentBillConsumption?: ExtractedBillData['recentBillConsumption'];
+  tariffType?: ExtractedBillData['tariffType'];
+  contractedPower?: ExtractedBillData['contractedPower'];
+  address?: ExtractedBillData['address'];
+  governorate?: ExtractedBillData['governorate'];
 }
 
 const normalizeString = (value?: string): string | undefined => {
@@ -54,7 +55,28 @@ const matchGovernorate = (value?: string): Governorates | undefined => {
     | undefined;
 };
 
-const mapExtractedField = <T>(field?: ExtractedField<T>): T | undefined => field?.value;
+/**
+ * Extract the value from an ExtractedField, handling both primitive values
+ * and AmountValue objects (which have a 'total' property)
+ */
+const mapExtractedField = <T>(field?: ExtractedBillData['monthlyBillAmount']): T | undefined => {
+  if (!field?.value) return undefined;
+  
+  // Handle AmountValue objects (for monthlyBillAmount and recentBillConsumption)
+  if (typeof field.value === 'object' && 'total' in field.value) {
+    return (field.value as AmountValue).total as T;
+  }
+  
+  // Handle primitive values
+  return field.value as T;
+};
+
+/**
+ * Extract the value from an ExtractedField for string/number fields
+ */
+const mapExtractedPrimitiveField = <T>(field?: { value: T | null; explanation: string }): T | undefined => {
+  return field?.value ?? undefined;
+};
 
 export const mergeExtractedValues = (
   body: AuditRequestPayload,
@@ -70,12 +92,15 @@ const setIfMissing = (field: keyof AuditRequestPayload, value?: PayloadValue): v
     }
   };
 
-  setIfMissing('monthlyBillAmount', mapExtractedField(extracted.monthlyBillAmount));
-  setIfMissing('recentBillConsumption', mapExtractedField(extracted.recentBillConsumption));
-  setIfMissing('tariffType', mapExtractedField(extracted.tariffType));
-  setIfMissing('contractedPower', mapExtractedField(extracted.contractedPower));
-  setIfMissing('address', mapExtractedField(extracted.address));
-  setIfMissing('governorate', matchGovernorate(mapExtractedField(extracted.governorate)));
+  // Extract amount fields (monthlyBillAmount, recentBillConsumption) - they have { total: number } structure
+  setIfMissing('monthlyBillAmount', mapExtractedField<number>(extracted.monthlyBillAmount));
+  setIfMissing('recentBillConsumption', mapExtractedField<number>(extracted.recentBillConsumption));
+  
+  // Extract primitive fields (string/number)
+  setIfMissing('tariffType', mapExtractedPrimitiveField<string>(extracted.tariffType));
+  setIfMissing('contractedPower', mapExtractedPrimitiveField<number>(extracted.contractedPower));
+  setIfMissing('address', mapExtractedPrimitiveField<string>(extracted.address));
+  setIfMissing('governorate', matchGovernorate(mapExtractedPrimitiveField<string>(extracted.governorate)));
 
   if (result.hasRecentBill === undefined) {
     result.hasRecentBill = true;

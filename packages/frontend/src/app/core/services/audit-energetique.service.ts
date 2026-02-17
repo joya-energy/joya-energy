@@ -2,31 +2,6 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 
-export interface ExtractedField<T> {
-  value: T | null;
-  explanation: string;
-}
-
-export interface ExtractedBillData {
-  monthlyBillAmount: ExtractedField<number>;
-  recentBillConsumption: ExtractedField<number>;
-  periodStart: ExtractedField<string>;
-  periodEnd: ExtractedField<string>;
-  tariffType: ExtractedField<string>;
-  contractedPower: ExtractedField<number>;
-  address: ExtractedField<string>;
-  clientName: ExtractedField<string>;
-  governorate: ExtractedField<string>;
-  meterNumber: ExtractedField<string>;
-  reference: ExtractedField<string>;
-  district: ExtractedField<string>;
-}
-
-export interface ExtractBillResponse {
-  success: boolean;
-  data: ExtractedBillData;
-}
-
 export interface AuditEnergetiqueRequest {
   fullName: string;
   companyName: string;
@@ -126,10 +101,6 @@ export interface AuditEnergetiqueResponse {
 })
 export class AuditEnergetiqueService {
   private api = inject(ApiService);
-
-  extractBillData(formData: FormData): Observable<ExtractBillResponse> {
-    return this.api.postFormData<ExtractBillResponse>('/audit-energetique-simulations/extract-bill-data', formData);
-  }
 
   createSimulation(payload: AuditEnergetiqueRequest): Observable<AuditEnergetiqueResponse> {
     return this.api.post<AuditEnergetiqueResponse>('/audit-energetique-simulations', payload);
