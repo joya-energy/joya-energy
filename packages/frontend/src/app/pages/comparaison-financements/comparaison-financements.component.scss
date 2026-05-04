@@ -330,6 +330,11 @@
   margin-top: 5rem;
   color: var(--text-secondary);
   line-height: 1.6;
+
+  // Hide on mobile/small screens (desktop-only helper text)
+  @media (max-width: 768px) {
+    display: none;
+  }
 }
 
 .intro-highlights {
