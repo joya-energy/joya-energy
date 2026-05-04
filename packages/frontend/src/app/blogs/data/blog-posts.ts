@@ -22,7 +22,7 @@ export const BLOG_POSTS: BlogPost[] = [
     title: "Pourquoi le photovoltaïque est devenu un levier majeur d'économies pour les entreprises",
     excerpt:
       "Découvrez comment le modèle ESCO de JOYA Energy permet aux entreprises tunisiennes de s'équiper en panneaux solaires sans mise de fonds. Financement, économies et impact carbone expliqués.",
-    imageUrl: '/blog1.png',
+    imageUrl: '/blog1.webp',
     date: '02 Feb 2026',
     category: 'Énergie solaire',
     content: 
@@ -75,7 +75,7 @@ Renforcer leur crédibilité auprès des partenaires et investisseurs`,
     title: "Solaire sans investissement initial : Le guide du modèle ESCO",
     excerpt:
       " Réduisez vos factures sans apport avec le modèle ESCO. Découvrez comment Joya Energy finance et installe votre centrale solaire en 2026.",
-    imageUrl: '/blog2.PNG',
+    imageUrl: '/blog2.webp',
     date: '30 Apr 2026',
     category: 'Énergie solaire',
     content: `
@@ -213,7 +213,7 @@ experts directement via notre formulaire](https://joya-energy.com/contact/).`,
     title: "Le stockage d'énergie solaire : Optimiser vos économies et votre autonomie",
     excerpt:
       " Découvrez l'importance du stockage d'énergie solaire pour améliorer votre autonomie énergétique et maximiser les économies sur vos factures grâce aux solutions de Joya Energy.",
-    imageUrl: '/blog3.png',
+    imageUrl: '/blog3.webp',
     date: '30 Apr 2026',
     category: 'Énergie solaire',
     content: `
