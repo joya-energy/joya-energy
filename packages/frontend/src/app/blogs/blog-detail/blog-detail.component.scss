@@ -273,6 +273,8 @@ $blog-tag-text: var(--landing-primary-dark, #c95c3d);
   gap: 0.25rem;
 }
 
+
+
 .blog-detail-related__title {
   font-family: var(--font-family-secondary);
   font-size: var(--font-size-sm);
@@ -288,4 +290,18 @@ $blog-tag-text: var(--landing-primary-dark, #c95c3d);
 .blog-detail-related__date {
   font-size: var(--font-size-xs);
   color: var(--neutral-500, #64748b);
+}
+
+.blog-detail__html {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  
+  img {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    display: block;
+    margin: 1rem auto;
+  }
 }

@@ -27,13 +27,15 @@
         }
         <div class="blog-detail__body">
           @if (p.content) {
-            @for (block of getContentBlocks(p.content); track $index) {
-              @if (block.type === 'heading') {
-                <h2 class="blog-detail__heading">{{ block.text }}</h2>
-              } @else {
-                <p class="blog-detail__paragraph">{{ block.text }}</p>
-              }
-            }
+@for (block of getContentBlocks(p.content); track $index) {
+  @if (block.type === 'heading') {
+    <h2 class="blog-detail__heading">{{ block.text }}</h2>
+  } @else if (block.type === 'html') {
+    <div class="blog-detail__html" [innerHTML]="block.text"></div>
+  } @else {
+    <p class="blog-detail__paragraph">{{ block.text }}</p>
+  }
+}
           } @else {
             <p class="blog-detail__excerpt">{{ p.excerpt }}</p>
           }

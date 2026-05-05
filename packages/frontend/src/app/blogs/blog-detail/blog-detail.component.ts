@@ -71,18 +71,36 @@ export class BlogDetailComponent implements OnInit, OnDestroy {
 
   /** Reused from blog-list: same author initial logic. */
   protected getAuthorInitial(name: string): string {
-    return name.charAt(0).toUpperCase();
+    return name.charAt(0).toUpperCase(); 
   }
 
   /** Splits full article content into heading/paragraph blocks for display. */
-  protected getContentBlocks(content: string): { type: 'heading' | 'paragraph'; text: string }[] {
-    return content
-      .split(/\n\n+/)
-      .map((block) => block.trim())
-      .filter(Boolean)
-      .map((block) => ({
-        type: block.includes('\n') ? 'paragraph' : 'heading',
-        text: block,
-      }));
-  }
+protected getContentBlocks(content: string): Array<{ type: 'heading' | 'paragraph' | 'html'; text: string }> {
+  const normalized = content.replace(/\r/g, '');
+  return normalized
+    .split(/\n\n+/)
+    .map((block) => block.trim())
+    .filter(Boolean)
+    .flatMap((block): Array<{ type: 'heading' | 'paragraph' | 'html'; text: string }> => {
+      if (block.trim().startsWith('<')) {
+        return [{ type: 'html', text: block }];
+      }
+
+      const lines = block.split('\n');
+      const headingMatch = lines[0].trim().match(/^(#{1,6})\s+(.*)$/);
+      if (!headingMatch) {
+        return [{ type: 'paragraph', text: block }];
+      }
+
+      const headingText = headingMatch[2];
+      const remainingText = lines.slice(1).join('\n').trim();
+      return remainingText
+        ? [
+            { type: 'heading', text: headingText },
+            { type: 'paragraph', text: remainingText },
+          ]
+        : [{ type: 'heading', text: headingText }];
+    });
 }
+}
+  
