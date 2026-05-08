@@ -65,7 +65,7 @@
 
 .hero__grid {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* Equal width columns */
+  grid-template-columns: 1fr 1fr; /* Old layout: side-by-side */
   gap: 32px;
   align-items: start; /* Align to top for better centering */
   width: 100%;

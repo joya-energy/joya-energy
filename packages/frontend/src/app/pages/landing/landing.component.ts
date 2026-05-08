@@ -6,6 +6,8 @@ import { LandingJoyaPresentationComponent } from './sections/landing-joya-presen
 import { LandingEscoExplanationComponent } from './sections/landing-esco-explanation/landing-esco-explanation.component';
 import { LandingHowItWorksComponent } from './sections/landing-how-it-works/landing-how-it-works.component';
 import { LandingFaqComponent } from './sections/landing-faq/landing-faq.component';
+import { PreAuditSolaireComponent } from '../pre-audit-solaire/pre-audit-solaire.component';
+import { LandingBadgeComponent } from './components/landing-badge/landing-badge.component';
 
 @Component({
   selector: 'app-landing',
@@ -14,6 +16,8 @@ import { LandingFaqComponent } from './sections/landing-faq/landing-faq.componen
     CommonModule,
     LandingHeroComponent,
     LandingJoyaPresentationComponent,
+    LandingBadgeComponent,
+    PreAuditSolaireComponent,
     LandingEscoExplanationComponent,
     LandingHowItWorksComponent,
     LandingFaqComponent,

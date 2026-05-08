@@ -4,13 +4,14 @@ import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import { lucideCheck, lucideClock } from '@ng-icons/lucide';
 import { trigger, style, transition, animate, group, query } from '@angular/animations';
 import { LandingBadgeComponent } from '../../components/landing-badge/landing-badge.component';
+import { RouterLink } from '@angular/router';
 
 type ActiveTab = 'roi' | 'comparison';
 
 @Component({
   selector: 'app-landing-hero',
   standalone: true,
-  imports: [CommonModule, NgIconComponent],
+  imports: [CommonModule, NgIconComponent, RouterLink],
   templateUrl: './landing-hero.component.html',
   styleUrl: './landing-hero.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

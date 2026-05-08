@@ -4,6 +4,20 @@
   <main class="landing-page__main">
     <app-landing-hero />
 
+    <section class="landing-presim">
+      <div class="landing-presim__container">
+        <div class="landing-presim__header">
+          <app-landing-badge text="Pré‑estimation solaire" variant="secondary" />
+          <p class="landing-presim__subtitle">
+            Obtenez une
+            <span class="landing-presim__subtitle-accent">première estimation</span>
+            de vos économies et de la taille du système.
+          </p>
+        </div>
+      </div>
+      <app-pre-audit-solaire [embedded]="true" />
+    </section>
+
     <app-landing-joya-presentation />
 
     <app-landing-esco-explanation />
