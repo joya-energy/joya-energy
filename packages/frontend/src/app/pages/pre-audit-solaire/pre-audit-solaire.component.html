@@ -1,0 +1,122 @@
+<div class="pre-solar-page">
+  <div class="pre-solar-container">
+    <div class="pre-solar-card">
+      <div class="pre-solar-card__left">
+        <h1 class="pre-solar-card__title">Estimez vos économies</h1>
+
+        <form class="pre-solar-form" [formGroup]="form">
+          <div class="pre-solar-form__field">
+            <div class="pre-solar-form__label-row">
+              <label class="pre-solar-form__label">Montant de la facture (DT / mois)</label>
+              <div class="pre-solar-form__label-value">
+                {{ monthlyBillRoundedForDisplay() | noGrouping : '1.0-0' }} DT
+              </div>
+            </div>
+
+            <input
+              class="pre-solar-form__range"
+              type="range"
+              min="0"
+              [max]="maxMonthlyBillDt"
+              step="100"
+              formControlName="monthlyBillDt"
+              (blur)="markMonthlyBillTouched()"
+            />
+          </div>
+
+          <div class="pre-solar-form__field">
+            <label class="pre-solar-form__label">Zone climatique</label>
+            <div class="pre-solar-form__segmented">
+              <button
+                type="button"
+                class="pre-solar-form__seg-btn"
+                [class.is-active]="form.controls.climateZone.value === 'nord'"
+                (click)="form.controls.climateZone.setValue('nord')"
+              >
+                Nord
+              </button>
+              <button
+                type="button"
+                class="pre-solar-form__seg-btn"
+                [class.is-active]="form.controls.climateZone.value === 'centre'"
+                (click)="form.controls.climateZone.setValue('centre')"
+              >
+                Centre
+              </button>
+              <button
+                type="button"
+                class="pre-solar-form__seg-btn"
+                [class.is-active]="form.controls.climateZone.value === 'sud'"
+                (click)="form.controls.climateZone.setValue('sud')"
+              >
+                Sud
+              </button>
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+      <div class="pre-solar-card__right">
+        <div class="pre-solar-result">
+          <div class="pre-solar-result__headline">Vous pouvez économiser jusqu'à</div>
+          <div class="pre-solar-result__value">
+            {{ (annualSavingsRounded() ?? 0) | noGrouping : '1.0-0' }} <span class="unit">DT/an</span>
+          </div>
+
+
+          <div class="pre-solar-metrics">
+            <div class="pre-solar-metric">
+              <div class="pre-solar-metric__label">Puissance crête</div>
+              <div class="pre-solar-metric__value">
+                {{ (pvPowerKwc() ?? 0) | noGrouping : '1.1-1' }} <span class="unit">kWc</span>
+              </div>
+            </div>
+            <div class="pre-solar-metric">
+              <div class="pre-solar-metric__label">Coût d'investissement</div>
+              <div class="pre-solar-metric__value">
+                {{ (capexDt() ?? 0) | noGrouping : '1.0-0' }} <span class="unit">DT</span>
+              </div>
+            </div>
+            <div class="pre-solar-metric">
+              <div class="pre-solar-metric__label">Coût de maintenance annuel</div>
+              <div class="pre-solar-metric__value">
+                {{ (opexAnnualDt() ?? 0) | noGrouping : '1.0-0' }} <span class="unit">DT/an</span>
+              </div>
+            </div>
+            <div class="pre-solar-metric">
+              <div class="pre-solar-metric__label">Temps de retour sur investissement</div>
+              <div class="pre-solar-metric__value">
+                @if (paybackYearsRounded() != null) {
+                {{ paybackYearsRounded() }} <span class="unit">ans</span>
+                } @else {
+                —
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="pre-solar-result__cta">
+            <a
+              class="pre-solar-btn pre-solar-btn--primary"
+              routerLink="/audit-solaire"
+            >
+              <span>Simulation avancée</span>
+              <svg class="pre-solar-btn__icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path
+                  fill-rule="evenodd"
+                  d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </a>
+            <div class="pre-solar-result__note">
+              Pour un calcul plus précis, réaliser une simulation gratuite et sans engagement de votre part.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
