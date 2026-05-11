@@ -328,6 +328,54 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   protected readonly isGeneratingPDF = signal(false);
   protected readonly simulationResult = signal<IAuditSolaireSimulation | null>(null);
 
+  /** BT: annual savings = annualBillWithoutPV - annualBillWithPV */
+  protected readonly btAnnualSavings = computed(() => {
+    const s = this.simulationResult();
+    if (!s) return null;
+    const withoutPV = s.annualBillWithoutPV ?? null;
+    const withPV = s.annualBillWithPV ?? null;
+    if (withoutPV == null || withPV == null) return null;
+    return withoutPV - withPV;
+  });
+
+  /**
+   * Value displayed in "Économies annuelles".
+   * - MT: prefer backend-provided `mtAnnualSelfConsumptionSavings` when present
+   * - Otherwise: fall back to BT computed savings
+   */
+  protected readonly annualSavingsForDisplay = computed(() => {
+    const s = this.simulationResult();
+    if (!s) return null;
+    if (s.mtAnnualSelfConsumptionSavings != null) return s.mtAnnualSelfConsumptionSavings;
+    return this.btAnnualSavings();
+  });
+
+  /**
+   * Value displayed in "Après" (annual bill with PV).
+   * - MT: use backend-provided `mtAnnualBillWithPVApprox` when present (bill after self-consumption)
+   * - Otherwise: use backend `annualBillWithPV` (BT baseline)
+   */
+  protected readonly annualBillWithPVForDisplay = computed(() => {
+    const s = this.simulationResult();
+    if (!s) return null;
+    if (s.mtAnnualBillWithPVApprox != null) return s.mtAnnualBillWithPVApprox;
+    return s.annualBillWithPV ?? null;
+  });
+
+  /**
+   * "Après" computed as (Avant - Économies) to match UI expectation.
+   */
+  protected readonly annualBillAfterEquationForDisplay = computed(() => {
+    const s = this.simulationResult();
+    if (!s) return null;
+    const before = s.annualBillWithoutPV ?? null;
+    const savings = this.annualSavingsForDisplay();
+    if (before == null || savings == null) return null;
+    const beforeRounded = Math.round(before);
+    const savingsRounded = Math.round(savings);
+    return Math.max(0, beforeRounded - savingsRounded);
+  });
+
   /** Tooltip for monthly bills chart: one bubble at a time (sans or avec) on bar hover */
   protected monthlyBillsTooltip = signal<{
     monthIndex: number;

@@ -60,6 +60,15 @@ export const routes: Routes = [
     title: 'Contactez-nous | JOYA Energy',
   },
   {
+    path: 'pre-audit-solaire',
+    loadComponent: () =>
+      import('./pages/pre-audit-solaire/pre-audit-solaire.component').then(
+        (m) => m.PreAuditSolaireComponent
+      ),
+    title: 'Pré-simulateur solaire | JOYA Energy',
+    data: { hideFooter: true },
+  },
+  {
     path: 'audit-solaire',
     loadComponent: () =>
       import('./pages/solar-audit/solar-audit.component').then((m) => m.SolarAuditComponent),
