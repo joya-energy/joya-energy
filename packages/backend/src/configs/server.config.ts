@@ -1,10 +1,24 @@
 import { isNotNullish } from '@shared/functions/nullish';
+import {
+  OPENROUTER_DEFAULT_APP_NAME,
+  OPENROUTER_DEFAULT_BASE_URL,
+  OPENROUTER_DEFAULT_MODEL,
+} from '@backend/common/llm/llm.constants';
 import { NodeEnv } from './node-env.enum';
 import dotEnv from 'dotenv';
+
+export interface IOpenRouterConfig {
+  apiKey: string;
+  baseUrl: string;
+  model: string;
+  appUrl: string;
+  appName: string;
+}
+
 export interface IServerConfig {
   nodeEnv: string;
   dbUri: string;
-  openaiApiKey: string;
+  openrouter: IOpenRouterConfig;
   jwtSecret: string;
   logLevel: string;
   port: number;
@@ -66,7 +80,19 @@ export class ServerConfig {
     this._config = {
       nodeEnv: process.env.NODE_ENV,
       dbUri: process.env.DB_URI,
-      openaiApiKey: process.env.OPENAI_API_KEY,
+      openrouter: {
+        apiKey: process.env.OPENROUTER_API_KEY ?? '',
+        baseUrl: isNotNullish(process.env.OPENROUTER_BASE_URL)
+          ? process.env.OPENROUTER_BASE_URL
+          : OPENROUTER_DEFAULT_BASE_URL,
+        model: isNotNullish(process.env.OPENROUTER_MODEL)
+          ? process.env.OPENROUTER_MODEL
+          : OPENROUTER_DEFAULT_MODEL,
+        appUrl: process.env.OPENROUTER_APP_URL ?? '',
+        appName: isNotNullish(process.env.OPENROUTER_APP_NAME)
+          ? process.env.OPENROUTER_APP_NAME
+          : OPENROUTER_DEFAULT_APP_NAME,
+      },
       jwtSecret: process.env.JWT_SECRET,
       logLevel: process.env.LOG_LEVEL,
       port: Number(process.env.PORT),

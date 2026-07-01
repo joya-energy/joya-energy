@@ -146,6 +146,11 @@ const createApp = async (): Promise<http.Server> => {
   // This will establish database connection before server starts accepting requests
   await useMiddleware(router);
 
+  // Unmatched API routes
+  router.use((_req, res) => {
+    res.status(HttpStatusCode.NOT_FOUND).json({ message: 'Not found' });
+  });
+
   // Central error handlers: 4xx/5xx based on error type (must be applied to router so route errors are caught)
   for (const handler of errorHandlers) {
     handler(router);
@@ -179,7 +184,7 @@ const createApp = async (): Promise<http.Server> => {
   );
 
   // Last-resort global error handler: log, never expose stack/message in production
-  app.use((err: unknown, _req: express.Request, res: express.Response) => {
+  app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     const message = err instanceof Error ? err.message : String(err);
     const stack = err instanceof Error ? err.stack : undefined;
     Logger.error(message, stack != null ? { stack } : {});

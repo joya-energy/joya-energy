@@ -6,14 +6,14 @@ JOYA is a MEAN stack application dedicated to energy auditing and simulation (Au
 ## Architecture
 The project follows a **Clean Architecture** principle and is structured as a monorepo:
 
-- **`packages/backend`**: Express.js server with TypeScript, MongoDB, and OpenAI integration.
+- **`packages/backend`**: Express.js server with TypeScript, MongoDB, and OpenRouter LLM integration.
 - **`packages/frontend`**: Angular application (UI).
 - **`packages/shared`**: Shared types, interfaces, and enums used by both backend and frontend.
 
 ## Prerequisites
 - **Node.js**: v18 or higher
 - **MongoDB**: Local instance (running on port 27017) or MongoDB Atlas connection string.
-- **OpenAI API Key**: Required for the bill extraction feature.
+- **OpenRouter API Key**: Required for the bill extraction feature.
 
 ## Getting Started
 
@@ -95,7 +95,7 @@ src/
 
 ## Key Features
 - **Energy Audit Simulation**: Calculate annual consumption, CO₂ emissions, and energy class (BECTh).
-- **Bill Extraction (AI)**: Extract data from utility bills (STEG) using OpenAI GPT-4o.
+- **Bill Extraction (AI)**: Extract data from utility bills (STEG) using vision LLM via OpenRouter.
 - **Detailed Reporting**: Energy breakdown by usage (HVAC, Lighting, Equipment).
 
 ## License

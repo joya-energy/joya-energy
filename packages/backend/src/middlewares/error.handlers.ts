@@ -40,7 +40,7 @@ export const handleRepositoryError = (router: Router): void => {
 };
 
 export const handleServerError = (router: Router): void => {
-  router.use((err: Error, _req: Request, res: Response) => {
+  router.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     Logger.error(err);
     const message = ServerConfig.isEnv(NodeEnv.PROD) ? 'Internal Server Error' : err.stack;
     res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).send({ message });

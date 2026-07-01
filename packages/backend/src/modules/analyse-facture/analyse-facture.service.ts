@@ -1,18 +1,16 @@
-import OpenAI from 'openai';
+import type OpenAI from 'openai';
 import { Logger } from '@backend/middlewares';
 import { HTTP400Error } from '@backend/errors';
-import { ServerConfig } from '@backend/configs/server.config';
+import { createOpenRouterClient, getLlmModel } from '@backend/common/llm';
 import type { StegAnalyseResponse } from '@shared/interfaces/analyse-facture.interface';
 import { billExtractionService } from '../bill-extraction/bill-extraction.service';
 import { getStegAnalyseFacturePrompt } from './analyse-facture.prompt';
 
 export class AnalyseFactureService {
-  private readonly openai: OpenAI;
+  private readonly llmClient: OpenAI;
 
   constructor() {
-    this.openai = new OpenAI({
-      apiKey: ServerConfig.config.openaiApiKey,
-    });
+    this.llmClient = createOpenRouterClient();
   }
 
   public async analyzeBillFromImage(
@@ -34,13 +32,14 @@ export class AnalyseFactureService {
       const dataUrl = `data:${preparedMimeType};base64,${base64Image}`;
       const prompt = getStegAnalyseFacturePrompt();
 
+      const model = getLlmModel();
       Logger.info(
-        `Sending to OpenAI Vision for STEG analysis (prompt length=${prompt.length}, dataUrl length=${dataUrl.length})`
+        `Sending to vision LLM via OpenRouter for STEG analysis (model=${model}, prompt length=${prompt.length}, dataUrl length=${dataUrl.length})`
       );
 
       const startTime = Date.now();
-      const response = await this.openai.chat.completions.create({
-        model: 'gpt-4o',
+      const response = await this.llmClient.chat.completions.create({
+        model,
         messages: [
           {
             role: 'system',
@@ -65,12 +64,12 @@ export class AnalyseFactureService {
         temperature: 0.1,
       });
 
-      Logger.info(`OpenAI STEG analysis response received in ${Date.now() - startTime}ms`);
+      Logger.info(`STEG analysis LLM response received in ${Date.now() - startTime}ms`);
 
       const content = response.choices[0]?.message?.content;
       if (content === null || content === undefined || content === '') {
-        Logger.error('OpenAI returned empty content for STEG analysis');
-        throw new Error('No content returned from OpenAI');
+        Logger.error('LLM returned empty content for STEG analysis');
+        throw new Error('No content returned from LLM');
       }
 
       const jsonString = content
@@ -107,7 +106,7 @@ export class AnalyseFactureService {
       const errorText = String(error);
       if (errorText.includes('429') || errorText.toLowerCase().includes('quota')) {
         throw new HTTP400Error(
-          'Quota OpenAI dépassé. Vérifiez la facturation de votre clé API ou réessayez plus tard.'
+          'Quota LLM dépassé. Vérifiez la facturation de votre clé OpenRouter ou réessayez plus tard.'
         );
       }
 

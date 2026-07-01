@@ -761,7 +761,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
             (backendMessage?.includes('429') ?? false);
 
           const message = isQuota
-            ? 'Le quota OpenAI est dépassé. Contactez l\'administrateur ou réessayez plus tard.'
+            ? 'Le quota du service d\'analyse est dépassé. Contactez l\'administrateur ou réessayez plus tard.'
             : backendMessage ||
               'Impossible d\'analyser votre facture pour le moment. Réessayez dans quelques instants.';
 

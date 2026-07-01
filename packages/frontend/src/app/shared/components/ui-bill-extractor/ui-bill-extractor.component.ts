@@ -358,7 +358,7 @@ export class UiBillExtractorComponent {
       }
 
       // Technical error messages that need translation
-      if (apiError.includes('openai') || apiError.includes('quota') || apiError.includes('429')) {
+      if (apiError.includes('quota') || apiError.includes('429') || apiError.includes('openrouter')) {
         return 'Le service d\'extraction est temporairement surchargé. Veuillez réessayer dans quelques instants.';
       }
 

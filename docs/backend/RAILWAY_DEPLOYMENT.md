@@ -44,7 +44,7 @@ In the service **Variables** tab, add the variables your backend needs. You can 
 
 ### Optional (recommended for full features)
 
-- **OpenAI**: `OPENAI_API_KEY` – for bill extraction.
+- **OpenRouter**: `OPENROUTER_API_KEY` – for bill extraction. Optional: `OPENROUTER_MODEL` (default `openai/gpt-4o`), `OPENROUTER_BASE_URL`, `OPENROUTER_APP_URL`, `OPENROUTER_APP_NAME`.
 - **Email**: `POSTMARK_SERVER_TOKEN` and `POSTMARK_FROM` (or SMTP vars) – for contact form and report emails.
 - **Google Maps**: `GOOGLE_MAPS_API_KEY` – for audit solaire geocoding.
 - **Energy constants**: `ENERGY_COST_PER_KWH`, `ENERGY_AUDIT_K_CH`, etc. – see `.env.example`.

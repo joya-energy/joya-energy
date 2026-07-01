@@ -1,21 +1,19 @@
-import OpenAI from 'openai';
+import type OpenAI from 'openai';
 import { Logger } from '@backend/middlewares';
 import { HTTP400Error } from '@backend/errors';
-import { ServerConfig } from '@backend/configs/server.config';
+import { createOpenRouterClient, getLlmModel } from '@backend/common/llm';
 import { pdfToPng } from 'pdf-to-png-converter';
 import type { ExtractedBillData } from '@shared/interfaces/bill-extraction.interface';
 
 export class BillExtractionService {
-  private readonly openai: OpenAI;
+  private readonly llmClient: OpenAI;
 
   constructor() {
-    this.openai = new OpenAI({
-      apiKey: ServerConfig.config.openaiApiKey,
-    });
+    this.llmClient = createOpenRouterClient();
   }
 
   /**
-   * Extract data from a bill image using OpenAI Vision
+   * Extract data from a bill image using vision LLM (OpenRouter)
    * @param imageBuffer Buffer of the image
    * @param mimeType Mime type of the image
    */
@@ -41,12 +39,12 @@ export class BillExtractionService {
         throw new HTTP400Error('Image preparation failed. The prepared image buffer is empty.');
       }
       
-      // Check if buffer is too large (OpenAI has limits)
+      // Check if buffer is too large (vision API has limits)
       const MAX_IMAGE_SIZE = 20 * 1024 * 1024; // 20MB
       if (preparedBuffer.length > MAX_IMAGE_SIZE) {
         Logger.warn(
           `Prepared image is very large (${preparedBuffer.length} bytes). ` +
-          `This might cause issues with OpenAI API.`
+          `This might cause issues with the vision API.`
         );
       }
       
@@ -55,7 +53,7 @@ export class BillExtractionService {
       
       Logger.info(
         `Base64 encoding complete. Data URL length: ${dataUrl.length} characters. ` +
-        `Sending to OpenAI Vision API...`
+        `Sending to vision LLM via OpenRouter...`
       );
 
       const prompt = `
@@ -197,11 +195,12 @@ export class BillExtractionService {
 
       const startTime = Date.now();
       
-      Logger.info('Sending request to OpenAI Vision API...');
-      Logger.info(`Request details: model=gpt-4o, dataUrl length=${dataUrl.length} chars, prompt length=${prompt.length} chars`);
+      const model = getLlmModel();
+      Logger.info('Sending request to vision LLM via OpenRouter...');
+      Logger.info(`Request details: model=${model}, dataUrl length=${dataUrl.length} chars, prompt length=${prompt.length} chars`);
       
-      const response = await this.openai.chat.completions.create({
-        model: 'gpt-4o', // Using gpt-4o for better accuracy
+      const response = await this.llmClient.chat.completions.create({
+        model,
         messages: [
           {
             role: 'system',
@@ -227,22 +226,22 @@ export class BillExtractionService {
       });
       
       const responseTime = Date.now() - startTime;
-      Logger.info(`OpenAI response received in ${responseTime}ms`);
+      Logger.info(`LLM response received in ${responseTime}ms`);
 
       const content = response.choices[0]?.message?.content;
 
       if (content === null || content === undefined || content === '') {
-        Logger.error('OpenAI returned empty content');
+        Logger.error('LLM returned empty content');
         Logger.error('Response structure:', {
           choices: response.choices?.length,
           firstChoice: response.choices?.[0],
           finishReason: response.choices?.[0]?.finish_reason,
         });
-        throw new Error('No content returned from OpenAI');
+        throw new Error('No content returned from LLM');
       }
 
-      Logger.info(`OpenAI content received (length: ${content.length} chars), parsing JSON...`);
-      Logger.debug('Raw OpenAI content (first 500 chars):', content.substring(0, 500));
+      Logger.info(`LLM content received (length: ${content.length} chars), parsing JSON...`);
+      Logger.debug('Raw LLM content (first 500 chars):', content.substring(0, 500));
 
       // Clean up code blocks if present
       const jsonString = content
@@ -335,7 +334,7 @@ export class BillExtractionService {
 
       return extractedData;
     } catch (error: unknown) {
-      Logger.error(`OpenAI extraction error: ${String(error)}`);
+      Logger.error(`Bill extraction LLM error: ${String(error)}`);
 
       // FALLBACK MOCK DATA FOR QUOTA LIMITS OR ERRORS - COMMENTED OUT
       // Service should either work properly or fail, not return mock data
@@ -409,7 +408,7 @@ export class BillExtractionService {
     }
   }
 
-  /** Prepare bill image/PDF buffer for OpenAI Vision (shared with analyse-facture). */
+  /** Prepare bill image/PDF buffer for vision LLM (shared with analyse-facture). */
   public async prepareBillImage(
     buffer: Buffer,
     mimeType: string
@@ -423,7 +422,7 @@ export class BillExtractionService {
   ): Promise<{ buffer: Buffer; mimeType: string }> {
     if (mimeType === 'application/pdf') {
       Logger.info(
-        `PDF detected (size: ${buffer.length} bytes). Converting first page to high-resolution PNG for OpenAI vision processing...`
+        `PDF detected (size: ${buffer.length} bytes). Converting first page to high-resolution PNG for vision processing...`
       );
       try {
         // Try multiple viewport scales to find the best quality
