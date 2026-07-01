@@ -7,3 +7,4 @@ export * from './audit-solaire.interface';
 export * from './comparaison-financements.interface';
 export * from './file.interface';
 export * from './bill-extraction.interface';
+export * from './analyse-facture.interface';

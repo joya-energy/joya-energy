@@ -39,18 +39,20 @@
     "@ng-icons/lucide": "^25.5.0",
     "axios": "^1.13.4",
     "express": "^5.1.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
     "luxon": "^3.7.2",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
-    "@types/luxon": "^3.4.2",
-    "dotenv": "^16.4.5",
     "@angular/build": "^21.0.0",
     "@angular/cli": "^21.0.0",
     "@angular/compiler-cli": "^21.0.0",
     "@types/express": "^5.0.1",
+    "@types/luxon": "^3.4.2",
     "@types/node": "^20.17.19",
+    "dotenv": "^16.4.5",
     "jsdom": "^27.1.0",
     "typescript": "~5.9.2",
     "vitest": "^4.0.8"

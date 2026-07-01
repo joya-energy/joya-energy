@@ -19,6 +19,7 @@ import { fileRoutes } from './modules/file/file.routes';
 import { carbonSimulatorRoutes } from './modules/carbon-simulator/carbon-simulator.routes';
 import { leadRoutes } from './modules/lead/lead.routes';
 import { billExtractionRoutes } from './modules/bill-extraction/bill-extraction.routes';
+import { analyseFactureRoutes } from './modules/analyse-facture/analyse-facture.routes';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './configs/swagger.config';
 import { HttpStatusCode } from '@shared';
@@ -130,6 +131,7 @@ const createApp = async (): Promise<http.Server> => {
   // Mount routes BEFORE other middleware to ensure they are matched
   router.use('/api/contacts', contactRoutes);
   router.use('/api/bill-extraction', billExtractionRoutes);
+  router.use('/api/analyse-facture', analyseFactureRoutes);
   router.use(
     '/api/audit-energetique-simulations',
     auditEnergetiqueSimulationRoutes

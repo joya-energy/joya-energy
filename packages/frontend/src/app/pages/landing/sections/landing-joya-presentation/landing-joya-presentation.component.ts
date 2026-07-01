@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import { LandingBadgeComponent } from '../../components/landing-badge/landing-badge.component';
 import {
   lucideZap,
   lucideFileSearch,
+  lucideReceipt,
   lucideSun,
   lucideBarChart3,
   lucideArrowRight,
@@ -23,7 +25,7 @@ interface PresentationCard {
 @Component({
   selector: 'app-landing-joya-presentation',
   standalone: true,
-  imports: [CommonModule, NgIconComponent, LandingBadgeComponent],
+  imports: [CommonModule, RouterLink, NgIconComponent, LandingBadgeComponent],
   templateUrl: './landing-joya-presentation.component.html',
   styleUrl: './landing-joya-presentation.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,6 +33,7 @@ interface PresentationCard {
     provideIcons({
       lucideZap,
       lucideFileSearch,
+      lucideReceipt,
       lucideSun,
       lucideBarChart3,
       lucideArrowRight,
@@ -48,6 +51,15 @@ export class LandingJoyaPresentationComponent {
       ctaText: 'Lancer une étude énergétique',
       ctaLink: '/audit-solaire',
       isFeatured: true,
+    },
+    {
+      id: 'analyse-facture',
+      title: 'Analyse facture',
+      description:
+        'Décryptage de votre facture STEG pour comprendre vos postes de consommation et identifier rapidement les opportunités d’économies.',
+      icon: 'lucideReceipt',
+      ctaText: 'En savoir plus',
+      ctaLink: '/analyse-facture',
     },
     {
       id: 'audit',

@@ -3,7 +3,7 @@
     <!-- Sidebar with Step Progress -->
     <aside class="simulator-sidebar">
       <div class="sidebar-steps">
-        @for (step of steps; track step.number) {
+        @for (step of steps(); track step.number) {
         <div
           class="sidebar-step-item"
           [class.active]="currentStep() === step.number"
@@ -51,10 +51,10 @@
       <!-- Fixed Timeline Header -->
       <div class="form-timeline-header">
         <div class="step-progress-header">
-          <span class="step-indicator">Étape {{ currentStep() }} sur {{ steps.length }}</span>
+          <span class="step-indicator">Étape {{ currentStep() }} sur {{ steps().length }}</span>
           <span class="step-completion">Progression: {{ overallProgress() }}%</span>
         </div>
-        <app-ui-step-timeline [currentStep]="currentStep()" [totalSteps]="steps.length">
+        <app-ui-step-timeline [currentStep]="currentStep()" [totalSteps]="steps().length">
         </app-ui-step-timeline>
       </div>
 
@@ -910,7 +910,9 @@
             <!-- Form Fields -->
             <form [formGroup]="form" class="simulator-form">
               <div class="simulator-form-header">
-                <h3 class="simulator-form-title">Calculateur Audit Solaire</h3>
+                <h3 class="simulator-form-title">
+                  {{ isBillAnalysisMode() ? 'Analyse facture' : 'Calculateur Audit Solaire' }}
+                </h3>
                 <h2 class="step-title">{{ currentStepData().title }}</h2>
                 @if (currentStepData().description) {
                 <p class="step-description">{{ currentStepData().description }}</p>
@@ -920,7 +922,15 @@
               <!-- Step 1: Invoice & consumption -->
               @if (currentStep() === 1) {
               <div [@stepTransition]="currentStep()">
-                <!-- Simulator Description -->
+                @if (isBillAnalysisMode()) {
+                <div class="bill-extractor-section" style="margin-bottom: 2rem">
+                  <app-ui-bill-extractor
+                    [hideExtractButton]="true"
+                    [uploadOnly]="true"
+                    (fileChange)="onBillFileChange($event)"
+                  ></app-ui-bill-extractor>
+                </div>
+                } @else {
                 <div class="simulator-description">
                   <p>
                     Ce simulateur analyse votre consommation énergétique et calcule le potentiel
@@ -934,7 +944,6 @@
                   </p>
                 </div>
 
-                <!-- Bill Photo Selection -->
                 <div
                   class="form-field"
                   formGroupName="consumption"
@@ -965,18 +974,15 @@
                   </div>
                 </div>
 
-                <!-- Bill Extractor Component (shown when hasInvoice === 'yes') -->
                 @if (hasInvoice()) {
                 <div class="bill-extractor-section" style="margin-bottom: 2rem">
                   <app-ui-bill-extractor></app-ui-bill-extractor>
                 </div>
                 }
 
-                <!-- Manual entry form (shown when hasInvoice === 'no') -->
                 @if (!hasInvoice()) {
                 <div class="manual-entry-section" formGroupName="consumption">
                   <div class="form-grid">
-                    <!-- Monthly Amount -->
                     <app-ui-input
                       formControlName="measuredAmountTnd"
                       type="number"
@@ -990,7 +996,6 @@
                     >
                     </app-ui-input>
 
-                    <!-- Reference Month -->
                     <div class="form-field">
                       <app-ui-select
                         formControlName="referenceMonth"
@@ -1010,7 +1015,6 @@
                     </div>
                   </div>
 
-                  <!-- Régime tarifaire (BT / MT) -->
                   <div class="tariff-section">
                     <div class="field-label">Régime tarifaire</div>
                     <div class="tariff-toggle-group">
@@ -1039,7 +1043,6 @@
 
                   @if (form.get('consumption.tariffTension')?.value === 'MT') {
                   <div #mtOptionsContainer class="tariff-row">
-                    <!-- Horaire de fonctionnement (only for MT) -->
                     <div class="tariff-section">
                       <div class="field-label">Horaire de fonctionnement</div>
                       <div class="tariff-toggle-group">
@@ -1078,7 +1081,6 @@
                       </div>
                     </div>
 
-                    <!-- Régime (only for MT) -->
                     <div class="tariff-section">
                       <div class="field-label">Régime</div>
                       <div class="tariff-toggle-group">
@@ -1108,11 +1110,11 @@
                   }
                 </div>
                 }
+                }
               </div>
               }
 
-              <!-- Step 2: Building -->
-              @if (currentStep() === 2) {
+              @if (!isBillAnalysisMode() && currentStep() === 2) {
               <div [@stepTransition]="currentStep()">
                 <div class="building-type-selection" formGroupName="building">
                   <div class="form-field">
@@ -1141,10 +1143,11 @@
               </div>
               }
 
-              <!-- Step 3: Personal Info & Location -->
-              @if (currentStep() === 3) {
+              @if (
+                (!isBillAnalysisMode() && currentStep() === 3) ||
+                (isBillAnalysisMode() && currentStep() === 2)
+              ) {
               <div [@stepTransition]="currentStep()">
-                <!-- Personal Information Fields -->
                 <div class="form-grid" formGroupName="personal">
                   <app-ui-input
                     formControlName="fullName"
@@ -1158,6 +1161,7 @@
                   >
                   </app-ui-input>
 
+                  @if (!isBillAnalysisMode()) {
                   <app-ui-input
                     formControlName="companyName"
                     type="text"
@@ -1169,6 +1173,7 @@
                     size="md"
                   >
                   </app-ui-input>
+                  }
 
                   <app-ui-input
                     formControlName="email"
@@ -1195,7 +1200,7 @@
                   </app-ui-input>
                 </div>
 
-                <!-- Location Field -->
+                @if (!isBillAnalysisMode()) {
                 <div class="form-field" formGroupName="location" style="margin-top: 2rem">
                   <app-google-maps-input
                     style="margin-bottom: 4rem"
@@ -1210,6 +1215,7 @@
                   >
                   </app-google-maps-input>
                 </div>
+                }
               </div>
               }
             </form>
@@ -1233,7 +1239,7 @@
             Précédent
           </button>
 
-          @if (currentStep() < lastFormStepNumber) {
+          @if (currentStep() < lastFormStepNumber()) {
           <button
             type="button"
             class="hero__btn hero__btn--primary"
@@ -1247,13 +1253,13 @@
           <button
             type="button"
             class="hero__btn hero__btn--primary"
-            [disabled]="!canProceed() || isSubmitting()"
+            [disabled]="primaryActionDisabled()"
             (click)="nextStep()"
           >
             @if (isSubmitting()) {
-            <span>Calcul en cours...</span>
+            <span>{{ primaryActionLabel() }}</span>
             } @else {
-            <span>Lancer la simulation</span>
+            <span>{{ primaryActionLabel() }}</span>
             <ng-icon name="lucideArrowRight" size="16"></ng-icon>
             }
           </button>
@@ -1295,7 +1301,7 @@
           Précédent
         </button>
 
-        @if (currentStep() < lastFormStepNumber) {
+        @if (currentStep() < lastFormStepNumber()) {
         <button
           type="button"
           class="hero__btn hero__btn--primary"
@@ -1309,13 +1315,13 @@
         <button
           type="button"
           class="hero__btn hero__btn--primary"
-          [disabled]="!canProceed() || isSubmitting()"
+          [disabled]="primaryActionDisabled()"
           (click)="nextStep()"
         >
           @if (isSubmitting()) {
-          <span>Calcul en cours...</span>
+          <span>{{ primaryActionLabel() }}</span>
           } @else {
-          <span>Lancer la simulation</span>
+          <span>{{ primaryActionLabel() }}</span>
           <ng-icon name="lucideArrowRight" size="16"></ng-icon>
           }
         </button>
