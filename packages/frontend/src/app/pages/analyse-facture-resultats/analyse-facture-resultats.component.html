@@ -1,0 +1,631 @@
+<div class="analyse-resultats-page">
+  <div class="analyse-resultats-container">
+    <aside class="simulator-sidebar">
+      <div class="sidebar-steps">
+        @for (step of steps; track step.number) {
+          <div
+            class="sidebar-step-item"
+            [class.active]="currentStep() === step.number"
+            [class.clickable]="isStepClickable(step.number) && !step.isResult"
+            [class.disabled]="!isStepClickable(step.number) && !step.isResult && currentStep() !== step.number"
+            (click)="!step.isResult && goToStep(step.number)"
+          >
+            @if (!step.isResult) {
+              <app-ui-progress-bar
+                [step]="step.number"
+                [title]="step.title"
+                [progress]="stepProgress()[step.number]"
+                [completed]="stepProgress()[step.number] === 100"
+                [isFocused]="currentStep() === step.number"
+                class="sidebar-progress-bar"
+              />
+            } @else {
+              <div
+                class="sidebar-result-step"
+                [class.active]="currentStep() === step.number"
+                [class.disabled]="false"
+              >
+                <div class="sidebar-result-step-left">
+                  <div
+                    class="sidebar-step-circle result"
+                    [class.active]="currentStep() === step.number"
+                  >
+                    <span class="step-number">{{ step.number }}</span>
+                  </div>
+                </div>
+                <div class="sidebar-result-step-right">
+                  <h3 class="sidebar-step-title">{{ step.title }}</h3>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </aside>
+
+    <main class="simulator-main">
+      <div class="form-timeline-header">
+        <div class="step-progress-header">
+          <span class="step-indicator">Étape {{ currentStep() }} sur {{ steps.length }}</span>
+          <span class="step-completion">Progression: {{ overallProgress }}%</span>
+        </div>
+        <app-ui-step-timeline [currentStep]="currentStep()" [totalSteps]="steps.length" />
+      </div>
+
+      <div class="form-content-scrollable">
+        <div class="form-content">
+    @if (tariffType() === 'BT') {
+      <article class="report">
+        <!-- 1. Situation header -->
+        <section class="report-hero">
+          <span class="report-badge report-badge--gold">{{ situationBadge() }}</span>
+          <h1 class="report-hero__client">{{ clientName() }}</h1>
+          <p class="report-hero__tagline">votre facture en un coup d'œil</p>
+          <p class="report-hero__meta">{{ periodSummary() }}</p>
+        </section>
+
+        <!-- 2. Key metrics -->
+        <section class="report-kpis">
+          <div class="report-kpi report-kpi--accent">
+            <span class="report-kpi__label">Montant énergie</span>
+            <span class="report-kpi__value">{{ montantEnergie() }} DT</span>
+          </div>
+          <div class="report-kpi report-kpi--bar-blue">
+            <span class="report-kpi__label">Consommation</span>
+            <span class="report-kpi__value">{{ formatNumber(facture().consommation_totale_kwh) }} kWh</span>
+          </div>
+          <div class="report-kpi report-kpi--bar-green">
+            <span class="report-kpi__label">Puissance souscrite</span>
+            <span class="report-kpi__value">{{ formatNumber(facture().puissance_souscrite_kva) }} kVA</span>
+          </div>
+        </section>
+
+        <!-- 3. Info banners -->
+        @if (gazBannerText(); as gazText) {
+          <div class="report-banner report-banner--info">
+            <ng-icon name="lucideFlame" size="18" />
+            <p>{{ gazText }}</p>
+          </div>
+        }
+
+        @if (puissanceAlertText(); as alertText) {
+          <div class="report-banner report-banner--alert">
+            <p><strong>Puissance élevée détectée :</strong> {{ alertText }}</p>
+          </div>
+        }
+
+        @if (showBtMtRevision() && etude(); as etudeData) {
+          <!-- 4. Recommendation -->
+          <section class="report-block">
+            <span class="report-badge report-badge--gold">Ce que vous pouvez faire</span>
+            <h2 class="report-block__title">Réviser votre contrat STEG.</h2>
+            <h3 class="report-block__subtitle">Passer en Moyenne Tension.</h3>
+            @if (etudeData.demarche_revision?.contexte; as contexte) {
+              <p class="report-block__contexte">{{ contexte }}</p>
+            }
+          </section>
+
+          <!-- 5. Two-step process -->
+          @if (etudeData.demarche_revision; as demarche) {
+            <section class="report-steps">
+              @if (demarche.intro) {
+                <p class="report-steps__intro">{{ demarche.intro }}</p>
+              }
+              <div class="report-steps__list">
+                @for (step of demarche.etapes; track step.titre; let i = $index) {
+                  <article class="report-step">
+                    <div class="report-step__number">{{ i + 1 }}</div>
+                    <div class="report-step__body">
+                      <h4>{{ step.titre }}</h4>
+                      <p>{{ step.description }}</p>
+                    </div>
+                  </article>
+                }
+              </div>
+            </section>
+          }
+
+          <!-- 6. Savings headline + comparison -->
+          <section class="report-block report-block--gain">
+            <span class="report-badge report-badge--blue">Ce que vous gagnez</span>
+            <h2 class="report-block__title">Une seule révision.</h2>
+            <h3 class="report-block__subtitle report-block__subtitle--gain">
+              {{ formatComparisonNumber(etudeData.economie_annuelle_dt) }} DT d'économies par an.
+            </h3>
+          </section>
+
+          <section class="report-comparison">
+            <div class="report-comparison__card report-comparison__card--bt">
+              <span class="report-comparison__label">Facture annuelle BT</span>
+              <span class="report-comparison__value">{{ formatComparisonNumber(etudeData.facture_annuelle_bt_dt) }} DT</span>
+              <span class="report-comparison__meta">{{ formatNumber(facture().puissance_souscrite_kva) }} kVA souscrit</span>
+            </div>
+            <div class="report-comparison__arrow" aria-hidden="true">
+              <ng-icon name="lucideArrowRight" size="20" />
+            </div>
+            <div class="report-comparison__card report-comparison__card--mt">
+              <span class="report-comparison__label">Facture annuelle MT</span>
+              <span class="report-comparison__value">{{ formatComparisonNumber(etudeData.facture_annuelle_mt_dt) }} DT</span>
+              <span class="report-comparison__meta">
+                {{ formatNumber(etudeData.puissance_mt_recommandee_kva ?? etudeData.puissance_souscrite_kva) }} kVA recommandé
+              </span>
+            </div>
+          </section>
+
+          <!-- 7. Financial results -->
+          <section class="report-economy-hero">
+            <span class="report-economy-hero__label">Économie annuelle estimée</span>
+            <span class="report-economy-hero__value">{{ formatComparisonNumber(etudeData.economie_annuelle_dt) }} DT</span>
+            <p class="report-economy-hero__sub">
+              soit {{ economieMensuelle() }} DT récupérés chaque mois, dès la révision effective
+            </p>
+          </section>
+
+          <section class="report-financial-grid">
+            <div class="report-financial-card">
+              <span class="report-financial-card__label">Investissement (CAPEX)</span>
+              <span class="report-financial-card__value">{{ formatComparisonNumber(etudeData.capex_dt) }} DT</span>
+            </div>
+            <div class="report-financial-card">
+              <span class="report-financial-card__label">Payback simple</span>
+              <span class="report-financial-card__value">{{ formatPayback(etudeData.payback_simple_ans) }} ans</span>
+            </div>
+            <div class="report-financial-card">
+              <span class="report-financial-card__label">TRI (25 ans)</span>
+              <span class="report-financial-card__value">{{ formatPercent(etudeData.tri_pct) }} %</span>
+            </div>
+          </section>
+
+          @if (vanChart(); as chart) {
+            <section class="report-chart-section">
+              <h2 class="report-chart__title">Gains nets cumulés vs CAPEX</h2>
+              <div class="report-chart">
+              <div class="report-chart__y-axis">
+                @for (tick of chartYAxisTicks(chart); track tick) {
+                  <span>{{ tick }}</span>
+                }
+              </div>
+              <div class="report-chart__plot">
+                <div class="report-chart__canvas">
+                <svg viewBox="0 0 1000 400" preserveAspectRatio="none" class="report-chart__svg">
+                  <defs>
+                    <linearGradient id="reportVanGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.35" />
+                      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.04" />
+                    </linearGradient>
+                  </defs>
+                  @if (chartAreaPoints(chart); as areaPoints) {
+                    <polygon [attr.points]="areaPoints" class="report-chart__van-area" />
+                  }
+                  @if (chartCapexLineEndX(chart); as capexEndX) {
+                    <line
+                      [attr.x1]="chartPadding"
+                      [attr.y1]="chartCapexY(chart)"
+                      [attr.x2]="capexEndX"
+                      [attr.y2]="chartCapexY(chart)"
+                      class="report-chart__capex-line"
+                    />
+                  }
+                  <polyline [attr.points]="chartLinePoints(chart)" class="report-chart__van-line" />
+                  @for (index of chartMarkerIndices(chart); track index) {
+                    <circle
+                      [attr.cx]="chartPointAt(chart, index).x"
+                      [attr.cy]="chartPointAt(chart, index).y"
+                      r="5"
+                      class="report-chart__van-dot"
+                    />
+                  }
+                  @if (chartCapexIntersectionPoint(chart); as intersection) {
+                    <circle
+                      [attr.cx]="intersection.x"
+                      [attr.cy]="intersection.y"
+                      r="8"
+                      class="report-chart__payback-dot"
+                    />
+                  }
+                </svg>
+                @if (chartCapexIntersectionPoint(chart); as intersection) {
+                  @if (chartPaybackLabel(); as paybackLabel) {
+                    <div
+                      class="report-chart__payback-label"
+                      [style.left.%]="(intersection.x / 1000) * 100"
+                      [style.top.%]="(intersection.y / 400) * 100"
+                    >
+                      {{ paybackLabel }}
+                    </div>
+                  }
+                }
+                </div>
+                <div class="report-chart__x-axis">
+                  @for (year of chart.points; track year.year) {
+                    @if (year.year === 1 || year.year % 5 === 0 || year.year === 25) {
+                      <span>Année {{ year.year }}</span>
+                    }
+                  }
+                </div>
+                <div class="report-chart__legend">
+                  <span class="report-chart__legend-item">
+                    <span class="report-chart__legend-swatch report-chart__legend-swatch--gains"></span>
+                    Gains nets cumulés
+                  </span>
+                  <span class="report-chart__legend-item">
+                    <span class="report-chart__legend-swatch report-chart__legend-swatch--capex"></span>
+                    CAPEX
+                  </span>
+                </div>
+              </div>
+              </div>
+            </section>
+          }
+        }
+
+        @if (!showBtMtRevision() && btSolarDisplay(); as piste) {
+          <section class="report-solar report-solar--simple">
+            <span class="report-badge report-badge--orange">{{ piste.badge }}</span>
+            <h2 class="report-solar__title">{{ piste.titre }}</h2>
+            <p class="report-solar__text">{{ piste.description }}</p>
+            <div class="report-solar__callout">
+              <p><strong>Piste à explorer :</strong> {{ piste.piste }}</p>
+            </div>
+          </section>
+        }
+
+        <!-- 8. Bill detail -->
+        <section class="report-detail">
+          <span class="report-badge report-badge--outline">Détail facture</span>
+          <h2 class="report-detail__title">Données extraites</h2>
+          <div class="report-detail__list">
+            @for (row of detailFactureRows(); track row.label) {
+              <div class="report-detail__row" [class.report-detail__row--highlight]="row.highlight">
+                <div class="report-detail__label">
+                  <span>{{ row.label }}</span>
+                  <div class="report-detail__info-wrap">
+                    <button
+                      type="button"
+                      class="report-detail__info-btn"
+                      [attr.aria-label]="'En savoir plus : ' + row.label"
+                    >
+                      i
+                    </button>
+                    <div class="report-detail__tooltip" role="tooltip">{{ row.explication }}</div>
+                  </div>
+                </div>
+                <div class="report-detail__value">{{ row.value }}</div>
+              </div>
+            }
+          </div>
+        </section>
+
+        @if (!showBtMtRevision() && btSolarDisplay(); as piste) {
+          <div class="report-actions report-actions--center report-actions--bottom">
+            <a routerLink="/audit-solaire" class="report-btn report-btn--primary">
+              {{ piste.ctaLabel }}
+              <ng-icon name="lucideArrowUpRight" size="16" />
+            </a>
+          </div>
+        }
+
+        <!-- 9. Solar follow-up (full BT–MT study) -->
+        @if (showBtMtRevision() && btSolarDisplay(); as piste) {
+          <section class="report-solar">
+            <span class="report-badge report-badge--blue">{{ piste.badge }}</span>
+            <h2 class="report-solar__title">{{ piste.titre }}</h2>
+            <p class="report-solar__text">{{ piste.description }}</p>
+            <div class="report-solar__callout">
+              <p><strong>Piste à explorer :</strong> {{ piste.piste }}</p>
+            </div>
+            <div class="report-actions report-actions--center">
+              <a routerLink="/audit-solaire" class="report-btn report-btn--primary">
+                {{ piste.ctaLabel }}
+                <ng-icon name="lucideArrowUpRight" size="16" />
+              </a>
+            </div>
+          </section>
+        }
+      </article>
+    } @else {
+      <article class="report">
+        <!-- Hero -->
+        <section class="report-hero">
+          <span class="report-badge report-badge--gold">Votre situation • Mensuelle</span>
+          <h1 class="report-hero__client">{{ mtFacture().client }}</h1>
+          <p class="report-hero__tagline">votre facture en un coup d'œil</p>
+          <p class="report-hero__meta">
+            Réf. facture {{ mtFacture().reference_facture }} • {{ mtFacture().periode }} • District
+            {{ mtFacture().district }}
+          </p>
+        </section>
+
+        <hr class="report-divider" />
+
+        <!-- Puissance situation -->
+        @if (mtSituationView(); as situation) {
+        <section class="report-block">
+          <span
+            class="report-badge"
+            [class.report-badge--gold]="situation.badgeTone === 'gold'"
+            [class.report-badge--outline]="situation.badgeTone === 'outline'"
+            [class.report-badge--warning]="situation.badgeTone === 'warning'"
+            [class.report-badge--danger]="situation.badgeTone === 'danger'"
+          >
+            {{ situation.badge }}
+          </span>
+          <h2 class="report-block__title">{{ situation.titre }}</h2>
+
+          @switch (situation.profile) {
+            @case ('P1') {
+              <p class="report-solar__text">
+                Votre contrat STEG vous réserve
+                <strong>{{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA</strong>
+                de puissance. Ce mois, votre installation en a consommé
+                <strong>{{ formatComparisonNumber(mtFacture().puissance_max_kw) }} kW</strong>
+                au maximum. C'est comme louer un entrepôt de
+                {{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} m² pour n'en occuper que
+                {{ formatComparisonNumber(mtFacture().puissance_max_kw) }}.
+              </p>
+            }
+            @case ('P2') {
+              <p class="report-solar__text">
+                Votre contrat STEG vous réserve
+                <strong>{{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA</strong>,
+                mais votre installation n'a appelé que
+                <strong>{{ formatComparisonNumber(mtFacture().puissance_max_kw) }} kW</strong>
+                au pic du mois. C'est comme garder un abonnement deux fois trop grand pour ce que vous
+                consommez réellement.
+              </p>
+            }
+            @case ('P3') {
+              <p class="report-solar__text">
+                Votre contrat STEG vous réserve
+                <strong>{{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA</strong>,
+                et votre installation a déjà appelé
+                <strong>{{ formatComparisonNumber(mtFacture().puissance_max_kw) }} kW</strong>
+                ce mois. C'est comme rouler à {{ mtUtilisationPct() }}% de la jauge de votre réservoir
+                sans station essence à proximité.
+              </p>
+            }
+            @case ('P4') {
+              <p class="report-solar__text">
+                Votre contrat STEG vous réserve
+                <strong>{{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA</strong>,
+                mais votre installation a appelé
+                <strong>{{ formatComparisonNumber(mtFacture().puissance_max_kw) }} kW</strong>
+                ce mois, soit
+                <strong>{{ formatComparisonNumber(mtDepassementKva()) }} kVA</strong>
+                de plus que prévu. C'est comme dépasser le forfait de votre abonnement et payer le
+                hors-forfait chaque mois.
+              </p>
+            }
+            @default {
+              <p class="report-solar__text" [innerHTML]="mtResult()!.situation_texte"></p>
+            }
+          }
+
+          <div
+            class="report-mt-usage"
+            [class.report-mt-usage--danger]="situation.donutDanger"
+          >
+            <div class="report-donut" aria-hidden="true">
+              <svg viewBox="0 0 120 120" class="report-donut__svg">
+                <circle
+                  class="report-donut__track"
+                  cx="60"
+                  cy="60"
+                  r="50"
+                  fill="none"
+                  stroke-width="12"
+                />
+                <circle
+                  class="report-donut__value"
+                  cx="60"
+                  cy="60"
+                  r="50"
+                  fill="none"
+                  stroke-width="12"
+                  [attr.stroke-dasharray]="mtDonutDasharray()"
+                  transform="rotate(-90 60 60)"
+                />
+              </svg>
+              <div class="report-donut__label">
+                <span class="report-donut__pct">{{ mtUtilisationPct() }}%</span>
+                @if (situation.profile !== 'P4') {
+                  <span class="report-donut__caption">utilisé</span>
+                }
+              </div>
+            </div>
+            <dl class="report-mt-usage__metrics">
+              <div class="report-mt-usage__row">
+                <dt>Puissance souscrite</dt>
+                <dd>{{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA</dd>
+              </div>
+              <div class="report-mt-usage__row">
+                <dt>Puissance max. appelée</dt>
+                <dd>{{ formatComparisonNumber(mtFacture().puissance_max_kw) }} kW</dd>
+              </div>
+              <div
+                class="report-mt-usage__row report-mt-usage__row--highlight"
+                [class.report-mt-usage__row--danger]="situation.metricDanger"
+              >
+                <dt>{{ situation.metricLabel }}</dt>
+                <dd>{{ situation.metricValue }}</dd>
+              </div>
+            </dl>
+          </div>
+
+          @if (situation.optimizationNote) {
+            <p class="report-mt-usage__optimization">{{ situation.optimizationNote }}</p>
+          }
+
+          @if (situation.monthlyGain && situation.annualGain) {
+            <div class="report-mt-usage__gains">
+              <div>
+                <span class="report-mt-usage__gains-label">gain mensuel</span>
+                <span class="report-mt-usage__gains-value">{{ situation.monthlyGain }}</span>
+              </div>
+              <div>
+                <span class="report-mt-usage__gains-label">gain annuel</span>
+                <span class="report-mt-usage__gains-value">{{ situation.annualGain }}</span>
+              </div>
+            </div>
+          }
+        </section>
+        }
+
+        <!-- KPI cards -->
+        <section class="report-kpis report-kpis--wide">
+          <div class="report-kpi report-kpi--accent">
+            <span class="report-kpi__label">Prime de puissance</span>
+            <span class="report-kpi__value">{{ formatComparisonNumber(mtFacture().prime_puissance_dt) }} DT</span>
+          </div>
+          <div class="report-kpi">
+            <span class="report-kpi__label">Énergie consommée</span>
+            <span class="report-kpi__value">{{ formatComparisonNumber(mtFacture().energie_consommee_kwh) }} kWh</span>
+          </div>
+          <div class="report-kpi">
+            <span class="report-kpi__label">Montant net</span>
+            <span class="report-kpi__value">{{ formatComparisonNumber(mtFacture().montant_net_dt) }} DT</span>
+          </div>
+          <div class="report-kpi">
+            <span class="report-kpi__label">Cos φ</span>
+            <span class="report-kpi__value">{{ mtFacture().cos_phi.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) }}</span>
+          </div>
+          <div class="report-kpi">
+            <span class="report-kpi__label">Coefficient K</span>
+            <span class="report-kpi__value">{{ mtFacture().coefficient_k.toLocaleString('fr-FR', { minimumFractionDigits: 3 }) }}</span>
+          </div>
+        </section>
+
+        <!-- Insights -->
+        <section class="report-block">
+          <span class="report-badge report-badge--gold">• Ce que révèle votre facture</span>
+          <h2 class="report-block__title">{{ mtResult()!.revelle_sous_titre }}</h2>
+          <p class="report-solar__text">{{ mtResult()!.revelle_intro }}</p>
+
+          @for (insight of mtResult()!.insights; track insight.title) {
+            <article
+              class="report-insight-card"
+              [class.report-insight-card--positive]="insight.severity === 'positive'"
+            >
+              <div class="report-insight-card__head">
+                <div class="report-insight-card__icon" aria-hidden="true">
+                  @if (insight.severity === 'critical') {
+                    <ng-icon name="lucideZap" size="18" />
+                  } @else {
+                    <ng-icon name="lucideCheck" size="18" />
+                  }
+                </div>
+                <h3 class="report-insight-card__title">{{ insight.title }}</h3>
+              </div>
+              <p class="report-insight-card__text">{{ insight.description }}</p>
+              <footer class="report-insight-card__foot">
+                @if (insight.footerNote) {
+                  <p class="report-insight-card__note">{{ insight.footerNote }}</p>
+                }
+                @if (insight.annualSavingLabel) {
+                  <span class="report-insight-card__saving">{{ insight.annualSavingLabel }}</span>
+                }
+              </footer>
+            </article>
+          }
+        </section>
+
+        <!-- Gains -->
+        <section class="report-block report-block--gain">
+          <span class="report-badge report-badge--blue">Ce que vous gagnez</span>
+          <h2 class="report-block__title">Une révision de puissance.</h2>
+          <h3 class="report-block__subtitle report-block__subtitle--gain">
+            {{ formatComparisonNumber(mtResult()!.revision.economie_annuelle_dt) }} DT d'économies par an.
+          </h3>
+        </section>
+
+        <section class="report-comparison">
+          <div class="report-comparison__card report-comparison__card--bt">
+            <span class="report-comparison__label">Maintenant</span>
+            <span class="report-comparison__value">{{ formatComparisonNumber(mtResult()!.revision.prime_actuelle_dt) }} DT</span>
+            <span class="report-comparison__meta">
+              prime / mois — {{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA souscrit
+            </span>
+          </div>
+          <div class="report-comparison__arrow" aria-hidden="true">
+            <ng-icon name="lucideArrowRight" size="20" />
+          </div>
+          <div class="report-comparison__card report-comparison__card--mt">
+            <span class="report-comparison__label">Après révision</span>
+            <span class="report-comparison__value">{{ formatComparisonNumber(mtResult()!.revision.prime_apres_revision_dt) }} DT</span>
+            <span class="report-comparison__meta">
+              prime / mois — {{ formatComparisonNumber(mtResult()!.revision.puissance_cible_kva) }} kVA souscrit
+            </span>
+          </div>
+        </section>
+
+        <section class="report-economy-hero">
+          <span class="report-economy-hero__label">Économie annuelle estimée</span>
+          <span class="report-economy-hero__value">{{ formatComparisonNumber(mtResult()!.revision.economie_annuelle_dt) }} DT</span>
+          <p class="report-economy-hero__sub">
+            soit {{ formatComparisonNumber(mtResult()!.revision.economie_mensuelle_dt) }} DT récupérés chaque mois —
+            dès la révision effective
+          </p>
+        </section>
+
+        <!-- Detail -->
+        <section class="report-detail">
+          <span class="report-badge report-badge--outline">Détail facture</span>
+          <h2 class="report-detail__title">Données extraites</h2>
+          <div class="report-detail__list">
+            @for (row of mtDetailRows(); track row.label) {
+              <div class="report-detail__row" [class.report-detail__row--highlight]="row.highlight">
+                <div class="report-detail__label">
+                  <span>{{ row.label }}</span>
+                  @if (row.explication) {
+                    <div class="report-detail__info-wrap">
+                      <button
+                        type="button"
+                        class="report-detail__info-btn"
+                        [attr.aria-label]="'En savoir plus : ' + row.label"
+                      >
+                        i
+                      </button>
+                      <div class="report-detail__tooltip" role="tooltip">{{ row.explication }}</div>
+                    </div>
+                  }
+                </div>
+                <div class="report-detail__value">{{ row.value }}</div>
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- Solar -->
+        @if (mtResult()!.piste_solaire; as piste) {
+          <section class="report-solar">
+            <span class="report-badge report-badge--blue">{{ piste.badge }}</span>
+            <h2 class="report-solar__title">{{ piste.titre }}</h2>
+            <p class="report-solar__text">{{ piste.description }}</p>
+            <div class="report-solar__callout">
+              <p><strong>Piste à explorer :</strong> {{ piste.piste }}</p>
+            </div>
+            <div class="report-actions report-actions--center">
+              <a routerLink="/audit-solaire" class="report-btn report-btn--primary">
+                Demander une étude solaire personnalisée
+                <ng-icon name="lucideArrowUpRight" size="16" />
+              </a>
+            </div>
+          </section>
+        }
+
+        <footer class="report-footer">
+          JOYA ENERGY • ANALYSE GÉNÉRÉE AUTOMATIQUEMENT À PARTIR DE VOTRE FACTURE STEG
+        </footer>
+      </article>
+    }
+        </div>
+      </div>
+
+      <div class="form-actions form-actions--desktop result-actions">
+        <a routerLink="/analyse-facture" class="hero__btn hero__btn--outline">
+          Nouvelle analyse
+        </a>
+      </div>
+    </main>
+  </div>
+</div>

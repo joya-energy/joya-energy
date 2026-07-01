@@ -409,6 +409,14 @@ export class BillExtractionService {
     }
   }
 
+  /** Prepare bill image/PDF buffer for OpenAI Vision (shared with analyse-facture). */
+  public async prepareBillImage(
+    buffer: Buffer,
+    mimeType: string
+  ): Promise<{ buffer: Buffer; mimeType: string }> {
+    return this.prepareInputBuffer(buffer, mimeType);
+  }
+
   private async prepareInputBuffer(
     buffer: Buffer,
     mimeType: string

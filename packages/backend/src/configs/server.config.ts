@@ -61,9 +61,8 @@ export class ServerConfig {
   }
   public static initConfig(env?: NodeEnv): void {
     const nodeEnv = process.env.NODE_ENV || env || NodeEnv.DEV;
-    dotEnv.config({
-      path: `.env.${nodeEnv}`,
-    });
+    dotEnv.config({ path: '.env' });
+    dotEnv.config({ path: `.env.${nodeEnv}`, override: true });
     this._config = {
       nodeEnv: process.env.NODE_ENV,
       dbUri: process.env.DB_URI,

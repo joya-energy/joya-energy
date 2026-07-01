@@ -38,6 +38,7 @@ import {
   lucideCreditCard,
   lucideActivity,
 } from '@ng-icons/lucide';
+import { Router, ActivatedRoute } from '@angular/router';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { finalize } from 'rxjs/operators';
 
@@ -68,8 +69,11 @@ import { AuditEnergetiqueService } from '../../core/services/audit-energetique.s
 import { AuditSolaireFormService } from '../audit-solaire/audit-solaire.form.service';
 import { AuditSolaireFormStep } from '../audit-solaire/audit-solaire.types';
 import { IAuditSolaireSimulation } from '@shared/interfaces';
-import { BuildingTypes } from '@shared';
+import { BuildingTypes, ClimateZones } from '@shared';
 import { BillExtractionStore } from '../../core/stores/bill-extraction.store';
+import { AnalyseFactureService } from '../../core/services/analyse-facture.service';
+import { AnalyseFactureStore } from '../../core/stores/analyse-facture.store';
+import { mapStegAnalyseResponse } from '../../core/utils/analyse-facture.mapper';
 import {
   extractSolarAuditFields,
   extractPersonalInfoFields,
@@ -86,6 +90,108 @@ interface BuildingTypeCard {
   label: string;
   icon: string;
 }
+
+const STEP_1_FIELDS: StepField[] = [
+  {
+    name: 'consumption.hasInvoice',
+    label: 'Avez-vous une facture photo ?',
+    type: 'select',
+    required: true,
+  } as StepField,
+  {
+    name: 'consumption.measuredAmountTnd',
+    label: 'Montant mensuel (TND)',
+    type: 'number',
+    required: true,
+    condition: (value) => value?.consumption?.hasInvoice === 'no',
+  } as StepField,
+  {
+    name: 'consumption.referenceMonth',
+    label: 'Mois de référence',
+    type: 'select',
+    required: true,
+    condition: (value) => value?.consumption?.hasInvoice === 'no',
+  } as StepField,
+  {
+    name: 'consumption.tariffTension',
+    label: 'Régime tarifaire',
+    type: 'select',
+    required: true,
+  } as StepField,
+];
+
+const PERSONAL_INFO_FIELDS: StepField[] = [
+  { name: 'personal.fullName', label: 'Nom complet', type: 'text', required: true },
+  { name: 'personal.companyName', label: 'Entreprise', type: 'text', required: true },
+  { name: 'personal.email', label: 'Email', type: 'text', required: true },
+  { name: 'personal.phoneNumber', label: 'Téléphone', type: 'text', required: true },
+  { name: 'location.address', label: 'Adresse complète du bâtiment', type: 'text', required: true },
+];
+
+const BILL_ANALYSIS_PERSONAL_FIELDS: StepField[] = [
+  { name: 'personal.fullName', label: 'Nom complet', type: 'text', required: true },
+  { name: 'personal.email', label: 'Email', type: 'text', required: true },
+  { name: 'personal.phoneNumber', label: 'Téléphone', type: 'text', required: true },
+];
+
+const FULL_AUDIT_STEPS: SimulatorStep[] = [
+  {
+    number: 1,
+    title: 'Facture & consommation',
+    description: "Indiquez le montant de votre facture mensuelle d'électricité.",
+    fields: STEP_1_FIELDS,
+  },
+  {
+    number: 2,
+    title: 'Bâtiment & activité',
+    description: 'Précisez le type de bâtiment et sa zone climatique.',
+    fields: [
+      { name: 'building.buildingType', label: 'Type de bâtiment', type: 'select', required: true },
+      { name: 'building.climateZone', label: 'Zone climatique', type: 'select', required: true },
+    ],
+  },
+  {
+    number: 3,
+    title: 'Informations personnelles & localisation',
+    description: 'Indiquez l’adresse exacte de votre site pour estimer l’ensoleillement.',
+    fields: PERSONAL_INFO_FIELDS,
+  },
+  {
+    number: 4,
+    title: 'Résultats',
+    description: 'Analyse technique et économique de votre installation solaire.',
+    fields: [],
+    isResult: true,
+  },
+];
+
+const BILL_ANALYSIS_STEP_1_FIELDS: StepField[] = STEP_1_FIELDS.map((field) =>
+  field.name === 'consumption.hasInvoice'
+    ? ({ ...field, label: 'Insérer une facture photo' } as StepField)
+    : field
+);
+
+const BILL_ANALYSIS_STEPS: SimulatorStep[] = [
+  {
+    number: 1,
+    title: 'Facture',
+    description: '',
+    fields: BILL_ANALYSIS_STEP_1_FIELDS,
+  },
+  {
+    number: 2,
+    title: 'Informations personnelles',
+    description: 'Vos coordonnées pour recevoir les résultats de l’analyse.',
+    fields: BILL_ANALYSIS_PERSONAL_FIELDS,
+  },
+  {
+    number: 3,
+    title: 'Résultats',
+    description: 'Analyse de votre facture STEG.',
+    fields: [],
+    isResult: true,
+  },
+];
 
 @Component({
   selector: 'app-solar-audit',
@@ -160,118 +266,24 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   private readonly notificationStore = inject(NotificationStore);
   private readonly seoService = inject(SEOService);
   protected readonly cdr = inject(ChangeDetectorRef);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly billExtractionStore = inject(BillExtractionStore);
+  private readonly analyseFactureService = inject(AnalyseFactureService);
+  private readonly analyseFactureStore = inject(AnalyseFactureStore);
+
+  protected readonly isBillAnalysisMode = signal(false);
+
+  // Wizard steps depend on route: full audit vs bill analysis only
+  protected readonly steps = computed(() =>
+    this.isBillAnalysisMode() ? BILL_ANALYSIS_STEPS : FULL_AUDIT_STEPS
+  );
 
   // Surplus sale tariff (injection) used for MT surplus revenue calculations (DT/kWh)
   protected readonly surplusBuybackTariffDtPerKwh = 0.08;
 
   // Reuse existing typed form from old solar simulator
   protected readonly form: FormGroup = this.formService.buildForm();
-
-  // Wizard steps definition, using generic template model
-  protected readonly steps: SimulatorStep[] = [
-    {
-      number: 1,
-      title: 'Facture & consommation',
-      description: "Indiquez le montant de votre facture mensuelle d'électricité.",
-      fields: [
-        {
-          name: 'consumption.hasInvoice',
-          label: 'Avez-vous une facture photo ?',
-          type: 'select',
-          required: true,
-        } as StepField,
-        {
-          name: 'consumption.measuredAmountTnd',
-          label: 'Montant mensuel (TND)',
-          type: 'number',
-          required: true,
-          // Field is always required, but UI visibility depends on hasInvoice
-          // When hasInvoice === 'yes', it's auto-populated from bill extraction
-          condition: (value) => value?.consumption?.hasInvoice === 'no',
-        } as StepField,
-        {
-          name: 'consumption.referenceMonth',
-          label: 'Mois de référence',
-          type: 'select',
-          required: true,
-          // Field is always required, but UI visibility depends on hasInvoice
-          // When hasInvoice === 'yes', it's auto-populated from bill extraction
-          condition: (value) => value?.consumption?.hasInvoice === 'no',
-        } as StepField,
-        {
-          name: 'consumption.tariffTension',
-          label: 'Régime tarifaire',
-          type: 'select',
-          required: true,
-          // Always visible, but when hasInvoice === 'yes', it's auto-populated from bill extraction
-        } as StepField,
-      ],
-    },
-    {
-      number: 2,
-      title: 'Bâtiment & activité',
-      description: 'Précisez le type de bâtiment et sa zone climatique.',
-      fields: [
-        {
-          name: 'building.buildingType',
-          label: 'Type de bâtiment',
-          type: 'select',
-          required: true,
-        },
-        {
-          name: 'building.climateZone',
-          label: 'Zone climatique',
-          type: 'select',
-          required: true,
-        },
-      ],
-    },
-    {
-      number: 3,
-      title: 'Informations personnelles & localisation',
-      description: 'Indiquez l’adresse exacte de votre site pour estimer l’ensoleillement.',
-      fields: [
-        {
-          name: 'personal.fullName',
-          label: 'Nom complet',
-          type: 'text',
-          required: true,
-        },
-        {
-          name: 'personal.companyName',
-          label: 'Entreprise',
-          type: 'text',
-          required: true,
-        },
-        {
-          name: 'personal.email',
-          label: 'Email',
-          type: 'text',
-          required: true,
-        },
-        {
-          name: 'personal.phoneNumber',
-          label: 'Téléphone',
-          type: 'text',
-          required: true,
-        },
-        {
-          name: 'location.address',
-          label: 'Adresse complète du bâtiment',
-          type: 'text',
-          required: true,
-        },
-      ],
-    },
-    {
-      number: 4,
-      title: 'Résultats',
-      description: 'Analyse technique et économique de votre installation solaire.',
-      fields: [],
-      isResult: true,
-    },
-  ];
 
   // Expose original field configs from old form service for richer UI
   protected readonly consumptionFields = this.formService.consumptionFields;
@@ -303,6 +315,9 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   }
 
   @ViewChild('mtOptionsContainer') private mtOptionsContainer?: ElementRef<HTMLElement>;
+
+  protected readonly billFileSelected = signal(false);
+  protected readonly billFile = signal<File | null>(null);
 
   protected readonly buildingTypeCards: BuildingTypeCard[] = BUILDING_CARD_CONFIG;
   /** Building type options adapted for ui-select dropdown-icon variant (with icons). */
@@ -405,13 +420,19 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   // Progress per step
   protected readonly stepProgress = computed(() => {
     this.formUpdateTrigger();
+    this.billFileSelected();
 
     const progress: Record<number, number> = {};
     const formValue = this.form.value;
 
-    this.steps.forEach((step) => {
+    this.steps().forEach((step) => {
       if (step.isResult) {
         progress[step.number] = 0;
+        return;
+      }
+
+      if (step.number === 1 && this.isBillAnalysisMode()) {
+        progress[step.number] = this.billFileSelected() ? 100 : 0;
         return;
       }
 
@@ -459,7 +480,8 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   });
 
   protected readonly currentStepData = computed(() => {
-    return this.steps.find((s) => s.number === this.currentStep()) || this.steps[0];
+    const activeSteps = this.steps();
+    return activeSteps.find((s) => s.number === this.currentStep()) || activeSteps[0];
   });
 
   protected readonly overallProgress = computed(() => {
@@ -476,7 +498,24 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
 
   protected readonly canGoBack = computed(() => this.currentStep() > 1);
 
-  protected readonly lastFormStepNumber = 3;
+  protected primaryActionDisabled(): boolean {
+    if (this.isSubmitting()) {
+      return true;
+    }
+    return !this.canProceed();
+  }
+
+  protected primaryActionLabel(): string {
+    if (this.isSubmitting()) {
+      return this.isBillAnalysisMode() ? 'Analyse en cours...' : 'Calcul en cours...';
+    }
+    if (this.isBillAnalysisMode() && this.currentStep() === this.lastFormStepNumber()) {
+      return "Lancer l'analyse";
+    }
+    return 'Lancer la simulation';
+  }
+
+  protected readonly lastFormStepNumber = computed(() => (this.isBillAnalysisMode() ? 2 : 3));
 
   ngOnDestroy(): void {}
 
@@ -486,7 +525,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   }
 
   protected isStepClickable(stepNumber: number): boolean {
-    const step = this.steps.find((s) => s.number === stepNumber);
+    const step = this.steps().find((s) => s.number === stepNumber);
     if (!step || step.isResult) return false;
     const current = this.currentStep();
     return stepNumber < current;
@@ -499,138 +538,249 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     if (stepNumber < this.currentStep()) {
       this.currentStep.set(stepNumber);
     }
-    // Auto-populate personal info when navigating to step 3
-    if (stepNumber === 3) {
+    if (
+      (!this.isBillAnalysisMode() && stepNumber === 3) ||
+      (this.isBillAnalysisMode() && stepNumber === 2)
+    ) {
       this.autoPopulatePersonalInfoFromBillExtraction();
     }
+  }
+
+  private validateBillUploadStep(): boolean {
+    const extractedData = this.billExtractionStore.getExtractedData();
+    const solarAuditFields = extractSolarAuditFields(extractedData);
+
+    if (!solarAuditFields) {
+      this.notificationStore.addNotification({
+        type: 'warning',
+        title: 'Extraction incomplète',
+        message: this.isBillAnalysisMode()
+          ? 'Veuillez télécharger et extraire votre facture avant de continuer.'
+          : 'Veuillez télécharger et extraire votre facture, ou choisissez de saisir manuellement.',
+      });
+      return false;
+    }
+
+    const measuredAmountControl = this.form.get('consumption.measuredAmountTnd');
+    const referenceMonthControl = this.form.get('consumption.referenceMonth');
+    const tariffTensionControl = this.form.get('consumption.tariffTension');
+    const tariffRegimeControl = this.form.get('consumption.tariffRegime');
+    const operatingHoursCaseControl = this.form.get('consumption.operatingHoursCase');
+
+    if (
+      !measuredAmountControl?.value ||
+      !referenceMonthControl?.value ||
+      !tariffTensionControl?.value
+    ) {
+      this.autoPopulateFromBillExtraction();
+      if (
+        !measuredAmountControl?.value ||
+        !referenceMonthControl?.value ||
+        !tariffTensionControl?.value
+      ) {
+        this.notificationStore.addNotification({
+          type: 'warning',
+          title: 'Extraction incomplète',
+          message: this.isBillAnalysisMode()
+            ? 'Impossible d\'extraire toutes les informations nécessaires. Veuillez réessayer.'
+            : 'Impossible d\'extraire toutes les informations nécessaires. Veuillez réessayer ou saisir manuellement.',
+        });
+        return false;
+      }
+    }
+
+    if (tariffTensionControl?.value === 'MT') {
+      if (!tariffRegimeControl?.value || !operatingHoursCaseControl?.value) {
+        this.autoPopulateFromBillExtraction();
+        if (!tariffRegimeControl?.value || !operatingHoursCaseControl?.value) {
+          this.notificationStore.addNotification({
+            type: 'warning',
+            title: 'Informations MT manquantes',
+            message: this.isBillAnalysisMode()
+              ? 'Impossible d\'extraire les informations tarifaires MT. Veuillez réessayer avec une autre facture.'
+              : 'Veuillez sélectionner le régime tarifaire (uniforme/horaire) et l\'horaire de fonctionnement pour les tarifs MT.',
+          });
+          if (!this.isBillAnalysisMode()) {
+            tariffRegimeControl?.markAsTouched();
+            operatingHoursCaseControl?.markAsTouched();
+          }
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  private validateFullAuditStep1(): boolean {
+    const hasInvoiceControl = this.form.get('consumption.hasInvoice');
+    if (!hasInvoiceControl?.value || hasInvoiceControl.invalid) {
+      hasInvoiceControl?.markAsTouched();
+      this.notificationStore.addNotification({
+        type: 'warning',
+        title: 'Sélection requise',
+        message: 'Veuillez indiquer si vous avez une facture photo ou non.',
+      });
+      return false;
+    }
+
+    if (hasInvoiceControl.value === 'yes') {
+      return this.validateBillUploadStep();
+    }
+
+    const measuredAmountControl = this.form.get('consumption.measuredAmountTnd');
+    const referenceMonthControl = this.form.get('consumption.referenceMonth');
+    const tariffTensionControl = this.form.get('consumption.tariffTension');
+    const tariffRegimeControl = this.form.get('consumption.tariffRegime');
+    const operatingHoursCaseControl = this.form.get('consumption.operatingHoursCase');
+
+    if (
+      !measuredAmountControl?.value ||
+      !referenceMonthControl?.value ||
+      !tariffTensionControl?.value ||
+      measuredAmountControl.invalid ||
+      referenceMonthControl.invalid
+    ) {
+      measuredAmountControl?.markAsTouched();
+      referenceMonthControl?.markAsTouched();
+      tariffTensionControl?.markAsTouched();
+      this.notificationStore.addNotification({
+        type: 'warning',
+        title: 'Informations manquantes',
+        message:
+          'Veuillez saisir votre montant mensuel, le mois de référence et le régime tarifaire.',
+      });
+      return false;
+    }
+
+    if (tariffTensionControl.value === 'MT') {
+      if (!tariffRegimeControl?.value || !operatingHoursCaseControl?.value) {
+        tariffRegimeControl?.markAsTouched();
+        operatingHoursCaseControl?.markAsTouched();
+        this.notificationStore.addNotification({
+          type: 'warning',
+          title: 'Informations MT manquantes',
+          message:
+            'Veuillez sélectionner le régime tarifaire (uniforme/horaire) et l\'horaire de fonctionnement pour les tarifs MT.',
+        });
+        return false;
+      }
+    }
+
+    return true;
   }
 
   protected nextStep(): void {
     const stepNumber = this.currentStep();
 
-    if (stepNumber === 1) {
-      // Validate hasInvoice selection
-      const hasInvoiceControl = this.form.get('consumption.hasInvoice');
-      if (!hasInvoiceControl?.value || hasInvoiceControl.invalid) {
-        hasInvoiceControl?.markAsTouched();
+    if (stepNumber === 1 && this.isBillAnalysisMode()) {
+      if (!this.billFileSelected()) {
         this.notificationStore.addNotification({
           type: 'warning',
-          title: 'Sélection requise',
-          message: 'Veuillez indiquer si vous avez une facture photo ou non.',
+          title: 'Facture requise',
+          message: 'Veuillez télécharger votre facture avant de continuer.',
         });
         return;
       }
+      this.finishNextStep(stepNumber);
+      return;
+    }
 
-      const hasInvoice = hasInvoiceControl.value === 'yes';
-
-      if (hasInvoice) {
-        // If user chose to upload bill, check if bill extraction was successful
-        const extractedData = this.billExtractionStore.getExtractedData();
-        const solarAuditFields = extractSolarAuditFields(extractedData);
-
-        if (!solarAuditFields) {
-          this.notificationStore.addNotification({
-            type: 'warning',
-            title: 'Extraction incomplète',
-            message:
-              'Veuillez télécharger et extraire votre facture, ou choisissez de saisir manuellement.',
-          });
-          return;
-        }
-
-        // Verify the extracted fields are populated in the form
-        const measuredAmountControl = this.form.get('consumption.measuredAmountTnd');
-        const referenceMonthControl = this.form.get('consumption.referenceMonth');
-        const tariffTensionControl = this.form.get('consumption.tariffTension');
-        const tariffRegimeControl = this.form.get('consumption.tariffRegime');
-        const operatingHoursCaseControl = this.form.get('consumption.operatingHoursCase');
-
-        if (
-          !measuredAmountControl?.value ||
-          !referenceMonthControl?.value ||
-          !tariffTensionControl?.value
-        ) {
-          // Auto-populate if not already done
-          this.autoPopulateFromBillExtraction();
-          // Re-check after auto-population
-          if (
-            !measuredAmountControl?.value ||
-            !referenceMonthControl?.value ||
-            !tariffTensionControl?.value
-          ) {
-            this.notificationStore.addNotification({
-              type: 'warning',
-              title: 'Extraction incomplète',
-              message:
-                'Impossible d\'extraire toutes les informations nécessaires. Veuillez réessayer ou saisir manuellement.',
-            });
-            return;
-          }
-        }
-
-        // For MT bills, verify tariffRegime and operatingHoursCase are populated
-        if (tariffTensionControl?.value === 'MT') {
-          if (!tariffRegimeControl?.value || !operatingHoursCaseControl?.value) {
-            // Auto-populate MT fields if not already done
-            this.autoPopulateFromBillExtraction();
-            // Re-check after auto-population
-            if (!tariffRegimeControl?.value || !operatingHoursCaseControl?.value) {
-              this.notificationStore.addNotification({
-                type: 'warning',
-                title: 'Informations MT manquantes',
-                message:
-                  'Veuillez sélectionner le régime tarifaire (uniforme/horaire) et l\'horaire de fonctionnement pour les tarifs MT.',
-              });
-              tariffRegimeControl?.markAsTouched();
-              operatingHoursCaseControl?.markAsTouched();
-              return;
-            }
-          }
-        }
-      } else {
-        // Manual entry - validate required fields
-        const measuredAmountControl = this.form.get('consumption.measuredAmountTnd');
-        const referenceMonthControl = this.form.get('consumption.referenceMonth');
-        const tariffTensionControl = this.form.get('consumption.tariffTension');
-        const tariffRegimeControl = this.form.get('consumption.tariffRegime');
-        const operatingHoursCaseControl = this.form.get('consumption.operatingHoursCase');
-
-        if (
-          !measuredAmountControl?.value ||
-          !referenceMonthControl?.value ||
-          !tariffTensionControl?.value ||
-          measuredAmountControl.invalid ||
-          referenceMonthControl.invalid
-        ) {
-          measuredAmountControl?.markAsTouched();
-          referenceMonthControl?.markAsTouched();
-          tariffTensionControl?.markAsTouched();
-          this.notificationStore.addNotification({
-            type: 'warning',
-            title: 'Informations manquantes',
-            message: 'Veuillez saisir votre montant mensuel, le mois de référence et le régime tarifaire.',
-          });
-          return;
-        }
-
-        // For MT bills, validate tariffRegime and operatingHoursCase
-        if (tariffTensionControl.value === 'MT') {
-          if (!tariffRegimeControl?.value || !operatingHoursCaseControl?.value) {
-            tariffRegimeControl?.markAsTouched();
-            operatingHoursCaseControl?.markAsTouched();
-            this.notificationStore.addNotification({
-              type: 'warning',
-              title: 'Informations MT manquantes',
-              message:
-                'Veuillez sélectionner le régime tarifaire (uniforme/horaire) et l\'horaire de fonctionnement pour les tarifs MT.',
-            });
-            return;
-          }
-        }
+    if (stepNumber === 1) {
+      if (!this.validateFullAuditStep1()) {
+        return;
       }
     }
 
-    // Use canProceed for all steps including step 1
+    this.finishNextStep(stepNumber);
+  }
+
+  private runBillAnalysisFlow(): void {
+    if (!this.canProceed()) {
+      const currentStep = this.currentStepData();
+      currentStep.fields.forEach((field) => {
+        this.form.get(field.name)?.markAsTouched();
+      });
+
+      this.notificationStore.addNotification({
+        type: 'warning',
+        title: 'Étape incomplète',
+        message: 'Veuillez remplir tous les champs avant de continuer.',
+      });
+      return;
+    }
+
+    const file = this.billFile();
+    if (!file) {
+      this.notificationStore.addNotification({
+        type: 'warning',
+        title: 'Facture requise',
+        message: 'Veuillez télécharger votre facture avant de lancer l\'analyse.',
+      });
+      return;
+    }
+
+    this.prepareSkippedStepsDefaults();
+    this.isSubmitting.set(true);
+    this.analyseFactureStore.setAnalyzing(true);
+
+    const formData = new FormData();
+    formData.append('billImage', file);
+
+    this.analyseFactureService
+      .analyzeBill(formData)
+      .pipe(
+        finalize(() => {
+          this.isSubmitting.set(false);
+          this.analyseFactureStore.setAnalyzing(false);
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            const mapped = mapStegAnalyseResponse(response.data);
+            this.analyseFactureStore.setResult(mapped);
+            void this.router.navigate(['/analyse-facture/resultats'], {
+              queryParams: mapped.tariffType === 'MT' ? { type: 'MT' } : {},
+            });
+            return;
+          }
+
+          this.notificationStore.addNotification({
+            type: 'error',
+            title: 'Analyse impossible',
+            message: 'La réponse du serveur est invalide. Veuillez réessayer.',
+          });
+        },
+        error: (err: { error?: { message?: string }; message?: string; status?: number }) => {
+          const backendMessage = err?.error?.message ?? err?.message;
+          const isQuota =
+            err?.status === 429 ||
+            (backendMessage?.toLowerCase().includes('quota') ?? false) ||
+            (backendMessage?.includes('429') ?? false);
+
+          const message = isQuota
+            ? 'Le quota OpenAI est dépassé. Contactez l\'administrateur ou réessayez plus tard.'
+            : backendMessage ||
+              'Impossible d\'analyser votre facture pour le moment. Réessayez dans quelques instants.';
+
+          this.analyseFactureStore.setError(message);
+          this.notificationStore.addNotification({
+            type: 'error',
+            title: 'Analyse impossible',
+            message,
+          });
+        },
+      });
+  }
+
+  protected onBillFileChange(file: File | null): void {
+    this.billFile.set(file);
+    this.billFileSelected.set(!!file);
+  }
+
+  private finishNextStep(stepNumber: number): void {
     if (!this.canProceed()) {
       const currentStep = this.currentStepData();
       currentStep.fields.forEach((field) => {
@@ -648,17 +798,24 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const lastFormStep = this.lastFormStepNumber();
     const next = stepNumber + 1;
-    if (next <= this.lastFormStepNumber) {
+    if (next <= lastFormStep) {
       this.currentStep.set(next);
-      // Auto-populate personal info when moving to step 3
-      if (next === 3) {
+      if (
+        (!this.isBillAnalysisMode() && next === 3) ||
+        (this.isBillAnalysisMode() && next === 2)
+      ) {
         this.autoPopulatePersonalInfoFromBillExtraction();
       }
       return;
     }
 
-    if (stepNumber === this.lastFormStepNumber) {
+    if (stepNumber === lastFormStep) {
+      if (this.isBillAnalysisMode()) {
+        this.runBillAnalysisFlow();
+        return;
+      }
       this.submitForm();
     }
   }
@@ -667,6 +824,59 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     const prev = this.currentStep() - 1;
     if (prev >= 1) {
       this.currentStep.set(prev);
+    }
+  }
+
+  private prepareSkippedStepsDefaults(): void {
+    this.autoPopulatePersonalInfoFromBillExtraction();
+
+    const buildingTypeControl = this.form.get('building.buildingType');
+    const buildingValue = buildingTypeControl?.value;
+    if (
+      !buildingValue ||
+      (typeof buildingValue === 'object' && Object.keys(buildingValue).length === 0)
+    ) {
+      buildingTypeControl?.setValue(BuildingTypes.OFFICE_ADMIN_BANK, { emitEvent: false });
+    }
+
+    const climateZoneControl = this.form.get('building.climateZone');
+    const climateValue = climateZoneControl?.value;
+    if (
+      !climateValue ||
+      (typeof climateValue === 'object' && Object.keys(climateValue).length === 0)
+    ) {
+      climateZoneControl?.setValue(ClimateZones.CENTER, { emitEvent: false });
+    }
+
+    const fallbackValues: Record<string, string> = {
+      'personal.fullName': 'Non renseigné',
+      'personal.companyName': 'Non renseigné',
+      'personal.email': 'non-renseigne@joya-energy.com',
+      'personal.phoneNumber': '00000000',
+      'location.address': 'Tunisie',
+    };
+
+    for (const [path, value] of Object.entries(fallbackValues)) {
+      const control = this.form.get(path);
+      if (control && !control.value) {
+        control.setValue(value, { emitEvent: false });
+      }
+    }
+
+    const skippedPaths = [
+      'building.buildingType',
+      'building.climateZone',
+      'personal.fullName',
+      'personal.companyName',
+      'personal.email',
+      'personal.phoneNumber',
+      'location.address',
+    ];
+
+    for (const path of skippedPaths) {
+      const control = this.form.get(path);
+      control?.clearValidators();
+      control?.updateValueAndValidity({ emitEvent: false });
     }
   }
 
@@ -782,34 +992,56 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.seoService.setSEO({
-      title: 'Audit Solaire | JOYA Energy',
-      description:
-        'Estimez votre potentiel solaire en Tunisie avec JOYA Energy. Obtenez une simulation personnalisée de votre installation photovoltaïque et découvrez vos économies énergétiques potentielles.',
-      url: 'https://joya-energy.com/audit-solaire',
-      keywords:
-        'audit solaire Tunisie, simulation panneaux solaires, potentiel solaire Tunisie, énergie solaire Tunisie, panneaux photovoltaïques Tunisie',
-    });
+    const isBillAnalysis = this.router.url.includes('/analyse-facture');
+    this.isBillAnalysisMode.set(isBillAnalysis);
 
-    // Set default value for hasInvoice (defaults to 'yes' to show bill extractor)
-    const hasInvoiceControl = this.form.get('consumption.hasInvoice');
-    if (hasInvoiceControl && !hasInvoiceControl.value) {
-      hasInvoiceControl.setValue('yes', { emitEvent: false });
+    if (isBillAnalysis) {
+      const stepParam = this.route.snapshot.queryParamMap.get('step');
+      const stepNum = stepParam ? Number(stepParam) : NaN;
+      if (Number.isFinite(stepNum) && stepNum >= 1 && stepNum <= this.lastFormStepNumber()) {
+        this.currentStep.set(stepNum);
+      }
+
+      this.seoService.setSEO({
+        title: 'Analyse facture | JOYA Energy',
+        description:
+          'Décryptez votre facture STEG et identifiez rapidement les opportunités d’économies sur votre consommation électrique.',
+        url: 'https://joya-energy.com/analyse-facture',
+        keywords:
+          'analyse facture STEG, facture électricité Tunisie, décryptage facture, économies énergie',
+      });
+    } else {
+      this.seoService.setSEO({
+        title: 'Audit Solaire | JOYA Energy',
+        description:
+          'Estimez votre potentiel solaire en Tunisie avec JOYA Energy. Obtenez une simulation personnalisée de votre installation photovoltaïque et découvrez vos économies énergétiques potentielles.',
+        url: 'https://joya-energy.com/audit-solaire',
+        keywords:
+          'audit solaire Tunisie, simulation panneaux solaires, potentiel solaire Tunisie, énergie solaire Tunisie, panneaux photovoltaïques Tunisie',
+      });
     }
 
-    // Watch for hasInvoice changes to show/hide bill extractor
-    hasInvoiceControl?.valueChanges.subscribe((value: 'yes' | 'no' | null) => {
-      // Update the signal to trigger computed signal updates
-      this.hasInvoiceValue.set(value ?? 'yes');
-      if (value === 'no') {
-        // Clear bill extraction data when switching to manual entry
-        this.billExtractionStore.clear();
+    const hasInvoiceControl = this.form.get('consumption.hasInvoice');
+
+    if (isBillAnalysis) {
+      this.billExtractionStore.clear();
+      hasInvoiceControl?.setValue('yes', { emitEvent: false });
+      this.hasInvoiceValue.set('yes');
+    } else {
+      if (hasInvoiceControl && !hasInvoiceControl.value) {
+        hasInvoiceControl.setValue('yes', { emitEvent: false });
       }
-      this.cdr.markForCheck();
-    });
-    
-    // Initialize the signal with current form value (defaults to 'yes')
-    this.hasInvoiceValue.set(hasInvoiceControl?.value ?? 'yes');
+
+      hasInvoiceControl?.valueChanges.subscribe((value: 'yes' | 'no' | null) => {
+        this.hasInvoiceValue.set(value ?? 'yes');
+        if (value === 'no') {
+          this.billExtractionStore.clear();
+        }
+        this.cdr.markForCheck();
+      });
+
+      this.hasInvoiceValue.set(hasInvoiceControl?.value ?? 'yes');
+    }
 
     // Auto-populate form fields from bill extraction store if available (only if hasInvoice is 'yes')
     if (hasInvoiceControl?.value === 'yes') {
@@ -910,6 +1142,10 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   }
 
   protected submitForm(): void {
+    if (this.isBillAnalysisMode()) {
+      this.prepareSkippedStepsDefaults();
+    }
+
     // Check form validity and mark all fields as touched
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -1006,7 +1242,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (result: IAuditSolaireSimulation) => {
           this.simulationResult.set(result);
-          const resultStep = this.steps.find((s) => s.isResult);
+          const resultStep = this.steps().find((s) => s.isResult);
           if (resultStep) {
             this.currentStep.set(resultStep.number);
           }
@@ -1087,7 +1323,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (result: IAuditSolaireSimulation) => {
           this.simulationResult.set(result);
-          const resultStep = this.steps.find((s) => s.isResult);
+          const resultStep = this.steps().find((s) => s.isResult);
           if (resultStep) {
             this.currentStep.set(resultStep.number);
           }
@@ -1171,6 +1407,10 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     this.form.reset();
     this.simulationResult.set(null);
     this.currentStep.set(1);
+    this.billFileSelected.set(false);
+    this.billFile.set(null);
+    this.billExtractionStore.clear();
+    this.analyseFactureStore.clear();
     this.notificationStore.addNotification({
       type: 'info',
       title: 'Formulaire réinitialisé',
