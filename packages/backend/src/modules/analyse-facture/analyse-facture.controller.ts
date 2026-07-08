@@ -3,6 +3,7 @@ import { HttpStatusCode } from '@shared';
 import { HTTP400Error } from '@backend/errors/http.error';
 import { Logger } from '@backend/middlewares';
 import { analyseFactureService } from './analyse-facture.service';
+import { isPdfBuffer, resolveBillMimeType } from '../bill-extraction/pdf-bill-image.util';
 
 const ACCEPTED_MIME_PREFIXES = ['image/'];
 const ACCEPTED_MIME_EXACT = new Set([
@@ -30,13 +31,14 @@ export class AnalyseFactureController {
 
       const { mimetype, buffer } = req.file;
 
-      if (!isAcceptedMimeType(mimetype)) {
+      if (!isAcceptedMimeType(mimetype) && !isPdfBuffer(buffer)) {
         throw new HTTP400Error(
           'Invalid file type. Supported formats: JPG, PNG, WEBP, TIFF, PDF.'
         );
       }
 
-      const data = await analyseFactureService.analyzeBillFromImage(buffer, mimetype);
+      const resolvedMimeType = resolveBillMimeType(buffer, mimetype);
+      const data = await analyseFactureService.analyzeBillFromImage(buffer, resolvedMimeType);
 
       res.status(HttpStatusCode.OK).json({
         success: true,

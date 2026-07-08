@@ -472,13 +472,28 @@
 }
 
 .report-kpi__label {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   margin-bottom: 0.55rem;
   font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--landing-secondary-light, #4a5568);
+}
+
+.report-kpi .report-detail__info-btn {
+  width: 1rem;
+  height: 1rem;
+  font-size: 0.65rem;
+}
+
+.report-kpi .report-detail__tooltip--kpi {
+  left: 0;
+  transform: none;
+  width: max(14rem, 22vw);
+  max-width: 18rem;
 }
 
 .report-kpi__value {
@@ -744,7 +759,10 @@
   display: block;
   font-size: clamp(2.65rem, 5vw, 3.5rem);
   font-weight: 800;
-  line-height: 1.05;
+  line-height: 1.15;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
   color: var(--landing-secondary, #112e3c);
 }
 

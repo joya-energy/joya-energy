@@ -61,6 +61,8 @@ export interface FactureExtraiteMtRaw {
   rib_rip?: string;
   puissance_souscrite_kva?: string;
   puissance_installee_kva?: string;
+  puissance_maximale_appelee_kva?: string;
+  /** @deprecated Use puissance_maximale_appelee_kva — value on STEG bills is in kVA */
   puissance_maximale_appelee_kw?: string;
   depassement_puissance_kw?: string;
   energie_reactive_kvarh?: string;

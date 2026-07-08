@@ -59,7 +59,11 @@
         <div class="bill-extractor-file-details">
           <p class="bill-extractor-file-name">{{ selectedFile()?.name }}</p>
           <p class="bill-extractor-file-size">
-            {{ selectedFile() ? formatFileSize(selectedFile()!.size) : '' }}
+            @if (isConvertingPdf()) {
+              Conversion PDF en image...
+            } @else {
+              {{ selectedFile() ? formatFileSize(selectedFile()!.size) : '' }}
+            }
           </p>
         </div>
         <button
@@ -106,7 +110,7 @@
   }
 
   <!-- Error State -->
-  @if (!uploadOnly && showError()) {
+  @if (showError()) {
     <div class="bill-extractor-error">
       <div class="bill-extractor-error-header">
         <div class="bill-extractor-error-icon">

@@ -130,14 +130,14 @@
             <span class="report-badge report-badge--blue">Ce que vous gagnez</span>
             <h2 class="report-block__title">Une seule révision.</h2>
             <h3 class="report-block__subtitle report-block__subtitle--gain">
-              {{ formatComparisonNumber(etudeData.economie_annuelle_dt) }} DT d'économies par an.
+              {{ formatDtValue(etudeData.economie_annuelle_dt) }} DT d'économies par an.
             </h3>
           </section>
 
           <section class="report-comparison">
             <div class="report-comparison__card report-comparison__card--bt">
               <span class="report-comparison__label">Facture annuelle BT</span>
-              <span class="report-comparison__value">{{ formatComparisonNumber(etudeData.facture_annuelle_bt_dt) }} DT</span>
+              <span class="report-comparison__value">{{ formatDtValue(etudeData.facture_annuelle_bt_dt) }} DT</span>
               <span class="report-comparison__meta">{{ formatNumber(facture().puissance_souscrite_kva) }} kVA souscrit</span>
             </div>
             <div class="report-comparison__arrow" aria-hidden="true">
@@ -145,7 +145,7 @@
             </div>
             <div class="report-comparison__card report-comparison__card--mt">
               <span class="report-comparison__label">Facture annuelle MT</span>
-              <span class="report-comparison__value">{{ formatComparisonNumber(etudeData.facture_annuelle_mt_dt) }} DT</span>
+              <span class="report-comparison__value">{{ formatDtValue(etudeData.facture_annuelle_mt_dt) }} DT</span>
               <span class="report-comparison__meta">
                 {{ formatNumber(etudeData.puissance_mt_recommandee_kva ?? etudeData.puissance_souscrite_kva) }} kVA recommandé
               </span>
@@ -155,7 +155,7 @@
           <!-- 7. Financial results -->
           <section class="report-economy-hero">
             <span class="report-economy-hero__label">Économie annuelle estimée</span>
-            <span class="report-economy-hero__value">{{ formatComparisonNumber(etudeData.economie_annuelle_dt) }} DT</span>
+            <span class="report-economy-hero__value">{{ formatDtValue(etudeData.economie_annuelle_dt) }} DT</span>
             <p class="report-economy-hero__sub">
               soit {{ economieMensuelle() }} DT récupérés chaque mois, dès la révision effective
             </p>
@@ -164,7 +164,7 @@
           <section class="report-financial-grid">
             <div class="report-financial-card">
               <span class="report-financial-card__label">Investissement (CAPEX)</span>
-              <span class="report-financial-card__value">{{ formatComparisonNumber(etudeData.capex_dt) }} DT</span>
+              <span class="report-financial-card__value">{{ formatDtValue(etudeData.capex_dt) }} DT</span>
             </div>
             <div class="report-financial-card">
               <span class="report-financial-card__label">Payback simple</span>
@@ -331,8 +331,11 @@
           <h1 class="report-hero__client">{{ mtFacture().client }}</h1>
           <p class="report-hero__tagline">votre facture en un coup d'œil</p>
           <p class="report-hero__meta">
-            Réf. facture {{ mtFacture().reference_facture }} • {{ mtFacture().periode }} • District
-            {{ mtFacture().district }}
+            N° facture {{ mtFacture().numero_facture }}
+            @if (mtFacture().reference_client) {
+              • Réf. client {{ mtFacture().reference_client }}
+            }
+            • {{ mtFacture().periode }} • District {{ mtFacture().district }}
           </p>
         </section>
 
@@ -350,18 +353,25 @@
           >
             {{ situation.badge }}
           </span>
-          <h2 class="report-block__title">{{ situation.titre }}</h2>
+          <h2 class="report-block__title">{{ situation.intitule }}</h2>
 
+          @if (!hasValidMtMaxAppelee()) {
+            <p class="report-solar__text">
+              La ligne <strong>Puissance maximale appelée</strong> n'a pas été correctement extraite de
+              cette facture. Sans cette valeur, les économies de révision de puissance ne peuvent pas être
+              calculées. Relancez l'analyse avec une image plus nette.
+            </p>
+          } @else {
           @switch (situation.profile) {
             @case ('P1') {
               <p class="report-solar__text">
                 Votre contrat STEG vous réserve
                 <strong>{{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA</strong>
                 de puissance. Ce mois, votre installation en a consommé
-                <strong>{{ formatComparisonNumber(mtFacture().puissance_max_kw) }} kW</strong>
+                <strong>{{ formatComparisonNumber(mtFacture().puissance_max_kva) }} kVA</strong>
                 au maximum. C'est comme louer un entrepôt de
                 {{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} m² pour n'en occuper que
-                {{ formatComparisonNumber(mtFacture().puissance_max_kw) }}.
+                {{ formatComparisonNumber(mtFacture().puissance_max_kva) }}.
               </p>
             }
             @case ('P2') {
@@ -369,7 +379,7 @@
                 Votre contrat STEG vous réserve
                 <strong>{{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA</strong>,
                 mais votre installation n'a appelé que
-                <strong>{{ formatComparisonNumber(mtFacture().puissance_max_kw) }} kW</strong>
+                <strong>{{ formatComparisonNumber(mtFacture().puissance_max_kva) }} kVA</strong>
                 au pic du mois. C'est comme garder un abonnement deux fois trop grand pour ce que vous
                 consommez réellement.
               </p>
@@ -379,7 +389,7 @@
                 Votre contrat STEG vous réserve
                 <strong>{{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA</strong>,
                 et votre installation a déjà appelé
-                <strong>{{ formatComparisonNumber(mtFacture().puissance_max_kw) }} kW</strong>
+                <strong>{{ formatComparisonNumber(mtFacture().puissance_max_kva) }} kVA</strong>
                 ce mois. C'est comme rouler à {{ mtUtilisationPct() }}% de la jauge de votre réservoir
                 sans station essence à proximité.
               </p>
@@ -389,7 +399,7 @@
                 Votre contrat STEG vous réserve
                 <strong>{{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA</strong>,
                 mais votre installation a appelé
-                <strong>{{ formatComparisonNumber(mtFacture().puissance_max_kw) }} kW</strong>
+                <strong>{{ formatComparisonNumber(mtFacture().puissance_max_kva) }} kVA</strong>
                 ce mois, soit
                 <strong>{{ formatComparisonNumber(mtDepassementKva()) }} kVA</strong>
                 de plus que prévu. C'est comme dépasser le forfait de votre abonnement et payer le
@@ -399,6 +409,7 @@
             @default {
               <p class="report-solar__text" [innerHTML]="mtResult()!.situation_texte"></p>
             }
+          }
           }
 
           <div
@@ -440,7 +451,7 @@
               </div>
               <div class="report-mt-usage__row">
                 <dt>Puissance max. appelée</dt>
-                <dd>{{ formatComparisonNumber(mtFacture().puissance_max_kw) }} kW</dd>
+                <dd>{{ formatComparisonNumber(mtFacture().puissance_max_kva) }} kVA</dd>
               </div>
               <div
                 class="report-mt-usage__row report-mt-usage__row--highlight"
@@ -473,26 +484,28 @@
 
         <!-- KPI cards -->
         <section class="report-kpis report-kpis--wide">
-          <div class="report-kpi report-kpi--accent">
-            <span class="report-kpi__label">Prime de puissance</span>
-            <span class="report-kpi__value">{{ formatComparisonNumber(mtFacture().prime_puissance_dt) }} DT</span>
-          </div>
-          <div class="report-kpi">
-            <span class="report-kpi__label">Énergie consommée</span>
-            <span class="report-kpi__value">{{ formatComparisonNumber(mtFacture().energie_consommee_kwh) }} kWh</span>
-          </div>
-          <div class="report-kpi">
-            <span class="report-kpi__label">Montant net</span>
-            <span class="report-kpi__value">{{ formatComparisonNumber(mtFacture().montant_net_dt) }} DT</span>
-          </div>
-          <div class="report-kpi">
-            <span class="report-kpi__label">Cos φ</span>
-            <span class="report-kpi__value">{{ mtFacture().cos_phi.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) }}</span>
-          </div>
-          <div class="report-kpi">
-            <span class="report-kpi__label">Coefficient K</span>
-            <span class="report-kpi__value">{{ mtFacture().coefficient_k.toLocaleString('fr-FR', { minimumFractionDigits: 3 }) }}</span>
-          </div>
+          @for (kpi of mtKpiCards(); track kpi.label) {
+            <div class="report-kpi" [class.report-kpi--accent]="kpi.accent">
+              <div class="report-kpi__label">
+                <span>{{ kpi.label }}</span>
+                @if (kpi.explication) {
+                  <div class="report-detail__info-wrap">
+                    <button
+                      type="button"
+                      class="report-detail__info-btn"
+                      [attr.aria-label]="'En savoir plus : ' + kpi.label"
+                    >
+                      i
+                    </button>
+                    <div class="report-detail__tooltip report-detail__tooltip--kpi" role="tooltip">
+                      {{ kpi.explication }}
+                    </div>
+                  </div>
+                }
+              </div>
+              <span class="report-kpi__value">{{ kpi.value }}</span>
+            </div>
+          }
         </section>
 
         <!-- Insights -->
@@ -521,7 +534,7 @@
                 @if (insight.footerNote) {
                   <p class="report-insight-card__note">{{ insight.footerNote }}</p>
                 }
-                @if (insight.annualSavingLabel) {
+                @if (shouldShowInsightSaving(insight)) {
                   <span class="report-insight-card__saving">{{ insight.annualSavingLabel }}</span>
                 }
               </footer>
@@ -529,43 +542,45 @@
           }
         </section>
 
-        <!-- Gains -->
-        <section class="report-block report-block--gain">
-          <span class="report-badge report-badge--blue">Ce que vous gagnez</span>
-          <h2 class="report-block__title">Une révision de puissance.</h2>
-          <h3 class="report-block__subtitle report-block__subtitle--gain">
-            {{ formatComparisonNumber(mtResult()!.revision.economie_annuelle_dt) }} DT d'économies par an.
-          </h3>
-        </section>
+        <!-- Gains (P1/P2 only) -->
+        @if (showMtRevisionGains()) {
+          <section class="report-block report-block--gain">
+            <span class="report-badge report-badge--blue">Ce que vous gagnez</span>
+            <h2 class="report-block__title">Une révision de puissance.</h2>
+            <h3 class="report-block__subtitle report-block__subtitle--gain">
+              {{ formatDtValue(mtResult()!.revision.economie_annuelle_dt) }} DT d'économies par an.
+            </h3>
+          </section>
 
-        <section class="report-comparison">
-          <div class="report-comparison__card report-comparison__card--bt">
-            <span class="report-comparison__label">Maintenant</span>
-            <span class="report-comparison__value">{{ formatComparisonNumber(mtResult()!.revision.prime_actuelle_dt) }} DT</span>
-            <span class="report-comparison__meta">
-              prime / mois — {{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA souscrit
-            </span>
-          </div>
-          <div class="report-comparison__arrow" aria-hidden="true">
-            <ng-icon name="lucideArrowRight" size="20" />
-          </div>
-          <div class="report-comparison__card report-comparison__card--mt">
-            <span class="report-comparison__label">Après révision</span>
-            <span class="report-comparison__value">{{ formatComparisonNumber(mtResult()!.revision.prime_apres_revision_dt) }} DT</span>
-            <span class="report-comparison__meta">
-              prime / mois — {{ formatComparisonNumber(mtResult()!.revision.puissance_cible_kva) }} kVA souscrit
-            </span>
-          </div>
-        </section>
+          <section class="report-comparison">
+            <div class="report-comparison__card report-comparison__card--bt">
+              <span class="report-comparison__label">Maintenant</span>
+              <span class="report-comparison__value">{{ formatDtValue(mtResult()!.revision.prime_actuelle_dt) }} DT</span>
+              <span class="report-comparison__meta">
+                prime / mois — {{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA souscrit
+              </span>
+            </div>
+            <div class="report-comparison__arrow" aria-hidden="true">
+              <ng-icon name="lucideArrowRight" size="20" />
+            </div>
+            <div class="report-comparison__card report-comparison__card--mt">
+              <span class="report-comparison__label">Après révision</span>
+              <span class="report-comparison__value">{{ formatDtValue(mtResult()!.revision.prime_apres_revision_dt) }} DT</span>
+              <span class="report-comparison__meta">
+                prime / mois — {{ formatComparisonNumber(mtResult()!.revision.puissance_cible_kva) }} kVA souscrit
+              </span>
+            </div>
+          </section>
 
-        <section class="report-economy-hero">
-          <span class="report-economy-hero__label">Économie annuelle estimée</span>
-          <span class="report-economy-hero__value">{{ formatComparisonNumber(mtResult()!.revision.economie_annuelle_dt) }} DT</span>
-          <p class="report-economy-hero__sub">
-            soit {{ formatComparisonNumber(mtResult()!.revision.economie_mensuelle_dt) }} DT récupérés chaque mois —
-            dès la révision effective
-          </p>
-        </section>
+          <section class="report-economy-hero">
+            <span class="report-economy-hero__label">Économie annuelle estimée</span>
+            <span class="report-economy-hero__value">{{ formatDtValue(mtResult()!.revision.economie_annuelle_dt) }} DT</span>
+            <p class="report-economy-hero__sub">
+              soit {{ formatDtValue(mtResult()!.revision.economie_mensuelle_dt) }} DT récupérés chaque mois —
+              dès la révision effective
+            </p>
+          </section>
+        }
 
         <!-- Detail -->
         <section class="report-detail">

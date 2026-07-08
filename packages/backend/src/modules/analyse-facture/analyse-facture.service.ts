@@ -5,6 +5,7 @@ import { createOpenRouterClient, getLlmModel } from '@backend/common/llm';
 import type { StegAnalyseResponse } from '@shared/interfaces/analyse-facture.interface';
 import { billExtractionService } from '../bill-extraction/bill-extraction.service';
 import { getStegAnalyseFacturePrompt } from './analyse-facture.prompt';
+import { isStegAnalyseResponseEmpty } from '@shared/functions/analyse-facture-validation';
 
 export class AnalyseFactureService {
   private readonly llmClient: OpenAI;
@@ -94,6 +95,16 @@ export class AnalyseFactureService {
           'Invalid bill analysis response: missing facture_extraite or affichage_client.'
         );
       }
+
+      if (isStegAnalyseResponseEmpty(parsed)) {
+        Logger.error('STEG analysis returned no readable bill fields (all "-" or empty)');
+        throw new HTTP400Error(
+          'Impossible de lire cette facture. Le PDF a peut-être produit une image illisible. ' +
+            'Essayez une photo JPG/PNG de la facture, ou un autre export PDF.'
+        );
+      }
+
+      Logger.info('STEG analysis returned as LLM output (prompt-only)');
 
       Logger.info('STEG bill analysis completed successfully');
       return parsed;
