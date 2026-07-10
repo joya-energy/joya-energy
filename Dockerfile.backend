@@ -29,9 +29,11 @@ WORKDIR /app/packages/backend
 RUN mkdir -p dist/packages/backend/src/modules/audit-energetique/template && \
     mkdir -p dist/packages/backend/src/modules/audit-energetique/uploads && \
     mkdir -p dist/packages/backend/src/modules/audit-solaire/config && \
+    mkdir -p dist/packages/backend/src/modules/analyse-facture/prompts && \
     cp -r src/modules/audit-energetique/template/* dist/packages/backend/src/modules/audit-energetique/template/ && \
     cp -r src/modules/audit-energetique/uploads/* dist/packages/backend/src/modules/audit-energetique/uploads/ && \
-    cp src/modules/audit-solaire/config/*.json dist/packages/backend/src/modules/audit-solaire/config/ 2>/dev/null || true
+    cp src/modules/audit-solaire/config/*.json dist/packages/backend/src/modules/audit-solaire/config/ 2>/dev/null || true && \
+    cp src/modules/analyse-facture/prompts/*.txt dist/packages/backend/src/modules/analyse-facture/prompts/
 WORKDIR /app
 
 # --- Production stage ---
