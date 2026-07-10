@@ -3,13 +3,10 @@ import { getDocument, GlobalWorkerOptions, type PDFDocumentProxy } from 'pdfjs-d
 let workerConfigured = false;
 
 function ensurePdfWorker(): void {
-  if (workerConfigured) {
+  if (workerConfigured || typeof window === 'undefined') {
     return;
   }
-  GlobalWorkerOptions.workerSrc = new URL(
-    'pdfjs-dist/build/pdf.worker.min.mjs',
-    import.meta.url
-  ).toString();
+  GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
   workerConfigured = true;
 }
 

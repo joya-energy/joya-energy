@@ -252,11 +252,9 @@ export class UiBillExtractorComponent {
       this.selectedFile.set(imageFile);
       this.fileChange.emit(imageFile);
     } catch {
-      this.error.set(
-        'Impossible de convertir ce PDF. Essayez une photo JPG/PNG de la facture, ou un autre export PDF.'
-      );
-      this.selectedFile.set(null);
-      this.fileChange.emit(null);
+      // Fallback: send the PDF to the backend for server-side conversion.
+      this.selectedFile.set(pdfFile);
+      this.fileChange.emit(pdfFile);
     } finally {
       this.isConvertingPdf.set(false);
     }

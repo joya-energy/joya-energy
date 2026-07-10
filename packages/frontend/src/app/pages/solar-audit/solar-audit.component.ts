@@ -735,21 +735,13 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
 
   private async submitBillAnalysis(file: File): Promise<void> {
     let billFile = file;
-    try {
-      if (isPdfFile(file)) {
+    if (isPdfFile(file)) {
+      try {
         billFile = await convertPdfFileToImageFile(file);
+      } catch {
+        // Fallback: backend converts PDF server-side (pdf-to-png-converter).
+        billFile = file;
       }
-    } catch {
-      this.isSubmitting.set(false);
-      this.analyseFactureStore.setAnalyzing(false);
-      this.notificationStore.addNotification({
-        type: 'error',
-        title: 'PDF illisible',
-        message:
-          'Impossible de convertir ce PDF. Essayez une photo JPG/PNG de la facture, ou un autre export PDF.',
-      });
-      this.cdr.markForCheck();
-      return;
     }
 
     const formData = new FormData();
