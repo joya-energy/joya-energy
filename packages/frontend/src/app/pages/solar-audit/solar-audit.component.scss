@@ -163,7 +163,7 @@
 .sidebar-result-step {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.25rem;
   width: 100%;
   padding-top: 1rem !important;
   padding-bottom: 1rem !important;
@@ -247,7 +247,6 @@
   font-weight: var(--font-weight-medium);
   color: var(--text-secondary);
   margin: 0;
-  margin-left: 0.5rem;
   transition: color 0.3s ease;
   line-height: 1.4;
   flex: 1;

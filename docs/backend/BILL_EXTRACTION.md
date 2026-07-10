@@ -1,7 +1,7 @@
 # Electricity Bill Extraction Service - Analysis & Testing Guide
 
 ## Overview
-This is a **standalone service** that receives an electricity bill (image or PDF) and uses OpenAI Vision API to extract structured data from STEG (Tunisia) electricity bills. The service has been refactored into its own module (`bill-extraction`) and can be used by any other service that needs bill data extraction.
+This is a **standalone service** that receives an electricity bill (image or PDF) and uses a vision LLM (via OpenRouter) to extract structured data from STEG (Tunisia) electricity bills. The service has been refactored into its own module (`bill-extraction`) and can be used by any other service that needs bill data extraction.
 
 ---
 
@@ -129,7 +129,7 @@ private async prepareInputBuffer(buffer: Buffer, mimeType: string): Promise<{ bu
 - The image buffer is converted to base64
 - A data URL is created: `data:image/png;base64,{base64String}`
 
-### Step 4: OpenAI Vision API Call
+### Step 4: Vision LLM API Call (OpenRouter)
 **Model:** `gpt-4o-mini` (cost-effective option)
 
 **Prompt Structure:**
@@ -162,23 +162,21 @@ private async prepareInputBuffer(buffer: Buffer, mimeType: string): Promise<{ bu
 
 **Main Extraction Service Code:**
 ```typescript
-import OpenAI from 'openai';
+import type OpenAI from 'openai';
 import { Logger } from '@backend/middlewares';
 import { HTTP400Error } from '@backend/errors';
-import { ServerConfig } from '@backend/configs/server.config';
+import { createOpenRouterClient, getLlmModel } from '@backend/common/llm';
 import { pdfToPng } from 'pdf-to-png-converter';
 
 export class BillExtractionService {
-  private openai: OpenAI;
+  private readonly llmClient: OpenAI;
 
   constructor() {
-    this.openai = new OpenAI({
-      apiKey: ServerConfig.config.openaiApiKey,
-    });
+    this.llmClient = createOpenRouterClient();
   }
 
   /**
-   * Extract data from a bill image using OpenAI Vision
+   * Extract data from a bill image using vision LLM (OpenRouter)
    * @param imageBuffer Buffer of the image
    * @param mimeType Mime type of the image
    */
@@ -188,7 +186,7 @@ export class BillExtractionService {
       const { buffer: preparedBuffer, mimeType: preparedMimeType } = await this.prepareInputBuffer(imageBuffer, mimeType);
       const base64Image = preparedBuffer.toString('base64');
       const dataUrl = `data:${preparedMimeType};base64,${base64Image}`;
-      Logger.info(`Image prepared (size: ${imageBuffer.length} bytes), sending to OpenAI...`);
+      Logger.info(`Image prepared (size: ${imageBuffer.length} bytes), sending to OpenRouter...`);
 
       const prompt = `
         Analyze this electricity bill (STEG Tunisia). Extract the following information and return it in JSON format.
@@ -256,8 +254,8 @@ export class BillExtractionService {
       `;
 
       const startTime = Date.now();
-      const response = await this.openai.chat.completions.create({
-        model: 'gpt-4o-mini', // Switch to mini to save costs/quota
+      const response = await this.llmClient.chat.completions.create({
+        model: getLlmModel(),
         messages: [
           {
             role: 'system',
@@ -648,7 +646,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 ## Dependencies
 
-- **OpenAI SDK:** For Vision API calls
+- **OpenAI SDK (OpenRouter-compatible):** For vision API calls via OpenRouter
 - **multer:** File upload handling
 - **pdf-to-png-converter:** PDF to image conversion
 - **express:** Web framework
@@ -657,7 +655,9 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 ## Environment Variables Required
 
-- `OPENAI_API_KEY` - OpenAI API key for Vision API access
+- `OPENROUTER_API_KEY` - OpenRouter API key for vision API access
+- `OPENROUTER_MODEL` - Model identifier (default: `openai/gpt-4o`)
+- `OPENROUTER_BASE_URL` - API base URL (default: `https://openrouter.ai/api/v1`)
 
 ---
 

@@ -69,6 +69,32 @@ export const routes: Routes = [
     data: { hideFooter: true },
   },
   {
+    path: 'analyse_facture/resultats',
+    redirectTo: 'analyse-facture/resultats',
+    pathMatch: 'full',
+  },
+  {
+    path: 'analyse_facture',
+    redirectTo: 'analyse-facture',
+    pathMatch: 'full',
+  },
+  {
+    path: 'analyse-facture/resultats',
+    loadComponent: () =>
+      import('./pages/analyse-facture-resultats/analyse-facture-resultats.component').then(
+        (m) => m.AnalyseFactureResultatsComponent
+      ),
+    title: 'Résultats analyse facture | JOYA Energy',
+    data: { hideFooter: true },
+  },
+  {
+    path: 'analyse-facture',
+    loadComponent: () =>
+      import('./pages/solar-audit/solar-audit.component').then((m) => m.SolarAuditComponent),
+    title: 'Analyse facture | JOYA Energy',
+    data: { hideFooter: true },
+  },
+  {
     path: 'audit-solaire',
     loadComponent: () =>
       import('./pages/solar-audit/solar-audit.component').then((m) => m.SolarAuditComponent),

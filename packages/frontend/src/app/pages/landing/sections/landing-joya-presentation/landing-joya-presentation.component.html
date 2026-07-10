@@ -16,11 +16,11 @@
           <p class="joya-card__description">{{ card.description }}</p>
 
           @if (card.isFeatured) {
-            <a [href]="card.ctaLink" class="joya-card__cta-btn joya-card__cta-btn--primary">
+            <a [routerLink]="card.ctaLink" class="joya-card__cta-btn joya-card__cta-btn--primary">
               {{ card.ctaText }}
             </a>
           } @else {
-            <a [href]="card.ctaLink" class="joya-card__cta-link">
+            <a [routerLink]="card.ctaLink" class="joya-card__cta-link">
               {{ card.ctaText }}
               <ng-icon name="lucideArrowRight" class="joya-card__cta-icon" />
             </a>

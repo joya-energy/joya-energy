@@ -19,6 +19,7 @@ import { fileRoutes } from './modules/file/file.routes';
 import { carbonSimulatorRoutes } from './modules/carbon-simulator/carbon-simulator.routes';
 import { leadRoutes } from './modules/lead/lead.routes';
 import { billExtractionRoutes } from './modules/bill-extraction/bill-extraction.routes';
+import { analyseFactureRoutes } from './modules/analyse-facture/analyse-facture.routes';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './configs/swagger.config';
 import { HttpStatusCode } from '@shared';
@@ -130,6 +131,7 @@ const createApp = async (): Promise<http.Server> => {
   // Mount routes BEFORE other middleware to ensure they are matched
   router.use('/api/contacts', contactRoutes);
   router.use('/api/bill-extraction', billExtractionRoutes);
+  router.use('/api/analyse-facture', analyseFactureRoutes);
   router.use(
     '/api/audit-energetique-simulations',
     auditEnergetiqueSimulationRoutes
@@ -143,6 +145,11 @@ const createApp = async (): Promise<http.Server> => {
   // Apply middleware (database checks etc) LAST if they are global
   // This will establish database connection before server starts accepting requests
   await useMiddleware(router);
+
+  // Unmatched API routes
+  router.use((_req, res) => {
+    res.status(HttpStatusCode.NOT_FOUND).json({ message: 'Not found' });
+  });
 
   // Central error handlers: 4xx/5xx based on error type (must be applied to router so route errors are caught)
   for (const handler of errorHandlers) {
@@ -177,7 +184,7 @@ const createApp = async (): Promise<http.Server> => {
   );
 
   // Last-resort global error handler: log, never expose stack/message in production
-  app.use((err: unknown, _req: express.Request, res: express.Response) => {
+  app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     const message = err instanceof Error ? err.message : String(err);
     const stack = err instanceof Error ? err.stack : undefined;
     Logger.error(message, stack != null ? { stack } : {});

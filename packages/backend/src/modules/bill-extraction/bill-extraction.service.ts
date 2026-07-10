@@ -1,21 +1,22 @@
-import OpenAI from 'openai';
+import type OpenAI from 'openai';
 import { Logger } from '@backend/middlewares';
 import { HTTP400Error } from '@backend/errors';
-import { ServerConfig } from '@backend/configs/server.config';
-import { pdfToPng } from 'pdf-to-png-converter';
+import { createOpenRouterClient, getLlmModel } from '@backend/common/llm';
 import type { ExtractedBillData } from '@shared/interfaces/bill-extraction.interface';
+import {
+  convertPdfBillToPng,
+  resolveBillMimeType,
+} from './pdf-bill-image.util';
 
 export class BillExtractionService {
-  private readonly openai: OpenAI;
+  private readonly llmClient: OpenAI;
 
   constructor() {
-    this.openai = new OpenAI({
-      apiKey: ServerConfig.config.openaiApiKey,
-    });
+    this.llmClient = createOpenRouterClient();
   }
 
   /**
-   * Extract data from a bill image using OpenAI Vision
+   * Extract data from a bill image using vision LLM (OpenRouter)
    * @param imageBuffer Buffer of the image
    * @param mimeType Mime type of the image
    */
@@ -44,13 +45,13 @@ export class BillExtractionService {
           'Image preparation failed. The prepared image buffer is empty.'
         );
       }
-
-      // Check if buffer is too large (OpenAI has limits)
+      
+      // Check if buffer is too large (vision API has limits)
       const MAX_IMAGE_SIZE = 20 * 1024 * 1024; // 20MB
       if (preparedBuffer.length > MAX_IMAGE_SIZE) {
         Logger.warn(
           `Prepared image is very large (${preparedBuffer.length} bytes). ` +
-            `This might cause issues with OpenAI API.`
+          `This might cause issues with the vision API.`
         );
       }
 
@@ -59,7 +60,7 @@ export class BillExtractionService {
 
       Logger.info(
         `Base64 encoding complete. Data URL length: ${dataUrl.length} characters. ` +
-          `Sending to OpenAI Vision API...`
+        `Sending to vision LLM via OpenRouter...`
       );
 
       const prompt = `
@@ -200,14 +201,13 @@ export class BillExtractionService {
       `;
 
       const startTime = Date.now();
-
-      Logger.info('Sending request to OpenAI Vision API...');
-      Logger.info(
-        `Request details: model=gpt-4o, dataUrl length=${dataUrl.length} chars, prompt length=${prompt.length} chars`
-      );
-
-      const response = await this.openai.chat.completions.create({
-        model: 'gpt-4o', // Using gpt-4o for better accuracy
+      
+      const model = getLlmModel();
+      Logger.info('Sending request to vision LLM via OpenRouter...');
+      Logger.info(`Request details: model=${model}, dataUrl length=${dataUrl.length} chars, prompt length=${prompt.length} chars`);
+      
+      const response = await this.llmClient.chat.completions.create({
+        model,
         messages: [
           {
             role: 'system',
@@ -233,27 +233,22 @@ export class BillExtractionService {
       });
 
       const responseTime = Date.now() - startTime;
-      Logger.info(`OpenAI response received in ${responseTime}ms`);
+      Logger.info(`LLM response received in ${responseTime}ms`);
 
       const content = response.choices[0]?.message?.content;
 
       if (content === null || content === undefined || content === '') {
-        Logger.error('OpenAI returned empty content');
+        Logger.error('LLM returned empty content');
         Logger.error('Response structure:', {
           choices: response.choices?.length,
           firstChoice: response.choices?.[0],
           finishReason: response.choices?.[0]?.finish_reason,
         });
-        throw new Error('No content returned from OpenAI');
+        throw new Error('No content returned from LLM');
       }
 
-      Logger.info(
-        `OpenAI content received (length: ${content.length} chars), parsing JSON...`
-      );
-      Logger.debug(
-        'Raw OpenAI content (first 500 chars):',
-        content.substring(0, 500)
-      );
+      Logger.info(`LLM content received (length: ${content.length} chars), parsing JSON...`);
+      Logger.debug('Raw LLM content (first 500 chars):', content.substring(0, 500));
 
       // Clean up code blocks if present
       const jsonString = content
@@ -359,7 +354,7 @@ export class BillExtractionService {
 
       return extractedData;
     } catch (error: unknown) {
-      Logger.error(`OpenAI extraction error: ${String(error)}`);
+      Logger.error(`Bill extraction LLM error: ${String(error)}`);
 
       // FALLBACK MOCK DATA FOR QUOTA LIMITS OR ERRORS - COMMENTED OUT
       // Service should either work properly or fail, not return mock data
@@ -436,108 +431,35 @@ export class BillExtractionService {
     }
   }
 
+  /** Prepare bill image/PDF buffer for vision LLM (shared with analyse-facture). */
+  public async prepareBillImage(
+    buffer: Buffer,
+    mimeType: string
+  ): Promise<{ buffer: Buffer; mimeType: string }> {
+    const resolvedMimeType = resolveBillMimeType(buffer, mimeType);
+    return this.prepareInputBuffer(buffer, resolvedMimeType);
+  }
+
   private async prepareInputBuffer(
     buffer: Buffer,
     mimeType: string
   ): Promise<{ buffer: Buffer; mimeType: string }> {
     if (mimeType === 'application/pdf') {
-      Logger.info(
-        `PDF detected (size: ${buffer.length} bytes). Converting first page to high-resolution PNG for OpenAI vision processing...`
-      );
       try {
-        // Try multiple viewport scales to find the best quality
-        // Start with a moderate scale that balances quality and file size
-        const conversionOptions = {
-          pagesToProcess: [1] as [number],
-          viewportScale: 3.0, // Reduced from 5.5 to avoid memory issues and improve reliability
-          disableFontFace: false,
-          useSystemFonts: true,
-          outputType: 'png' as const,
-          responseType: 'buffer' as const,
-          useWorker: false,
-          enableXfa: true,
-          // Additional options for better quality
-          strict: false, // Don't fail on minor issues
-        };
-
+        const converted = await convertPdfBillToPng(buffer);
         Logger.info(
-          'Starting PDF to PNG conversion with options:',
-          conversionOptions
+          `PDF conversion successful. PNG size: ${converted.buffer.length} bytes, ` +
+            `page: ${converted.page}, scale: ${converted.scale}, ` +
+            `original PDF size: ${buffer.length} bytes`
         );
-        const pngPages = await pdfToPng(buffer, conversionOptions);
-
-        Logger.info(
-          `PDF conversion completed. Received ${pngPages.length} page(s).`
-        );
-
-        if (pngPages.length === 0) {
-          Logger.error('PDF conversion returned empty array');
-          throw new HTTP400Error(
-            'Unable to convert PDF to image. Please provide a clear document.'
-          );
-        }
-
-        const firstPage = pngPages[0];
-        if (firstPage === null || firstPage === undefined) {
-          Logger.error('PDF conversion returned null/undefined first page');
-          throw new HTTP400Error(
-            'Unable to convert PDF to image. Please provide a clear document.'
-          );
-        }
-        if (firstPage.content === null || firstPage.content === undefined) {
-          Logger.error('PDF conversion first page has no content');
-          throw new HTTP400Error(
-            'Unable to convert PDF to image. Please provide a clear document.'
-          );
-        }
-
-        const firstPageBuffer = firstPage.content as Buffer;
-
-        // Validate the converted image buffer
-        if (!Buffer.isBuffer(firstPageBuffer)) {
-          Logger.error('PDF conversion did not return a valid Buffer');
-          throw new HTTP400Error(
-            'PDF conversion produced invalid image data. Please try uploading a JPG/PNG image instead.'
-          );
-        }
-
-        if (firstPageBuffer.length === 0) {
-          Logger.error('PDF conversion produced empty buffer');
-          throw new HTTP400Error(
-            'PDF conversion produced empty image. Please provide a clear document.'
-          );
-        }
-
-        // Check if it's a valid PNG by checking the PNG signature
-        const pngSignature = Buffer.from([
-          0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
-        ]);
-        const isValidPng = firstPageBuffer.subarray(0, 8).equals(pngSignature);
-
-        if (!isValidPng) {
-          Logger.warn(
-            'Converted image does not have valid PNG signature. Proceeding anyway...'
-          );
-        }
-
-        Logger.info(
-          `PDF conversion successful. PNG size: ${firstPageBuffer.length} bytes, ` +
-            `PNG signature valid: ${isValidPng}, ` +
-            `Original PDF size: ${buffer.length} bytes`
-        );
-
-        return { buffer: firstPageBuffer, mimeType: 'image/png' };
+        return { buffer: converted.buffer, mimeType: converted.mimeType };
       } catch (error) {
         Logger.error(`PDF to PNG conversion failed: ${String(error)}`);
-        Logger.error('Error details:', {
-          errorName: error instanceof Error ? error.name : 'Unknown',
-          errorMessage: error instanceof Error ? error.message : String(error),
-          errorStack: error instanceof Error ? error.stack : undefined,
-        });
-
-        if (error instanceof HTTP400Error) throw error;
+        if (error instanceof HTTP400Error) {
+          throw error;
+        }
         throw new HTTP400Error(
-          'PDF conversion failed. Please upload a JPG/PNG image instead, or ensure the PDF is not corrupted.',
+          'PDF conversion failed. Please upload a JPG/PNG photo of the bill, or export the PDF as an image.',
           error
         );
       }

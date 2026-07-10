@@ -3,7 +3,7 @@
  * 
  * Shared type definitions for bill extraction functionality used by both
  * frontend and backend. These types match the structure returned by the
- * OpenAI Vision API extraction service for STEG (Tunisia) electricity bills.
+ * vision LLM extraction service (via OpenRouter) for STEG (Tunisia) electricity bills.
  */
 
 /**
@@ -35,7 +35,7 @@ export interface AmountValue {
  * Complete extracted bill data structure
  * Contains all fields extracted from a STEG electricity bill
  * 
- * Note: The structure matches the OpenAI prompt output format where:
+ * Note: The structure matches the LLM prompt output format where:
  * - monthlyBillAmount and recentBillConsumption return objects with { total: number }
  * - Other fields return primitive values (string, number, or null)
  */

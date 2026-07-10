@@ -19,11 +19,15 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  EventEmitter,
+  Input,
+  Output,
   inject,
   signal,
   computed,
   effect,
 } from '@angular/core';
+import { Observable, of } from 'rxjs';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
   lucideUpload,
@@ -36,6 +40,7 @@ import {
 } from '@ng-icons/lucide';
 import { BillExtractionService } from '../../../core/services/bill-extraction.service';
 import { BillExtractionStore } from '../../../core/stores/bill-extraction.store';
+import { convertPdfFileToImageFile, isPdfFile } from '../../../core/utils/pdf-bill-image.util';
 import { ExtractedBillData } from '@shared/interfaces/bill-extraction.interface';
 
 @Component({
@@ -58,29 +63,39 @@ import { ExtractedBillData } from '@shared/interfaces/bill-extraction.interface'
   ],
 })
 export class UiBillExtractorComponent {
+  @Input() hideExtractButton = false;
+  @Input() uploadOnly = false;
+  @Output() fileChange = new EventEmitter<File | null>();
+
   private billExtractionService = inject(BillExtractionService);
   private billExtractionStore = inject(BillExtractionStore);
 
   // Component state
   protected selectedFile = signal<File | null>(null);
   protected isExtracting = signal(false);
+  protected isConvertingPdf = signal(false);
   protected extractionResult = signal<ExtractedBillData | null>(null);
   protected error = signal<string | null>(null);
   protected dragOver = signal(false);
 
   // Computed values
   protected hasFile = computed(() => this.selectedFile() !== null);
-  protected canExtract = computed(() => this.hasFile() && !this.isExtracting());
+  protected canExtract = computed(
+    () => this.hasFile() && !this.isExtracting() && !this.isConvertingPdf()
+  );
   protected showSuccess = computed(() => this.extractionResult() !== null && !this.error());
   protected showError = computed(() => this.error() !== null);
 
   // File validation
   private readonly MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  private readonly MAX_FILE_SIZE_UPLOAD_ONLY = 10 * 1024 * 1024; // 10MB (analyse-facture)
   private readonly ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png'];
 
   constructor() {
-    // Sync with store
     effect(() => {
+      if (this.uploadOnly) {
+        return;
+      }
       const storeData = this.billExtractionStore.getExtractedData();
       if (storeData) {
         this.extractionResult.set(storeData);
@@ -92,7 +107,7 @@ export class UiBillExtractorComponent {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (file) {
-      this.handleFile(file);
+      void this.handleFile(file);
     }
   }
 
@@ -115,7 +130,7 @@ export class UiBillExtractorComponent {
 
     const file = event.dataTransfer?.files[0];
     if (file) {
-      this.handleFile(file);
+      void this.handleFile(file);
     }
   }
 
@@ -127,55 +142,68 @@ export class UiBillExtractorComponent {
   }
 
   protected onExtract(): void {
+    this.extractBillData().subscribe();
+  }
+
+  hasSelectedFile(): boolean {
+    return this.hasFile();
+  }
+
+  extractBillData(): Observable<void> {
     const file = this.selectedFile();
     if (!file || this.isExtracting()) {
-      return;
+      return of(undefined);
     }
 
-    // Validate file
+    if (this.extractionResult() && !this.error()) {
+      return of(undefined);
+    }
+
     if (!this.isValidFile(file)) {
-      return;
+      return of(undefined);
     }
 
-    // Reset previous results
-    this.error.set(null);
-    this.extractionResult.set(null);
-    this.isExtracting.set(true);
-    this.billExtractionStore.setExtracting(true);
+    return new Observable<void>((observer) => {
+      this.error.set(null);
+      this.extractionResult.set(null);
+      this.isExtracting.set(true);
+      this.billExtractionStore.setExtracting(true);
 
-    // Create FormData
-    const formData = new FormData();
-    formData.append('billImage', file);
+      const formData = new FormData();
+      formData.append('billImage', file);
 
-    // Call API
-    this.billExtractionService.extractBillData(formData).subscribe({
-      next: (response) => {
-        if (response.success && response.data) {
-          // Check if all fields are null (AI couldn't extract values)
-          if (this.isAllFieldsNull(response.data)) {
-            const errorMsg = 'Impossible d\'extraire les données de cette facture. Veuillez vérifier que le document est clair, bien éclairé et pas trop éloigné, puis réessayez.';
-            this.error.set(errorMsg);
-            this.billExtractionStore.setError(errorMsg);
-            this.extractionResult.set(null);
+      this.billExtractionService.extractBillData(formData).subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            if (this.isAllFieldsNull(response.data)) {
+              const errorMsg =
+                'Impossible d\'extraire les données de cette facture. Veuillez vérifier que le document est clair, bien éclairé et pas trop éloigné, puis réessayez.';
+              this.error.set(errorMsg);
+              this.billExtractionStore.setError(errorMsg);
+              this.extractionResult.set(null);
+            } else {
+              this.extractionResult.set(response.data);
+              this.billExtractionStore.setExtractedData(response.data);
+              this.error.set(null);
+              observer.next();
+            }
           } else {
-            this.extractionResult.set(response.data);
-            this.billExtractionStore.setExtractedData(response.data);
-            this.error.set(null);
+            this.error.set('Échec de l\'extraction. Veuillez réessayer.');
+            this.billExtractionStore.setError('Échec de l\'extraction. Veuillez réessayer.');
           }
-        } else {
-          this.error.set('Échec de l\'extraction. Veuillez réessayer.');
-          this.billExtractionStore.setError('Échec de l\'extraction. Veuillez réessayer.');
-        }
-        this.isExtracting.set(false);
-        this.billExtractionStore.setExtracting(false);
-      },
-      error: (err) => {
-        const errorMessage = this.getUserFriendlyError(err);
-        this.error.set(errorMessage);
-        this.billExtractionStore.setError(errorMessage);
-        this.isExtracting.set(false);
-        this.billExtractionStore.setExtracting(false);
-      },
+          this.isExtracting.set(false);
+          this.billExtractionStore.setExtracting(false);
+          observer.complete();
+        },
+        error: (err) => {
+          const errorMessage = this.getUserFriendlyError(err);
+          this.error.set(errorMessage);
+          this.billExtractionStore.setError(errorMessage);
+          this.isExtracting.set(false);
+          this.billExtractionStore.setExtracting(false);
+          observer.complete();
+        },
+      });
     });
   }
 
@@ -183,6 +211,7 @@ export class UiBillExtractorComponent {
     this.selectedFile.set(null);
     this.extractionResult.set(null);
     this.error.set(null);
+    this.fileChange.emit(null);
     const input = document.querySelector('#bill-extractor-input') as HTMLInputElement;
     if (input) {
       input.value = '';
@@ -199,32 +228,58 @@ export class UiBillExtractorComponent {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   }
 
-  private handleFile(file: File): void {
-    // Reset previous state
+  private async handleFile(file: File): Promise<void> {
     this.error.set(null);
     this.extractionResult.set(null);
 
-    // Validate file
     if (!this.isValidFile(file)) {
       return;
     }
 
+    if (this.uploadOnly && isPdfFile(file)) {
+      await this.convertAndSelectPdf(file);
+      return;
+    }
+
     this.selectedFile.set(file);
+    this.fileChange.emit(file);
+  }
+
+  private async convertAndSelectPdf(pdfFile: File): Promise<void> {
+    this.isConvertingPdf.set(true);
+    try {
+      const imageFile = await convertPdfFileToImageFile(pdfFile);
+      this.selectedFile.set(imageFile);
+      this.fileChange.emit(imageFile);
+    } catch {
+      this.error.set(
+        'Impossible de convertir ce PDF. Essayez une photo JPG/PNG de la facture, ou un autre export PDF.'
+      );
+      this.selectedFile.set(null);
+      this.fileChange.emit(null);
+    } finally {
+      this.isConvertingPdf.set(false);
+    }
   }
 
   private isValidFile(file: File): boolean {
-    // Check file type
-    if (!this.ACCEPTED_TYPES.includes(file.type)) {
+    const acceptedTypes = this.uploadOnly
+      ? [...this.ACCEPTED_TYPES, 'application/pdf']
+      : this.ACCEPTED_TYPES;
+    const maxSize = this.uploadOnly ? this.MAX_FILE_SIZE_UPLOAD_ONLY : this.MAX_FILE_SIZE;
+
+    if (!acceptedTypes.includes(file.type)) {
       this.error.set(
-        'Type de fichier non supporté. Veuillez télécharger une image (JPG, PNG).'
+        this.uploadOnly
+          ? 'Type de fichier non supporté. Veuillez télécharger une image (JPG, PNG) ou un PDF.'
+          : 'Type de fichier non supporté. Veuillez télécharger une image (JPG, PNG).'
       );
       return false;
     }
 
-    // Check file size
-    if (file.size > this.MAX_FILE_SIZE) {
+    if (file.size > maxSize) {
       this.error.set(
-        `Le fichier est trop volumineux. Taille maximale: ${this.formatFileSize(this.MAX_FILE_SIZE)}`
+        `Le fichier est trop volumineux. Taille maximale: ${this.formatFileSize(maxSize)}`
       );
       return false;
     }
@@ -327,7 +382,7 @@ export class UiBillExtractorComponent {
       }
 
       // Technical error messages that need translation
-      if (apiError.includes('openai') || apiError.includes('quota') || apiError.includes('429')) {
+      if (apiError.includes('quota') || apiError.includes('429') || apiError.includes('openrouter')) {
         return 'Le service d\'extraction est temporairement surchargé. Veuillez réessayer dans quelques instants.';
       }
 
