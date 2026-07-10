@@ -70,6 +70,7 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 20px;
+  align-items: stretch;
 
   @media (min-width: 768px) {
     grid-template-columns: repeat(2, 1fr);
@@ -82,7 +83,6 @@
   }
 
   @media (min-width: 1280px) {
-    grid-template-columns: repeat(5, 1fr);
     gap: 24px;
   }
 }
@@ -100,6 +100,8 @@
   flex-direction: column;
   position: relative;
   overflow: hidden;
+  height: 100%;
+  min-height: 100%;
 
   &:hover {
     transform: translateY(var(--landing-hover-lift));
@@ -108,18 +110,11 @@
 
   @media (min-width: 1024px) {
     padding: var(--card-padding-lg);
+    min-height: 320px;
   }
 }
 
 .joya-card--featured {
-  @media (min-width: 1024px) {
-    grid-column: span 2; // Featured card takes 2 columns on desktop
-  }
-
-  @media (min-width: 1280px) {
-    grid-column: span 1; // Back to 1 column on larger screens
-  }
-
   background: linear-gradient(
     135deg,
     var(--landing-primary-lightest) 0%,
@@ -198,6 +193,7 @@
   align-items: center;
   justify-content: center;
   width: 100%;
+  min-height: 48px;
   padding: 12px 24px;
   font-family: var(--landing-font-body);
   font-size: var(--landing-text-base);
@@ -233,6 +229,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  min-height: 48px;
   font-size: var(--landing-text-base);
   font-weight: var(--landing-font-medium);
   color: var(--landing-secondary);

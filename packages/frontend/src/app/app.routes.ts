@@ -118,6 +118,15 @@ export const routes: Routes = [
     data: { hideFooter: true },
   },
   {
+    path: 'simulateur-subventions',
+    loadComponent: () =>
+      import('./pages/simulateur-subventions/simulateur-subventions.component').then(
+        (m) => m.SimulateurSubventionsComponent
+      ),
+    title: 'Simulateur des subventions FTE | JOYA Energy',
+    data: { hideFooter: true },
+  },
+  {
     path: 'audit-energetique',
     loadComponent: () =>
       import('./pages/energy-audit/energy-audit.component').then((m) => m.EnergyAuditComponent),
