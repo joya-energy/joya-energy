@@ -8,7 +8,7 @@ import { leadService } from './lead.service';
 import { Logger } from '@backend/middlewares';
 import { type ICreateLead } from '@shared/interfaces/lead.interface';
 
-export type LeadSource = 'simulator' | 'contact-form' | 'newsletter' | 'audit-solaire' | 'audit-energetique' | 'carbon-simulator' | 'financing-comparison';
+export type LeadSource = 'simulator' | 'contact-form' | 'newsletter' | 'audit-solaire' | 'audit-energetique' | 'carbon-simulator' | 'financing-comparison' | 'subventions-simulator' | 'analyse-facture';
 
 export interface LeadData {
   email: string;

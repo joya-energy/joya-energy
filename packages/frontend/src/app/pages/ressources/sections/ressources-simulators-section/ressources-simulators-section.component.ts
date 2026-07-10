@@ -65,8 +65,8 @@ export class RessourcesSimulatorsSectionComponent {
     },
     {
       icon: 'bill',
-      title: "Analyse Facture",
-      description: 'Décryptage de votre facture STEG pour plus de clarité.',
+      title: "Simulateur d'Analyse Facture",
+      description: 'Comprenez votre facture STEG en quelques minutes.',
       features: [
         { bold: 'Décryptage automatique', text: 'de votre facture électricité et gaz.' },
         { bold: 'Visualisation claire', text: 'des postes de consommation et des montants.' },
@@ -75,6 +75,19 @@ export class RessourcesSimulatorsSectionComponent {
       buttonText: "Lancer l'Analyse Facture",
       routerLink: '/analyse-facture',
       accentColor: 'orange',
+    },
+    {
+      icon: 'subsidy',
+      title: 'Simulateur des subventions',
+      description: 'Estimez votre prime FTE en quelques minutes.',
+      features: [
+        { bold: 'Barème officiel FTE', text: 'études, équipements et photovoltaïque.' },
+        { bold: 'Calcul instantané', text: 'selon votre type de projet.' },
+        { bold: 'Prime non remboursable', text: "jusqu'à 70% de vos investissements." },
+      ],
+      buttonText: 'Lancer le simulateur',
+      routerLink: '/simulateur-subventions',
+      accentColor: 'teal',
     },
   ];
 }

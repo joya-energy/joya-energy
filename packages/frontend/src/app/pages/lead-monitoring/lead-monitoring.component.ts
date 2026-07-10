@@ -43,6 +43,8 @@ export const SOURCE_CONFIG: Record<string, { label: string; icon: string }> = {
   'audit-energetique': { label: 'Simulateur', icon: 'lucideBarChart3' },
   'carbon-simulator': { label: 'Simulateur', icon: 'lucideBarChart3' },
   'financing-comparison': { label: 'Simulateur', icon: 'lucideBarChart3' },
+  'subventions-simulator': { label: 'Simulateur subventions', icon: 'lucideBarChart3' },
+  'analyse-facture': { label: 'Analyse facture', icon: 'lucideBarChart3' },
   'contact-form': { label: 'Formulaire contact', icon: 'lucideFileText' },
   newsletter: { label: 'Newsletter', icon: 'lucideMegaphone' },
   partenaire: { label: 'Partenaire', icon: 'lucideHand' },

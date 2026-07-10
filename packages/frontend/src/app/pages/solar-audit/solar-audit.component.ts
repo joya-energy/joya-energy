@@ -73,6 +73,7 @@ import { BuildingTypes, ClimateZones } from '@shared';
 import { BillExtractionStore } from '../../core/stores/bill-extraction.store';
 import { AnalyseFactureService } from '../../core/services/analyse-facture.service';
 import { AnalyseFactureStore } from '../../core/stores/analyse-facture.store';
+import { LeadService } from '../../core/services/lead.service';
 import { mapStegAnalyseResponse } from '../../core/utils/analyse-facture.mapper';
 import { isStegAnalyseResponseEmpty } from '@shared/functions/analyse-facture-validation';
 import { convertPdfFileToImageFile, isPdfFile } from '../../core/utils/pdf-bill-image.util';
@@ -273,6 +274,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   private readonly billExtractionStore = inject(BillExtractionStore);
   private readonly analyseFactureService = inject(AnalyseFactureService);
   private readonly analyseFactureStore = inject(AnalyseFactureStore);
+  private readonly leadService = inject(LeadService);
 
   protected readonly isBillAnalysisMode = signal(false);
 
@@ -722,6 +724,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.collectBillAnalysisLead();
     this.prepareSkippedStepsDefaults();
     this.analyseFactureStore.clear();
     this.isSubmitting.set(true);
@@ -862,6 +865,31 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     if (prev >= 1) {
       this.currentStep.set(prev);
     }
+  }
+
+  private collectBillAnalysisLead(): void {
+    const personal = this.form.get('personal')?.getRawValue() as {
+      fullName?: string;
+      email?: string;
+      phoneNumber?: string;
+    } | null;
+
+    if (!personal?.email?.trim()) {
+      return;
+    }
+
+    this.leadService
+      .createLead({
+        email: personal.email.trim(),
+        phoneNumber: personal.phoneNumber?.trim(),
+        name: personal.fullName?.trim(),
+        source: 'analyse-facture',
+      })
+      .subscribe({
+        error: () => {
+          // Non-blocking: lead collection must not block the bill analysis
+        },
+      });
   }
 
   private prepareSkippedStepsDefaults(): void {
