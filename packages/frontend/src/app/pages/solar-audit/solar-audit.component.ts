@@ -74,6 +74,8 @@ import { BillExtractionStore } from '../../core/stores/bill-extraction.store';
 import { AnalyseFactureService } from '../../core/services/analyse-facture.service';
 import { AnalyseFactureStore } from '../../core/stores/analyse-facture.store';
 import { mapStegAnalyseResponse } from '../../core/utils/analyse-facture.mapper';
+import { isStegAnalyseResponseEmpty } from '@shared/functions/analyse-facture-validation';
+import { convertPdfFileToImageFile, isPdfFile } from '../../core/utils/pdf-bill-image.util';
 import {
   extractSolarAuditFields,
   extractPersonalInfoFields,
@@ -721,11 +723,34 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     }
 
     this.prepareSkippedStepsDefaults();
+    this.analyseFactureStore.clear();
     this.isSubmitting.set(true);
     this.analyseFactureStore.setAnalyzing(true);
 
+    void this.submitBillAnalysis(file);
+  }
+
+  private async submitBillAnalysis(file: File): Promise<void> {
+    let billFile = file;
+    try {
+      if (isPdfFile(file)) {
+        billFile = await convertPdfFileToImageFile(file);
+      }
+    } catch {
+      this.isSubmitting.set(false);
+      this.analyseFactureStore.setAnalyzing(false);
+      this.notificationStore.addNotification({
+        type: 'error',
+        title: 'PDF illisible',
+        message:
+          'Impossible de convertir ce PDF. Essayez une photo JPG/PNG de la facture, ou un autre export PDF.',
+      });
+      this.cdr.markForCheck();
+      return;
+    }
+
     const formData = new FormData();
-    formData.append('billImage', file);
+    formData.append('billImage', billFile);
 
     this.analyseFactureService
       .analyzeBill(formData)
@@ -739,6 +764,18 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           if (response.success && response.data) {
+            if (isStegAnalyseResponseEmpty(response.data)) {
+              const message =
+                'Impossible de lire cette facture. Essayez une photo JPG/PNG de la facture, ou un autre export PDF.';
+              this.analyseFactureStore.setError(message);
+              this.notificationStore.addNotification({
+                type: 'error',
+                title: 'Facture illisible',
+                message,
+              });
+              return;
+            }
+
             const mapped = mapStegAnalyseResponse(response.data);
             this.analyseFactureStore.setResult(mapped);
             void this.router.navigate(['/analyse-facture/resultats'], {

@@ -87,11 +87,12 @@ export interface BtAnalyseResult {
 export interface MtFactureExtraite {
   client: string;
   site: string;
-  reference_facture: string;
+  numero_facture: string;
+  reference_client?: string;
   periode: string;
   district: string;
   puissance_souscrite_kva: number;
-  puissance_max_kw: number;
+  puissance_max_kva: number;
   consommation_kwh: number;
   cos_phi: number;
   coefficient_k: number;
@@ -111,6 +112,7 @@ export interface MtPuissanceRevision {
 }
 
 export interface MtInsightCard {
+  categorie?: string;
   severity: 'critical' | 'positive';
   title: string;
   description: string;
@@ -131,7 +133,7 @@ export interface MtSituationView {
   profile: MtRatioProfile;
   badge: string;
   badgeTone: 'gold' | 'outline' | 'warning' | 'danger';
-  titre: string;
+  intitule: string;
   metricLabel: string;
   metricValue: string;
   metricDanger: boolean;

@@ -5,6 +5,7 @@ import type {
   MtRecommandationRaw,
   StegAnalyseResponse,
 } from '@shared/interfaces/analyse-facture.interface';
+import { formatMtDtAmount, parseStegNumber } from '@shared/functions/steg-numbers';
 import type {
   AffichageField,
   BtAnalyseResult,
@@ -33,11 +34,7 @@ function str(value: unknown, fallback = '-'): string {
 }
 
 function num(value: unknown): number {
-  const text = str(value, '');
-  if (!text || text === '-') {
-    return 0;
-  }
-  return Number(text.replace(/\s/g, '').replace(',', '.'));
+  return parseStegNumber(value);
 }
 
 function isMtBill(raw: FactureExtraiteBtRaw | FactureExtraiteMtRaw): boolean {
@@ -65,6 +62,7 @@ function mapGaz(gaz: FactureExtraiteBtRaw['gaz']): GazFacture | undefined {
   if (!gaz) {
     return undefined;
   }
+
   return {
     presence_gaz: str(gaz.presence_gaz, 'Non'),
     consommation_gaz_m3: str(gaz.consommation_gaz_m3),
@@ -85,9 +83,6 @@ function mapEtudeBtMt(
     return undefined;
   }
 
-  const roiRaw = num(etude.roi_pct);
-  const roiDisplay = roiRaw > 0 && roiRaw < 100 ? String(roiRaw * 100) : str(etude.roi_pct);
-
   return {
     consommation_annuelle_kwh: str(etude.consommation_annuelle_kwh),
     prix_unitaire_kwh: '0.291',
@@ -102,7 +97,7 @@ function mapEtudeBtMt(
     payback_simple_ans: str(etude.payback_simple_ans),
     payback_actualise_ans: str(etude.payback_actualise_ans),
     tri_pct: str(etude.tri_pct),
-    roi_pct: roiDisplay,
+    roi_pct: str(etude.roi_pct),
     van_dt: str(etude.van_dt),
     puissance_mt_theorique: str(etude.puissance_mt_theorique),
     puissance_mt_recommandee_kva: str(etude.puissance_mt_recommandee_kva),
@@ -156,23 +151,29 @@ function mapBtResult(response: StegAnalyseResponse): BtAnalyseResult {
 
 function mapRecommendation(rec: MtRecommandationRaw): MtInsightCard {
   const titre = str(rec.titre);
-  const gainAnnuel = str(rec.gain_annuel_estime_dt);
+  const conclusion = str(rec.conclusion, '');
+  const categorie = str(rec.categorie).toUpperCase();
   const isPositive =
     titre.includes('✅') ||
-    str(rec.categorie).toUpperCase().startsWith('C1') ||
-    str(rec.categorie).toUpperCase() === 'P0';
+    categorie.startsWith('C1') ||
+    categorie === 'P0';
 
-  const description = [str(rec.description, ''), str(rec.conclusion, '')]
-    .filter((part) => part && part !== '-')
-    .join(' ');
+  let description = str(rec.description, '');
+  const gainRaw = str(rec.gain_annuel_estime_dt, '');
+  const gainAnnuel = gainRaw && gainRaw !== '-' ? num(gainRaw) : 0;
+
+  if (conclusion && conclusion !== '-' && description.includes(conclusion)) {
+    description = description.replace(conclusion, '').trim();
+  }
 
   return {
+    categorie: categorie || undefined,
     severity: isPositive ? 'positive' : 'critical',
     title: titre,
     description,
     annualSavingLabel:
-      gainAnnuel && gainAnnuel !== '-' ? `+${gainAnnuel} DT/an` : undefined,
-    footerNote: str(rec.conclusion, '') !== '-' ? str(rec.conclusion) : undefined,
+      gainAnnuel > 0 ? `+${formatMtDtAmount(gainAnnuel)} DT/an` : undefined,
+    footerNote: conclusion !== '-' ? conclusion : undefined,
   };
 }
 
@@ -180,24 +181,31 @@ function mapMtResult(response: StegAnalyseResponse): MtAnalyseResult {
   const raw = response.facture_extraite as FactureExtraiteMtRaw;
   const indicateurs = response.analyse_mt?.indicateurs ?? {};
   const kva = num(raw.puissance_souscrite_kva);
-  const kw = num(raw.puissance_maximale_appelee_kw);
+  const maxAppeleeKva = num(raw.puissance_maximale_appelee_kva ?? raw.puissance_maximale_appelee_kw);
   const consommation = num(raw.consommation_totale_kwh);
-  const puissanceCible =
-    num(indicateurs.puissance_cible_kva) || (kw > 0 ? Math.ceil(kw / 0.7) : 0);
+  const primePuissance = num(raw.prime_puissance);
+  const montantNet = num(raw.montant_net_a_payer);
+  const puissanceCible = num(indicateurs['puissance_cible_kva']);
+  const economieMensuelle = num(indicateurs['economie_mensuelle_dt']);
+  const economieAnnuelle = num(indicateurs['economie_annuelle_dt']);
+  const tauxRedevance = num(indicateurs['taux_redevance_puissance_kva']);
 
+  const referenceClient = str(raw.reference_client, '');
   const facture: MtFactureExtraite = {
     client: str(raw.client),
     site: str(raw.adresse_site),
-    reference_facture: str(raw.numero_facture),
+    numero_facture: str(raw.numero_facture),
+    reference_client:
+      referenceClient !== '' && referenceClient !== '-' ? referenceClient : undefined,
     periode: str(raw.mois_facturation),
     district: str(raw.district_steg),
     puissance_souscrite_kva: kva,
-    puissance_max_kw: kw,
+    puissance_max_kva: maxAppeleeKva,
     consommation_kwh: consommation,
     cos_phi: num(raw.cos_phi),
     coefficient_k: num(raw.coefficient_k),
-    prime_puissance_dt: num(raw.prime_puissance),
-    montant_net_dt: num(raw.montant_net_a_payer),
+    prime_puissance_dt: primePuissance,
+    montant_net_dt: montantNet,
     energie_consommee_kwh: consommation,
     date_limite_paiement: str(raw.date_limite_paiement),
     consommation_annuelle_kwh: consommation * 12,
@@ -205,13 +213,13 @@ function mapMtResult(response: StegAnalyseResponse): MtAnalyseResult {
 
   const revision: MtPuissanceRevision = {
     puissance_cible_kva: puissanceCible,
-    prime_actuelle_dt: num(raw.prime_puissance),
-    prime_apres_revision_dt: puissanceCible * 5,
-    economie_annuelle_dt: num(indicateurs.economie_annuelle_dt),
-    economie_mensuelle_dt: num(indicateurs.economie_mensuelle_dt),
+    prime_actuelle_dt: primePuissance,
+    prime_apres_revision_dt: puissanceCible > 0 && tauxRedevance > 0 ? puissanceCible * tauxRedevance : 0,
+    economie_annuelle_dt: economieAnnuelle,
+    economie_mensuelle_dt: economieMensuelle,
   };
 
-  const ratioPct = kva > 0 ? Math.round((kw / kva) * 100) : 0;
+  const ratioPct = kva > 0 ? Math.round((maxAppeleeKva / kva) * 100) : 0;
 
   return {
     facture,
@@ -220,11 +228,11 @@ function mapMtResult(response: StegAnalyseResponse): MtAnalyseResult {
       ratioPct < 45
         ? 'Vous payez chaque mois pour une puissance que vous n\'utilisez pas.'
         : 'Votre facture reflète votre contrat de puissance STEG.',
-    situation_texte: `Votre contrat STEG vous réserve <strong>${kva} kVA</strong> de puissance. Ce mois, votre installation en a consommé <strong>${kw} kW</strong> au maximum.`,
+    situation_texte: `Votre contrat STEG vous réserve <strong>${kva} kVA</strong> de puissance. Ce mois, votre installation a appelé <strong>${maxAppeleeKva} kVA</strong> au maximum.`,
     revelle_intro:
       'Pas de jargon, pas d\'estimation au doigt mouillé : chaque chiffre ci-dessous sort directement de votre facture STEG. À vous de décider si ça vaut le coup d\'agir.',
     revelle_sous_titre: 'Votre facture cache de l\'argent. On vous montre où.',
-    insights: (response.analyse_mt?.recommandations ?? []).map(mapRecommendation),
+    insights: (response.analyse_mt?.recommandations ?? []).map((rec) => mapRecommendation(rec)),
     revision,
     piste_solaire: {
       badge: 'UNE AUTRE PISTE D\'ÉCONOMIE',

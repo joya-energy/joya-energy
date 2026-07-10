@@ -40,6 +40,7 @@ import {
 } from '@ng-icons/lucide';
 import { BillExtractionService } from '../../../core/services/bill-extraction.service';
 import { BillExtractionStore } from '../../../core/stores/bill-extraction.store';
+import { convertPdfFileToImageFile, isPdfFile } from '../../../core/utils/pdf-bill-image.util';
 import { ExtractedBillData } from '@shared/interfaces/bill-extraction.interface';
 
 @Component({
@@ -72,13 +73,16 @@ export class UiBillExtractorComponent {
   // Component state
   protected selectedFile = signal<File | null>(null);
   protected isExtracting = signal(false);
+  protected isConvertingPdf = signal(false);
   protected extractionResult = signal<ExtractedBillData | null>(null);
   protected error = signal<string | null>(null);
   protected dragOver = signal(false);
 
   // Computed values
   protected hasFile = computed(() => this.selectedFile() !== null);
-  protected canExtract = computed(() => this.hasFile() && !this.isExtracting());
+  protected canExtract = computed(
+    () => this.hasFile() && !this.isExtracting() && !this.isConvertingPdf()
+  );
   protected showSuccess = computed(() => this.extractionResult() !== null && !this.error());
   protected showError = computed(() => this.error() !== null);
 
@@ -103,7 +107,7 @@ export class UiBillExtractorComponent {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (file) {
-      this.handleFile(file);
+      void this.handleFile(file);
     }
   }
 
@@ -126,7 +130,7 @@ export class UiBillExtractorComponent {
 
     const file = event.dataTransfer?.files[0];
     if (file) {
-      this.handleFile(file);
+      void this.handleFile(file);
     }
   }
 
@@ -224,18 +228,38 @@ export class UiBillExtractorComponent {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   }
 
-  private handleFile(file: File): void {
-    // Reset previous state
+  private async handleFile(file: File): Promise<void> {
     this.error.set(null);
     this.extractionResult.set(null);
 
-    // Validate file
     if (!this.isValidFile(file)) {
+      return;
+    }
+
+    if (this.uploadOnly && isPdfFile(file)) {
+      await this.convertAndSelectPdf(file);
       return;
     }
 
     this.selectedFile.set(file);
     this.fileChange.emit(file);
+  }
+
+  private async convertAndSelectPdf(pdfFile: File): Promise<void> {
+    this.isConvertingPdf.set(true);
+    try {
+      const imageFile = await convertPdfFileToImageFile(pdfFile);
+      this.selectedFile.set(imageFile);
+      this.fileChange.emit(imageFile);
+    } catch {
+      this.error.set(
+        'Impossible de convertir ce PDF. Essayez une photo JPG/PNG de la facture, ou un autre export PDF.'
+      );
+      this.selectedFile.set(null);
+      this.fileChange.emit(null);
+    } finally {
+      this.isConvertingPdf.set(false);
+    }
   }
 
   private isValidFile(file: File): boolean {

@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readFileSync, statSync } from 'fs';
 import { join } from 'path';
 
 function resolvePromptPath(): string {
@@ -24,11 +24,23 @@ function resolvePromptPath(): string {
 }
 
 let cachedPrompt: string | null = null;
+let cachedPromptMtimeMs = 0;
+let cachedPromptPath: string | null = null;
 
 /** Full STEG bill analysis agent prompt (BT & MT extraction + financial study). */
 export function getStegAnalyseFacturePrompt(): string {
-  if (cachedPrompt === null) {
-    cachedPrompt = readFileSync(resolvePromptPath(), 'utf8');
+  const promptPath = resolvePromptPath();
+  const mtimeMs = statSync(promptPath).mtimeMs;
+
+  if (
+    cachedPrompt === null
+    || cachedPromptPath !== promptPath
+    || cachedPromptMtimeMs !== mtimeMs
+  ) {
+    cachedPrompt = readFileSync(promptPath, 'utf8');
+    cachedPromptPath = promptPath;
+    cachedPromptMtimeMs = mtimeMs;
   }
+
   return cachedPrompt;
 }

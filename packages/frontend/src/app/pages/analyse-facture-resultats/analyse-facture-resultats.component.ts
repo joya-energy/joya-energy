@@ -8,7 +8,7 @@ import {
   signal,
   ViewEncapsulation,
 } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
   lucideArrowRight,
@@ -23,17 +23,27 @@ import { UiProgressBarComponent } from '../../shared/components/ui-progress-bar/
 import { UiStepTimelineComponent } from '../../shared/components/ui-step-timeline/ui-step-timeline.component';
 import { SEOService } from '../../core/services/seo.service';
 import { AnalyseFactureStore } from '../../core/stores/analyse-facture.store';
-import { MOCK_BT_RESULT, MOCK_MT_RESULT } from './analyse-facture-resultats.mock';
+import { mapStegAnalyseResponse } from '../../core/utils/analyse-facture.mapper';
+import { formatMtDtAmount } from '@shared/functions/steg-numbers';
 import type {
   AffichageField,
   BtAnalyseResult,
   DetailFactureRow,
   MtAnalyseResult,
+  MtInsightCard,
   MtRatioProfile,
   MtSituationView,
   TariffType,
   VanChartData,
 } from './analyse-facture-resultats.types';
+
+function isMtPrimaryPowerProfile(categorie: string | undefined): categorie is 'P0' | 'P1' | 'P2' | 'P3' {
+  return categorie === 'P0' || categorie === 'P1' || categorie === 'P2' || categorie === 'P3';
+}
+
+function isMtRevisionProfile(categorie: string | undefined): boolean {
+  return categorie === 'P1' || categorie === 'P2';
+}
 
 interface BillAnalysisFlowStep {
   number: number;
@@ -48,7 +58,7 @@ const BILL_ANALYSIS_FLOW_STEPS: BillAnalysisFlowStep[] = [
 ];
 
 const BT_FIELD_TIPS: Record<string, string> = {
-  periode_facturation: "Période durant laquelle l'électricité a été consommée et facturée.",
+  periode_facturation: 'Nombre de mois facturés (colonne « Nbre de Mois » sur la facture STEG).',
   puissance_souscrite_kva:
     "Capacité maximale d'électricité réservée auprès de la STEG pour alimenter votre installation.",
   consommation_totale_kwh: "Quantité totale d'électricité utilisée pendant la période facturée.",
@@ -65,8 +75,10 @@ const MT_FIELD_TIPS: Record<string, string> = {
   mois_facturation: "Mois et année de la facture permettant d'identifier la période concernée.",
   puissance_souscrite_kva:
     "Capacité maximale d'électricité réservée auprès de la STEG pour votre installation.",
+  puissance_maximale_appelee_kva:
+    'Puissance maximale appelée pendant la période facturée, en kVA (même unité que la puissance souscrite).',
   puissance_maximale_appelee_kw:
-    'Puissance la plus élevée utilisée pendant la période facturée.',
+    'Puissance maximale appelée pendant la période facturée, en kVA (même unité que la puissance souscrite).',
   puissance_installee_kva:
     'Puissance totale que peuvent utiliser vos équipements lorsqu\'ils fonctionnent simultanément.',
   depassement_puissance_kw:
@@ -85,7 +97,8 @@ const MT_FIELD_TIPS: Record<string, string> = {
     'Montant supplémentaire appliqué lorsque votre installation utilise moins efficacement l\'électricité.',
   prix_energie: "Prix appliqué à l'électricité consommée.",
   montant_energie: "Coût total de l'électricité consommée.",
-  montant_net_a_payer: 'Montant final à payer à la STEG.',
+  montant_net_a_payer:
+    'Montant final à payer à la STEG, incluant tous les éléments de la facture (énergie, primes, taxes, redevances et autres frais éventuels).',
 };
 
 @Component({
@@ -110,7 +123,6 @@ const MT_FIELD_TIPS: Record<string, string> = {
 })
 export class AnalyseFactureResultatsComponent implements OnInit {
   private readonly seoService = inject(SEOService);
-  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly analyseFactureStore = inject(AnalyseFactureStore);
 
@@ -140,9 +152,12 @@ export class AnalyseFactureResultatsComponent implements OnInit {
 
   protected readonly periodSummary = computed(() => {
     const f = this.facture();
-    const debut = this.formatDateFr(f.date_debut_periode);
-    const fin = this.formatDateFr(f.date_fin_periode);
-    return `Période ${debut} → ${fin}.`;
+    const debut = f.date_debut_periode;
+    const fin = f.date_fin_periode;
+    if (debut && fin && debut !== '-' && fin !== '-') {
+      return `Période facturée : ${this.formatDateFr(debut)} → ${this.formatDateFr(fin)}.`;
+    }
+    return '';
   });
 
   protected readonly montantEnergie = computed(() =>
@@ -155,10 +170,30 @@ export class AnalyseFactureResultatsComponent implements OnInit {
 
   protected readonly gazBannerText = computed(() => {
     const gaz = this.facture().gaz;
-    if (!gaz || gaz.presence_gaz !== 'Oui') return null;
-    const m3 = this.formatNumber(gaz.consommation_gaz_m3 ?? '0');
-    const montant = this.formatAmount(gaz.montant_energie_gaz ?? '0');
-    return `Gaz naturel inclus : ${m3} m³ consommés, pour ${montant} DT d'énergie gaz sur cette facture.`;
+    if (!gaz || gaz.presence_gaz !== 'Oui') {
+      return null;
+    }
+
+    const m3 = Number(gaz.consommation_gaz_m3 ?? '0');
+    const energie = Number(gaz.montant_energie_gaz ?? '0');
+    const redevances = Number(gaz.redevances_fixes_gaz ?? '0');
+    const m3Label = this.formatNumber(String(Number.isFinite(m3) ? m3 : 0));
+    const energieLabel = this.formatAmount(String(Number.isFinite(energie) ? energie : 0));
+    const redevancesLabel = this.formatAmount(String(Number.isFinite(redevances) ? redevances : 0));
+
+    if (m3 <= 0 && energie <= 0 && redevances <= 0) {
+      return null;
+    }
+
+    if (m3 <= 0 && energie <= 0 && redevances > 0) {
+      return `Gaz naturel au contrat : 0 m³ consommés sur cette période, avec ${redevancesLabel} DT de redevances fixes gaz (Total Gaz).`;
+    }
+
+    if (redevances > 0) {
+      return `Gaz naturel inclus : ${m3Label} m³ consommés, pour ${energieLabel} DT d'énergie gaz et ${redevancesLabel} DT de redevances fixes.`;
+    }
+
+    return `Gaz naturel inclus : ${m3Label} m³ consommés, pour ${energieLabel} DT d'énergie gaz sur cette facture.`;
   });
 
   protected readonly showBtMtRevision = computed(() => {
@@ -191,8 +226,18 @@ export class AnalyseFactureResultatsComponent implements OnInit {
     if (etude?.consommation_annuelle_kwh) {
       return Number(etude.consommation_annuelle_kwh);
     }
-    const mensuelle = Number(this.facture().consommation_totale_kwh);
-    return Number.isFinite(mensuelle) ? mensuelle * 12 : 0;
+    const f = this.facture();
+    const consommation = Number(f.consommation_totale_kwh);
+    if (!Number.isFinite(consommation) || consommation <= 0) {
+      return 0;
+    }
+
+    const mois = Number(f.periode_facturation);
+    if (Number.isFinite(mois) && mois > 1) {
+      return (consommation / mois) * 12;
+    }
+
+    return consommation * 12;
   });
 
   protected readonly btPisteSolaire = computed(() => this.etude()?.piste_solaire ?? null);
@@ -242,59 +287,111 @@ export class AnalyseFactureResultatsComponent implements OnInit {
   protected readonly mtUtilisationPct = computed(() => {
     const f = this.mtFacture();
     if (!f.puissance_souscrite_kva) return 0;
-    return Math.round((f.puissance_max_kw / f.puissance_souscrite_kva) * 100);
+    return Math.round((f.puissance_max_kva / f.puissance_souscrite_kva) * 100);
+  });
+
+  protected readonly mtRatioExactPct = computed(() => {
+    const f = this.mtFacture();
+    if (!f.puissance_souscrite_kva) return 0;
+    return (f.puissance_max_kva / f.puissance_souscrite_kva) * 100;
+  });
+
+  protected readonly mtPrimaryPowerInsight = computed(() => {
+    return this.mtResult()?.insights.find((insight) => isMtPrimaryPowerProfile(insight.categorie));
   });
 
   protected readonly mtRatioProfile = computed((): MtRatioProfile => {
-    const pct = this.mtUtilisationPct();
-    if (pct > 100) return 'P4';
-    if (pct > 95) return 'P3';
-    if (pct >= 45 && pct <= 60) return 'P2';
-    if (pct < 45) return 'P1';
+    const categorie = this.mtPrimaryPowerInsight()?.categorie;
+    if (isMtPrimaryPowerProfile(categorie)) {
+      return categorie;
+    }
     return 'P0';
   });
 
-  protected readonly mtDepassementKva = computed(() => {
-    const f = this.mtFacture();
-    return Math.max(0, f.puissance_max_kw - f.puissance_souscrite_kva);
-  });
-
-  protected readonly mtPuissanceCibleKva = computed(
-    () => this.mtResult()?.revision?.puissance_cible_kva ?? Math.ceil(this.mtFacture().puissance_max_kw / 0.7)
+  protected readonly hasValidMtMaxAppelee = computed(
+    () => this.mtFacture().puissance_max_kva > 0
   );
 
-  protected readonly mtSituationView = computed((): MtSituationView => {
+  protected readonly showMtRevisionGains = computed(() => {
+    if (!this.hasValidMtMaxAppelee()) {
+      return false;
+    }
+    const categorie = this.mtPrimaryPowerInsight()?.categorie;
+    if (!isMtRevisionProfile(categorie)) {
+      return false;
+    }
+    const economie = this.mtResult()?.revision?.economie_annuelle_dt ?? 0;
+    return economie > 0;
+  });
+
+  protected shouldShowInsightSaving(insight: MtInsightCard): boolean {
+    if (!insight.annualSavingLabel) {
+      return false;
+    }
+    const categorie = insight.categorie ?? '';
+    if (categorie === 'P1' || categorie === 'P2') {
+      return this.showMtRevisionGains();
+    }
+    return true;
+  }
+
+  protected readonly mtDepassementKva = computed(() => {
     const f = this.mtFacture();
+    return Math.max(0, f.puissance_max_kva - f.puissance_souscrite_kva);
+  });
+
+  protected readonly mtPuissanceCibleKva = computed(() => {
+    if (!this.hasValidMtMaxAppelee()) {
+      return 0;
+    }
+    return this.mtResult()?.revision?.puissance_cible_kva ?? 0;
+  });
+
+  protected readonly mtSituationView = computed((): MtSituationView => {
     const profile = this.mtRatioProfile();
-    const kva = this.formatComparisonNumber(f.puissance_souscrite_kva);
-    const kw = this.formatComparisonNumber(f.puissance_max_kw);
     const pct = this.mtUtilisationPct();
     const cible = this.formatComparisonNumber(this.mtPuissanceCibleKva());
     const marge = this.formatComparisonNumber(this.mtMargeDisponible());
     const depassement = this.formatComparisonNumber(this.mtDepassementKva());
     const revision = this.mtResult()!.revision;
+    const intitule = this.mtPrimaryPowerInsight()?.title ?? '';
+
+    if (!this.hasValidMtMaxAppelee()) {
+      return {
+        profile: 'P0',
+        badge: 'Donnée manquante',
+        badgeTone: 'warning',
+        intitule: 'Puissance maximale appelée non extraite',
+        metricLabel: 'Puissance max. appelée',
+        metricValue: '—',
+        metricDanger: false,
+        donutDanger: false,
+      };
+    }
+
+    const badge = `Utilisation : ${pct}%`;
 
     switch (profile) {
       case 'P2':
         return {
           profile,
-          badge: '45–60 % • P2',
+          badge,
           badgeTone: 'gold',
-          titre: 'Vous réservez plus de puissance que ce dont votre activité a vraiment besoin.',
+          intitule,
           metricLabel: 'Puissance cible (70%)',
           metricValue: `${cible} kVA`,
           metricDanger: false,
-          optimizationNote: `Une optimisation vers ${cible} kVA (cible 70%) représente un gain potentiel de ${this.formatComparisonNumber(revision.economie_mensuelle_dt)} DT/mois.`,
-          monthlyGain: `${this.formatComparisonNumber(revision.economie_mensuelle_dt)} DT/mois`,
-          annualGain: `${this.formatComparisonNumber(revision.economie_annuelle_dt)} DT/an`,
+          optimizationNote: `Une optimisation vers ${cible} kVA (cible 70%) représente un gain potentiel de ${this.formatDtValue(revision.economie_mensuelle_dt)} DT/mois.`,
+          monthlyGain: `${this.formatDtValue(revision.economie_mensuelle_dt)} DT/mois`,
+          annualGain: `${this.formatDtValue(revision.economie_annuelle_dt)} DT/an`,
           donutDanger: false,
         };
       case 'P3':
         return {
           profile,
-          badge: 'ratio > 95% • P3',
+          badge,
           badgeTone: 'warning',
-          titre: 'Vous frôlez la limite de votre contrat — la marge de sécurité a quasiment disparu.',
+          intitule,
           metricLabel: 'Marge disponible',
           metricValue: `${marge} kVA`,
           metricDanger: false,
@@ -303,9 +400,9 @@ export class AnalyseFactureResultatsComponent implements OnInit {
       case 'P4':
         return {
           profile,
-          badge: 'dépassement constaté • P4',
+          badge,
           badgeTone: 'danger',
-          titre: 'Vous avez dépassé votre puissance contractuelle — et la STEG vous le facture.',
+          intitule,
           metricLabel: 'Dépassement',
           metricValue: `${depassement} kVA`,
           metricDanger: true,
@@ -314,9 +411,9 @@ export class AnalyseFactureResultatsComponent implements OnInit {
       case 'P1':
         return {
           profile,
-          badge: 'ratio < 45% • P1',
+          badge,
           badgeTone: 'gold',
-          titre: 'Vous payez chaque mois pour une puissance que vous n\'utilisez pas.',
+          intitule,
           metricLabel: 'Puissance cible (70%)',
           metricValue: `${cible} kVA`,
           metricDanger: false,
@@ -325,9 +422,9 @@ export class AnalyseFactureResultatsComponent implements OnInit {
       default:
         return {
           profile: 'P0',
-          badge: `ratio ${pct}%`,
+          badge,
           badgeTone: 'outline',
-          titre: this.mtResult()!.situation_titre,
+          intitule,
           metricLabel: 'Marge disponible',
           metricValue: `${marge} kVA libre`,
           metricDanger: false,
@@ -338,7 +435,7 @@ export class AnalyseFactureResultatsComponent implements OnInit {
 
   protected readonly mtMargeDisponible = computed(() => {
     const f = this.mtFacture();
-    return f.puissance_souscrite_kva - f.puissance_max_kw;
+    return f.puissance_souscrite_kva - f.puissance_max_kva;
   });
 
   protected readonly mtDonutDasharray = computed(() => {
@@ -347,6 +444,40 @@ export class AnalyseFactureResultatsComponent implements OnInit {
     const pct = Math.min(this.mtUtilisationPct(), 100);
     const used = circumference * (pct / 100);
     return `${used} ${circumference - used}`;
+  });
+
+  protected readonly mtKpiCards = computed(() => {
+    const f = this.mtFacture();
+    const tip = (key: string) => this.mtFieldTip(key);
+
+    return [
+      {
+        label: 'Prime de puissance',
+        value: `${this.formatDtValue(f.prime_puissance_dt)} DT`,
+        explication: tip('prime_puissance'),
+        accent: true,
+      },
+      {
+        label: 'Énergie consommée',
+        value: `${this.formatComparisonNumber(f.energie_consommee_kwh)} kWh`,
+        explication: tip('consommation_totale_kwh'),
+      },
+      {
+        label: 'Montant net',
+        value: `${this.formatDtValue(f.montant_net_dt)} DT`,
+        explication: tip('montant_net_a_payer'),
+      },
+      {
+        label: 'Cos φ',
+        value: f.cos_phi.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        explication: tip('cos_phi'),
+      },
+      {
+        label: 'Coefficient K',
+        value: this.formatCoefficientK(f.coefficient_k),
+        explication: tip('coefficient_k'),
+      },
+    ];
   });
 
   protected readonly mtDetailRows = computed((): DetailFactureRow[] => {
@@ -366,8 +497,8 @@ export class AnalyseFactureResultatsComponent implements OnInit {
       },
       {
         label: 'Puissance maximale appelée',
-        value: `${this.formatComparisonNumber(f.puissance_max_kw)} kW`,
-        explication: tip('puissance_maximale_appelee_kw'),
+        value: `${this.formatComparisonNumber(f.puissance_max_kva)} kVA`,
+        explication: tip('puissance_maximale_appelee_kva') ?? tip('puissance_maximale_appelee_kw'),
       },
       {
         label: 'Consommation totale',
@@ -381,7 +512,7 @@ export class AnalyseFactureResultatsComponent implements OnInit {
       },
       {
         label: 'Prime de puissance',
-        value: `${this.formatComparisonNumber(f.prime_puissance_dt)} DT`,
+        value: `${this.formatDtValue(f.prime_puissance_dt)} DT`,
         explication: tip('prime_puissance'),
       },
       {
@@ -400,7 +531,7 @@ export class AnalyseFactureResultatsComponent implements OnInit {
     return [
       {
         label: 'Période',
-        value: f.periode_facturation === '1' ? 'Mensuelle' : 'Période facturée',
+        value: this.formatBtPeriodeLabel(f),
         explication: tip('periode_facturation'),
       },
       {
@@ -468,27 +599,20 @@ export class AnalyseFactureResultatsComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    const useMock = this.route.snapshot.queryParamMap.get('mock') === 'true';
+    const stored = this.analyseFactureStore.getMappedResult();
+    if (!stored?.raw) {
+      void this.router.navigate(['/analyse-facture']);
+      return;
+    }
 
-    if (useMock) {
-      const type = this.route.snapshot.queryParamMap.get('type');
-      this.tariffType.set(type === 'MT' ? 'MT' : 'BT');
-      this.btResult.set(MOCK_BT_RESULT);
-      this.mtResult.set(MOCK_MT_RESULT);
-    } else {
-      const mapped = this.analyseFactureStore.getMappedResult();
-      if (!mapped) {
-        void this.router.navigate(['/analyse-facture']);
-        return;
-      }
+    const mapped = mapStegAnalyseResponse(stored.raw);
 
-      this.tariffType.set(mapped.tariffType);
-      if (mapped.btResult) {
-        this.btResult.set(mapped.btResult);
-      }
-      if (mapped.mtResult) {
-        this.mtResult.set(mapped.mtResult);
-      }
+    this.tariffType.set(mapped.tariffType);
+    if (mapped.btResult) {
+      this.btResult.set(mapped.btResult);
+    }
+    if (mapped.mtResult) {
+      this.mtResult.set(mapped.mtResult);
     }
 
     this.seoService.setSEO({
@@ -655,6 +779,17 @@ export class AnalyseFactureResultatsComponent implements OnInit {
     return n.toLocaleString('fr-FR', { maximumFractionDigits: 0 });
   }
 
+  protected formatDtValue(value: string | number): string {
+    const n = typeof value === 'number' ? value : Number(value);
+    if (!Number.isFinite(n)) return String(value);
+    return formatMtDtAmount(n);
+  }
+
+  protected formatCoefficientK(value: number): string {
+    if (!Number.isFinite(value)) return '—';
+    return value.toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 4 });
+  }
+
   protected formatAmount(value: string): string {
     const n = Number(value);
     if (!Number.isFinite(n)) return value;
@@ -673,11 +808,47 @@ export class AnalyseFactureResultatsComponent implements OnInit {
     return n.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   }
 
-  private formatDateFr(isoDate: string): string {
-    if (!isoDate) return '—';
-    const [year, month, day] = isoDate.split('-');
-    if (!year || !month || !day) return isoDate;
-    return `${day}/${month}/${year}`;
+  private formatDateFr(dateRaw: string): string {
+    if (!dateRaw || dateRaw === '-') {
+      return '—';
+    }
+
+    const normalized = dateRaw.trim().replace(/\./g, '-').replace(/\//g, '-');
+    const parts = normalized.split('-').filter((part) => part.length > 0);
+    if (parts.length !== 3) {
+      return dateRaw;
+    }
+
+    if (parts[0].length === 4) {
+      const [year, month, day] = parts;
+      return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+    }
+
+    if (parts[2].length === 4) {
+      const [day, month, year] = parts;
+      return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+    }
+
+    return dateRaw;
+  }
+
+  private formatBtPeriodeLabel(f: {
+    date_debut_periode: string;
+    date_fin_periode: string;
+    periode_facturation: string;
+  }): string {
+    const mois = Number(f.periode_facturation);
+    if (Number.isFinite(mois) && mois > 0) {
+      return mois === 1 ? '1 mois' : `${mois} mois`;
+    }
+
+    const debut = f.date_debut_periode;
+    const fin = f.date_fin_periode;
+    if (debut && fin && debut !== '-' && fin !== '-') {
+      return `${this.formatDateFr(debut)} → ${this.formatDateFr(fin)}`;
+    }
+
+    return '—';
   }
 
   private affichageExplanation(key: string): string | undefined {
