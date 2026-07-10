@@ -64,17 +64,30 @@ export class RessourcesSimulatorsSectionComponent {
       accentColor: 'teal',
     },
     {
-      icon: 'finance',
-      title: 'Comparateur de Financements',
-      description: 'Un projet de transition énergétique est avant tout financier.',
+      icon: 'bill',
+      title: "Simulateur d'Analyse Facture",
+      description: 'Comprenez votre facture STEG en quelques minutes.',
       features: [
-        { bold: 'Comparaison transparente', text: 'de plusieurs modèles.' },
-        { bold: 'Simulation des flux', text: 'de trésorerie et rentabilité.' },
-        { bold: 'Aide à la décision', text: 'pour sécuriser votre investissement.' },
+        { bold: 'Décryptage automatique', text: 'de votre facture électricité et gaz.' },
+        { bold: 'Visualisation claire', text: 'des postes de consommation et des montants.' },
+        { bold: 'Opportunités d’économies', text: 'identifiées en quelques minutes.' },
       ],
-      buttonText: 'Comparer les Financements',
-      routerLink: '/comparaison-financements',
+      buttonText: "Lancer l'Analyse Facture",
+      routerLink: '/analyse-facture',
       accentColor: 'orange',
+    },
+    {
+      icon: 'subsidy',
+      title: 'Simulateur des subventions',
+      description: 'Estimez votre prime FTE en quelques minutes.',
+      features: [
+        { bold: 'Barème officiel FTE', text: 'études, équipements et photovoltaïque.' },
+        { bold: 'Calcul instantané', text: 'selon votre type de projet.' },
+        { bold: 'Prime non remboursable', text: "jusqu'à 70% de vos investissements." },
+      ],
+      buttonText: 'Lancer le simulateur',
+      routerLink: '/simulateur-subventions',
+      accentColor: 'teal',
     },
   ];
 }

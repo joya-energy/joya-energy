@@ -6,7 +6,6 @@ import { LandingBadgeComponent } from '../../components/landing-badge/landing-ba
 import {
   lucideZap,
   lucideFileSearch,
-  lucideReceipt,
   lucideSun,
   lucideBarChart3,
   lucideArrowRight,
@@ -33,7 +32,6 @@ interface PresentationCard {
     provideIcons({
       lucideZap,
       lucideFileSearch,
-      lucideReceipt,
       lucideSun,
       lucideBarChart3,
       lucideArrowRight,
@@ -51,15 +49,6 @@ export class LandingJoyaPresentationComponent {
       ctaText: 'Lancer une étude énergétique',
       ctaLink: '/audit-solaire',
       isFeatured: true,
-    },
-    {
-      id: 'analyse-facture',
-      title: 'Analyse facture',
-      description:
-        'Décryptage de votre facture STEG pour comprendre vos postes de consommation et identifier rapidement les opportunités d’économies.',
-      icon: 'lucideReceipt',
-      ctaText: 'En savoir plus',
-      ctaLink: '/analyse-facture',
     },
     {
       id: 'audit',

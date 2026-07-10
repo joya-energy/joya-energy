@@ -9,6 +9,8 @@ export type RessourcesIconName =
   | 'energy-audit'
   | 'carbon'
   | 'finance'
+  | 'subsidy'
+  | 'bill'
   | 'guide'
   | 'case-study'
   | 'faq';
