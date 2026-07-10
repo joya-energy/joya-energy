@@ -26,20 +26,24 @@ export class BillExtractionService {
   ): Promise<ExtractedBillData> {
     try {
       Logger.info('Starting bill extraction...');
-      Logger.info(`Input: size=${imageBuffer.length} bytes, mimeType=${mimeType}`);
-      
+      Logger.info(
+        `Input: size=${imageBuffer.length} bytes, mimeType=${mimeType}`
+      );
+
       const { buffer: preparedBuffer, mimeType: preparedMimeType } =
         await this.prepareInputBuffer(imageBuffer, mimeType);
-      
+
       Logger.info(
         `Image prepared: original=${imageBuffer.length} bytes, ` +
-        `prepared=${preparedBuffer.length} bytes, ` +
-        `mimeType=${preparedMimeType}`
+          `prepared=${preparedBuffer.length} bytes, ` +
+          `mimeType=${preparedMimeType}`
       );
-      
+
       // Validate prepared buffer
       if (preparedBuffer.length === 0) {
-        throw new HTTP400Error('Image preparation failed. The prepared image buffer is empty.');
+        throw new HTTP400Error(
+          'Image preparation failed. The prepared image buffer is empty.'
+        );
       }
       
       // Check if buffer is too large (vision API has limits)
@@ -50,10 +54,10 @@ export class BillExtractionService {
           `This might cause issues with the vision API.`
         );
       }
-      
+
       const base64Image = preparedBuffer.toString('base64');
       const dataUrl = `data:${preparedMimeType};base64,${base64Image}`;
-      
+
       Logger.info(
         `Base64 encoding complete. Data URL length: ${dataUrl.length} characters. ` +
         `Sending to vision LLM via OpenRouter...`
@@ -227,7 +231,7 @@ export class BillExtractionService {
         max_tokens: 2000,
         temperature: 0.1,
       });
-      
+
       const responseTime = Date.now() - startTime;
       Logger.info(`LLM response received in ${responseTime}ms`);
 
@@ -260,7 +264,10 @@ export class BillExtractionService {
         Logger.info('JSON parsed successfully');
       } catch (parseError) {
         Logger.error('JSON parsing failed:', parseError);
-        Logger.error('JSON string (first 1000 chars):', jsonString.substring(0, 1000));
+        Logger.error(
+          'JSON string (first 1000 chars):',
+          jsonString.substring(0, 1000)
+        );
         throw new HTTP400Error(
           'Failed to parse extraction response. The AI response was not valid JSON.',
           parseError
@@ -278,11 +285,13 @@ export class BillExtractionService {
         extractedData.period?.value !== undefined &&
         extractedData.period.value > 0
       ) {
-        const calculated = extractedData.monthlyBillAmount.value.total / extractedData.period.value;
+        const calculated =
+          extractedData.monthlyBillAmount.value.total /
+          extractedData.period.value;
         extractedData.BillAmountDividedByPeriod = {
           value: calculated,
           explanation:
-            'Le montant total de l\'électricité consommée hors taxes (HT) divisé par le nombre de mois (calculé automatiquement).',
+            "Le montant total de l'électricité consommée hors taxes (HT) divisé par le nombre de mois (calculé automatiquement).",
         };
         Logger.info(
           `Calculated BillAmountDividedByPeriod: ${calculated} (from ${extractedData.monthlyBillAmount.value.total} / ${extractedData.period.value})`
@@ -298,7 +307,9 @@ export class BillExtractionService {
       ) {
         try {
           // Parse YYYY-MM-DD format
-          const dateMatch = extractedData.periodStart.value.match(/(\d{4})-(\d{2})-(\d{2})/);
+          const dateMatch = extractedData.periodStart.value.match(
+            /(\d{4})-(\d{2})-(\d{2})/
+          );
           if (dateMatch) {
             const month = parseInt(dateMatch[2]!, 10);
             if (month >= 1 && month <= 12) {
@@ -307,11 +318,15 @@ export class BillExtractionService {
                 explanation:
                   'Le mois de référence de la facture, extrait de la date de début de période (calculé automatiquement).',
               };
-              Logger.info(`Calculated MonthOfReferance: ${month} (from periodStart: ${extractedData.periodStart.value})`);
+              Logger.info(
+                `Calculated MonthOfReferance: ${month} (from periodStart: ${extractedData.periodStart.value})`
+              );
             }
           }
         } catch (error) {
-          Logger.warn(`Failed to calculate MonthOfReferance from periodStart: ${String(error)}`);
+          Logger.warn(
+            `Failed to calculate MonthOfReferance from periodStart: ${String(error)}`
+          );
         }
       }
 
@@ -321,8 +336,10 @@ export class BillExtractionService {
         monthlyBillAmountTotal: extractedData.monthlyBillAmount?.value?.total,
         hasPeriod: !!extractedData.period?.value,
         periodValue: extractedData.period?.value,
-        hasBillAmountDividedByPeriod: !!extractedData.BillAmountDividedByPeriod?.value,
-        billAmountDividedByPeriod: extractedData.BillAmountDividedByPeriod?.value,
+        hasBillAmountDividedByPeriod:
+          !!extractedData.BillAmountDividedByPeriod?.value,
+        billAmountDividedByPeriod:
+          extractedData.BillAmountDividedByPeriod?.value,
         hasPeriodStart: !!extractedData.periodStart?.value,
         periodStartValue: extractedData.periodStart?.value,
         hasMonthOfReferance: !!extractedData.MonthOfReferance?.value,
@@ -407,7 +424,10 @@ export class BillExtractionService {
       //   };
       // }
 
-      throw new HTTP400Error('Failed to extract data from bill', error);
+      throw new HTTP400Error(
+        'Failed to extract data from bill with error: ' + String(error),
+        error as Error
+      );
     }
   }
 
@@ -448,10 +468,14 @@ export class BillExtractionService {
     // For non-PDF files (images), validate the buffer
     if (buffer.length === 0) {
       Logger.error('Received empty image buffer');
-      throw new HTTP400Error('Invalid image file. The file appears to be empty.');
+      throw new HTTP400Error(
+        'Invalid image file. The file appears to be empty.'
+      );
     }
 
-    Logger.info(`Using image directly (size: ${buffer.length} bytes, type: ${mimeType})`);
+    Logger.info(
+      `Using image directly (size: ${buffer.length} bytes, type: ${mimeType})`
+    );
     return { buffer, mimeType };
   }
 }
