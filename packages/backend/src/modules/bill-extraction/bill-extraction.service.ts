@@ -2,8 +2,11 @@ import type OpenAI from 'openai';
 import { Logger } from '@backend/middlewares';
 import { HTTP400Error } from '@backend/errors';
 import { createOpenRouterClient, getLlmModel } from '@backend/common/llm';
-import { pdfToPng } from 'pdf-to-png-converter';
 import type { ExtractedBillData } from '@shared/interfaces/bill-extraction.interface';
+import {
+  convertPdfBillToPng,
+  resolveBillMimeType,
+} from './pdf-bill-image.util';
 
 export class BillExtractionService {
   private readonly llmClient: OpenAI;
@@ -413,7 +416,8 @@ export class BillExtractionService {
     buffer: Buffer,
     mimeType: string
   ): Promise<{ buffer: Buffer; mimeType: string }> {
-    return this.prepareInputBuffer(buffer, mimeType);
+    const resolvedMimeType = resolveBillMimeType(buffer, mimeType);
+    return this.prepareInputBuffer(buffer, resolvedMimeType);
   }
 
   private async prepareInputBuffer(
@@ -421,94 +425,21 @@ export class BillExtractionService {
     mimeType: string
   ): Promise<{ buffer: Buffer; mimeType: string }> {
     if (mimeType === 'application/pdf') {
-      Logger.info(
-        `PDF detected (size: ${buffer.length} bytes). Converting first page to high-resolution PNG for vision processing...`
-      );
       try {
-        // Try multiple viewport scales to find the best quality
-        // Start with a moderate scale that balances quality and file size
-        const conversionOptions = {
-          pagesToProcess: [1] as [number],
-          viewportScale: 3.0, // Reduced from 5.5 to avoid memory issues and improve reliability
-          disableFontFace: false,
-          useSystemFonts: true,
-          outputType: 'png' as const,
-          responseType: 'buffer' as const,
-          useWorker: false,
-          enableXfa: true,
-          // Additional options for better quality
-          strict: false, // Don't fail on minor issues
-        };
-
-        Logger.info('Starting PDF to PNG conversion with options:', conversionOptions);
-        const pngPages = await pdfToPng(buffer, conversionOptions);
-
-        Logger.info(`PDF conversion completed. Received ${pngPages.length} page(s).`);
-
-        if (pngPages.length === 0) {
-          Logger.error('PDF conversion returned empty array');
-          throw new HTTP400Error(
-            'Unable to convert PDF to image. Please provide a clear document.'
-          );
-        }
-
-        const firstPage = pngPages[0];
-        if (firstPage === null || firstPage === undefined) {
-          Logger.error('PDF conversion returned null/undefined first page');
-          throw new HTTP400Error(
-            'Unable to convert PDF to image. Please provide a clear document.'
-          );
-        }
-        if (firstPage.content === null || firstPage.content === undefined) {
-          Logger.error('PDF conversion first page has no content');
-          throw new HTTP400Error(
-            'Unable to convert PDF to image. Please provide a clear document.'
-          );
-        }
-
-        const firstPageBuffer = firstPage.content as Buffer;
-        
-        // Validate the converted image buffer
-        if (!Buffer.isBuffer(firstPageBuffer)) {
-          Logger.error('PDF conversion did not return a valid Buffer');
-          throw new HTTP400Error(
-            'PDF conversion produced invalid image data. Please try uploading a JPG/PNG image instead.'
-          );
-        }
-
-        if (firstPageBuffer.length === 0) {
-          Logger.error('PDF conversion produced empty buffer');
-          throw new HTTP400Error(
-            'PDF conversion produced empty image. Please provide a clear document.'
-          );
-        }
-
-        // Check if it's a valid PNG by checking the PNG signature
-        const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-        const isValidPng = firstPageBuffer.subarray(0, 8).equals(pngSignature);
-        
-        if (!isValidPng) {
-          Logger.warn('Converted image does not have valid PNG signature. Proceeding anyway...');
-        }
-
+        const converted = await convertPdfBillToPng(buffer);
         Logger.info(
-          `PDF conversion successful. PNG size: ${firstPageBuffer.length} bytes, ` +
-          `PNG signature valid: ${isValidPng}, ` +
-          `Original PDF size: ${buffer.length} bytes`
+          `PDF conversion successful. PNG size: ${converted.buffer.length} bytes, ` +
+            `page: ${converted.page}, scale: ${converted.scale}, ` +
+            `original PDF size: ${buffer.length} bytes`
         );
-
-        return { buffer: firstPageBuffer, mimeType: 'image/png' };
+        return { buffer: converted.buffer, mimeType: converted.mimeType };
       } catch (error) {
         Logger.error(`PDF to PNG conversion failed: ${String(error)}`);
-        Logger.error('Error details:', {
-          errorName: error instanceof Error ? error.name : 'Unknown',
-          errorMessage: error instanceof Error ? error.message : String(error),
-          errorStack: error instanceof Error ? error.stack : undefined,
-        });
-        
-        if (error instanceof HTTP400Error) throw error;
+        if (error instanceof HTTP400Error) {
+          throw error;
+        }
         throw new HTTP400Error(
-          'PDF conversion failed. Please upload a JPG/PNG image instead, or ensure the PDF is not corrupted.',
+          'PDF conversion failed. Please upload a JPG/PNG photo of the bill, or export the PDF as an image.',
           error
         );
       }

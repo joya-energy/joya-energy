@@ -17,6 +17,7 @@ const DEFAULT_PLACEHOLDER_OPTION = 'Sélectionnez...';
 const MIN_NUMERIC = 0;
 const MIN_MONTH = 1;
 const MAX_MONTH = 12;
+const PHONE_PATTERN = /^(\+|00)[0-9]{8,15}$|^[0-9]{8}$/;
 
 // Custom validator to ensure buildingType/climateZone is a valid enum value (not an empty object)
 function enumValidator(enumObject: Record<string, string>): (control: AbstractControl) => ValidationErrors | null {
@@ -179,7 +180,10 @@ export class AuditSolaireFormService {
         fullName: this.fb.nonNullable.control('', [Validators.required]),
         companyName: this.fb.nonNullable.control('', [Validators.required]),
         email: this.fb.nonNullable.control('', [Validators.required, Validators.email]),
-        phoneNumber: this.fb.nonNullable.control('', [Validators.required])
+        phoneNumber: this.fb.nonNullable.control('', [
+          Validators.required,
+          Validators.pattern(PHONE_PATTERN),
+        ]),
       })
     });
   }
