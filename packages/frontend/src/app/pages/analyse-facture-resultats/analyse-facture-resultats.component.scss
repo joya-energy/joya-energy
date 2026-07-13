@@ -422,6 +422,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
+  overflow: visible;
 
   &--wide {
     grid-template-columns: repeat(5, 1fr);
@@ -442,11 +443,12 @@
 
 .report-kpi {
   position: relative;
+  z-index: 0;
   padding: 1.35rem 1.4rem;
   border-radius: 14px;
   background: var(--neutral-50, #fafafa);
   border: 1px solid var(--neutral-200, #e5e5e5);
-  overflow: hidden;
+  overflow: visible;
 
   &::before {
     content: '';
@@ -455,7 +457,13 @@
     top: 0;
     bottom: 0;
     width: 5px;
+    border-radius: 14px 0 0 14px;
     background: var(--landing-primary, #e37051);
+  }
+
+  &:hover,
+  &:focus-within {
+    z-index: 5;
   }
 
   &--accent .report-kpi__value {
@@ -491,9 +499,13 @@
 
 .report-kpi .report-detail__tooltip--kpi {
   left: 0;
+  right: auto;
+  bottom: auto;
+  top: calc(100% + 8px);
   transform: none;
   width: max(14rem, 22vw);
-  max-width: 18rem;
+  max-width: min(18rem, 70vw);
+  z-index: 60;
 }
 
 .report-kpi__value {
