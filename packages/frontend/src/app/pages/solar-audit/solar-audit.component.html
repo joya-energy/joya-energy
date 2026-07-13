@@ -1253,11 +1253,14 @@
           <button
             type="button"
             class="hero__btn hero__btn--primary"
+            [class.hero__btn--loading]="isSubmitting()"
             [disabled]="primaryActionDisabled()"
+            [attr.aria-busy]="isSubmitting()"
+            [attr.aria-label]="isSubmitting() ? primaryActionLabel() : null"
             (click)="nextStep()"
           >
             @if (isSubmitting()) {
-            <span>{{ primaryActionLabel() }}</span>
+            <span class="hero__btn-spinner" aria-hidden="true"></span>
             } @else {
             <span>{{ primaryActionLabel() }}</span>
             <ng-icon name="lucideArrowRight" size="16"></ng-icon>
@@ -1315,11 +1318,14 @@
         <button
           type="button"
           class="hero__btn hero__btn--primary"
+          [class.hero__btn--loading]="isSubmitting()"
           [disabled]="primaryActionDisabled()"
+          [attr.aria-busy]="isSubmitting()"
+          [attr.aria-label]="isSubmitting() ? primaryActionLabel() : null"
           (click)="nextStep()"
         >
           @if (isSubmitting()) {
-          <span>{{ primaryActionLabel() }}</span>
+          <span class="hero__btn-spinner" aria-hidden="true"></span>
           } @else {
           <span>{{ primaryActionLabel() }}</span>
           <ng-icon name="lucideArrowRight" size="16"></ng-icon>

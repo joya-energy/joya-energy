@@ -563,6 +563,31 @@
   }
 }
 
+.hero__btn--loading {
+  min-width: 10.5rem;
+
+  &:disabled {
+    opacity: 1;
+    cursor: wait;
+  }
+}
+
+.hero__btn-spinner {
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid color-mix(in srgb, #fff 35%, transparent);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: hero-btn-spin 0.75s linear infinite;
+}
+
+@keyframes hero-btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .hero__btn--outline {
   color: var(--landing-primary);
   border: 1px solid color-mix(in srgb, var(--landing-primary) 70%, #fff);
