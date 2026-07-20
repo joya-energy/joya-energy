@@ -6,4 +6,6 @@ export const environment = {
   production: false,
   apiUrl: 'http://localhost:3001/api',
   googleMapsApiKey: 'AIzaSyBls9111rmwlK89NjAaqVRHMEhJdzeZs9Q',
+  /** Monorepo customer-web (demande financement, installateurs, login). */
+  customerAppUrl: 'http://localhost:3000',
 };

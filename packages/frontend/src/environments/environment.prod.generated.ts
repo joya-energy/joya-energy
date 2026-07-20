@@ -2,4 +2,5 @@
 export const generatedEnv = {
   apiUrl: 'https://joya-backend-production.up.railway.app/api',
   googleMapsApiKey: 'AIzaSyBls9111rmwlK89NjAaqVRHMEhJdzeZs9Q',
+  customerAppUrl: 'https://app.joya-energy.com',
 };

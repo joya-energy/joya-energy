@@ -17,11 +17,15 @@ const apiUrl = (
 const googleMapsApiKey = (
   process.env.NG_APP_GOOGLE_MAPS_API_KEY || 'AIzaSyBls9111rmwlK89NjAaqVRHMEhJdzeZs9Q'
 ).replace(/'/g, "\\'");
+const customerAppUrl = (
+  process.env.NG_APP_CUSTOMER_APP_URL || 'https://app.joya-energy.com'
+).replace(/'/g, "\\'");
 
 const content = `// Auto-generated at build time – do not edit
 export const generatedEnv = {
   apiUrl: '${apiUrl}',
   googleMapsApiKey: '${googleMapsApiKey}',
+  customerAppUrl: '${customerAppUrl}',
 };
 `;
 

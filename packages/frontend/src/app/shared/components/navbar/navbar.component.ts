@@ -10,11 +10,13 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { environment } from '../../../../environments/environment';
 
 interface NavLink {
   label: string;
   path: string;
   id: string;
+  external?: boolean;
 }
 
 @Component({
@@ -136,6 +138,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
     { label: 'Notre solution', path: '/notre-solution', id: 'nav-solution' },
     { label: 'Plateforme digitale', path: '/plateforme-digitale', id: 'nav-plateforme' },
     { label: 'Ressources', path: '/ressources', id: 'nav-ressources' },
+    {
+      label: 'Installateur',
+      path: `${environment.customerAppUrl}/installateurs`,
+      id: 'nav-installateur',
+      external: true,
+    },
     { label: 'Blogs', path: '/blogs', id: 'nav-blogs' },
     { label: 'Contact', path: '/contact', id: 'nav-contact' },
   ];

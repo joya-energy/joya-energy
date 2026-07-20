@@ -6,6 +6,7 @@ import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import { lucideLinkedin } from '@ng-icons/lucide';
 import { FooterVisibilityService } from '../../services/footer-visibility.service';
 import { LeadService } from '../../../core/services/lead.service';
+import { environment } from '../../../../environments/environment';
 import { finalize } from 'rxjs/operators';
 
 interface NavigationLink {
@@ -60,7 +61,7 @@ export class FooterComponent {
     company: [
       { name: 'À propos', href: '/about' },
       { name: 'Blog', href: '/blog' },
-      { name: 'Installateurs', href: '/installateurs' },
+      { name: 'Installateurs', href: `${environment.customerAppUrl}/installateurs` },
       { name: 'Partenaires', href: '/devenir-partenaire' },
     ],
     legal: [

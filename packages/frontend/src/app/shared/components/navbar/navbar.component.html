@@ -25,6 +25,15 @@
           >
             {{ link.label }}
           </a>
+          } @else if (link.external) {
+          <a
+            [href]="link.path"
+            class="navbar-link"
+            [attr.aria-label]="link.label"
+            [attr.data-link-id]="link.id"
+          >
+            {{ link.label }}
+          </a>
           } @else {
           <a
             [routerLink]="link.path"
@@ -82,6 +91,16 @@
           @if (link.path === '#') {
           <a
             href="#"
+            class="navbar-mobile-link"
+            (click)="closeMobileMenu()"
+            [attr.aria-label]="link.label"
+            [attr.data-link-id]="link.id"
+          >
+            {{ link.label }}
+          </a>
+          } @else if (link.external) {
+          <a
+            [href]="link.path"
             class="navbar-mobile-link"
             (click)="closeMobileMenu()"
             [attr.aria-label]="link.label"
