@@ -83,8 +83,8 @@ describe('EconomicAnalysisCalculator', () => {
     });
 
     it('should use default CAPEX rate', () => {
-      const result = calculateCapex(5, 2300); // 5 kWp with default 2300 DT/kWp
-      expect(result).toBe(11500);
+      const result = calculateCapex(5, 2400); // 5 kWp with default 2400 DT/kWp
+      expect(result).toBe(12000);
     });
   });
 

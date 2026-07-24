@@ -1,7 +1,10 @@
 <app-notification-toast />
-<app-navbar />
 
-<main class="main-content">
+@if (footerVisibility.isNavbarVisible()) {
+  <app-navbar />
+}
+
+<main class="main-content" [class.main-content--no-navbar]="!footerVisibility.isNavbarVisible()">
   <router-outlet />
 </main>
 

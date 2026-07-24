@@ -53,7 +53,7 @@ export type PvReportData = {
 };
 
 // Constants
-const DEFAULT_CAPEX_PER_KWP = 2300;
+const DEFAULT_CAPEX_PER_KWP = 2400;
 const DEFAULT_ANNUAL_OPEX_RATE = 4;
 
 const round = (n: number, d = 2) =>
@@ -278,7 +278,6 @@ export function buildPvReportDataFromSolaire(
   // These must come from proper economic analysis, not fallback calculations
   const recordId = (solaireDto as any).id || 'unknown';
   const installationCost = validateNumber(solaireDto.installationCost);
-  const annualOpexFromDto = validateNumber(solaireDto.annualOpex);
   const totalSavings25Years = validateNumber(solaireDto.totalSavings25Years);
   
   // Require critical financial metrics (throws error if missing/invalid)
@@ -404,16 +403,23 @@ export function buildPvReportDataFromSolaire(
     Logger.warn('Calculated gainCumulated is <= 0 - this may indicate an issue with the calculation');
   }
   
-  // Calculate CAPEX and OPEX values
-  // Prefer values from DTO if available, otherwise calculate from pvPower
+  // Calculate CAPEX and OPEX for the PDF investment section.
+  // Always use the current unit price (2400 DT/kWc) so the report stays consistent,
+  // even if the stored simulation was created with an older CAPEX rate.
   const capexPerKwp = DEFAULT_CAPEX_PER_KWP;
   const annualOpexRate = DEFAULT_ANNUAL_OPEX_RATE;
-  const capexTotal = installationCost !== null && installationCost > 0 
-    ? installationCost 
-    : (pvPower !== null ? round(pvPower * capexPerKwp, 0) : null);
-  const opexAnnual = annualOpexFromDto !== null && annualOpexFromDto > 0 
-    ? annualOpexFromDto
-    : (capexTotal !== null ? round(capexTotal * annualOpexRate / 100, 0) : null);
+  const capexTotal =
+    pvPower !== null && pvPower > 0
+      ? round(pvPower * capexPerKwp, 0)
+      : installationCost !== null && installationCost > 0
+        ? installationCost
+        : null;
+  const opexAnnual =
+    capexTotal !== null ? round(capexTotal * annualOpexRate / 100, 0) : null;
+
+  Logger.info(
+    `PV report investment: ${capexPerKwp} DT/kWc × ${pvPower ?? 'n/a'} kWc = ${capexTotal ?? 'n/a'} DT (OPEX ${opexAnnual ?? 'n/a'} DT/an)`
+  );
 
   /* ===============================
      CO2 DATA

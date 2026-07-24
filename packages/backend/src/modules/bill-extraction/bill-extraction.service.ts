@@ -5,6 +5,7 @@ import { createOpenRouterClient, getLlmModel } from '@backend/common/llm';
 import type { ExtractedBillData } from '@shared/interfaces/bill-extraction.interface';
 import {
   convertPdfBillToPng,
+  downscaleBillImageForVision,
   resolveBillMimeType,
 } from './pdf-bill-image.util';
 
@@ -432,7 +433,7 @@ export class BillExtractionService {
             `page: ${converted.page}, scale: ${converted.scale}, ` +
             `original PDF size: ${buffer.length} bytes`
         );
-        return { buffer: converted.buffer, mimeType: converted.mimeType };
+        return downscaleBillImageForVision(converted.buffer);
       } catch (error) {
         Logger.error(`PDF to PNG conversion failed: ${String(error)}`);
         if (error instanceof HTTP400Error) {
@@ -445,14 +446,13 @@ export class BillExtractionService {
       }
     }
 
-    // For non-PDF files (images), validate the buffer
     if (buffer.length === 0) {
       Logger.error('Received empty image buffer');
       throw new HTTP400Error('Invalid image file. The file appears to be empty.');
     }
 
-    Logger.info(`Using image directly (size: ${buffer.length} bytes, type: ${mimeType})`);
-    return { buffer, mimeType };
+    Logger.info(`Preparing image for vision (size: ${buffer.length} bytes, type: ${mimeType})`);
+    return downscaleBillImageForVision(buffer);
   }
 }
 

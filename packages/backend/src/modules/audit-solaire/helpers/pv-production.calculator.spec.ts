@@ -6,7 +6,8 @@ import {
   calculateInstalledPVPower,
   calculateMonthlyPVProduction,
   calculateNetConsumptionAndCredits,
-  calculateEnergyCoverageRate
+  calculateEnergyCoverageRate,
+  MAX_BT_INSTALLED_POWER_KWC,
 } from './pv-production.calculator';
 
 describe('PVProductionCalculator', () => {
@@ -14,12 +15,11 @@ describe('PVProductionCalculator', () => {
     it('should calculate annual producible energy', () => {
       const monthlyIrradiations = Array(12).fill(150); // 150 kWh/m²/month
       const installedPower = 10; // 10 kWp
-      const systemEfficiency = 0.8;
 
-      const result = calculateAnnualProducible(monthlyIrradiations, installedPower, systemEfficiency);
+      const result = calculateAnnualProducible(monthlyIrradiations, installedPower);
 
-      // Expected: 12 months × 150 kWh/m² × 10 kWp × 0.8 = 14400 kWh
-      expect(result).toBeCloseTo(14400, 2);
+      // Expected: 12 months × 150 kWh/m² × 10 kWp = 18000 kWh
+      expect(result).toBeCloseTo(18000, 2);
     });
   });
 
@@ -50,21 +50,25 @@ describe('PVProductionCalculator', () => {
       const result = calculateInstalledPVPower(10, 8);
       expect(result).toBe(8);
     });
+
+    it('should cap BT peak power at 207.85 kWc', () => {
+      const result = calculateInstalledPVPower(300, MAX_BT_INSTALLED_POWER_KWC);
+      expect(result).toBe(207.85);
+    });
   });
 
   describe('calculateMonthlyPVProduction', () => {
     it('should calculate monthly PV production', () => {
       const monthlyIrradiations = [120, 130, 150, 160, 180, 200, 210, 200, 180, 150, 130, 120];
       const installedPower = 5; // 5 kWp
-      const systemEfficiency = 0.8;
 
-      const result = calculateMonthlyPVProduction(installedPower, monthlyIrradiations, systemEfficiency);
+      const result = calculateMonthlyPVProduction(installedPower, monthlyIrradiations);
 
       expect(result).toHaveLength(12);
       // July should have highest production
-      expect(result[6]).toBeCloseTo(210 * 5 * 0.8, 2); // 840 kWh
+      expect(result[6]).toBeCloseTo(210 * 5, 2); // 1050 kWh
       // January should have lowest
-      expect(result[0]).toBeCloseTo(120 * 5 * 0.8, 2); // 480 kWh
+      expect(result[0]).toBeCloseTo(120 * 5, 2); // 600 kWh
     });
   });
 
@@ -95,7 +99,7 @@ describe('PVProductionCalculator', () => {
 
       // Each month: 1000 - 1200 = -200 → credit accumulates
       let expectedCredit = 0;
-      result.forEach((month, index) => {
+      result.forEach((month) => {
         expectedCredit += 200;
         expect(month.netConsumption).toBe(0);
         expect(month.credit).toBe(expectedCredit);
@@ -125,6 +129,7 @@ describe('PVProductionCalculator', () => {
       const input = {
         annualConsumption: 24000, // 24 MWh
         annualProductible: 1800, // 1800 kWh/m²
+        monthlyProductible: Array(12).fill(150),
         monthlyConsumptions: Array(12).fill(2000), // 2000 kWh/month each
       };
 
@@ -141,6 +146,7 @@ describe('PVProductionCalculator', () => {
       const input = {
         annualConsumption: 50000,
         annualProductible: 1800,
+        monthlyProductible: Array(12).fill(150),
         monthlyConsumptions: Array(12).fill(4167),
         installedPower: 20, // Limit to 20 kWp
       };
@@ -148,6 +154,20 @@ describe('PVProductionCalculator', () => {
       const result = calculatePVProduction(input);
 
       expect(result.installedPower).toBe(20);
+    });
+
+    it('should cap installed power at BT max 207.85 kWc', () => {
+      const input = {
+        annualConsumption: 500_000,
+        annualProductible: 1600,
+        monthlyProductible: Array(12).fill(133.33),
+        monthlyConsumptions: Array(12).fill(41_667),
+        maxInstalledPower: MAX_BT_INSTALLED_POWER_KWC,
+      };
+
+      const result = calculatePVProduction(input);
+
+      expect(result.installedPower).toBe(MAX_BT_INSTALLED_POWER_KWC);
     });
   });
 });
