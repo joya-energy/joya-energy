@@ -50,7 +50,8 @@ const TARIFF_TABLE: BracketDetail[] = [
   { min: 0, max: 200, rate: 0.195 },
   { min: 200, max: 300, rate: 0.240 },
   { min: 300, max: 500, rate: 0.333 },
-  { min: 500, max: Number.POSITIVE_INFINITY, rate: 0.391 }
+  // STEG BT unitaire TTC (TVA 19 %): 0.391 × 1.19 = 0.465 DT/kWh
+  { min: 500, max: Number.POSITIVE_INFINITY, rate: 0.465 }
 ];
 
 const resolveRate = (consumption: number): BracketDetail => {

@@ -26,8 +26,9 @@ export class PreAuditSolaireComponent {
   }
 
   // Assumptions from the "Pré-Simulateur Solaire Photovoltaïque" doc screenshots.
-  private readonly tariffDtPerKwh = 0.391;
-  private readonly capexDtPerKwc = 2300;
+  // STEG BT unitaire TTC (TVA 19 %): 0.391 × 1.19 = 0.465 DT/kWh
+  private readonly tariffDtPerKwh = 0.465;
+  private readonly capexDtPerKwc = 2400;
   private readonly opexRate = 0.04;
   protected readonly maxMonthlyBillDt = 10000;
 

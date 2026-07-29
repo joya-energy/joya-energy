@@ -24,5 +24,12 @@
   overflow-y: visible;
   box-sizing: border-box;
   position: relative;
+
+  &--no-navbar {
+    min-height: 100vh;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
 }
 

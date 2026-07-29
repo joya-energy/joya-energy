@@ -31,10 +31,10 @@ describe('Flat Rate Tariff Calculator', () => {
   it('uses the top rate once consumption exceeds 500', () => {
     const result = computeFlatRateTariff({ monthlyConsumption: 600 });
 
-    expect(result.monthlyCost).toBeCloseTo(234.6, 3);
-    expect(result.annualCost).toBeCloseTo(2815.2, 2);
-    expect(result.effectiveRate).toBe(0.391);
-    expect(result.bracketDetails[0].rate).toBe(0.391);
+    expect(result.monthlyCost).toBeCloseTo(279, 3);
+    expect(result.annualCost).toBeCloseTo(3348, 2);
+    expect(result.effectiveRate).toBe(0.465);
+    expect(result.bracketDetails[0].rate).toBe(0.465);
   });
 });
 
@@ -42,10 +42,10 @@ describe('convertAmountToConsumptionFlatRate', () => {
   it('uses a single bracket rate (flat-rate) to convert amount to kWh', () => {
     const result = convertAmountToConsumptionFlatRate({ monthlyAmount: 2144.244 });
 
-    // 2144.244 DT/month corresponds to the 500+ bracket (0.391 DT/kWh)
-    // consumption = amount / rate ≈ 5484.0 kWh/month
-    expect(result.appliedRate).toBe(0.391);
-    expect(result.monthlyConsumption).toBeCloseTo(2144.244 / 0.391, 2);
+    // 2144.244 DT/month corresponds to the 500+ bracket (0.465 DT/kWh TTC)
+    // consumption = amount / rate ≈ 4611.3 kWh/month
+    expect(result.appliedRate).toBe(0.465);
+    expect(result.monthlyConsumption).toBeCloseTo(2144.244 / 0.465, 2);
   });
 });
 

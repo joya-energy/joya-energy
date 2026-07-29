@@ -5,6 +5,8 @@ import sharp from 'sharp';
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 const PDF_VIEWPORT_SCALES = [3.0, 2.0, 4.0] as const;
 const PDF_PAGES_TO_TRY = [1, 2] as const;
+/** Caps vision tiles for detail=high while keeping text readable (STEG scans). */
+const VISION_MAX_EDGE_PX = 1600;
 
 export function isPdfBuffer(buffer: Buffer): boolean {
   return buffer.length >= 4 && buffer.subarray(0, 4).toString() === '%PDF';
@@ -33,6 +35,35 @@ export async function isLikelyBlankPng(buffer: Buffer): Promise<boolean> {
 
 async function enhanceBillPng(buffer: Buffer): Promise<Buffer> {
   return sharp(buffer).normalize().sharpen({ sigma: 1 }).png({ compressionLevel: 6 }).toBuffer();
+}
+
+/**
+ * Downscale + JPEG so OpenRouter detail=high stays under prompt-token credit limits.
+ */
+export async function downscaleBillImageForVision(
+  buffer: Buffer
+): Promise<{ buffer: Buffer; mimeType: 'image/jpeg' }> {
+  const meta = await sharp(buffer).metadata();
+  const width = meta.width ?? 0;
+  const height = meta.height ?? 0;
+  const needsResize = width > VISION_MAX_EDGE_PX || height > VISION_MAX_EDGE_PX;
+
+  let pipeline = sharp(buffer).rotate();
+  if (needsResize) {
+    pipeline = pipeline.resize({
+      width: VISION_MAX_EDGE_PX,
+      height: VISION_MAX_EDGE_PX,
+      fit: 'inside',
+      withoutEnlargement: true,
+    });
+  }
+
+  const output = await pipeline.jpeg({ quality: 85, mozjpeg: true }).toBuffer();
+  Logger.info(
+    `Vision image prepared: ${width}x${height} → jpeg ${output.length} bytes` +
+      (needsResize ? ` (max edge ${VISION_MAX_EDGE_PX}px)` : '')
+  );
+  return { buffer: output, mimeType: 'image/jpeg' };
 }
 
 async function renderPdfPage(buffer: Buffer, page: number, scale: number): Promise<Buffer | null> {

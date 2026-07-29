@@ -169,7 +169,7 @@ export class MailService {
           filename: a.Name,
           content: Buffer.from(a.Content, 'base64'),
           contentType: a.ContentType,
-          cid: a.ContentID,
+          cid: a.ContentID.replace(/^cid:/, ''),
         })),
       });
 
@@ -191,12 +191,14 @@ export class MailService {
     subject: string;
     text: string;
     html: string;
+    attachments?: MailAttachment[];
   }): Promise<void> {
     const transport = this.ensureTransport();
     const from = process.env.POSTMARK_FROM ?? process.env.EMAIL_FROM ?? '';
     if (!from) {
       throw new Error('EMAIL_FROM / POSTMARK_FROM is missing');
     }
+    const attachments = options.attachments ?? [];
     try {
       if (transport.type === 'postmark') {
         Logger.info('📨 Sending simple email via Postmark');
@@ -206,6 +208,12 @@ export class MailService {
           Subject: options.subject,
           TextBody: options.text,
           HtmlBody: options.html,
+          Attachments: attachments.map((a) => ({
+            Name: a.Name,
+            Content: a.Content,
+            ContentType: a.ContentType,
+            ContentID: a.ContentID,
+          })),
           MessageStream: process.env.POSTMARK_MESSAGE_STREAM ?? 'outbound',
         });
         Logger.info('✅ Simple email sent via Postmark');
@@ -218,6 +226,12 @@ export class MailService {
         subject: options.subject,
         text: options.text,
         html: options.html,
+        attachments: attachments.map((a) => ({
+          filename: a.Name,
+          content: Buffer.from(a.Content, 'base64'),
+          contentType: a.ContentType,
+          cid: a.ContentID.replace(/^cid:/, ''),
+        })),
       });
       Logger.info(`✅ Simple email sent via SMTP to ${options.to}`);
     } catch (err) {

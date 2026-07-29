@@ -4,7 +4,7 @@ export enum ModelsCollection {
   AUDIT_SOLAIRE_SIMULATION = 'audit-solaire-simulation',
   FINANCIAL_COMPARISON = 'financial-comparisons',
   FILE = 'files',
-  LEAD = 'leads'
+  LEAD = 'leads',
 }
 
 export enum AuditSimulationTypes {
