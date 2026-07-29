@@ -6,7 +6,7 @@ import { Logger } from '@backend/middlewares';
  * following the Tunisian STEG tariff structure and financial modeling standards.
  * 
  * Key Calculations:
- * - CAPEX: Investment cost (2300 DT/kWc)
+ * - CAPEX: Investment cost (2400 DT/kWc)
  * - OPEX: Annual maintenance cost (4% of CAPEX)
  * - Tariff-based bill calculations (bracket system)
  * - Inflation modeling (STEG 7%, OPEX 3%)
@@ -27,11 +27,11 @@ export interface EconomicAnalysisInput {
   opexInflationRate?: number; // Default 3% - i_OPEX
   discountRate?: number; // Default 8% - r
   pvDegradationRate?: number; // Default 0.4% - d
-  capexPerKwp?: number; // Default 2300 DT/kWp
+  capexPerKwp?: number; // Default 2400 DT/kWp
   opexRatePercentage?: number; // Default 4% of CAPEX - α
-  /** BT: use bracket tariff (0.391 DT/kWh for 500+ kWh). MT: use regime-based flat rate. */
+  /** BT: use bracket tariff (0.465 DT/kWh TTC for 500+ kWh). MT: use regime-based flat rate TTC. */
   tariffTension?: 'BT' | 'MT';
-  /** MT only: Tarif uniforme = 0.291 DT/kWh (291 millimes), Tarif horaire = 0.279 DT/kWh (279 millimes). */
+  /** MT only (TTC TVA 19 %): Tarif uniforme = 0.346 DT/kWh, Tarif horaire = 0.332 DT/kWh. */
   tariffRegime?: 'uniforme' | 'horaire' | null;
   /** When set (e.g. MT T_couv sizing), use for CAPEX/OPEX instead of installedPowerKwp. */
   installedPowerKwpOverride?: number;
@@ -96,24 +96,27 @@ interface TariffBracket {
   ratePerKwh: number; 
 }
 
+const STEG_TVA_MULTIPLIER = 1.19;
+
 const STEG_TARIFF_BRACKETS: TariffBracket[] = [
   { minKwh: 0, maxKwh: 200, ratePerKwh: 0.195 },
   { minKwh: 200, maxKwh: 300, ratePerKwh: 0.240 },
   { minKwh: 300, maxKwh: 500, ratePerKwh: 0.333 },
-  { minKwh: 500, maxKwh: Infinity, ratePerKwh: 0.391 },
+  // STEG BT unitaire TTC (TVA 19 %): 0.391 × 1.19 = 0.465 DT/kWh
+  { minKwh: 500, maxKwh: Infinity, ratePerKwh: 0.465 },
 ];
 
-/** MT Tarif uniforme (screenshot: 291 millimes) → 0.291 DT/kWh */
-const MT_TARIFF_UNIFORME_DT_PER_KWH = 0.291;
-/** MT Tarif horaire (screenshot: 279 millimes) → 0.279 DT/kWh */
-const MT_TARIFF_HORAIRE_DT_PER_KWH = 0.279;
+/** MT Tarif uniforme HT 0.291 DT/kWh → TTC avec TVA 19 % */
+const MT_TARIFF_UNIFORME_DT_PER_KWH = 0.291 * STEG_TVA_MULTIPLIER;
+/** MT Tarif horaire HT 0.279 DT/kWh → TTC avec TVA 19 % */
+const MT_TARIFF_HORAIRE_DT_PER_KWH = 0.279 * STEG_TVA_MULTIPLIER;
 
 const DEFAULT_PROJECT_LIFETIME_YEARS = 25;
 const DEFAULT_STEG_TARIFF_INFLATION = 0.07; // 7%
 const DEFAULT_OPEX_INFLATION = 0.03; // 3%
 const DEFAULT_DISCOUNT_RATE = 0.08; // 8%
 const DEFAULT_PV_DEGRADATION_RATE = 0.004; // 0.4%
-const DEFAULT_CAPEX_PER_KWP = 2300; // DT/kWp
+const DEFAULT_CAPEX_PER_KWP = 2400; // DT/kWp
 const DEFAULT_OPEX_RATE_PERCENTAGE = 0.04; // 4% of CAPEX
 
 
@@ -127,7 +130,7 @@ const DEFAULT_OPEX_RATE_PERCENTAGE = 0.04; // 4% of CAPEX
  * - 150 kWh → 0.195 DT/kWh (bracket 0-200)
  * - 250 kWh → 0.240 DT/kWh (bracket 200-300)
  * - 450 kWh → 0.333 DT/kWh (bracket 300-500)
- * - 600 kWh → 0.391 DT/kWh (bracket 500+)
+ * - 600 kWh → 0.465 DT/kWh (bracket 500+, TTC TVA 19 %)
  * 
  * @param consumptionKwh - Monthly consumption in kWh
  * @returns Applicable tariff rate in DT/kWh
@@ -153,7 +156,8 @@ export function determineApplicableTariffRate(consumptionKwh: number): number {
 }
 
 /**
- * Tariff rate for extrapolation: BT uses bracket tariff (0.391 for 500+ kWh); MT uses regime (Tarif uniforme 0.291, Tarif horaire 0.279 DT/kWh).
+ * Tariff rate for extrapolation: BT uses bracket tariff (0.465 TTC for 500+ kWh);
+ * MT uses regime TTC (Tarif uniforme 0.291×1.19, Tarif horaire 0.279×1.19 DT/kWh).
  */
 function getTariffRateForInput(
   consumptionKwh: number,
@@ -248,7 +252,7 @@ export function calculateAverageAvoidedTariff(
  * CAPEX = Prix_par_kWc × P_PV
  * 
  * @param installedPowerKwp - Installed PV power in kWc
- * @param capexPerKwp - Cost per kWc (default: 2300 DT/kWc)
+ * @param capexPerKwp - Cost per kWc (default: 2400 DT/kWc)
  * @returns Total investment cost in DT
  */
 export function calculateCapex(installedPowerKwp: number, capexPerKwp: number): number {

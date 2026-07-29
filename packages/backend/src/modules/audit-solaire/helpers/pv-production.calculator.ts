@@ -1,11 +1,16 @@
 import { Logger } from '@backend/middlewares';
 
+/** Maximum peak power (kWc) allowed for Basse Tension (BT) solar audits. */
+export const MAX_BT_INSTALLED_POWER_KWC = 207.85;
+
 export interface PVProductionInput {
   annualConsumption: number; // Eann (kWh/an)
   annualProductible: number; // Annual productible from PVGIS (kWh/kWp/an) - already includes system losses
   monthlyProductible: number[]; // Monthly productible from PVGIS (kWh/kWp) [12 elements] - already includes system losses
   monthlyConsumptions: number[]; // C_brut(m) - Monthly raw consumption (kWh) [12 elements]
   installedPower?: number; // P_PV (kWc) - Optional, will be calculated if not provided
+  /** Optional ceiling for installed peak power (kWc). Used for BT (max 207.85 kWc). */
+  maxInstalledPower?: number;
 }
 
 export interface MonthlyPVProduction {
@@ -55,17 +60,25 @@ export function calculateTheoreticalPVPower(
 
 /**
  * Determine installed PV power
- * 
+ *
  * According to the document methodology:
  * P_PV,inst = PPV,th = Eann / Yspec
- * 
- * The installed power equals the theoretical power needed to cover consumption.
- * 
+ *
+ * Optionally capped (e.g. BT max 207.85 kWc).
+ *
  * @param theoreticalPower - Theoretical PV power (kWc)
+ * @param maxInstalledPower - Optional maximum installed power (kWc)
  * @returns Installed PV power (kWc)
  */
-export function calculateInstalledPVPower(theoreticalPower: number): number {
-  return Number(theoreticalPower.toFixed(2));
+export function calculateInstalledPVPower(
+  theoreticalPower: number,
+  maxInstalledPower?: number
+): number {
+  const capped =
+    maxInstalledPower != null
+      ? Math.min(theoreticalPower, maxInstalledPower)
+      : theoreticalPower;
+  return Number(capped.toFixed(2));
 }
 
 export function calculateMonthlyPVProduction(
@@ -159,8 +172,18 @@ export function calculatePVProduction(input: PVProductionInput): PVProductionRes
     input.annualProductible
   );
 
-  // Step 2: Determine installed power P_PV,inst = PPV,th 
-  const installedPower = input.installedPower ?? calculateInstalledPVPower(theoreticalPower);
+  // Step 2: Determine installed power P_PV,inst = PPV,th (optionally capped)
+  let installedPower =
+    input.installedPower ?? calculateInstalledPVPower(theoreticalPower, input.maxInstalledPower);
+
+  if (input.maxInstalledPower != null && installedPower > input.maxInstalledPower) {
+    Logger.info(
+      `Installed power capped from ${installedPower} to ${input.maxInstalledPower} kWc (BT max)`
+    );
+    installedPower = Number(input.maxInstalledPower.toFixed(2));
+  } else {
+    installedPower = Number(installedPower.toFixed(2));
+  }
 
   // Step 3: Calculate annual producible for the installed system Yspec_installed = Yspec × P_PV
   const annualProducible = calculateAnnualProducible(input.monthlyProductible, installedPower);

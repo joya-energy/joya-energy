@@ -1,0 +1,23 @@
+{
+  "_readme": "Regression notes for analyse-facture extraction. Full expected payloads live with STEG fixtures; this file tracks known production failure modes caught in Joya.",
+  "fixture_05_bt_estimee_18mois_gaz_quantite_zero_mais_redevance": {
+    "source_note": "FACTURE ESTIMEE, 18 mois, Quantité gaz = 0 MAIS redevance gaz = 40 DT → presence_gaz = Oui",
+    "expected": {
+      "date_debut_periode": "2024-04-26",
+      "date_fin_periode": "2026-04-22",
+      "periode_facturation": "18",
+      "puissance_souscrite_kva": "106",
+      "consommation_totale_kwh": "26316",
+      "redevances_fixes": "1335.600",
+      "montant_energie": "9863.708",
+      "montant_a_payer": "0",
+      "gaz": {
+        "presence_gaz": "Oui",
+        "consommation_gaz_m3": "0",
+        "montant_energie_gaz": "0",
+        "redevances_fixes_gaz": "40.000"
+      }
+    },
+    "known_production_bug_observed": "Earlier prompt produced gaz = 4 m³ / 2.35 DT énergie / 25 DT redevance (correct: 0 / 0 / 40.000) and dates = 22/01/2024 → 28/04/2024 (correct: 2024-04-26 → 2026-04-22). Cause gaz: column shift (Nbre de Mois=4 as Quantité, Puissance/Débit=25 as redevance). Cause dates: digit contamination from other date fields. Covered by correctFactureBtExtraction + prompt anti-shift rules."
+  }
+}

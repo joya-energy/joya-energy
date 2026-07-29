@@ -8,7 +8,10 @@ export interface AffichageClientField {
   explication: string;
 }
 
-export type AffichageClientMap = Record<string, AffichageClientField | string>;
+/** Nested sections (e.g. gaz) are maps of the same field shape. */
+export type AffichageClientMap = {
+  [key: string]: AffichageClientField | string | AffichageClientMap;
+};
 
 export interface GazFactureExtraite {
   presence_gaz: string;
@@ -22,6 +25,7 @@ export interface GazFactureExtraite {
 
 export interface FactureExtraiteBtRaw {
   type_facture?: string;
+  nature_facture?: string;
   numero_facture?: string;
   'N°Dépannage'?: string;
   reference_client?: string;
@@ -39,9 +43,12 @@ export interface FactureExtraiteBtRaw {
   redevances_fixes?: string;
   montant_energie?: string;
   montant_total?: string;
+  arrieres?: string;
+  paiements_precedents?: string;
   montant_a_payer?: string;
   date_limite_paiement?: string;
   date_prochaine_releve?: string;
+  etude_bt_mt_eligible?: boolean | string;
   gaz?: GazFactureExtraite;
   [key: string]: unknown;
 }

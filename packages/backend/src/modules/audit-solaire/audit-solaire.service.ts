@@ -11,7 +11,7 @@ import { Logger } from '@backend/middlewares';
 import { BuildingTypes, ClimateZones } from '@shared/enums/audit-general.enum';
 import { extrapolateConsumption } from './helpers/consumption-extrapolation.calculator';
 import axios, { type AxiosResponse } from 'axios';
-import { calculatePVProduction } from './helpers/pv-production.calculator';
+import { calculatePVProduction, MAX_BT_INSTALLED_POWER_KWC } from './helpers/pv-production.calculator';
 import { analyzeEconomics } from './helpers/economic-analysis.calculator';
 import { convertAmountToConsumptionFlatRate } from '../audit-energetique/helpers/progressive-tariff.calculator';
 import { PVGISService } from '@shared/services/pvgis.service';
@@ -43,10 +43,10 @@ const EXTERNAL_APIS = {
   },
 } as const;
 
-/** MT Tarif uniforme (291 millimes) → 0.291 DT/kWh; used for amount→kWh conversion when regime is MT uniforme */
-const MT_TARIFF_UNIFORME_DT_PER_KWH = 0.291;
-/** MT Tarif horaire (279 millimes) → 0.279 DT/kWh; used for amount→kWh conversion when regime is MT horaire */
-const MT_TARIFF_HORAIRE_DT_PER_KWH = 0.279;
+/** MT Tarif uniforme HT 0.291 DT/kWh → TTC avec TVA 19 %; used for amount→kWh conversion */
+const MT_TARIFF_UNIFORME_DT_PER_KWH = 0.291 * 1.19;
+/** MT Tarif horaire HT 0.279 DT/kWh → TTC avec TVA 19 %; used for amount→kWh conversion */
+const MT_TARIFF_HORAIRE_DT_PER_KWH = 0.279 * 1.19;
 
 
 export interface CreateSimulationInput {
@@ -90,7 +90,8 @@ export class AuditSolaireSimulationService extends CommonService<
 
 
     try {
-      // Amount (DT) → consumption (kWh): BT uses bracket tariff (0.391 for 500+ kWh); MT uses regime (Tarif uniforme 0.291, Tarif horaire 0.279)
+      // Amount (DT) → consumption (kWh): BT uses bracket tariff (0.465 TTC for 500+ kWh);
+      // MT uses regime TTC (uniforme 0.291×1.19, horaire 0.279×1.19)
       let measuredConsumptionKwh: number;
       if (input.tariffTension === 'MT' && (input.tariffRegime === 'uniforme' || input.tariffRegime === 'horaire')) {
         const rate = input.tariffRegime === 'uniforme' ? MT_TARIFF_UNIFORME_DT_PER_KWH : MT_TARIFF_HORAIRE_DT_PER_KWH;
@@ -120,6 +121,9 @@ export class AuditSolaireSimulationService extends CommonService<
         annualProductible: solarData.annualProductibleKwhPerKwp,
         monthlyProductible: solarData.monthlyProductibleKwhPerKwp,
         monthlyConsumptions,
+        // BT only: puissance crête plafonnée à 207,85 kWc
+        maxInstalledPower:
+          input.tariffTension === 'MT' ? undefined : MAX_BT_INSTALLED_POWER_KWC,
       });
 
       if (!pvSystemData.monthlyProductions || pvSystemData.monthlyProductions.length !== 12) {
