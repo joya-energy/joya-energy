@@ -210,23 +210,24 @@
   flex: 1;
   justify-content: center;
 
-  // Desktop: show links with larger gap
+  // Desktop: slightly tighter gap so the longer Installateur label fits
   @media (min-width: 1024px) and (max-width: 1409px) {
     display: flex;
-    gap: 2rem;
+    gap: 1.5rem;
   }
 
-  // Very wide screens: scale down gap to fit better
+  // Very wide screens
   @media (min-width: 1410px) {
     display: flex;
-    gap: 2.5rem;
+    gap: 2rem;
   }
 }
 
 .navbar-link {
   position: relative;
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-base); // 16px — matches original marketing nav
   font-weight: 500;
+  font-family: var(--font-family-primary);
   color: var(--text-secondary);
   text-decoration: none;
   padding: 0.5rem 0.25rem;
@@ -234,15 +235,13 @@
   opacity: 0.8;
   white-space: nowrap;
 
-  // Desktop: larger size
   @media (min-width: 1024px) and (max-width: 1409px) {
-    font-size: calc(var(--font-size-lg) * 0.7);
+    font-size: var(--font-size-base); // 16px (was shrunk to ~12.6px)
     padding: 0.6rem 0.4rem;
   }
 
-  // Very wide screens: scale down to fit better
   @media (min-width: 1410px) {
-    font-size: calc(var(--font-size-lg) * 0.9);
+    font-size: var(--font-size-base); // 16px
     padding: 0.75rem 0.5rem;
   }
 

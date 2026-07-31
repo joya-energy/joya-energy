@@ -274,21 +274,52 @@
         <section class="report-detail">
           <span class="report-badge report-badge--outline">Détail facture</span>
           <h2 class="report-detail__title">Données extraites</h2>
+          @if (btExtractionQuality(); as quality) {
+            @if (quality.overall !== 'high') {
+              <p
+                class="report-detail__quality"
+                [class.report-detail__quality--medium]="quality.overall === 'medium'"
+                [class.report-detail__quality--low]="quality.overall === 'low'"
+              >
+                {{ quality.summaryFr }}
+                @if (quality.correctionsCount > 0 || quality.suspectsCount > 0) {
+                  <span>
+                    ({{ quality.correctionsCount }} corrigé(s),
+                    {{ quality.suspectsCount }} à vérifier — score {{ quality.score }}/100)
+                  </span>
+                }
+              </p>
+            }
+          }
           <div class="report-detail__list">
             @for (row of detailFactureRows(); track row.label) {
               <div class="report-detail__row" [class.report-detail__row--highlight]="row.highlight">
                 <div class="report-detail__label">
                   <span>{{ row.label }}</span>
-                  <div class="report-detail__info-wrap">
-                    <button
-                      type="button"
-                      class="report-detail__info-btn"
-                      [attr.aria-label]="'En savoir plus : ' + row.label"
+                  @if (confidenceBadgeLabel(row.confidence); as badge) {
+                    <span
+                      class="report-detail__confidence"
+                      [class.report-detail__confidence--corrected]="row.confidence === 'corrected'"
+                      [class.report-detail__confidence--suspect]="
+                        row.confidence === 'suspect' || row.confidence === 'unverified'
+                      "
+                      [attr.title]="row.confidenceMessage || null"
                     >
-                      i
-                    </button>
-                    <div class="report-detail__tooltip" role="tooltip">{{ row.explication }}</div>
-                  </div>
+                      {{ badge }}
+                    </span>
+                  }
+                  @if (row.explication) {
+                    <div class="report-detail__info-wrap">
+                      <button
+                        type="button"
+                        class="report-detail__info-btn"
+                        [attr.aria-label]="'En savoir plus : ' + row.label"
+                      >
+                        i
+                      </button>
+                      <div class="report-detail__tooltip" role="tooltip">{{ row.explication }}</div>
+                    </div>
+                  }
                 </div>
                 <div class="report-detail__value">{{ row.value }}</div>
               </div>
@@ -360,6 +391,14 @@
               La ligne <strong>Puissance maximale appelée</strong> n'a pas été correctement extraite de
               cette facture. Sans cette valeur, les économies de révision de puissance ne peuvent pas être
               calculées. Relancez l'analyse avec une image plus nette.
+            </p>
+          } @else if (situation.profile === 'P_VERIFY') {
+            <p class="report-solar__text">
+              La valeur lue pour la puissance maximale appelée est identique à la puissance souscrite
+              (<strong>{{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA</strong>).
+              Sur une facture STEG MT, ces deux lignes sont distinctes — la lecture doit être confirmée
+              avant de conclure à un risque de dépassement. Relancez l'analyse avec une image plus nette
+              du bloc Puissance.
             </p>
           } @else {
           @switch (situation.profile) {
@@ -438,9 +477,14 @@
                 />
               </svg>
               <div class="report-donut__label">
-                <span class="report-donut__pct">{{ mtUtilisationPct() }}%</span>
-                @if (situation.profile !== 'P4') {
-                  <span class="report-donut__caption">utilisé</span>
+                @if (situation.profile === 'P_VERIFY') {
+                  <span class="report-donut__pct">?</span>
+                  <span class="report-donut__caption">à vérifier</span>
+                } @else {
+                  <span class="report-donut__pct">{{ mtUtilisationPct() }}%</span>
+                  @if (situation.profile !== 'P4') {
+                    <span class="report-donut__caption">utilisé</span>
+                  }
                 }
               </div>
             </div>
@@ -586,11 +630,40 @@
         <section class="report-detail">
           <span class="report-badge report-badge--outline">Détail facture</span>
           <h2 class="report-detail__title">Données extraites</h2>
+          @if (mtExtractionQuality(); as quality) {
+            @if (quality.overall !== 'high') {
+              <p
+                class="report-detail__quality"
+                [class.report-detail__quality--medium]="quality.overall === 'medium'"
+                [class.report-detail__quality--low]="quality.overall === 'low'"
+              >
+                {{ quality.summaryFr }}
+                @if (quality.correctionsCount > 0 || quality.suspectsCount > 0) {
+                  <span>
+                    ({{ quality.correctionsCount }} corrigé(s),
+                    {{ quality.suspectsCount }} à vérifier — score {{ quality.score }}/100)
+                  </span>
+                }
+              </p>
+            }
+          }
           <div class="report-detail__list">
             @for (row of mtDetailRows(); track row.label) {
               <div class="report-detail__row" [class.report-detail__row--highlight]="row.highlight">
                 <div class="report-detail__label">
                   <span>{{ row.label }}</span>
+                  @if (confidenceBadgeLabel(row.confidence); as badge) {
+                    <span
+                      class="report-detail__confidence"
+                      [class.report-detail__confidence--corrected]="row.confidence === 'corrected'"
+                      [class.report-detail__confidence--suspect]="
+                        row.confidence === 'suspect' || row.confidence === 'unverified'
+                      "
+                      [attr.title]="row.confidenceMessage || null"
+                    >
+                      {{ badge }}
+                    </span>
+                  }
                   @if (row.explication) {
                     <div class="report-detail__info-wrap">
                       <button

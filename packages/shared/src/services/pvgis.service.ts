@@ -31,7 +31,7 @@ export interface SolarIrradianceData {
 export class PVGISService {
   private static readonly API_CONFIG = {
     URL: (typeof process !== 'undefined' && process.env?.['PVGIS_API_URL']) 
-      ? process.env['PVGIS_API_URL'] 
+      ? process.env['PVGIS_API_URL'].trim()
       : 'https://re.jrc.ec.europa.eu/api/PVcalc',
     DEFAULT_PEAK_POWER: 1, // 1 kWp
     DEFAULT_SYSTEM_LOSS: 14, // 14% system losses

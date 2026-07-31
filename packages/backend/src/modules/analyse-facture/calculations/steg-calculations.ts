@@ -43,6 +43,10 @@ export interface FactureMtValidationInput {
   coefficient_k: string;
   bonification_cos_phi: string;
   tranche_tarifaire: string;
+  /** Optional: used to detect fabricated net amounts (conso×prix). */
+  montant_net_a_payer?: string;
+  mois_facturation?: string;
+  date_limite_paiement?: string;
 }
 
 export interface ValidationResult {
@@ -559,4 +563,244 @@ function correctGazExtraction(
   }
 
   return { gaz: corrected, changes };
+}
+
+/**
+ * Fixes common MT OCR / LLM mistakes:
+ * - cos_phi confused with coefficient_k (or threshold 0.91)
+ * - consommation = montant_energie × 100 (decimal lost)
+ * - bonification inconsistent with montant × K
+ * - montant_net_a_payer fabricated as conso × prix (ignores prime/taxes)
+ */
+export function correctFactureMtExtraction(
+  facture: FactureMtValidationInput,
+  tolerancePct = 3
+): { facture: FactureMtValidationInput; changes: ExtractionCorrectionChange[] } {
+  const changes: ExtractionCorrectionChange[] = [];
+  const corrected: FactureMtValidationInput = { ...facture };
+
+  const prix = parseNumber(facture.prix_energie);
+  const montantEnergie = parseNumber(facture.montant_energie);
+  const declaredConso = parseNumber(facture.consommation_totale_kwh);
+  const coefficientK = parseNumber(facture.coefficient_k);
+  const declaredCos = parseNumber(facture.cos_phi);
+  const declaredBonif = parseNumber(facture.bonification_cos_phi);
+  const declaredNet = parseNumber(facture.montant_net_a_payer ?? '-');
+  const souscrite = parseNumber(facture.puissance_souscrite_kva);
+  const maxAppelee = parseNumber(facture.puissance_maximale_appelee_kva);
+
+  // 1) cos_phi from coefficient_k when inconsistent (K = (cos − 0.90) × 0.5)
+  if (
+    !Number.isNaN(coefficientK)
+    && coefficientK > 0
+    && coefficientK <= 0.1
+  ) {
+    const expectedCos = Math.round((0.9 + coefficientK / 0.5) * 1000) / 1000;
+    if (
+      Number.isNaN(declaredCos)
+      || declaredCos < 0.6
+      || declaredCos > 1
+      || Math.abs(declaredCos - expectedCos) > 0.02
+    ) {
+      corrected.cos_phi = formatCorrectedAmount(expectedCos);
+      changes.push({
+        field: 'cos_phi',
+        from: facture.cos_phi,
+        to: corrected.cos_phi,
+        reason: 'recomputed_from_coefficient_k',
+      });
+    }
+  }
+
+  // 2) consommation from montant_energie / prix (fixes ×100 OCR on amount-as-kWh)
+  if (!Number.isNaN(prix) && prix > 0 && !Number.isNaN(montantEnergie) && montantEnergie > 0) {
+    const expectedConso = Math.round(montantEnergie / prix);
+    const energieFromDeclared =
+      !Number.isNaN(declaredConso) ? declaredConso * prix : Number.NaN;
+    const consoOk = isWithinTolerance(energieFromDeclared, montantEnergie, tolerancePct);
+    const expectedOk = isWithinTolerance(expectedConso * prix, montantEnergie, tolerancePct);
+
+    const looksLikeAmountTimes100 =
+      !Number.isNaN(declaredConso)
+      && isWithinTolerance(declaredConso, montantEnergie * 100, 2);
+
+    const looksLikeAmountTimes1000 =
+      !Number.isNaN(declaredConso)
+      && isWithinTolerance(declaredConso, montantEnergie * 1000, 2);
+
+    if (
+      (!consoOk && expectedOk)
+      || looksLikeAmountTimes100
+      || looksLikeAmountTimes1000
+    ) {
+      corrected.consommation_totale_kwh = String(expectedConso);
+      changes.push({
+        field: 'consommation_totale_kwh',
+        from: facture.consommation_totale_kwh,
+        to: corrected.consommation_totale_kwh,
+        reason: looksLikeAmountTimes100 || looksLikeAmountTimes1000
+          ? 'montant_energie_misread_as_kwh'
+          : 'recomputed_from_montant_energie_div_prix',
+      });
+    }
+  }
+
+  // 3b) prime_puissance ≈ souscrite × 5 (Uniforme) or × 11 (Horaire)
+  if (!Number.isNaN(souscrite) && souscrite > 0) {
+    const declaredPrime = parseNumber(facture.prime_puissance);
+    const taux = facture.tranche_tarifaire === 'Horaire' ? 11 : 5;
+    const expectedPrime = Math.round(souscrite * taux * 1000) / 1000;
+    if (
+      Number.isNaN(declaredPrime)
+      || declaredPrime <= 0
+      || !isWithinTolerance(declaredPrime, expectedPrime, tolerancePct)
+    ) {
+      corrected.prime_puissance = formatCorrectedAmount(expectedPrime);
+      changes.push({
+        field: 'prime_puissance',
+        from: facture.prime_puissance,
+        to: corrected.prime_puissance,
+        reason: 'recomputed_from_souscrite_x_taux',
+      });
+    }
+  }
+
+  // 3) bonification = |montant_energie × K|
+  const effectiveK = parseNumber(corrected.coefficient_k);
+  const effectiveMontant = parseNumber(corrected.montant_energie);
+  if (
+    !Number.isNaN(effectiveK)
+    && effectiveK > 0
+    && !Number.isNaN(effectiveMontant)
+    && effectiveMontant > 0
+  ) {
+    const expectedBonif = Math.round(effectiveMontant * effectiveK * 1000) / 1000;
+    const absDeclared = Number.isNaN(declaredBonif) ? Number.NaN : Math.abs(declaredBonif);
+    if (
+      Number.isNaN(absDeclared)
+      || !isWithinTolerance(absDeclared, expectedBonif, tolerancePct)
+    ) {
+      corrected.bonification_cos_phi = formatCorrectedAmount(expectedBonif);
+      changes.push({
+        field: 'bonification_cos_phi',
+        from: facture.bonification_cos_phi,
+        to: corrected.bonification_cos_phi,
+        reason: 'recomputed_from_montant_energie_x_k',
+      });
+    }
+  }
+
+  // 4) montant_net fabricated as conso×prix (ignores prime / taxes)
+  const consoForNetCheck = parseNumber(corrected.consommation_totale_kwh);
+  const effectivePrime = parseNumber(corrected.prime_puissance);
+  const effectiveBonifAbs = (() => {
+    const fromCorrected = parseNumber(corrected.bonification_cos_phi);
+    if (!Number.isNaN(fromCorrected)) {
+      return Math.abs(fromCorrected);
+    }
+    return Number.isNaN(declaredBonif) ? 0 : Math.abs(declaredBonif);
+  })();
+
+  if (
+    !Number.isNaN(declaredNet)
+    && !Number.isNaN(consoForNetCheck)
+    && !Number.isNaN(prix)
+    && prix > 0
+    && !Number.isNaN(effectivePrime)
+    && effectivePrime > 0
+  ) {
+    const fabricatedFromWrongConso =
+      !Number.isNaN(declaredConso)
+      && isWithinTolerance(declaredNet, declaredConso * prix, tolerancePct);
+    const fabricatedFromCorrectConso = isWithinTolerance(
+      declaredNet,
+      consoForNetCheck * prix,
+      tolerancePct
+    );
+    const fabricatedFromMontant =
+      !Number.isNaN(montantEnergie)
+      && isWithinTolerance(declaredNet, montantEnergie, tolerancePct);
+
+    if (fabricatedFromWrongConso || fabricatedFromCorrectConso || fabricatedFromMontant) {
+      corrected.montant_net_a_payer = '-';
+      changes.push({
+        field: 'montant_net_a_payer',
+        from: String(facture.montant_net_a_payer ?? '-'),
+        to: '-',
+        reason: 'fabricated_as_conso_x_prix',
+      });
+    }
+  }
+
+  // 4b) montant_net below accounting floor → classic OCR 3↔2 on thousands (2769 → 3769)
+  const netAfterStep4 = parseNumber(corrected.montant_net_a_payer ?? '-');
+  if (
+    !Number.isNaN(netAfterStep4)
+    && !Number.isNaN(montantEnergie)
+    && !Number.isNaN(effectivePrime)
+    && effectivePrime > 0
+  ) {
+    const accountingFloor = montantEnergie + effectivePrime - effectiveBonifAbs;
+    if (netAfterStep4 + 0.5 < accountingFloor) {
+      const plusThousand = Math.round((netAfterStep4 + 1000) * 1000) / 1000;
+      const upperBound = accountingFloor + Math.max(montantEnergie, 2000);
+      if (plusThousand >= accountingFloor && plusThousand <= upperBound) {
+        corrected.montant_net_a_payer = formatCorrectedAmount(plusThousand);
+        changes.push({
+          field: 'montant_net_a_payer',
+          from: String(facture.montant_net_a_payer ?? netAfterStep4),
+          to: corrected.montant_net_a_payer,
+          reason: 'ocr_thousands_digit_2_vs_3',
+        });
+      }
+    }
+  }
+
+  // 4c) mois_facturation year from date_limite_paiement (2023 vs 2025)
+  const mois = String(facture.mois_facturation ?? '');
+  const dateLimite = String(facture.date_limite_paiement ?? '');
+  const moisMatch = mois.match(/^(\d{1,2})\/(\d{4})$/);
+  const yearFromEcheance = (() => {
+    const iso = dateLimite.match(/(\d{4})/);
+    if (iso) {
+      return iso[1];
+    }
+    const fr = dateLimite.match(/\d{1,2}[\/.-]\d{1,2}[\/.-](\d{4})/);
+    return fr?.[1] ?? null;
+  })();
+  if (moisMatch !== null && yearFromEcheance !== null && moisMatch[2] !== yearFromEcheance) {
+    const monthPart = moisMatch[1].padStart(2, '0');
+    corrected.mois_facturation = `${monthPart}/${yearFromEcheance}`;
+    changes.push({
+      field: 'mois_facturation',
+      from: mois,
+      to: corrected.mois_facturation,
+      reason: 'year_aligned_to_date_limite_paiement',
+    });
+  }
+
+  // 5) Log-only hint when max == souscrite (cannot invent the real max from OCR)
+  if (isMtMaxAppeleeEqualSouscrite(souscrite, maxAppelee)) {
+    changes.push({
+      field: 'puissance_maximale_appelee_kva',
+      from: facture.puissance_maximale_appelee_kva,
+      to: facture.puissance_maximale_appelee_kva,
+      reason: 'suspect_max_equals_souscrite_re_read_required',
+    });
+  }
+
+  return { facture: corrected, changes };
+}
+
+/** True when OCR likely copied puissance souscrite into max appelée. */
+export function isMtMaxAppeleeEqualSouscrite(
+  souscrite: number,
+  maxAppelee: number
+): boolean {
+  return (
+    !Number.isNaN(souscrite)
+    && !Number.isNaN(maxAppelee)
+    && souscrite > 0
+    && Math.abs(maxAppelee - souscrite) < 0.01
+  );
 }

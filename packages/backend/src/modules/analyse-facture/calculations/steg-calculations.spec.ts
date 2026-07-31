@@ -8,6 +8,7 @@ import {
 import { computeEtudeBtMt, puissanceMtRecommandee, prixUnitaireMt } from './steg-etude-bt-mt';
 import {
   correctFactureBtExtraction,
+  correctFactureMtExtraction,
   computeRedevancesFixesBt,
   computeMontantEnergieBt,
 } from './steg-calculations';
@@ -255,5 +256,164 @@ describe('enrichStegExtractionWithCalculations', () => {
     expect(Number(etude.tri_pct)).toBeCloseTo(28.48, 0);
     expect(Number(etude.payback_simple_ans)).toBeCloseTo(4.16, 1);
     expect(Number(etude.van_dt)).toBeCloseTo(536834.82, 0);
+  });
+});
+
+describe('correctFactureMtExtraction', () => {
+  it('fixes cos_phi from coefficient_k and kWh from montant/prix (PH MT bill pattern)', () => {
+    const { facture, changes } = correctFactureMtExtraction({
+      type_facture: 'MT',
+      puissance_souscrite_kva: '120',
+      puissance_maximale_appelee_kva: '120',
+      consommation_totale_kwh: '255936',
+      prix_energie: '0.291',
+      montant_energie: '2559.636',
+      prime_puissance: '600',
+      cos_phi: '0.91',
+      coefficient_k: '0.045',
+      bonification_cos_phi: '3355.964',
+      tranche_tarifaire: 'Uniforme',
+      montant_net_a_payer: '75176.98',
+    });
+
+    expect(facture.cos_phi).toBe('0.99');
+    expect(facture.consommation_totale_kwh).toBe('8796');
+    expect(Number(facture.bonification_cos_phi)).toBeCloseTo(115.184, 2);
+    expect(facture.montant_net_a_payer).toBe('-');
+    expect(changes.some((c) => c.field === 'cos_phi')).toBe(true);
+    expect(changes.some((c) => c.field === 'consommation_totale_kwh')).toBe(true);
+    expect(changes.some((c) => c.reason === 'suspect_max_equals_souscrite_re_read_required')).toBe(
+      true
+    );
+  });
+
+  it('fixes OCR thousands digit on montant net (2769 → 3769) and mois year from échéance', () => {
+    const { facture, changes } = correctFactureMtExtraction({
+      type_facture: 'MT',
+      puissance_souscrite_kva: '120',
+      puissance_maximale_appelee_kva: '77',
+      consommation_totale_kwh: '8796',
+      prix_energie: '0.291',
+      montant_energie: '2559.636',
+      prime_puissance: '600',
+      cos_phi: '0.99',
+      coefficient_k: '0.045',
+      bonification_cos_phi: '115.184',
+      tranche_tarifaire: 'Uniforme',
+      montant_net_a_payer: '2769.382',
+      mois_facturation: '08/2023',
+      date_limite_paiement: '08/08/2025',
+    });
+
+    expect(Number(facture.montant_net_a_payer)).toBeCloseTo(3769.382, 2);
+    expect(facture.mois_facturation).toBe('08/2025');
+    expect(changes.some((c) => c.reason === 'ocr_thousands_digit_2_vs_3')).toBe(true);
+    expect(changes.some((c) => c.reason === 'year_aligned_to_date_limite_paiement')).toBe(true);
+  });
+
+  it('fixes prime_puissance when OCR confuses 225 with 600 (souscrite × 5)', () => {
+    const { facture, changes } = correctFactureMtExtraction({
+      type_facture: 'MT',
+      puissance_souscrite_kva: '120',
+      puissance_maximale_appelee_kva: '77',
+      consommation_totale_kwh: '8796',
+      prix_energie: '0.291',
+      montant_energie: '2559.636',
+      prime_puissance: '225',
+      cos_phi: '0.99',
+      coefficient_k: '0.045',
+      bonification_cos_phi: '0.225',
+      tranche_tarifaire: 'Uniforme',
+      montant_net_a_payer: '3769.382',
+    });
+
+    expect(facture.prime_puissance).toBe('600');
+    expect(Number(facture.bonification_cos_phi)).toBeCloseTo(115.184, 2);
+    expect(changes.some((c) => c.reason === 'recomputed_from_souscrite_x_taux')).toBe(true);
+  });
+
+  it('attaches extraction_quality with corrected and suspect fields', () => {
+    const response = enrichStegExtractionWithCalculations({
+      facture_extraite: {
+        type_facture: 'MT',
+        mois_facturation: '08/2023',
+        puissance_souscrite_kva: '120',
+        puissance_maximale_appelee_kva: '120',
+        consommation_totale_kwh: '8796',
+        prix_energie: '0.291',
+        montant_energie: '2559.636',
+        prime_puissance: '225',
+        cos_phi: '0.91',
+        coefficient_k: '0.045',
+        bonification_cos_phi: '0.225',
+        tranche_tarifaire: 'Uniforme',
+        montant_net_a_payer: '3769.382',
+        date_limite_paiement: '08/08/2025',
+      },
+      affichage_client: {
+        cos_phi: { valeur: '0.91', explication: 'test' },
+        prime_puissance: { valeur: '225', explication: 'test' },
+        mois_facturation: { valeur: '08/2023', explication: 'test' },
+      },
+    });
+
+    expect(response.extraction_quality).toBeDefined();
+    expect(response.extraction_quality!.corrections_count).toBeGreaterThan(0);
+    expect(
+      response.extraction_quality!.fields.some(
+        (f) => f.field === 'puissance_maximale_appelee_kva' && f.status === 'suspect'
+      )
+    ).toBe(true);
+    expect(response.extraction_quality!.overall === 'medium' || response.extraction_quality!.overall === 'low').toBe(
+      true
+    );
+  });
+
+  it('enriches MT response with corrected fields for analyse cards', () => {
+    const response = enrichStegExtractionWithCalculations({
+      facture_extraite: {
+        type_facture: 'MT',
+        mois_facturation: '09/2023',
+        puissance_souscrite_kva: '120',
+        puissance_maximale_appelee_kva: '120',
+        consommation_totale_kwh: '255936',
+        prix_energie: '0.291',
+        montant_energie: '2559.636',
+        prime_puissance: '600',
+        cos_phi: '0.91',
+        coefficient_k: '0.045',
+        bonification_cos_phi: '3355.964',
+        tranche_tarifaire: 'Uniforme',
+        montant_net_a_payer: '75176.98',
+      },
+      affichage_client: {
+        cos_phi: { valeur: '0.91', explication: 'test' },
+        consommation_totale_kwh: { valeur: '255936', explication: 'test' },
+        bonification_cos_phi: { valeur: '3355.964', explication: 'test' },
+        montant_net_a_payer: { valeur: '75176.98', explication: 'test' },
+      },
+    });
+
+    const facture = response.facture_extraite as {
+      cos_phi?: string;
+      consommation_totale_kwh?: string;
+      bonification_cos_phi?: string;
+      montant_net_a_payer?: string;
+    };
+    expect(facture.cos_phi).toBe('0.99');
+    expect(facture.consommation_totale_kwh).toBe('8796');
+    expect(Number(facture.bonification_cos_phi)).toBeCloseTo(115.184, 2);
+    expect(facture.montant_net_a_payer).toBe('-');
+
+    const cards = response.analyse_mt?.recommandations ?? [];
+    const powerCard = cards.find(
+      (c) =>
+        c.categorie === 'P0'
+        || c.categorie === 'P3'
+        || c.categorie === 'P_VERIFY'
+    );
+    expect(powerCard?.categorie).toBe('P_VERIFY');
+    const cosCard = cards.find((c) => c.categorie === 'C1');
+    expect(cosCard).toBeDefined();
   });
 });

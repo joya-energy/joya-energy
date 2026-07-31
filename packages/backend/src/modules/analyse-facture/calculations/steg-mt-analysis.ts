@@ -133,8 +133,17 @@ export function buildMtRecommandations(params: {
   cosPhi: number;
   bonificationCosPhi: number;
   indicateurs: IndicateursMt;
+  /** When OCR copied souscrite into max appelée — do not show a false 100% alarm. */
+  powerReadingUnreliable?: boolean;
 }): MtRecommandationBuilt[] {
-  const { souscrite, maxAppelee, cosPhi, bonificationCosPhi, indicateurs } = params;
+  const {
+    souscrite,
+    maxAppelee,
+    cosPhi,
+    bonificationCosPhi,
+    indicateurs,
+    powerReadingUnreliable = false,
+  } = params;
   const cards: MtRecommandationBuilt[] = [];
   const categorieP = classifyCategoriePuissance(indicateurs.ratio_puissance_pct);
   const ratio = indicateurs.ratio_puissance_pct;
@@ -142,7 +151,17 @@ export function buildMtRecommandations(params: {
   const ecoM = indicateurs.economie_mensuelle_dt;
   const ecoA = indicateurs.economie_annuelle_dt;
 
-  if (categorieP === 'P0') {
+  if (powerReadingUnreliable) {
+    cards.push({
+      categorie: 'P_VERIFY',
+      gain_mensuel_estime_dt: '-',
+      gain_annuel_estime_dt: '-',
+      titre: '⚠️ Puissance max. appelée à vérifier sur la facture',
+      description: `La valeur lue pour la puissance maximale appelée (${maxAppelee} kVA) est identique à la puissance souscrite (${souscrite} kVA). Sur les factures STEG MT, ces deux lignes sont distinctes (ex. Maximum appelée 77 kVA / Souscrite 120 kVA). Relancez l'analyse ou vérifiez le bloc Puissance de la facture avant de conclure à un risque de dépassement.`,
+      conclusion:
+        'Ne pas traiter ce cas comme une utilisation à 100% tant que la ligne « Maximum appelée » n\'a pas été confirmée.',
+    });
+  } else if (categorieP === 'P0') {
     cards.push({
       categorie: 'P0',
       gain_mensuel_estime_dt: '-',
