@@ -7,6 +7,7 @@ import {
   convertPdfBillToPng,
   downscaleBillImageForVision,
   resolveBillMimeType,
+  type VisionImageOptions,
 } from './pdf-bill-image.util';
 
 export class BillExtractionService {
@@ -435,15 +436,17 @@ export class BillExtractionService {
   /** Prepare bill image/PDF buffer for vision LLM (shared with analyse-facture). */
   public async prepareBillImage(
     buffer: Buffer,
-    mimeType: string
+    mimeType: string,
+    options?: VisionImageOptions
   ): Promise<{ buffer: Buffer; mimeType: string }> {
     const resolvedMimeType = resolveBillMimeType(buffer, mimeType);
-    return this.prepareInputBuffer(buffer, resolvedMimeType);
+    return this.prepareInputBuffer(buffer, resolvedMimeType, options);
   }
 
   private async prepareInputBuffer(
     buffer: Buffer,
-    mimeType: string
+    mimeType: string,
+    options?: VisionImageOptions
   ): Promise<{ buffer: Buffer; mimeType: string }> {
     if (mimeType === 'application/pdf') {
       try {
@@ -453,7 +456,7 @@ export class BillExtractionService {
             `page: ${converted.page}, scale: ${converted.scale}, ` +
             `original PDF size: ${buffer.length} bytes`
         );
-        return downscaleBillImageForVision(converted.buffer);
+        return downscaleBillImageForVision(converted.buffer, options);
       } catch (error) {
         Logger.error(`PDF to PNG conversion failed: ${String(error)}`);
         if (error instanceof HTTP400Error) {
@@ -474,7 +477,7 @@ export class BillExtractionService {
     }
 
     Logger.info(`Preparing image for vision (size: ${buffer.length} bytes, type: ${mimeType})`);
-    return downscaleBillImageForVision(buffer);
+    return downscaleBillImageForVision(buffer, options);
   }
 }
 

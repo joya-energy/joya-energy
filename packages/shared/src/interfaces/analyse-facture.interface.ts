@@ -155,6 +155,25 @@ export interface StegAnalyseResponse {
     recommandations?: MtRecommandationRaw[];
   };
   etude_bt_mt?: EtudeBtMtRaw | Record<string, never>;
+  /** Always-on STEG validator confidence (corrections + coherence). */
+  extraction_quality?: ExtractionQualityRaw;
+}
+
+export type FieldConfidenceStatus = 'ok' | 'corrected' | 'suspect' | 'unverified';
+
+export interface FieldConfidenceRaw {
+  field: string;
+  status: FieldConfidenceStatus;
+  reason?: string;
+  message_fr: string;
+}
+
+export interface ExtractionQualityRaw {
+  overall: 'high' | 'medium' | 'low';
+  score: number;
+  fields: FieldConfidenceRaw[];
+  corrections_count: number;
+  suspects_count: number;
 }
 
 export interface AnalyseFactureApiResponse {

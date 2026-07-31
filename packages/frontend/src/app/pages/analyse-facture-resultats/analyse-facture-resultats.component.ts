@@ -23,7 +23,7 @@ import { UiProgressBarComponent } from '../../shared/components/ui-progress-bar/
 import { UiStepTimelineComponent } from '../../shared/components/ui-step-timeline/ui-step-timeline.component';
 import { SEOService } from '../../core/services/seo.service';
 import { AnalyseFactureStore } from '../../core/stores/analyse-facture.store';
-import { mapStegAnalyseResponse } from '../../core/utils/analyse-facture.mapper';
+import { mapStegAnalyseResponse, fieldConfidenceFromView } from '../../core/utils/analyse-facture.mapper';
 import { formatMtDtAmount } from '@shared/functions/steg-numbers';
 import type {
   AffichageField,
@@ -37,8 +37,16 @@ import type {
   VanChartData,
 } from './analyse-facture-resultats.types';
 
-function isMtPrimaryPowerProfile(categorie: string | undefined): categorie is 'P0' | 'P1' | 'P2' | 'P3' {
-  return categorie === 'P0' || categorie === 'P1' || categorie === 'P2' || categorie === 'P3';
+function isMtPrimaryPowerProfile(
+  categorie: string | undefined
+): categorie is 'P0' | 'P1' | 'P2' | 'P3' | 'P_VERIFY' {
+  return (
+    categorie === 'P0'
+    || categorie === 'P1'
+    || categorie === 'P2'
+    || categorie === 'P3'
+    || categorie === 'P_VERIFY'
+  );
 }
 
 function isMtRevisionProfile(categorie: string | undefined): boolean {
@@ -369,6 +377,19 @@ export class AnalyseFactureResultatsComponent implements OnInit {
       };
     }
 
+    if (profile === 'P_VERIFY') {
+      return {
+        profile: 'P_VERIFY',
+        badge: 'À vérifier',
+        badgeTone: 'warning',
+        intitule: intitule || 'Puissance max. appelée à vérifier',
+        metricLabel: 'Puissance max. appelée',
+        metricValue: 'À confirmer',
+        metricDanger: false,
+        donutDanger: false,
+      };
+    }
+
     const badge = `Utilisation : ${pct}%`;
 
     switch (profile) {
@@ -483,43 +504,52 @@ export class AnalyseFactureResultatsComponent implements OnInit {
   protected readonly mtDetailRows = computed((): DetailFactureRow[] => {
     const f = this.mtFacture();
     const tip = (key: string) => this.mtFieldTip(key);
+    const quality = this.mtResult()?.extraction_quality;
+    const conf = (keys: string[]) => fieldConfidenceFromView(quality, keys);
 
     return [
       {
         label: 'Mois de facturation',
         value: f.periode,
         explication: tip('mois_facturation'),
+        ...conf(['mois_facturation']),
       },
       {
         label: 'Puissance souscrite',
         value: `${this.formatComparisonNumber(f.puissance_souscrite_kva)} kVA`,
         explication: tip('puissance_souscrite_kva'),
+        ...conf(['puissance_souscrite_kva']),
       },
       {
         label: 'Puissance maximale appelée',
         value: `${this.formatComparisonNumber(f.puissance_max_kva)} kVA`,
         explication: tip('puissance_maximale_appelee_kva') ?? tip('puissance_maximale_appelee_kw'),
+        ...conf(['puissance_maximale_appelee_kva', 'puissance_maximale_appelee_kw']),
       },
       {
         label: 'Consommation totale',
         value: `${this.formatComparisonNumber(f.consommation_kwh)} kWh`,
         explication: tip('consommation_totale_kwh'),
+        ...conf(['consommation_totale_kwh']),
       },
       {
         label: 'Cos φ',
         value: f.cos_phi.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
         explication: tip('cos_phi'),
+        ...conf(['cos_phi']),
       },
       {
         label: 'Prime de puissance',
         value: `${this.formatDtValue(f.prime_puissance_dt)} DT`,
         explication: tip('prime_puissance'),
+        ...conf(['prime_puissance', 'prime_puissance_ratio']),
       },
       {
         label: 'Montant net à payer',
         value: `${this.formatComparisonNumber(f.montant_net_dt)} DT`,
         highlight: true,
         explication: tip('montant_net_a_payer'),
+        ...conf(['montant_net_a_payer']),
       },
     ];
   });
@@ -527,41 +557,69 @@ export class AnalyseFactureResultatsComponent implements OnInit {
   protected readonly detailFactureRows = computed((): DetailFactureRow[] => {
     const f = this.facture();
     const tip = (key: string) => this.fieldTip(key);
+    const quality = this.btResult()?.extraction_quality;
+    const conf = (keys: string[]) => fieldConfidenceFromView(quality, keys);
 
     return [
       {
         label: 'Période',
         value: this.formatBtPeriodeLabel(f),
         explication: tip('periode_facturation'),
+        ...conf(['periode_facturation', 'date_debut_periode', 'date_fin_periode']),
       },
       {
         label: 'Puissance souscrite',
         value: `${this.formatNumber(f.puissance_souscrite_kva)} kVA`,
         explication: tip('puissance_souscrite_kva'),
+        ...conf(['puissance_souscrite_kva']),
       },
       {
         label: 'Consommation totale',
         value: `${this.formatNumber(f.consommation_totale_kwh)} kWh`,
         explication: tip('consommation_totale_kwh'),
+        ...conf(['consommation_totale_kwh']),
       },
       {
         label: 'Prix unitaire',
         value: `${f.prix_unitaire} DT/kWh`,
         explication: tip('prix_unitaire'),
+        ...conf(['prix_unitaire']),
       },
       {
         label: 'Redevances fixes',
         value: `${this.formatAmount(f.redevances_fixes)} DT`,
         explication: tip('redevances_fixes'),
+        ...conf(['redevances_fixes']),
       },
       {
         label: 'Montant à payer',
-        value: `${this.montantAPayer()} DT`,
+        value: `${this.formatAmount(f.montant_a_payer || f.montant_total)} DT`,
         highlight: true,
-        explication: tip('montant_a_payer') || tip('montant_total'),
+        explication: tip('montant_a_payer'),
+        ...conf(['montant_a_payer', 'montant_energie']),
       },
     ];
   });
+
+  protected confidenceBadgeLabel(
+    confidence: DetailFactureRow['confidence']
+  ): string {
+    if (confidence === 'corrected') {
+      return 'Corrigé';
+    }
+    if (confidence === 'suspect' || confidence === 'unverified') {
+      return 'À vérifier';
+    }
+    return '';
+  }
+
+  protected readonly mtExtractionQuality = computed(
+    () => this.mtResult()?.extraction_quality
+  );
+
+  protected readonly btExtractionQuality = computed(
+    () => this.btResult()?.extraction_quality
+  );
 
   protected fieldTip(key: string): string {
     const fromApi = this.affichageExplanation(key);

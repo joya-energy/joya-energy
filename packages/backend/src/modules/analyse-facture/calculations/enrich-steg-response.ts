@@ -14,7 +14,13 @@ import {
   type TrancheTarifaire,
 } from './steg-mt-analysis';
 import {
+  buildExtractionQuality,
+  type ExtractionQuality,
+} from './extraction-quality';
+import {
   correctFactureBtExtraction,
+  correctFactureMtExtraction,
+  isMtMaxAppeleeEqualSouscrite,
   validateFactureBt,
   validateFactureMt,
   type ExtractionCorrectionChange,
@@ -90,6 +96,7 @@ function enrichMtAnalyse(raw: FactureExtraiteMtRaw): StegAnalyseResponse['analys
     cosPhi: Number.isNaN(cosPhi) ? 0 : cosPhi,
     bonificationCosPhi: bonificationEffective,
     indicateurs,
+    powerReadingUnreliable: isMtMaxAppeleeEqualSouscrite(souscrite, maxAppelee),
   });
 
   return {
@@ -294,7 +301,7 @@ function buildBtValidationInput(bt: FactureExtraiteBtRaw): FactureBtValidationIn
   };
 }
 
-function correctAndValidateBtExtraction(response: StegAnalyseResponse): void {
+function correctAndValidateBtExtraction(response: StegAnalyseResponse): ExtractionQuality {
   const bt = response.facture_extraite as FactureExtraiteBtRaw;
   const nature = String(bt.nature_facture ?? '').toUpperCase();
   const isEstimee = nature.includes('ESTIM');
@@ -312,39 +319,40 @@ function correctAndValidateBtExtraction(response: StegAnalyseResponse): void {
         .join(', ')}`
     );
   }
+
+  return buildExtractionQuality({ changes, validationFailures: failures });
 }
 
-function logValidationWarnings(response: StegAnalyseResponse): void {
-  const raw = response.facture_extraite;
-  try {
-    if (isMtBill(raw)) {
-      const input: FactureMtValidationInput = {
-        type_facture: 'MT',
-        puissance_souscrite_kva: String(raw.puissance_souscrite_kva ?? '-'),
-        puissance_maximale_appelee_kva: String(
-          raw.puissance_maximale_appelee_kva ?? raw.puissance_maximale_appelee_kw ?? '-'
-        ),
-        consommation_totale_kwh: String(raw.consommation_totale_kwh ?? '-'),
-        prix_energie: String(raw.prix_energie ?? '0.291'),
-        montant_energie: String(raw.montant_energie ?? '-'),
-        prime_puissance: String(raw.prime_puissance ?? '-'),
-        cos_phi: String(raw.cos_phi ?? '-'),
-        coefficient_k: String(raw.coefficient_k ?? '-'),
-        bonification_cos_phi: String(raw.bonification_cos_phi ?? '-'),
-        tranche_tarifaire: String(raw.tranche_tarifaire ?? 'Uniforme'),
-      };
-      const failures = validateFactureMt(input).filter((result) => !result.withinTolerance);
-      if (failures.length > 0) {
-        Logger.warn(
-          `STEG MT extraction coherence warnings: ${failures
-            .map((f) => `${f.field} Δ${f.deltaPct}%`)
-            .join(', ')}`
-        );
-      }
-      return;
-    }
+function correctAndValidateMtExtraction(response: StegAnalyseResponse): ExtractionQuality {
+  const raw = response.facture_extraite as FactureExtraiteMtRaw;
+  const input = buildMtValidationInput(raw);
+  const { facture: corrected, changes } = correctFactureMtExtraction(input);
+  applyMtCorrectionsToResponse(response, changes, corrected);
 
-    correctAndValidateBtExtraction(response);
+  const failures = validateFactureMt(buildMtValidationInput(raw)).filter(
+    (result) => !result.withinTolerance
+  );
+  if (failures.length > 0) {
+    Logger.warn(
+      `STEG MT extraction coherence warnings: ${failures
+        .map((f) => `${f.field} Δ${f.deltaPct}%`)
+        .join(', ')}`
+    );
+  }
+
+  return buildExtractionQuality({ changes, validationFailures: failures });
+}
+
+function attachExtractionQuality(response: StegAnalyseResponse): void {
+  try {
+    const quality = isMtBill(response.facture_extraite)
+      ? correctAndValidateMtExtraction(response)
+      : correctAndValidateBtExtraction(response);
+    response.extraction_quality = quality;
+    Logger.info(
+      `STEG extraction quality: overall=${quality.overall} score=${quality.score} ` +
+        `corrections=${quality.corrections_count} suspects=${quality.suspects_count}`
+    );
   } catch (error: unknown) {
     Logger.warn(`STEG extraction validation skipped: ${String(error)}`);
   }
@@ -352,7 +360,7 @@ function logValidationWarnings(response: StegAnalyseResponse): void {
 
 /**
  * After LLM extraction: correct common field swaps, then attach
- * analyse_mt / etude_bt_mt from pure code.
+ * analyse_mt / etude_bt_mt from pure code + extraction_quality.
  */
 export function enrichStegExtractionWithCalculations(
   extraction: {
@@ -365,7 +373,7 @@ export function enrichStegExtractionWithCalculations(
     affichage_client: extraction.affichage_client,
   };
 
-  logValidationWarnings(response);
+  attachExtractionQuality(response);
 
   if (isMtBill(extraction.facture_extraite)) {
     response.analyse_mt = enrichMtAnalyse(extraction.facture_extraite);
@@ -375,4 +383,107 @@ export function enrichStegExtractionWithCalculations(
 
   response.etude_bt_mt = enrichEtudeBtMt(extraction.facture_extraite as FactureExtraiteBtRaw);
   return response;
+}
+
+function applyMtCorrectionsToResponse(
+  response: StegAnalyseResponse,
+  changes: ExtractionCorrectionChange[],
+  corrected: FactureMtValidationInput
+): void {
+  const applicable = changes.filter((change) => change.from !== change.to);
+  if (applicable.length === 0) {
+    const suspects = changes.filter((change) => change.from === change.to);
+    if (suspects.length > 0) {
+      Logger.warn(
+        `STEG MT extraction suspects (no auto-fix): ${suspects
+          .map((change) => `${change.field} (${change.reason})`)
+          .join('; ')}`
+      );
+    }
+    return;
+  }
+
+  const raw = response.facture_extraite as FactureExtraiteMtRaw;
+  raw.cos_phi = corrected.cos_phi;
+  raw.coefficient_k = corrected.coefficient_k;
+  raw.consommation_totale_kwh = corrected.consommation_totale_kwh;
+  raw.bonification_cos_phi = corrected.bonification_cos_phi;
+  if (corrected.prime_puissance !== undefined) {
+    raw.prime_puissance = corrected.prime_puissance;
+  }
+  if (corrected.montant_net_a_payer !== undefined) {
+    raw.montant_net_a_payer = corrected.montant_net_a_payer;
+  }
+  if (corrected.mois_facturation !== undefined) {
+    raw.mois_facturation = corrected.mois_facturation;
+  }
+
+  setAffichageValeur(response.affichage_client, 'cos_phi', corrected.cos_phi);
+  setAffichageValeur(
+    response.affichage_client,
+    'consommation_totale_kwh',
+    corrected.consommation_totale_kwh
+  );
+  setAffichageValeur(
+    response.affichage_client,
+    'bonification_cos_phi',
+    corrected.bonification_cos_phi
+  );
+  if (corrected.prime_puissance !== undefined) {
+    setAffichageValeur(
+      response.affichage_client,
+      'prime_puissance',
+      corrected.prime_puissance
+    );
+  }
+  if (corrected.montant_net_a_payer !== undefined) {
+    setAffichageValeur(
+      response.affichage_client,
+      'montant_net_a_payer',
+      corrected.montant_net_a_payer
+    );
+  }
+  if (corrected.mois_facturation !== undefined) {
+    setAffichageValeur(
+      response.affichage_client,
+      'mois_facturation',
+      corrected.mois_facturation
+    );
+  }
+
+  Logger.warn(
+    `STEG MT extraction auto-corrected: ${applicable
+      .map((change) => `${change.field} ${change.from}→${change.to} (${change.reason})`)
+      .join('; ')}`
+  );
+
+  const suspects = changes.filter((change) => change.from === change.to);
+  if (suspects.length > 0) {
+    Logger.warn(
+      `STEG MT extraction suspects (no auto-fix): ${suspects
+        .map((change) => `${change.field} (${change.reason})`)
+        .join('; ')}`
+    );
+  }
+}
+
+function buildMtValidationInput(raw: FactureExtraiteMtRaw): FactureMtValidationInput {
+  return {
+    type_facture: 'MT',
+    puissance_souscrite_kva: String(raw.puissance_souscrite_kva ?? '-'),
+    puissance_maximale_appelee_kva: String(
+      raw.puissance_maximale_appelee_kva ?? raw.puissance_maximale_appelee_kw ?? '-'
+    ),
+    consommation_totale_kwh: String(raw.consommation_totale_kwh ?? '-'),
+    prix_energie: String(raw.prix_energie ?? '0.291'),
+    montant_energie: String(raw.montant_energie ?? '-'),
+    prime_puissance: String(raw.prime_puissance ?? '-'),
+    cos_phi: String(raw.cos_phi ?? '-'),
+    coefficient_k: String(raw.coefficient_k ?? '-'),
+    bonification_cos_phi: String(raw.bonification_cos_phi ?? '-'),
+    tranche_tarifaire: String(raw.tranche_tarifaire ?? 'Uniforme'),
+    montant_net_a_payer: String(raw.montant_net_a_payer ?? '-'),
+    mois_facturation: String(raw.mois_facturation ?? '-'),
+    date_limite_paiement: String(raw.date_limite_paiement ?? '-'),
+  };
 }
