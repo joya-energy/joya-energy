@@ -53,7 +53,7 @@ export class InstallateurPartenaireComponent implements OnInit {
   private readonly seoService = inject(SEOService);
   private readonly platformId = inject(PLATFORM_ID);
 
-  /** Installer registration form in the Joya customer app (monorepo). */
+  /** Installer registration form in the Joya Energy customer app (monorepo). */
   protected readonly devenirPartenaireUrl = `${environment.customerAppUrl.replace(/\/$/, '')}/installateurs`;
 
   protected scrollToProcessus(event: Event): void {
@@ -101,40 +101,40 @@ export class InstallateurPartenaireComponent implements OnInit {
       number: '02',
       title: 'Contrat client',
       description:
-        'Joya signe le contrat de service à la performance avec le client final.',
-    },
-    {
-      number: '03',
-      title: 'Installation',
-      description:
-        'Vous réalisez les travaux selon le cahier des charges technique Joya.',
-    },
-    {
-      number: '04',
-      title: 'Réception & paiement',
-      description:
-        'Contrôle qualité à la réception, puis paiement selon le cycle défini.',
-    },
-    {
-      number: '05',
-      title: 'Suivi',
-      description:
-        'Monitoring de performance continu via Joya OS, en coordination avec vos équipes.',
-    },
-  ];
+        'Joya Energy signe le contrat de service à la performance avec le client final.',
+      },
+      {
+        number: '03',
+        title: 'Installation',
+        description:
+          'Vous réalisez les travaux selon le cahier des charges technique Joya Energy.',
+      },
+      {
+        number: '04',
+        title: 'Réception & paiement',
+        description:
+          'Contrôle qualité à la réception, puis paiement selon le cycle défini.',
+      },
+      {
+        number: '05',
+        title: 'Suivi',
+        description:
+          'Monitoring de performance continu via Joya Energy OS, en coordination avec vos équipes.',
+      },
+    ];
 
   protected readonly advantages: AdvantageCard[] = [
     {
       icon: 'lucideClipboardList',
       title: 'Plus de chantiers',
       description:
-        'Accédez à un flux régulier de projets PME déjà qualifiés et financés par Joya.',
+        'Accédez à un flux régulier de projets PME déjà qualifiés et financés par Joya Energy.',
     },
     {
       icon: 'lucideShield',
       title: 'Zéro risque client',
       description:
-        'Le client n’avance rien : Joya structure le contrat et porte le risque de paiement.',
+        'Le client n’avance rien : Joya Energy structure le contrat et porte le risque de paiement.',
     },
     {
       icon: 'lucideZap',
@@ -157,11 +157,11 @@ export class InstallateurPartenaireComponent implements OnInit {
     },
     {
       number: '02',
-      text: 'Respect du cahier des charges technique Joya : équipements, normes, délais contractuels.',
+      text: 'Respect du cahier des charges technique Joya Energy : équipements, normes, délais contractuels.',
     },
     {
       number: '03',
-      text: 'Disponibilité pour le suivi M&V post-installation en coordination avec les équipes Joya.',
+      text: 'Disponibilité pour le suivi M&V post-installation en coordination avec les équipes Joya Energy.',
     },
   ];
 
