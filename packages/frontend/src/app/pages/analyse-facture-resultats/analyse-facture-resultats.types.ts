@@ -82,6 +82,20 @@ export interface BtAnalyseResult {
   facture_extraite: FactureExtraiteBt;
   affichage_client: Record<string, AffichageField | string>;
   etude_bt_mt?: EtudeBtMt;
+  extraction_quality?: ExtractionQualityView;
+}
+
+export interface ExtractionQualityView {
+  overall: 'high' | 'medium' | 'low';
+  score: number;
+  correctionsCount: number;
+  suspectsCount: number;
+  summaryFr: string;
+  fields: Array<{
+    field: string;
+    status: 'ok' | 'corrected' | 'suspect' | 'unverified';
+    message_fr: string;
+  }>;
 }
 
 export interface MtFactureExtraite {
@@ -127,7 +141,7 @@ export interface MtPisteSolaire {
   piste: string;
 }
 
-export type MtRatioProfile = 'P1' | 'P2' | 'P3' | 'P4' | 'P0';
+export type MtRatioProfile = 'P1' | 'P2' | 'P3' | 'P4' | 'P0' | 'P_VERIFY';
 
 export interface MtSituationView {
   profile: MtRatioProfile;
@@ -153,6 +167,7 @@ export interface MtAnalyseResult {
   insights: MtInsightCard[];
   revision: MtPuissanceRevision;
   piste_solaire: MtPisteSolaire;
+  extraction_quality?: ExtractionQualityView;
 }
 
 /** @deprecated Legacy shape — kept for gradual migration */
@@ -214,6 +229,9 @@ export interface DetailFactureRow {
   value: string;
   highlight?: boolean;
   explication?: string;
+  /** STEG validator confidence for this extracted field. */
+  confidence?: 'ok' | 'corrected' | 'suspect' | 'unverified';
+  confidenceMessage?: string;
 }
 
 export interface VanChartData {

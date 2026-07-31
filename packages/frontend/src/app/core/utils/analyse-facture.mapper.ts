@@ -1,5 +1,6 @@
 import type {
   EtudeBtMtRaw,
+  ExtractionQualityRaw,
   FactureExtraiteBtRaw,
   FactureExtraiteMtRaw,
   MtRecommandationRaw,
@@ -10,6 +11,7 @@ import type {
   AffichageField,
   BtAnalyseResult,
   EtudeBtMt,
+  ExtractionQualityView,
   FactureExtraiteBt,
   GazFacture,
   MtAnalyseResult,
@@ -105,6 +107,63 @@ function mapEtudeBtMt(
   };
 }
 
+function mapExtractionQuality(
+  quality: ExtractionQualityRaw | undefined
+): ExtractionQualityView | undefined {
+  if (!quality) {
+    return undefined;
+  }
+  const summaryFr =
+    quality.overall === 'high'
+      ? 'Lecture fiable — contrôles STEG OK.'
+      : quality.overall === 'medium'
+        ? 'Lecture partiellement corrigée par les règles STEG.'
+        : 'Certains champs restent à vérifier sur la facture.';
+
+  return {
+    overall: quality.overall,
+    score: quality.score,
+    correctionsCount: quality.corrections_count,
+    suspectsCount: quality.suspects_count,
+    summaryFr,
+    fields: quality.fields.map((field) => ({
+      field: field.field,
+      status: field.status,
+      message_fr: field.message_fr,
+    })),
+  };
+}
+
+export function fieldConfidenceFromView(
+  quality: ExtractionQualityView | undefined,
+  fieldKeys: string[]
+): {
+  confidence?: 'ok' | 'corrected' | 'suspect' | 'unverified';
+  confidenceMessage?: string;
+} {
+  if (!quality) {
+    return {};
+  }
+  const match = quality.fields.find((field) => fieldKeys.includes(field.field));
+  if (!match) {
+    return { confidence: 'ok' };
+  }
+  return {
+    confidence: match.status,
+    confidenceMessage: match.message_fr,
+  };
+}
+
+export function fieldConfidenceFromQuality(
+  quality: ExtractionQualityRaw | undefined,
+  fieldKeys: string[]
+): {
+  confidence?: 'ok' | 'corrected' | 'suspect' | 'unverified';
+  confidenceMessage?: string;
+} {
+  return fieldConfidenceFromView(mapExtractionQuality(quality), fieldKeys);
+}
+
 function mapBtResult(response: StegAnalyseResponse): BtAnalyseResult {
   const raw = response.facture_extraite as FactureExtraiteBtRaw;
   const numeroFacture =
@@ -146,6 +205,7 @@ function mapBtResult(response: StegAnalyseResponse): BtAnalyseResult {
     },
     affichage_client: affichage as Record<string, AffichageField | string>,
     etude_bt_mt: etude,
+    extraction_quality: mapExtractionQuality(response.extraction_quality),
   };
 }
 
@@ -157,6 +217,7 @@ function mapRecommendation(rec: MtRecommandationRaw): MtInsightCard {
     titre.includes('✅') ||
     categorie.startsWith('C1') ||
     categorie === 'P0';
+  const isVerify = categorie === 'P_VERIFY';
 
   let description = str(rec.description, '');
   const gainRaw = str(rec.gain_annuel_estime_dt, '');
@@ -172,7 +233,7 @@ function mapRecommendation(rec: MtRecommandationRaw): MtInsightCard {
     title: titre,
     description,
     annualSavingLabel:
-      gainAnnuel > 0 ? `+${formatMtDtAmount(gainAnnuel)} DT/an` : undefined,
+      !isVerify && gainAnnuel > 0 ? `+${formatMtDtAmount(gainAnnuel)} DT/an` : undefined,
     footerNote: conclusion !== '-' ? conclusion : undefined,
   };
 }
@@ -241,6 +302,7 @@ function mapMtResult(response: StegAnalyseResponse): MtAnalyseResult {
       piste:
         'une étude de faisabilité solaire permettrait de chiffrer le productible, l\'investissement et le temps de retour propres à ce site.',
     },
+    extraction_quality: mapExtractionQuality(response.extraction_quality),
   };
 }
 

@@ -7,6 +7,31 @@ import { billExtractionService } from '../bill-extraction/bill-extraction.servic
 import { getStegExtractionFacturePrompt } from './analyse-facture.prompt';
 import { isStegAnalyseResponseEmpty } from '@shared/functions/analyse-facture-validation';
 import { enrichStegExtractionWithCalculations } from './calculations/enrich-steg-response';
+import { isMtMaxAppeleeEqualSouscrite } from './calculations/steg-calculations';
+import { shouldRefineMtExtraction } from './calculations/extraction-quality';
+import { STEG_MT_POWER_REFINE_PROMPT } from './prompts/steg-mt-power-refine.prompt';
+
+const MT_POWER_REFINE_MAX_TOKENS = 400;
+
+interface MtPowerRefineFields {
+  puissance_souscrite_kva?: string;
+  puissance_maximale_appelee_kva?: string;
+  prime_puissance?: string;
+  montant_net_a_payer?: string;
+  mois_facturation?: string;
+  date_limite_paiement?: string;
+}
+
+function parseStegNumericField(value: string | undefined): number {
+  if (value === undefined || value === '-' || value === '') {
+    return Number.NaN;
+  }
+  return Number.parseFloat(value.replace(/\s/g, '').replace(',', '.'));
+}
+
+function isUsableRefineValue(value: string | undefined): value is string {
+  return value !== undefined && value !== '-' && value.trim() !== '';
+}
 
 /**
  * Full extraction JSON needs room; production/dev use up to 16384 on gpt-4o.
@@ -15,6 +40,10 @@ import { enrichStegExtractionWithCalculations } from './calculations/enrich-steg
  */
 const ANALYSE_FACTURE_MAX_TOKENS_DEFAULT = 8192;
 const ANALYSE_FACTURE_MIN_TOKENS = 800;
+/** First-pass vision prep (sharper than legacy 1600/q85). */
+const ANALYSE_VISION_PREP = { maxEdgePx: 2048, jpegQuality: 90 } as const;
+/** Second-pass MT refine uses a larger edge when quality is weak. */
+const ANALYSE_VISION_REFINE_PREP = { maxEdgePx: 2560, jpegQuality: 92 } as const;
 
 function resolveMaxTokens(): number {
   const fromEnv = Number.parseInt(process.env.OPENROUTER_MAX_TOKENS ?? '', 10);
@@ -24,10 +53,13 @@ function resolveMaxTokens(): number {
   return ANALYSE_FACTURE_MAX_TOKENS_DEFAULT;
 }
 
-/** Prefer high for STEG OCR; override with OPENROUTER_VISION_DETAIL=low if credits are tight. */
+/**
+ * Analyse-facture defaults to high (digit OCR). Independent of OPENROUTER_VISION_DETAIL
+ * so other cheaper flows can stay on low. Override with ANALYSE_FACTURE_VISION_DETAIL=low.
+ */
 function resolveVisionDetail(): 'low' | 'high' {
-  const detail = (process.env.OPENROUTER_VISION_DETAIL ?? 'high').toLowerCase();
-  return detail === 'low' ? 'low' : 'high';
+  const analyse = (process.env.ANALYSE_FACTURE_VISION_DETAIL ?? 'high').toLowerCase();
+  return analyse === 'low' ? 'low' : 'high';
 }
 
 function parseAffordableMaxTokens(errorText: string): number | null {
@@ -58,7 +90,11 @@ export class AnalyseFactureService {
       Logger.info(`Input: size=${imageBuffer.length} bytes, mimeType=${mimeType}`);
 
       const { buffer: preparedBuffer, mimeType: preparedMimeType } =
-        await billExtractionService.prepareBillImage(imageBuffer, mimeType);
+        await billExtractionService.prepareBillImage(
+          imageBuffer,
+          mimeType,
+          ANALYSE_VISION_PREP
+        );
 
       if (preparedBuffer.length === 0) {
         throw new HTTP400Error('Image preparation failed. The prepared image buffer is empty.');
@@ -119,7 +155,15 @@ export class AnalyseFactureService {
         affichage_client: parsed.affichage_client,
       });
 
-      if (isStegAnalyseResponseEmpty(enriched)) {
+      const refined = await this.refineMtFieldsIfNeeded(
+        enriched,
+        imageBuffer,
+        mimeType,
+        dataUrl,
+        model
+      );
+
+      if (isStegAnalyseResponseEmpty(refined)) {
         Logger.error('STEG analysis returned no readable bill fields (all "-" or empty)');
         throw new HTTP400Error(
           'Impossible de lire cette facture. Le PDF a peut-être produit une image illisible. ' +
@@ -128,7 +172,7 @@ export class AnalyseFactureService {
       }
 
       Logger.info('STEG analysis completed (LLM extraction + code calculations)');
-      return enriched;
+      return refined;
     } catch (error: unknown) {
       Logger.error(`STEG bill analysis error: ${String(error)}`);
       if (error instanceof HTTP400Error) {
@@ -159,6 +203,173 @@ export class AnalyseFactureService {
       }
 
       throw new HTTP400Error("Échec de l'analyse de la facture.", error);
+    }
+  }
+
+  private async refineMtFieldsIfNeeded(
+    response: StegAnalyseResponse,
+    originalBuffer: Buffer,
+    originalMimeType: string,
+    fallbackDataUrl: string,
+    model: string
+  ): Promise<StegAnalyseResponse> {
+    const raw = response.facture_extraite as {
+      type_facture?: string;
+      puissance_souscrite_kva?: string;
+      puissance_maximale_appelee_kva?: string;
+      puissance_maximale_appelee_kw?: string;
+    };
+
+    if (String(raw.type_facture ?? '').toUpperCase() !== 'MT') {
+      return response;
+    }
+
+    const souscrite = parseStegNumericField(raw.puissance_souscrite_kva);
+    const maxAppelee = parseStegNumericField(
+      raw.puissance_maximale_appelee_kva ?? raw.puissance_maximale_appelee_kw
+    );
+    const needsRefine =
+      isMtMaxAppeleeEqualSouscrite(souscrite, maxAppelee)
+      || shouldRefineMtExtraction(response.extraction_quality);
+
+    if (!needsRefine) {
+      return response;
+    }
+
+    Logger.warn(
+      'STEG MT: focused vision re-read (quality/suspects) for max appelée / prime / net / mois'
+    );
+
+    try {
+      const refinedPrep = await billExtractionService.prepareBillImage(
+        originalBuffer,
+        originalMimeType,
+        ANALYSE_VISION_REFINE_PREP
+      );
+      const refineDataUrl =
+        refinedPrep.buffer.length > 0
+          ? `data:${refinedPrep.mimeType};base64,${refinedPrep.buffer.toString('base64')}`
+          : fallbackDataUrl;
+
+      const content = await this.createExtractionCompletion(
+        model,
+        STEG_MT_POWER_REFINE_PROMPT,
+        refineDataUrl,
+        MT_POWER_REFINE_MAX_TOKENS,
+        'high'
+      );
+      const jsonString = content.replace(/```json/g, '').replace(/```/g, '').trim();
+      const refined = JSON.parse(jsonString) as MtPowerRefineFields;
+      const patched = this.applyMtPowerRefine(response, refined);
+      if (patched === null) {
+        return response;
+      }
+      return enrichStegExtractionWithCalculations({
+        facture_extraite: patched.facture_extraite,
+        affichage_client: patched.affichage_client,
+      });
+    } catch (error: unknown) {
+      Logger.warn(`STEG MT power refine skipped: ${String(error)}`);
+      return response;
+    }
+  }
+
+  private applyMtPowerRefine(
+    response: StegAnalyseResponse,
+    refined: MtPowerRefineFields
+  ): StegAnalyseResponse | null {
+    const raw = response.facture_extraite as Record<string, string | undefined>;
+    const souscrite = parseStegNumericField(raw.puissance_souscrite_kva);
+    const refinedMax = parseStegNumericField(refined.puissance_maximale_appelee_kva);
+    let changed = false;
+
+    if (
+      isUsableRefineValue(refined.puissance_maximale_appelee_kva)
+      && !Number.isNaN(refinedMax)
+      && refinedMax > 0
+      && !isMtMaxAppeleeEqualSouscrite(souscrite, refinedMax)
+    ) {
+      raw.puissance_maximale_appelee_kva = refined.puissance_maximale_appelee_kva.trim();
+      this.patchAffichageField(
+        response.affichage_client,
+        'puissance_maximale_appelee_kva',
+        raw.puissance_maximale_appelee_kva
+      );
+      changed = true;
+      Logger.info(
+        `STEG MT refine: puissance_maximale_appelee_kva → ${raw.puissance_maximale_appelee_kva}`
+      );
+    }
+
+    if (isUsableRefineValue(refined.prime_puissance)) {
+      const refinedPrime = parseStegNumericField(refined.prime_puissance);
+      const expectedUniforme = !Number.isNaN(souscrite) ? souscrite * 5 : Number.NaN;
+      const expectedHoraire = !Number.isNaN(souscrite) ? souscrite * 11 : Number.NaN;
+      const looksPlausible =
+        !Number.isNaN(refinedPrime)
+        && refinedPrime > 0
+        && (
+          (!Number.isNaN(expectedUniforme)
+            && Math.abs(refinedPrime - expectedUniforme) / expectedUniforme <= 0.05)
+          || (!Number.isNaN(expectedHoraire)
+            && Math.abs(refinedPrime - expectedHoraire) / expectedHoraire <= 0.05)
+        );
+      if (looksPlausible) {
+        raw.prime_puissance = refined.prime_puissance.trim();
+        this.patchAffichageField(
+          response.affichage_client,
+          'prime_puissance',
+          raw.prime_puissance
+        );
+        changed = true;
+      }
+    }
+
+    if (isUsableRefineValue(refined.montant_net_a_payer)) {
+      raw.montant_net_a_payer = refined.montant_net_a_payer.trim();
+      this.patchAffichageField(
+        response.affichage_client,
+        'montant_net_a_payer',
+        raw.montant_net_a_payer
+      );
+      changed = true;
+    }
+
+    if (isUsableRefineValue(refined.mois_facturation)) {
+      raw.mois_facturation = refined.mois_facturation.trim();
+      this.patchAffichageField(
+        response.affichage_client,
+        'mois_facturation',
+        raw.mois_facturation
+      );
+      changed = true;
+    }
+
+    if (isUsableRefineValue(refined.date_limite_paiement)) {
+      raw.date_limite_paiement = refined.date_limite_paiement.trim();
+      this.patchAffichageField(
+        response.affichage_client,
+        'date_limite_paiement',
+        raw.date_limite_paiement
+      );
+      changed = true;
+    }
+
+    return changed ? response : null;
+  }
+
+  private patchAffichageField(
+    affichage: StegAnalyseResponse['affichage_client'],
+    field: string,
+    value: string
+  ): void {
+    const current = affichage[field];
+    if (current && typeof current === 'object' && 'valeur' in current) {
+      affichage[field] = { ...current, valeur: value };
+      return;
+    }
+    if (typeof current === 'string' || current === undefined) {
+      affichage[field] = value;
     }
   }
 

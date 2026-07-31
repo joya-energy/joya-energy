@@ -3,10 +3,17 @@ import { pdfToPng } from 'pdf-to-png-converter';
 import sharp from 'sharp';
 
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-const PDF_VIEWPORT_SCALES = [3.0, 2.0, 4.0] as const;
+/** Prefer sharper primary render for STEG digit OCR; fallbacks if blank. */
+const PDF_VIEWPORT_SCALES = [4.0, 3.0, 2.0] as const;
 const PDF_PAGES_TO_TRY = [1, 2] as const;
-/** Caps vision tiles for detail=high while keeping text readable (STEG scans). */
-const VISION_MAX_EDGE_PX = 1600;
+/** Caps vision tiles while keeping STEG text readable (was 1600). */
+const VISION_MAX_EDGE_PX = 2048;
+const VISION_JPEG_QUALITY = 90;
+
+export interface VisionImageOptions {
+  maxEdgePx?: number;
+  jpegQuality?: number;
+}
 
 export function isPdfBuffer(buffer: Buffer): boolean {
   return buffer.length >= 4 && buffer.subarray(0, 4).toString() === '%PDF';
@@ -41,27 +48,31 @@ async function enhanceBillPng(buffer: Buffer): Promise<Buffer> {
  * Downscale + JPEG so OpenRouter detail=high stays under prompt-token credit limits.
  */
 export async function downscaleBillImageForVision(
-  buffer: Buffer
+  buffer: Buffer,
+  options: VisionImageOptions = {}
 ): Promise<{ buffer: Buffer; mimeType: 'image/jpeg' }> {
+  const maxEdgePx = options.maxEdgePx ?? VISION_MAX_EDGE_PX;
+  const jpegQuality = options.jpegQuality ?? VISION_JPEG_QUALITY;
   const meta = await sharp(buffer).metadata();
   const width = meta.width ?? 0;
   const height = meta.height ?? 0;
-  const needsResize = width > VISION_MAX_EDGE_PX || height > VISION_MAX_EDGE_PX;
+  const needsResize = width > maxEdgePx || height > maxEdgePx;
 
   let pipeline = sharp(buffer).rotate();
   if (needsResize) {
     pipeline = pipeline.resize({
-      width: VISION_MAX_EDGE_PX,
-      height: VISION_MAX_EDGE_PX,
+      width: maxEdgePx,
+      height: maxEdgePx,
       fit: 'inside',
       withoutEnlargement: true,
     });
   }
 
-  const output = await pipeline.jpeg({ quality: 85, mozjpeg: true }).toBuffer();
+  const output = await pipeline.jpeg({ quality: jpegQuality, mozjpeg: true }).toBuffer();
   Logger.info(
     `Vision image prepared: ${width}x${height} → jpeg ${output.length} bytes` +
-      (needsResize ? ` (max edge ${VISION_MAX_EDGE_PX}px)` : '')
+      (needsResize ? ` (max edge ${maxEdgePx}px)` : '') +
+      ` q=${jpegQuality}`
   );
   return { buffer: output, mimeType: 'image/jpeg' };
 }
