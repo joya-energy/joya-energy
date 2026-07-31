@@ -42,6 +42,15 @@ export const routes: Routes = [
     title: 'Ressources | JOYA Energy',
   },
   {
+    path: 'installateur-partenaire',
+    loadComponent: () =>
+      import('./pages/installateur-partenaire/installateur-partenaire.component').then(
+        (m) => m.InstallateurPartenaireComponent
+      ),
+    title: 'Installateur Partenaire | JOYA Energy',
+    data: { hideFooter: false },
+  },
+  {
     path: 'blogs',
     loadComponent: () =>
       import('./pages/blogs/blogs.component').then((m) => m.BlogsComponent),

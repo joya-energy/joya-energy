@@ -60,7 +60,7 @@ export class FooterComponent {
     company: [
       { name: 'À propos', href: '/about' },
       { name: 'Blog', href: '/blog' },
-      { name: 'Installateurs', href: '/installateurs' },
+      { name: 'Installateur Partenaire', href: '/installateur-partenaire' },
       { name: 'Partenaires', href: '/devenir-partenaire' },
     ],
     legal: [
