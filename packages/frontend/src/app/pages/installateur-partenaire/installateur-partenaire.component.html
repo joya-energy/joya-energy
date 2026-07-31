@@ -1,0 +1,136 @@
+<div class="ip-page">
+  <main class="ip-page__main">
+    <!-- Hero -->
+    <section class="ip-hero" aria-labelledby="ip-hero-title">
+      <div class="ip-hero__inner">
+        <span class="ip-hero__badge">Partenaires installateurs</span>
+        <h1 id="ip-hero-title" class="ip-hero__title">
+          Installez plus.
+          <span class="ip-hero__title-accent">Facturez sans attendre.</span>
+        </h1>
+        <p class="ip-hero__lead">
+          Rejoignez le réseau d’installateurs partenaires Joya Energy et déployez des projets
+          solaires couverts par un contrat de service à la performance, sans que vos clients
+          n’avancent un dinar.
+        </p>
+        <p class="ip-hero__tagline">Deux flux de projets. Un seul partenaire financier.</p>
+        <div class="ip-hero__actions">
+          <a
+            [href]="devenirPartenaireUrl"
+            class="ip-btn ip-btn--primary"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Devenir partenaire
+          </a>
+          <a
+            href="#processus"
+            class="ip-btn ip-btn--ghost"
+            (click)="scrollToProcessus($event)"
+          >
+            Voir comment ça marche ↓
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="ip-stats" aria-label="Chiffres du réseau">
+      <div class="ip-stats__grid">
+        @for (stat of stats; track stat.title) {
+          <div class="ip-stats__item">
+            <p class="ip-stats__value">{{ stat.value }}</p>
+            <p class="ip-stats__title">{{ stat.title }}</p>
+            <p class="ip-stats__subtitle">{{ stat.subtitle }}</p>
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- Problem -->
+    <section class="ip-section ip-section--problem" aria-labelledby="ip-problem-title">
+      <div class="ip-section__inner">
+        <span class="ip-pill">Le problème</span>
+        <h2 id="ip-problem-title" class="ip-section__title">
+          Le solaire PME bute sur la structure de paiement, pas sur la technique.
+        </h2>
+        <p class="ip-section__text">
+          Les clients PME veulent du solaire, mais n’ont souvent ni la trésorerie ni l’accès bancaire
+          pour financer l’installation. Joya structure le projet via un contrat de service
+          énergétique : le partenaire installe, Joya paie le chantier. Vous facturez Joya — pas le
+          client final.
+        </p>
+      </div>
+    </section>
+
+    <!-- Process -->
+    <section
+      id="processus"
+      class="ip-section ip-section--process"
+      aria-labelledby="ip-process-title"
+    >
+      <div class="ip-section__inner">
+        <span class="ip-pill">Le processus</span>
+        <h2 id="ip-process-title" class="ip-section__title">Comment ça marche, de A à Z.</h2>
+        <ol class="ip-process">
+          @for (step of processSteps; track step.number) {
+            <li class="ip-process__step">
+              <span class="ip-process__number" aria-hidden="true">{{ step.number }}</span>
+              <h3 class="ip-process__title">{{ step.title }}</h3>
+              <p class="ip-process__text">{{ step.description }}</p>
+            </li>
+          }
+        </ol>
+      </div>
+    </section>
+
+    <!-- Advantages -->
+    <section class="ip-section ip-section--advantages" aria-labelledby="ip-advantages-title">
+      <div class="ip-section__inner">
+        <span class="ip-pill">Vos avantages</span>
+        <h2 id="ip-advantages-title" class="ip-section__title">
+          Ce que le réseau Joya change pour vous.
+        </h2>
+        <div class="ip-advantages">
+          @for (card of advantages; track card.title) {
+            <article class="ip-advantage">
+              <div class="ip-advantage__icon" aria-hidden="true">
+                <ng-icon [name]="card.icon" size="28" />
+              </div>
+              <h3 class="ip-advantage__title">{{ card.title }}</h3>
+              <p class="ip-advantage__text">{{ card.description }}</p>
+            </article>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- Expectations -->
+    <section class="ip-expect" aria-labelledby="ip-expect-title">
+      <div class="ip-expect__inner">
+        <span class="ip-pill ip-pill--dark">Ce qu’on attend de vous</span>
+        <h2 id="ip-expect-title" class="ip-expect__title">
+          Un partenariat exigeant. Dans les deux sens.
+        </h2>
+        <ul class="ip-expect__list">
+          @for (item of expectations; track item.number) {
+            <li class="ip-expect__item">
+              <span class="ip-expect__number">{{ item.number }}</span>
+              <p class="ip-expect__text">{{ item.text }}</p>
+            </li>
+          }
+        </ul>
+        <div class="ip-expect__cta">
+          <a
+            [href]="devenirPartenaireUrl"
+            class="ip-btn ip-btn--primary"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Devenir partenaire
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>

@@ -22,9 +22,11 @@ describe('NavbarComponent', () => {
   });
 
   it('should have correct navigation links', () => {
-    expect(component['navLinks']).toHaveLength(4);
-    expect(component['navLinks'][0].label).toBe('Simulateurs');
-    expect(component['navLinks'][1].label).toBe('Modèle ESCO');
+    expect(component['navLinks']).toHaveLength(6);
+    expect(component['navLinks'].some((link) => link.path === '/ressources')).toBe(true);
+    expect(
+      component['navLinks'].some((link) => link.path === '/installateur-partenaire')
+    ).toBe(true);
   });
 
   it('should toggle mobile menu when toggleMobileMenu is called', () => {
