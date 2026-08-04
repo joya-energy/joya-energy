@@ -184,23 +184,36 @@ export class AuditSolaireSimulationService extends CommonService<
         throw error;
       }
 
-      // MT: recompute financials with T_couv sizing (CAPEX/OPEX) and MT first-year savings (E_auto × Tarif)
+      // MT: recompute financials with T_couv sizing (CAPEX/OPEX).
+      // Eco_brute,1 = Eco_annuel = F_sans - F_avec + Vente_exc
       if (input.tariffTension === 'MT' && mtAutoconsumption && consumptionData.annualEstimatedConsumption > 0) {
+        const SURPLUS_BUYBACK_TARIFF_DT_PER_KWH = 0.08;
         const year1BillWithout = economicData.annualResults[0]?.annualBillWithoutPV ?? 0;
-        const firstYearSavingsMT =
-          mtAutoconsumption.selfConsumedEnergy * (year1BillWithout / consumptionData.annualEstimatedConsumption);
+        const avoidedTariff =
+          year1BillWithout / consumptionData.annualEstimatedConsumption;
+        const billSavingsMT =
+          mtAutoconsumption.selfConsumedEnergy * avoidedTariff;
+        const year1BillWith = year1BillWithout - billSavingsMT;
+        const surplusRevenueSTEG =
+          (mtAutoconsumption.gridSurplus ?? 0) * SURPLUS_BUYBACK_TARIFF_DT_PER_KWH;
+        // Eco_brute,1 = F_sans - F_avec + Vente_exc
+        const firstYearSavingsMT = year1BillWithout - year1BillWith + surplusRevenueSTEG;
         economicData = analyzeEconomics({
           monthlyBilledConsumptions,
           monthlyRawConsumptions: monthlyConsumptions,
           installedPowerKwp: pvSystemData.installedPower,
-          annualPVProduction: pvSystemData.annualPVProduction,
+          // MT: E_PV for CO2 (and metrics) = production from T_couv sizing
+          annualPVProduction: mtAutoconsumption.annualPVProduction,
           annualSelfConsumedEnergy: mtAutoconsumption.selfConsumedEnergy,
           tariffTension: input.tariffTension,
           tariffRegime: input.tariffRegime ?? undefined,
           installedPowerKwpOverride: mtAutoconsumption.theoreticalPVPower,
           firstYearSavingsOverride: Number(firstYearSavingsMT.toFixed(2)),
         });
-        Logger.info(`✅ MT economic analysis (T_couv sizing): CAPEX from ${mtAutoconsumption.theoreticalPVPower} kWc, first-year savings=${firstYearSavingsMT.toFixed(0)} DT`);
+        Logger.info(
+          `✅ MT economic analysis (T_couv sizing): CAPEX from ${mtAutoconsumption.theoreticalPVPower} kWc, ` +
+          `Eco_brute,1=F_sans-F_avec+Vente_exc=${firstYearSavingsMT.toFixed(0)} DT`
+        );
       }
 
       const simulationData = this.buildSimulationPayload(
@@ -407,7 +420,10 @@ export class AuditSolaireSimulationService extends CommonService<
     let mtAnnualBillWithPVApprox: number | null = null;
 
     if (input.tariffTension === 'MT') {
-      // Self-consumption-based savings: E_auto × (F_sans / C_annuelle)
+      const SURPLUS_BUYBACK_TARIFF_DT_PER_KWH = 0.08;
+
+      // Bill savings from self-consumption: E_auto × (F_sans / C_annuelle)
+      // F_avec = F_sans - bill_savings
       if (mtAutoconsumption?.selfConsumedEnergy != null && consumptionData.annualEstimatedConsumption > 0) {
         const avoidedTariff =
           annualBillWithoutPV / consumptionData.annualEstimatedConsumption;
@@ -417,18 +433,12 @@ export class AuditSolaireSimulationService extends CommonService<
           annualBillWithoutPV - mtAnnualSelfConsumptionSavings;
       }
 
-      // Build Eco_annuel starting from self-consumption savings when available
-      if (mtAnnualSelfConsumptionSavings != null) {
-        annualSavings = mtAnnualSelfConsumptionSavings;
-      }
-
-      // Include revenue from surplus sale in Eco_annuel when MT data is available:
-      // Eco_annuel = (E_auto × Tarif_évité) + Vente_exc
-      if (mtAutoconsumption?.gridSurplus != null) {
-        const SURPLUS_BUYBACK_TARIFF_DT_PER_KWH = 0.08;
+      // Eco_brute,1 = Eco_annuel = F_sans - F_avec + Vente_exc
+      if (mtAnnualBillWithPVApprox != null) {
         const surplusRevenueSTEG =
-          mtAutoconsumption.gridSurplus * SURPLUS_BUYBACK_TARIFF_DT_PER_KWH;
-        annualSavings += surplusRevenueSTEG;
+          (mtAutoconsumption?.gridSurplus ?? 0) * SURPLUS_BUYBACK_TARIFF_DT_PER_KWH;
+        annualSavings =
+          annualBillWithoutPV - mtAnnualBillWithPVApprox + surplusRevenueSTEG;
       }
     }
 

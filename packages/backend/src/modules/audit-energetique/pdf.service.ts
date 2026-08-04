@@ -334,12 +334,12 @@ export class AuditPDFService {
   }
 
   /**
-   * Load template HTML and CSS from cache
+   * Load template HTML and CSS from cache (loaded once at backend startup).
+   * Restart the backend after editing templates/CSS to refresh the cache.
    */
   private loadTemplateAssets(template: PDFTemplateType): string {
     let html = this.assetsCache.templates.get(template);
     if (!html) {
-      // Fallback: read from disk if not in cache
       Logger.warn(`⚠️ Template ${template} not in cache, reading from disk`);
       const templatePath = path.resolve(__dirname, `./template/${template}/template.html`);
       html = fs.readFileSync(templatePath, 'utf8');
@@ -348,7 +348,7 @@ export class AuditPDFService {
 
     const bootstrapCSS = this.assetsCache.css.get(`${template}-bootstrap`) ?? '';
     const customCSS = this.assetsCache.css.get(`${template}-style`) ?? '';
-    
+
     return html.replace('{{INLINE_CSS}}', `${bootstrapCSS}\n${customCSS}`);
   }
 
@@ -721,7 +721,7 @@ export class AuditPDFService {
       const annualSavingsValue = pvData.annualSavings ?? null;
 
       // Ensure PDF values are consistent with Eco_annuel formula:
-      // Eco_annuel = F_sans - F_avec + Vente_exc
+      // Eco_brute,1 = Eco_annuel = F_sans - F_avec + Vente_exc
       // ⇒ F_avec = F_sans - (Eco_annuel - Vente_exc)
       let annualBillWithPVForPdf: number | null = null;
       if (annualBillWithoutPVValue !== null && annualSavingsValue !== null) {
@@ -732,15 +732,15 @@ export class AuditPDFService {
       flattened.annualBillWithoutPV = formatNumber(annualBillWithoutPVValue, 0);
       flattened.annualBillWithPV = formatNumber(annualBillWithPVForPdf, 0);
       flattened.surplusRevenueSTEG = formatNumber(surplusRevenueSTEGValue, 0);
-      // Eco_annuel is already provided by pvData.annualSavings
+      // Eco_annuel = F_sans - F_avec + Vente_exc
       flattened.annualSavings = formatNumber(annualSavingsValue, 0);
       flattened.gainCumulated = formatNumber(pvData.gainCumulated, 0);
       flattened.npv = formatNumber(pvData.npv, 0);
       flattened.paybackSimple = formatNumber(pvData.paybackSimple, 2);
       flattened.paybackDiscounted = formatNumber(pvData.paybackDiscounted, 2);
       flattened.irr = formatNumber(pvData.irr, 2);
-      // ROI is stored as a ratio, convert to percentage for display
-      flattened.roi = formatNumber(pvData.roi !== null && pvData.roi !== undefined ? pvData.roi * 100 : null, 2);
+      // ROI is stored as a ratio (e.g. 8.42) — same display as the simulator
+      flattened.roi = formatNumber(pvData.roi, 2);
       flattened.co2PerYear = formatNumber(pvData.co2PerYear, 2);
       flattened.co2Total = formatNumber(pvData.co2Total, 0);
       

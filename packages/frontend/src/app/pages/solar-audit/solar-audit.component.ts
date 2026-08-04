@@ -359,13 +359,24 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
 
   /**
    * Value displayed in "Économies annuelles".
-   * - MT: prefer backend-provided `mtAnnualSelfConsumptionSavings` when present
-   * - Otherwise: fall back to BT computed savings
+   * - MT: Eco_annuel = F_sans - F_avec + Vente_exc
+   * - BT: F_sans - F_avec
    */
   protected readonly annualSavingsForDisplay = computed(() => {
     const s = this.simulationResult();
     if (!s) return null;
-    if (s.mtAnnualSelfConsumptionSavings != null) return s.mtAnnualSelfConsumptionSavings;
+
+    // MT: Eco_brute,1 = Eco_annuel = F_sans - F_avec + Vente_exc
+    if (s.mtAnnualBillWithPVApprox != null && s.annualBillWithoutPV != null) {
+      const venteExc = (s.mtGridSurplus ?? 0) * this.surplusBuybackTariffDtPerKwh;
+      return s.annualBillWithoutPV - s.mtAnnualBillWithPVApprox + venteExc;
+    }
+
+    // Backend may already store Eco_annuel for MT
+    if (s.mtSelfConsumedEnergy != null && s.annualSavings != null) {
+      return s.annualSavings;
+    }
+
     return this.btAnnualSavings();
   });
 
@@ -382,17 +393,19 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   });
 
   /**
-   * "Après" computed as (Avant - Économies) to match UI expectation.
+   * "Après" = F_avec.
+   * Do not use Avant - Eco_annuel for MT: Eco includes Vente_exc.
    */
   protected readonly annualBillAfterEquationForDisplay = computed(() => {
+    const withPv = this.annualBillWithPVForDisplay();
+    if (withPv != null) return Math.max(0, Math.round(withPv));
+
     const s = this.simulationResult();
     if (!s) return null;
     const before = s.annualBillWithoutPV ?? null;
     const savings = this.annualSavingsForDisplay();
     if (before == null || savings == null) return null;
-    const beforeRounded = Math.round(before);
-    const savingsRounded = Math.round(savings);
-    return Math.max(0, beforeRounded - savingsRounded);
+    return Math.max(0, Math.round(before) - Math.round(savings));
   });
 
   /** Tooltip for monthly bills chart: one bubble at a time (sans or avec) on bar hover */

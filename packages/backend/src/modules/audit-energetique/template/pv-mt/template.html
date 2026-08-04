@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Rapport d’étude photovoltaïque – BT</title>
+  <title>Rapport d’étude photovoltaïque – MT</title>
   <style>{{INLINE_CSS}}</style>
 </head>
 <body>
@@ -47,7 +47,7 @@
     <div class="header-left">
       <img src="data:image/png;base64,{{joyaLogoBase64}}" />
       <div>
-        <div class="header-title">Rapport photovoltaïque – BT</div>
+        <div class="header-title">Rapport photovoltaïque – MT</div>
         <div class="header-sub">{{companyName}}</div>
       </div>
     </div>
@@ -187,7 +187,7 @@
     <div class="header-left">
       <img src="data:image/png;base64,{{joyaLogoBase64}}" />
       <div>
-        <div class="header-title">Rapport photovoltaïque – BT</div>
+        <div class="header-title">Rapport photovoltaïque – MT</div>
         <div class="header-sub">{{companyName}}</div>
       </div>
     </div>
@@ -234,8 +234,8 @@
 
 
         <p class="old-price">
-          <strong>{{avgPriceWithoutPV}}</strong> Dt HT/kWh<br />
-          Prix Moyen d'achat d'électricité
+          <strong>{{annualBillWithoutPV}} DT</strong><br />
+          Facture annuelle sans PV
         </p>
 
 
@@ -246,7 +246,7 @@
         <div class="bill-savings-card">
 
           <div class="bill-savings-text">
-            💡 Économie annuelle moyenne estimée :
+            💡 Économie annuelle<br />(inclut vente excédent)
             <strong>≈ {{annualSavings}} DT / an</strong>
           </div>
 
@@ -265,8 +265,8 @@
 
 
         <p class="old-price">
-          <strong>{{avgPriceWithPV}}</strong> Dt HT/kWh<br />
-          Prix Moyen d'achat d'électricité
+          <strong>{{annualBillWithPV}} DT</strong><br />
+          Facture annuelle avec PV
         </p>
 
       </div>
@@ -289,7 +289,7 @@
           <td>{{surplusRevenueSTEG}} DT</td>
         </tr>
         <tr>
-          <td>Économie brute annuelle – année 1</td>
+          <td>Économie brute annuelle – année 1<br />(inclut vente excédent)</td>
           <td>{{annualSavings}} DT</td>
         </tr>
       </tbody>
@@ -314,7 +314,7 @@
     <div class="header-left">
       <img src="data:image/png;base64,{{joyaLogoBase64}}" />
       <div>
-        <div class="header-title">Rapport photovoltaïque – BT</div>
+        <div class="header-title">Rapport photovoltaïque – MT</div>
         <div class="header-sub">{{companyName}}</div>
       </div>
     </div>
@@ -572,7 +572,7 @@
     <div class="header-left">
       <img src="data:image/png;base64,{{joyaLogoBase64}}" />
       <div>
-        <div class="header-title">Rapport photovoltaïque – BT</div>
+        <div class="header-title">Rapport photovoltaïque – MT</div>
         <div class="header-sub">{{companyName}}</div>
       </div>
     </div>
@@ -596,7 +596,7 @@
   </tr>
   <tr class="highlight">
     <td>ROI global</td>
-    <td>{{roi}} <span>%</span></td>
+    <td>{{roi}}</td>
   </tr>
 </table>
 
