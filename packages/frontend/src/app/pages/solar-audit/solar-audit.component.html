@@ -146,24 +146,19 @@
                   </div>
                   <div class="card-content">
                     <div class="card-value">
-                      @if (simulation.mtAnnualSelfConsumptionSavings != null) {
-                      {{ simulation.mtAnnualSelfConsumptionSavings / 1000 | noGrouping : '1.0-0' }}
-                      } @else {
-                      {{ (simulation.annualBillWithoutPV - simulation.annualBillWithPV) / 1000 | noGrouping : '1.0-0' }}
-                      }
+                      {{ (annualSavingsForDisplay() ?? 0) / 1000 | noGrouping : '1.0-0' }}
                       <span class="unit">k DT</span>
                     </div>
                     <div class="card-label">
-                      Économies Annuelles{{
-                        simulation.mtSelfConsumedEnergy == null ? ' (1ᵉʳᵉ année)' : ''
-                      }}
+                      @if (simulation.mtSelfConsumedEnergy != null) {
+                        Économies Annuelles<br />
+                        (inclut vente excédent)
+                      } @else {
+                        Économies Annuelles (1ᵉʳᵉ année)
+                      }
                     </div>
                     <div class="card-description">
-                      @if (simulation.mtAnnualSelfConsumptionSavings != null) {
-                      {{ simulation.mtAnnualSelfConsumptionSavings | noGrouping : '1.0-0' }}
-                      } @else {
-                      {{ (simulation.annualBillWithoutPV - simulation.annualBillWithPV) | noGrouping : '1.0-0' }}
-                      } DT/an
+                      {{ (annualSavingsForDisplay() ?? 0) | noGrouping : '1.0-0' }} DT/an
                     </div>
                   </div>
                   <div class="card-accent"></div>
@@ -292,9 +287,12 @@
                         DT
                       </div>
                       <div class="savings-label">
-                        Économies annuelles{{
-                          simulation.mtSelfConsumedEnergy == null ? ' (1ᵉʳᵉ année)' : ''
-                        }}
+                        @if (simulation.mtSelfConsumedEnergy != null) {
+                          Économies annuelles<br />
+                          (inclut vente excédent)
+                        } @else {
+                          Économies annuelles (1ᵉʳᵉ année)
+                        }
                       </div>
                     </div>
                   </div>

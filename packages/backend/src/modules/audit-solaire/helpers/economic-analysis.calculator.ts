@@ -20,7 +20,7 @@ export interface EconomicAnalysisInput {
   monthlyRawConsumptions: number[]; // C_brut(m) - Raw consumption before PV [12 elements]
   installedPowerKwp: number; // P_PV (kWc)
   annualPVProduction: number; // Annual PV production (kWh)
-  /** Optional: annual self-consumed energy (kWh). Used for MT CO2 when provided. */
+  /** Optional: annual self-consumed energy (kWh). Kept for MT callers; CO2 uses E_PV for BT and MT. */
   annualSelfConsumedEnergy?: number;
   projectLifetimeYears?: number; // Default 25 years
   stegTariffInflationRate?: number; // Default 7% - i
@@ -654,45 +654,29 @@ export function analyzeEconomics(input: EconomicAnalysisInput): EconomicAnalysis
   const internalRateOfReturnPercent = calculateIRR(investmentCost, annualResults);
 
   // Calculate CO2 avoided emissions
-  // Formula: CO₂ évité (t/an) (25 ans) = Σ (MIN(consommation brute annuelle ; Production PV annuelle ×(1-d)ⁿ⁻¹) × 0,463) / 1000
+  // Formula: CO₂ évité (t/an) (25 ans) = Σ (MIN(consommation brute annuelle ; Production PV annuelle ×(1-d)ⁿ⁻¹) × 0,468) / 1000
   // Where: d = taux de dégradation de performance (0.4%)
-  // Note: 0.463 is kg CO2 per kWh (emission factor)
+  // Note: 0.468 is kg CO2 per kWh (emission factor)
+  // BT and MT both use annual PV production (E_PV), capped by annual consumption.
   const annualRawConsumption = input.monthlyRawConsumptions.reduce((sum, consumption) => sum + consumption, 0);
-  const emissionFactor = 0.463; // kg CO2 per kWh
-  const annualSelfConsumedEnergy = input.annualSelfConsumedEnergy;
+  const emissionFactor = 0.468; // kg CO2 per kWh
 
   // Calculate total CO2 avoided over 25 years with degradation
   let totalCo2Avoided25Years = 0;
   for (let year = 1; year <= projectLifetimeYears; year++) {
     // Calculate degraded energy for year n with PV degradation
     const degradationMultiplier = Math.pow(1 - pvDegradationRate, year - 1);
+    const degradedPVProduction = input.annualPVProduction * degradationMultiplier;
+    const effectiveEnergyForCo2 = Math.min(annualRawConsumption, degradedPVProduction);
 
-    let effectiveEnergyForCo2: number;
-    if (input.tariffTension === 'MT' && annualSelfConsumedEnergy != null) {
-      // MT case: use self-consumed energy for CO2, limited by consumption
-      const degradedSelfConsumption = annualSelfConsumedEnergy * degradationMultiplier;
-      effectiveEnergyForCo2 = Math.min(annualRawConsumption, degradedSelfConsumption);
-    } else {
-      // BT/default case: use total PV production, limited by consumption
-      const degradedPVProduction = input.annualPVProduction * degradationMultiplier;
-      effectiveEnergyForCo2 = Math.min(annualRawConsumption, degradedPVProduction);
-    }
-
-    // Calculate CO2 avoided for this year: (effectiveEnergy × 0.463) / 1000
+    // Calculate CO2 avoided for this year: (effectiveEnergy × 0.468) / 1000
     const annualCo2Avoided = (effectiveEnergyForCo2 * emissionFactor) / 1000; // tonnes CO2/year
 
     totalCo2Avoided25Years += annualCo2Avoided;
   }
 
   // Calculate first year CO2 avoided for annual metric
-  let firstYearEffectiveEnergy: number;
-  if (input.tariffTension === 'MT' && annualSelfConsumedEnergy != null) {
-    // MT: CO2 based on self-consumed energy capped by consumption
-    firstYearEffectiveEnergy = Math.min(annualRawConsumption, annualSelfConsumedEnergy);
-  } else {
-    // BT/default: CO2 based on total PV production capped by consumption
-    firstYearEffectiveEnergy = Math.min(annualRawConsumption, input.annualPVProduction);
-  }
+  const firstYearEffectiveEnergy = Math.min(annualRawConsumption, input.annualPVProduction);
   const annualCo2Avoided = (firstYearEffectiveEnergy * emissionFactor) / 1000; // tonnes CO2/year
 
   Logger.info(

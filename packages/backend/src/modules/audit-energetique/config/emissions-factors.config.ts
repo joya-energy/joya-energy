@@ -6,12 +6,12 @@
  * Values in kg CO₂ per kWh
  * 
  * Sources:
- * - STEG (electricity grid): 0.463 kg CO₂/kWh
+ * - STEG (electricity grid): 0.468 kg CO₂/kWh
  * - Natural gas: 0.185 kg CO₂/kWh
  */
 
 export const EMISSION_FACTORS = {
-  ELECTRICITY: 0.463, // kg CO₂/kWh (STEG grid)
+  ELECTRICITY: 0.468, // kg CO₂/kWh (STEG grid)
   NATURAL_GAS: 0.185, // kg CO₂/kWh
   SOLAR_PV: 0, // kg CO₂/kWh (renewable)
   SOLAR_THERMAL: 0 // kg CO₂/kWh (renewable)

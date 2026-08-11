@@ -227,22 +227,36 @@ export function buildPvReportDataFromSolaire(
     
     Logger.info(`💰 MonthlyEconomics totals: billWithout=${totalBillWithout}, billWith=${totalBillWith}, consWithout=${totalConsumptionWithout}, consWith=${totalConsumptionWith}`);
     
-    // Use billed consumption from monthlyEconomics for display
-    consumptionWithPV = totalConsumptionWith;
-    
     // Prix moyen sans PV = Facture totale / Consommation brute totale
     avgPriceWithoutPV = totalConsumptionWithout > 0 
       ? totalBillWithout / totalConsumptionWithout 
       : 0;
+
+    // Residual grid purchase for the report (annual view):
+    // - MT: C_annuelle − E_auto
+    // - BT: C_annuelle − Production_PV (not monthly net-metering billed sum)
+    if (selfConsumedEnergy != null && annualConsumption != null) {
+      consumptionWithPV = Math.max(0, annualConsumption - selfConsumedEnergy);
+      avgPriceWithPV = avgPriceWithoutPV;
+    } else if (annualConsumption != null && pvProductionYear1 != null) {
+      consumptionWithPV = Math.max(0, annualConsumption - pvProductionYear1);
+      avgPriceWithPV = avgPriceWithoutPV;
+    } else {
+      // Fallback: billed consumption from monthlyEconomics (net metering)
+      consumptionWithPV = totalConsumptionWith;
+      avgPriceWithPV = totalConsumptionWith > 0 
+        ? totalBillWith / totalConsumptionWith 
+        : 0;
+    }
     
-    // Prix moyen avec PV = Facture totale / Consommation facturée totale
-    // Le prix moyen représente le prix moyen de l'électricité achetée du réseau
-    // Si la consommation facturée est 0 (PV couvre 100%), alors le prix moyen est 0
-    avgPriceWithPV = totalConsumptionWith > 0 
-      ? totalBillWith / totalConsumptionWith 
-      : 0;
-    
-    Logger.info(`📈 Calculated avg prices: avgPriceWithoutPV=${avgPriceWithoutPV}, avgPriceWithPV=${avgPriceWithPV}`);
+    Logger.info(`📈 Calculated avg prices: avgPriceWithoutPV=${avgPriceWithoutPV}, avgPriceWithPV=${avgPriceWithPV}, consumptionWithPV=${consumptionWithPV}`);
+  } else if (selfConsumedEnergy != null && annualConsumption != null) {
+    // MT without monthlyEconomics: still derive residual grid purchase
+    consumptionWithPV = Math.max(0, annualConsumption - selfConsumedEnergy);
+    Logger.warn('⚠️ No monthlyEconomics data - avg prices unavailable; consumptionWithPV derived from MT self-consumption');
+  } else if (annualConsumption != null && pvProductionYear1 != null) {
+    consumptionWithPV = Math.max(0, annualConsumption - pvProductionYear1);
+    Logger.warn('⚠️ No monthlyEconomics data - avg prices unavailable; consumptionWithPV derived from C − Production');
   } else {
     Logger.warn('⚠️ No monthlyEconomics data - consumptionWithPV and avg prices will be null (shown as N/A in PDF)');
   }
@@ -264,8 +278,10 @@ export function buildPvReportDataFromSolaire(
   // Annual bills (year 1): from DTO or from monthly economics totals
   const annualBillWithoutPV = validateNumber((solaireDto as { annualBillWithoutPV?: number }).annualBillWithoutPV)
     ?? (totalBillWithout > 0 ? totalBillWithout : null);
-  const annualBillWithPV = validateNumber((solaireDto as { annualBillWithPV?: number }).annualBillWithPV)
-    ?? (totalBillWith > 0 ? totalBillWith : null);
+  const annualBillWithPV = validateNumber(
+    (solaireDto as { mtAnnualBillWithPVApprox?: number | null }).mtAnnualBillWithPVApprox
+    ?? (solaireDto as { annualBillWithPV?: number }).annualBillWithPV
+  ) ?? (totalBillWith > 0 ? totalBillWith : null);
 
   // MT: revenue from selling surplus to STEG (DT).
   // Surplus sale tariff (injection) = 0.08 DT/kWh.
@@ -273,6 +289,15 @@ export function buildPvReportDataFromSolaire(
   const surplusRevenueSTEG = gridSurplus != null && gridSurplus > 0
     ? round(gridSurplus * SURPLUS_BUYBACK_TARIFF_DT_PER_KWH, 0)
     : null;
+
+  // MT: Eco_brute,1 = Eco_annuel = F_sans - F_avec + Vente_exc
+  if (
+    selfConsumedEnergy != null &&
+    annualBillWithoutPV != null &&
+    annualBillWithPV != null
+  ) {
+    annualSavings = annualBillWithoutPV - annualBillWithPV + (surplusRevenueSTEG ?? 0);
+  }
 
   // Validate required financial metrics are present
   // These must come from proper economic analysis, not fallback calculations
@@ -426,7 +451,7 @@ export function buildPvReportDataFromSolaire(
   =============================== */
   
   // Use CO2 values directly from PV economic analysis (Audit Solaire simulation)
-  // These are already calculated with degradation and correct emission factor (0.463 kg CO2/kWh)
+  // These are already calculated with degradation and correct emission factor (0.468 kg CO2/kWh)
   const co2PerYear = validateNumber(solaireDto.annualCo2Avoided);
   const co2Total = validateNumber(solaireDto.totalCo2Avoided25Years);
 

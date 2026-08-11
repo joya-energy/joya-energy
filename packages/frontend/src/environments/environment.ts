@@ -4,7 +4,7 @@
  */
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:3001/api',
+  apiUrl: 'http://127.0.0.1:3001/api',
   googleMapsApiKey: 'AIzaSyBls9111rmwlK89NjAaqVRHMEhJdzeZs9Q',
   /** Joya customer app (monorepo) — installateur registration lives here. */
   customerAppUrl: 'https://app.joya-energy.com',
