@@ -2,6 +2,7 @@
   class="navbar"
   [class.navbar--scrolled]="shouldShowScrolled()"
   [class.navbar--hidden]="isNavbarHidden()"
+  [class.navbar--menu-open]="isMobileMenuOpen()"
   role="navigation"
   aria-label="Main navigation"
 >
@@ -72,56 +73,62 @@
         <span class="navbar-toggle-icon"></span>
       </button>
     </div>
-
-    <!-- Mobile Navigation -->
-    @if (isMobileMenuOpen()) {
-    <div id="mobile-menu" class="navbar-mobile" role="navigation" aria-label="Mobile navigation">
-      <ul class="navbar-mobile-links" role="list">
-        @for (link of navLinks; track link.id) {
-        <li>
-          @if (link.path === '#') {
-          <a
-            href="#"
-            class="navbar-mobile-link"
-            (click)="closeMobileMenu()"
-            [attr.aria-label]="link.label"
-            [attr.data-link-id]="link.id"
-          >
-            {{ link.label }}
-          </a>
-          } @else {
-          <a
-            [routerLink]="link.path"
-            class="navbar-mobile-link"
-            (click)="closeMobileMenu()"
-            [attr.aria-label]="link.label"
-            [attr.data-link-id]="link.id"
-          >
-            {{ link.label }}
-          </a>
-          }
-        </li>
-        }
-      </ul>
-      <div class="navbar-mobile-ctas">
-        <a
-          href="https://app.joya-energy.com/"
-          class="navbar-mobile-cta navbar-mobile-cta--primary"
-          (click)="closeMobileMenu()"
-          aria-label="Lancer mon projet"
-        >
-          Lancer mon projet
-        </a>
-        <a
-          href="https://app.joya-energy.com/auth/login"
-          class="navbar-mobile-cta navbar-mobile-cta--secondary"
-          (click)="closeMobileMenu()"
-          aria-label="Connexion"
-        >
-          Connexion
-        </a>
-      </div>
-    </div>
-    }
   </div>
+
+  <!-- Mobile drawer -->
+  @if (isMobileMenuOpen()) {
+  <button
+    type="button"
+    class="navbar-mobile-backdrop"
+    (click)="closeMobileMenu()"
+    aria-label="Fermer le menu"
+  ></button>
+  <div id="mobile-menu" class="navbar-mobile" role="navigation" aria-label="Mobile navigation">
+    <ul class="navbar-mobile-links" role="list">
+      @for (link of navLinks; track link.id) {
+      <li>
+        @if (link.path === '#') {
+        <a
+          href="#"
+          class="navbar-mobile-link"
+          (click)="closeMobileMenu()"
+          [attr.aria-label]="link.label"
+          [attr.data-link-id]="link.id"
+        >
+          {{ link.label }}
+        </a>
+        } @else {
+        <a
+          [routerLink]="link.path"
+          class="navbar-mobile-link"
+          (click)="closeMobileMenu()"
+          [attr.aria-label]="link.label"
+          [attr.data-link-id]="link.id"
+        >
+          {{ link.label }}
+        </a>
+        }
+      </li>
+      }
+    </ul>
+    <div class="navbar-mobile-ctas">
+      <a
+        href="https://app.joya-energy.com/"
+        class="navbar-mobile-cta navbar-mobile-cta--primary"
+        (click)="closeMobileMenu()"
+        aria-label="Lancer mon projet"
+      >
+        Lancer mon projet
+      </a>
+      <a
+        href="https://app.joya-energy.com/auth/login"
+        class="navbar-mobile-cta navbar-mobile-cta--secondary"
+        (click)="closeMobileMenu()"
+        aria-label="Connexion"
+      >
+        Connexion
+      </a>
+    </div>
+  </div>
+  }
 </nav>

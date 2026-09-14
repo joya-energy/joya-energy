@@ -75,7 +75,8 @@
                 <div class="header-content">
                   <h2 class="results-title">Rapport d'Audit Solaire</h2>
                   <p class="results-subtitle">
-                    Analyse technique et économique de votre installation solaire
+                    Ces résultats de production photovoltaïque sont indicatifs et seront confirmés
+                    par une étude technique sur site.
                   </p>
                   <div class="results-meta">
                     <span class="meta-item">
@@ -866,7 +867,7 @@
                       <ng-icon name="lucidePhone"></ng-icon>
                     </div>
                     <div class="recommendation-content">
-                      <h4>Contactez notre équipe</h4>
+                      <h4>Parler à un conseiller</h4>
                       <p>Obtenez un devis personnalisé et détaillé pour votre installation</p>
                     </div>
                   </div>
@@ -909,9 +910,13 @@
             <form [formGroup]="form" class="simulator-form">
               <div class="simulator-form-header">
                 <h3 class="simulator-form-title">
-                  {{ isBillAnalysisMode() ? 'Analyse facture' : 'Calculateur Audit Solaire' }}
+                  {{ isBillAnalysisMode() ? 'Analyse facture' : "Calculateur d'audit solaire" }}
                 </h3>
+                @if (!isBillAnalysisMode() && currentStep() === 1) {
+                <h1 class="step-title">Production photovoltaïque : calculez votre potentiel</h1>
+                } @else {
                 <h2 class="step-title">{{ currentStepData().title }}</h2>
+                }
                 @if (currentStepData().description) {
                 <p class="step-description">{{ currentStepData().description }}</p>
                 }
@@ -931,14 +936,13 @@
                 } @else {
                 <div class="simulator-description">
                   <p>
-                    Ce simulateur analyse votre consommation énergétique et calcule le potentiel
-                    solaire de votre bâtiment. Il vous fournira une estimation détaillée de la
-                    production photovoltaïque, des économies réalisables, et des indicateurs
-                    financiers (ROI, période de retour sur investissement, NPV).
+                    Ce simulateur analyse les informations renseignées pour estimer la production
+                    photovoltaïque de votre bâtiment, votre potentiel solaire, vos économies
+                    d'énergie et la baisse de votre coût au kWh
                   </p>
                   <p>
-                    Pour obtenir des résultats précis, veuillez renseigner le montant de votre
-                    dernière facture d'électricité et le mois de référence correspondant.
+                    Pour obtenir une estimation plus précise, renseignez le montant de votre
+                    dernière facture STEG et son mois de référence.
                   </p>
                 </div>
 

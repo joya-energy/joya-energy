@@ -140,13 +140,13 @@ const BILL_ANALYSIS_PERSONAL_FIELDS: StepField[] = [
 const FULL_AUDIT_STEPS: SimulatorStep[] = [
   {
     number: 1,
-    title: 'Facture & consommation',
+    title: "Facture et consommation d'électricité",
     description: "Indiquez le montant de votre facture mensuelle d'électricité.",
     fields: STEP_1_FIELDS,
   },
   {
     number: 2,
-    title: 'Bâtiment & activité',
+    title: "Bâtiment et profil d'activité",
     description: 'Précisez le type de bâtiment et sa zone climatique.',
     fields: [
       { name: 'building.buildingType', label: 'Type de bâtiment', type: 'select', required: true },
@@ -155,13 +155,13 @@ const FULL_AUDIT_STEPS: SimulatorStep[] = [
   },
   {
     number: 3,
-    title: 'Informations personnelles & localisation',
+    title: 'Informations personnelles et localisation',
     description: 'Indiquez l’adresse exacte de votre site pour estimer l’ensoleillement.',
     fields: PERSONAL_INFO_FIELDS,
   },
   {
     number: 4,
-    title: 'Résultats',
+    title: 'Résultats de simulation et potentiel solaire',
     description: 'Analyse technique et économique de votre installation solaire.',
     fields: [],
     isResult: true,
@@ -1082,12 +1082,12 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       });
     } else {
       this.seoService.setSEO({
-        title: 'Audit Solaire | JOYA Energy',
+        title: 'Simulation & Production Photovoltaïque Entreprise | Joya Energy',
         description:
-          'Estimez votre potentiel solaire en Tunisie avec JOYA Energy. Obtenez une simulation personnalisée de votre installation photovoltaïque et découvrez vos économies énergétiques potentielles.',
+          'Calculez la production photovoltaïque et le potentiel solaire de votre entreprise. Obtenez une estimation de vos économies et de votre coût au kWh.',
         url: 'https://joya-energy.com/audit-solaire',
         keywords:
-          'audit solaire Tunisie, simulation panneaux solaires, potentiel solaire Tunisie, énergie solaire Tunisie, panneaux photovoltaïques Tunisie',
+          'production photovoltaïque, potentiel solaire, coût kWh, simulation solaire entreprise, panneaux photovoltaïques Tunisie',
       });
     }
 

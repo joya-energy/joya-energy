@@ -70,10 +70,12 @@ export class ContactComponent implements OnInit {
 
   ngOnInit(): void {
     this.seoService.setSEO({
-      title: 'Contactez-nous | JOYA Energy',
-      description: 'Prenez contact avec nos experts en Tunisie pour discuter de votre projet énergétique et obtenir un accompagnement personnalisé.',
+      title: 'Contact Projet Photovoltaïque Tunisie | Joya Energy',
+      description:
+        'Un projet photovoltaïque en Tunisie ? Nos experts vous accompagnent. Contactez Joya Energy pour une étude personnalisée.',
       url: 'https://joya-energy.com/contact',
-      keywords: 'contact JOYA Energy Tunisie, devis énergie solaire Tunisie, conseil énergétique Tunisie, Tunisia',
+      keywords:
+        'contact JOYA Energy Tunisie, projet photovoltaïque Tunisie, devis énergie solaire Tunisie',
     });
   }
 

@@ -16,7 +16,7 @@ export const routes: Routes = [
     path: '',
     loadComponent: () =>
       import('./pages/landing/landing.component').then((m) => m.LandingComponent),
-    title: 'Passez au solaire sans investissement initial avec JOYA Energy',
+    title: 'Solaire pour entreprises en Tunisie | Joya Energy',
     data: { hideFooter: false },
   },
   {
@@ -25,7 +25,7 @@ export const routes: Routes = [
       import('./pages/notre-solution/notre-solution.component').then(
         (m) => m.NotreSolutionComponent
       ),
-    title: 'Notre solution | JOYA Energy',
+    title: 'Modèle ESCo & Solution Énergétique Entreprise | Joya Energy',
   },
   {
     path: 'plateforme-digitale',
@@ -33,13 +33,13 @@ export const routes: Routes = [
       import('./pages/plateforme-digitale/plateforme-digitale.component').then(
         (m) => m.PlateformeDigitaleComponent
       ),
-    title: 'Plateforme digitale | JOYA Energy',
+    title: 'Plateforme Photovoltaïque & Suivi Énergétique | Joya Energy',
   },
   {
     path: 'ressources',
     loadComponent: () =>
       import('./pages/ressources/ressources.component').then((m) => m.RessourcesComponent),
-    title: 'Ressources | JOYA Energy',
+    title: 'Transition Énergétique & Outils de Calcul Solaire | Joya Energy',
   },
   {
     path: 'installateur-partenaire',
@@ -47,14 +47,19 @@ export const routes: Routes = [
       import('./pages/installateur-partenaire/installateur-partenaire.component').then(
         (m) => m.InstallateurPartenaireComponent
       ),
-    title: 'Installateur Partenaire | JOYA Energy',
+    title: 'Devenir Installateur Partenaire Solaire PV | Joya Energy',
     data: { hideFooter: false },
+  },
+  {
+    path: 'installateurs',
+    redirectTo: 'installateur-partenaire',
+    pathMatch: 'full',
   },
   {
     path: 'blogs',
     loadComponent: () =>
       import('./pages/blogs/blogs.component').then((m) => m.BlogsComponent),
-    title: 'Blogs | JOYA Energy',
+    title: 'Facture STEG, Délestage & Solaire : Le Blog | Joya Energy',
   },
   {
     path: 'blogs/:id',
@@ -66,7 +71,7 @@ export const routes: Routes = [
     path: 'contact',
     loadComponent: () =>
       import('./pages/contact/contact.component').then((m) => m.ContactComponent),
-    title: 'Contactez-nous | JOYA Energy',
+    title: 'Contact Projet Photovoltaïque Tunisie | Joya Energy',
   },
   {
     path: 'pre-audit-solaire',
@@ -107,7 +112,7 @@ export const routes: Routes = [
     path: 'audit-solaire',
     loadComponent: () =>
       import('./pages/solar-audit/solar-audit.component').then((m) => m.SolarAuditComponent),
-    title: 'Audit Solaire | JOYA Energy',
+    title: 'Simulation & Production Photovoltaïque Entreprise | Joya Energy',
     data: { hideFooter: true },
   },
   {
@@ -139,7 +144,7 @@ export const routes: Routes = [
     path: 'audit-energetique',
     loadComponent: () =>
       import('./pages/energy-audit/energy-audit.component').then((m) => m.EnergyAuditComponent),
-    title: 'Audit Énergétique | JOYA Energy',
+    title: 'Audit énergétique pour entreprises | Joya Energy',
     data: { hideFooter: true },
   },
   {

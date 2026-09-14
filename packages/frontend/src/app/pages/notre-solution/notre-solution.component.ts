@@ -39,10 +39,12 @@ export class NotreSolutionComponent implements OnInit {
 
   ngOnInit(): void {
     this.seoService.setSEO({
-      title: 'Notre solution | JOYA Energy',
-      description: 'Découvrez comment JOYA Energy conçoit et déploie des solutions énergétiques solaires adaptées à votre entreprise en Tunisie pour réduire durablement votre dépendance au réseau.',
+      title: 'Modèle ESCo & Solution Énergétique Entreprise | Joya Energy',
+      description:
+        'Joya Energy finance, installe et pilote votre projet via un contrat ESCo et de garantie de performance énergétique. Découvrez notre modèle',
       url: 'https://joya-energy.com/notre-solution',
-      keywords: 'solution énergétique Tunisie, énergie solaire Tunisie, panneaux solaires Tunisie, transition énergétique Tunisie, audit énergétique Tunisie, Tunisia',
+      keywords:
+        'solution énergétique Tunisie, énergie solaire Tunisie, panneaux solaires Tunisie, transition énergétique Tunisie, audit énergétique Tunisie, Tunisia',
     });
   }
   protected readonly cards: SolutionCard[] = [
@@ -57,14 +59,14 @@ export class NotreSolutionComponent implements OnInit {
       id: 'deployer',
       title: 'Déployer la bonne solution',
       description:
-        "Conception et mise en œuvre d'une solution énergétique adaptée à votre site, intégrant production solaire et optimisation des usages.",
+        'Conception, financement et pose de centrales photovoltaïques sur mesure via notre modèle ESCo avantageux.',
       icon: 'lucideSun',
     },
     {
       id: 'piloter',
       title: 'Piloter la performance',
       description:
-        'Suivi continu de la consommation, de la production et des économies via la plateforme digitale Joya.',
+        'Suivi de la consommation, de la production solaire et des économies réalisées.',
       icon: 'lucideLineChart',
     },
   ];

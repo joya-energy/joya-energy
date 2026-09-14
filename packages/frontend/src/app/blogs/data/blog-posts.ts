@@ -19,9 +19,9 @@ export interface BlogPost {
 export const BLOG_POSTS: BlogPost[] = [
   {
     id: '1',
-    title: "Pourquoi le photovoltaïque est devenu un levier majeur d'économies pour les entreprises",
+    title: 'Réduire sa facture STEG grâce au photovoltaïque professionnel',
     excerpt:
-      "Découvrez comment le modèle ESCO de JOYA Energy permet aux entreprises tunisiennes de s'équiper en panneaux solaires sans mise de fonds. Financement, économies et impact carbone expliqués.",
+      'Analyse des tarifs industriels et leviers concrets pour faire baisser durablement votre facture STEG.',
     imageUrl: '/blog1.webp',
     date: '02 Feb 2026',
     category: 'Énergie solaire',
@@ -72,9 +72,9 @@ Renforcer leur crédibilité auprès des partenaires et investisseurs`,
   },
     {
     id: '2',
-    title: "Solaire sans investissement initial : Le guide du modèle ESCO",
+    title: "Passer à l'énergie solaire sans investissement grâce au modèle ESCo",
     excerpt:
-      " Réduisez vos factures sans apport avec le modèle ESCO. Découvrez comment Joya Energy finance et installe votre centrale solaire en 2026.",
+      'Comprenez le fonctionnement du modèle ESCo et les points à vérifier avant de choisir une solution énergétique.',
     imageUrl: '/blog2.webp',
     date: '30 Apr 2026',
     category: 'Énergie solaire',
@@ -210,9 +210,9 @@ experts directement via notre formulaire](https://joya-energy.com/contact/).`,
   },
       {
     id: '3',
-    title: "Le stockage d'énergie solaire : Optimiser vos économies et votre autonomie",
+    title: "Délestage et coupure d'électricité : sécuriser son entreprise avec le stockage",
     excerpt:
-      " Découvrez l'importance du stockage d'énergie solaire pour améliorer votre autonomie énergétique et maximiser les économies sur vos factures grâce aux solutions de Joya Energy.",
+      "Évaluez les solutions de batterie et de secours électrique pour limiter l'impact des coupures sur votre activité.",
     imageUrl: '/blog3.webp',
     date: '30 Apr 2026',
     category: 'Énergie solaire',

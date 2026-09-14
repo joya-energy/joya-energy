@@ -34,8 +34,9 @@ export class LandingComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const pageTitle = 'Passez au solaire sans investissement initial avec JOYA Energy';
-    const pageDescription = 'Passez au solaire sans investissement initial avec JOYA Energy en Tunisie : vous payez uniquement vos économies énergétiques réalisées. Transition énergétique simplifiée pour votre entreprise.';
+    const pageTitle = 'Solaire pour entreprises en Tunisie | Joya Energy';
+    const pageDescription =
+      'Passez au solaire sans investissement initial. Installation, suivi et maintenance pour votre entreprise.';
     const logoImage = 'https://joya-energy.com/logo_big.webp';
 
     this.title.setTitle(pageTitle);

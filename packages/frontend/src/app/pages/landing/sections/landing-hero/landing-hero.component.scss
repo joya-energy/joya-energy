@@ -2,26 +2,29 @@
   position: relative;
   display: flex;
   align-items: center; /* Center vertically */
-  padding: 40px 0;
+  padding: 24px 0 32px;
   // background-image: url('./Hero_bg.webp');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   overflow-x: hidden !important; // Prevent horizontal overflow
-  overflow-y: visible;
+  overflow-y: hidden;
   width: 100%;
   box-sizing: border-box;
 
-  // Add padding for fixed navbar on both mobile and desktop
-  padding-top: calc(5rem + 40px); // navbar height (5rem) + original padding
+  // Match current navbar heights so hero fits the first viewport
+  padding-top: calc(4rem + 16px);
 
   @media (min-width: 640px) {
-    padding-top: calc(6rem + 40px); // navbar height (6rem) + original padding
+    padding-top: calc(4.25rem + 20px);
   }
 
   @media (min-width: 1024px) {
-    padding-top: calc(8rem + 60px); // navbar height (8rem) + original padding
-    min-height: 80vh; // Only use vh on desktop where viewport is stable
+    padding-top: calc(8rem + 24px);
+    min-height: 100vh;
+    min-height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
   }
 
   // Optional: Add a subtle overlay to ensure text readability
@@ -43,12 +46,13 @@
   }
 
   @media (max-width: 1023px) {
-    min-height: auto; // No fixed height on mobile to prevent viewport jumping
+    min-height: auto;
+    overflow-y: visible;
   }
 
   @media (max-width: 767px) {
     min-height: auto;
-    padding-bottom: 32px;
+    padding-bottom: 24px;
   }
 }
 
@@ -93,24 +97,30 @@
 }
 
 .hero__title {
-  font-size: 38px; // Smaller on mobile
-  line-height: 1.2;
+  font-size: 32px;
+  line-height: 1.15;
   letter-spacing: -0.02em;
   color: var(--landing-secondary);
   font-weight: 900;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
+  text-wrap: balance;
 
   @media (min-width: 640px) {
-    font-size: 40px;
+    font-size: 36px;
   }
 
   @media (min-width: 768px) {
-    font-size: 45px;
-    margin-bottom: 24px;
+    font-size: 40px;
+    margin-bottom: 16px;
   }
 
   @media (min-width: 1024px) {
-    font-size: 52px; // 45px on desktop
+    font-size: clamp(2.4rem, 3.2vw, 3rem);
+    margin-bottom: 16px;
+  }
+
+  @media (min-width: 1280px) {
+    font-size: clamp(2.75rem, 3.4vw, 3.25rem);
   }
 }
 
@@ -156,32 +166,33 @@
 }
 
 .hero__subtitle {
-  font-size: 16px;
-  line-height: 1.6;
+  font-size: 15px;
+  line-height: 1.5;
   color: color-mix(in srgb, var(--landing-secondary) 72%, #ffffff);
-  margin-bottom: 24px;
+  margin-bottom: 18px;
 
   @media (min-width: 768px) {
-    font-size: 18px;
-    margin-bottom: 28px;
+    font-size: 17px;
+    margin-bottom: 20px;
   }
 
   @media (min-width: 1024px) {
-    font-size: 20px;
+    font-size: 18px;
+    margin-bottom: 20px;
   }
 }
 
 .hero__features {
   list-style: none;
   padding: 0;
-  margin: 0 0 24px 0;
+  margin: 0 0 18px 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 
   @media (min-width: 768px) {
-    margin-bottom: 32px;
-    gap: 12px;
+    margin-bottom: 20px;
+    gap: 10px;
   }
 }
 
@@ -342,16 +353,20 @@
   position: relative;
   overflow: hidden;
   flex: 1; /* Take remaining space */
-  min-height: 400px; /* Increased height to align with left container */
+  min-height: 320px;
   display: flex;
   flex-direction: column;
 
+  @media (min-width: 1024px) {
+    min-height: 0;
+  }
+
   @media (max-width: 1023px) {
-    min-height: 350px;
+    min-height: 320px;
   }
 
   @media (max-width: 767px) {
-    min-height: 300px;
+    min-height: 280px;
   }
 }
 
