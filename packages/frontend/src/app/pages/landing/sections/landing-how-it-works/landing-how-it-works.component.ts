@@ -36,7 +36,7 @@ export class LandingHowItWorksComponent {
   protected readonly steps: Step[] = [
     {
       number: '01',
-      title: 'Analyse & diagnostic énergétique',
+      title: 'Analyse et diagnostic énergétique',
       description: ' Analyse de votre consommation, de vos usages et de votre site afin d’identifier les leviers de performance énergétique les plus pertinents.',
       icon: 'lucideCalculator',
     },
@@ -48,7 +48,7 @@ export class LandingHowItWorksComponent {
     },
     {
       number: '03',
-      title: 'Suivi & performance dans le temps',
+      title: 'Suivi et performance dans le temps',
       description: 'Pilotage continu de la consommation, de la production et des économies réalisées grâce à notre plateforme digitale.',
       icon: 'lucideBarChart3',
     },

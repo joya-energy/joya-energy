@@ -61,6 +61,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     if (isPlatformBrowser(this.platformId)) {
       window.removeEventListener('resize', this.handleResize);
       window.removeEventListener('scroll', this.handleScroll);
+      document.body.style.overflow = '';
 
       if (this.scrollRAF !== null) {
         cancelAnimationFrame(this.scrollRAF);
@@ -79,7 +80,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
     }
 
     this.resizeRAF = requestAnimationFrame(() => {
-      this.isDesktop.set(window.innerWidth >= 1024);
+      const desktop = window.innerWidth >= 1024;
+      this.isDesktop.set(desktop);
+      if (desktop && this.isMobileMenuOpen()) {
+        this.closeMobileMenu();
+      }
       this.resizeRAF = null;
     });
   };
@@ -94,8 +99,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
         // Desktop: just track if scrolled for background change
         this.isScrolled.set(scrollY > 50);
 
-        // Mobile: hide on scroll down, show on scroll up
-        if (!this.isDesktop()) {
+        // Mobile: hide on scroll down, show on scroll up (keep bar visible while menu is open)
+        if (!this.isDesktop() && !this.isMobileMenuOpen()) {
           const scrollDiff = scrollY - this.lastScrollY;
 
           // Only trigger if scrolled past threshold
@@ -114,7 +119,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
             this.isNavbarHidden.set(false);
           }
         } else {
-          // Desktop: always show navbar
+          // Desktop or open mobile menu: always show navbar
           this.isNavbarHidden.set(false);
         }
 
@@ -125,11 +130,24 @@ export class NavbarComponent implements OnInit, OnDestroy {
   };
 
   protected toggleMobileMenu(): void {
-    this.isMobileMenuOpen.update((value) => !value);
+    const nextOpen = !this.isMobileMenuOpen();
+    this.isMobileMenuOpen.set(nextOpen);
+    if (nextOpen) {
+      this.isNavbarHidden.set(false);
+    }
+    this.syncBodyScrollLock();
   }
 
   protected closeMobileMenu(): void {
     this.isMobileMenuOpen.set(false);
+    this.syncBodyScrollLock();
+  }
+
+  private syncBodyScrollLock(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    document.body.style.overflow = this.isMobileMenuOpen() ? 'hidden' : '';
   }
 
   protected readonly navLinks: NavLink[] = [

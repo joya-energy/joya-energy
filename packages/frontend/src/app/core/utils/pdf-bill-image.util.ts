@@ -57,7 +57,7 @@ async function renderPdfPage(
     throw new Error('Canvas 2D context unavailable');
   }
 
-  await page.render({ canvasContext: context, viewport }).promise;
+  await page.render({ canvasContext: context, viewport, canvas }).promise;
   return canvas;
 }
 

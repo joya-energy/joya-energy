@@ -44,7 +44,7 @@ export class LandingJoyaPresentationComponent {
       id: 'featured',
       title: 'La solution énergétique clé en main pour votre entreprise',
       description:
-        "Joya prend en charge l'ensemble de votre projet énergétique, de l'analyse initiale jusqu'au suivi de la performance dans le temps.",
+        'Joya Energy analyse votre situation, conçoit une solution adaptée et suit sa performance dans le temps.',
       icon: 'lucideZap',
       ctaText: 'Lancer une étude énergétique',
       ctaLink: '/audit-solaire',
@@ -54,7 +54,7 @@ export class LandingJoyaPresentationComponent {
       id: 'audit',
       title: 'Audit énergétique intelligent',
       description:
-        "Analyse de votre consommation, de vos usages et de votre facture énergétique afin d'identifier les leviers d'optimisation les plus pertinents.",
+        "Analysez votre consommation, et votre surface pour dimensionner l'installation de panneaux photovoltaïques la plus rentable.",
       icon: 'lucideFileSearch',
       ctaText: 'En savoir plus',
       ctaLink: '/audit-energetique',
@@ -63,7 +63,7 @@ export class LandingJoyaPresentationComponent {
       id: 'production',
       title: 'Production solaire & optimisation des usages',
       description:
-        "Conception et déploiement d'une solution énergétique adaptée à votre site pour réduire durablement votre dépendance au réseau.",
+        'Déployez une solution solaire adaptée à votre site et à votre profil de consommation.',
       icon: 'lucideSun',
       ctaText: 'En savoir plus',
       ctaLink: '/notre-solution',
@@ -72,7 +72,7 @@ export class LandingJoyaPresentationComponent {
       id: 'suivi',
       title: 'Pilotage et performance dans le temps',
       description:
-        'Suivi continu de la consommation, de la production et des économies réalisées grâce à une plateforme digitale dédiée.',
+        'Suivez votre consommation, votre production solaire et les économies réalisées.',
       icon: 'lucideBarChart3',
       ctaText: 'En savoir plus',
       ctaLink: '/plateforme-digitale',

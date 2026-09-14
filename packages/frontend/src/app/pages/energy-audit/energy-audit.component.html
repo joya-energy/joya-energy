@@ -75,7 +75,8 @@
                 <div class="header-content">
                   <h2 class="results-title">Rapport d'Audit Énergétique</h2>
                   <p class="results-subtitle">
-                    Analyse technique et économique de votre consommation énergétique
+                    Les résultats constituent une première base d’analyse et peuvent nécessiter une
+                    étude complémentaire selon votre projet.
                   </p>
                   <div class="results-meta">
                     <span class="meta-item">
@@ -207,8 +208,14 @@
             <!-- Form Fields -->
             <form [formGroup]="form" class="simulator-form">
               <div class="simulator-form-header">
-                <h3 class="simulator-form-title">Calculateur Audit Énergétique</h3>
+                <h3 class="simulator-form-title">Calculateur d'audit énergétique</h3>
+                @if (currentStep() === 1) {
+                <h1 class="step-title">
+                  Comprenez la performance énergétique de votre entreprise
+                </h1>
+                } @else {
                 <h2 class="step-title">{{ currentStepData().title }}</h2>
+                }
                 @if (currentStepData().description) {
                 <p class="step-description">{{ currentStepData().description }}</p>
                 }

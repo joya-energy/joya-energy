@@ -32,7 +32,10 @@ interface MonitoringFeature {
 export class PlateformeDigitaleContinuousMonitoringComponent {
   protected readonly features: MonitoringFeature[] = [
     { icon: 'lucideActivity', text: 'Suivi continu de la consommation et de la production' },
-    { icon: 'lucideAlertTriangle', text: "Détection d'écarts ou de dérives" },
+    {
+      icon: 'lucideAlertTriangle',
+      text: "Soyez averti immédiatement en cas de surconsommation ou d'écart de production sur votre installation photovoltaïque.",
+    },
     { icon: 'lucideBarChart2', text: 'Analyse de la performance dans le temps' },
     { icon: 'lucideSettings', text: 'Ajustements et optimisations si nécessaire' },
   ];

@@ -23,19 +23,19 @@ export class RessourcesWhySectionComponent {
   protected readonly items: WhyItem[] = [
     {
       icon: 'clarify',
-      title: 'Clarifiez votre situation',
+      title: 'Clarifiez votre situation énergétique.',
       description:
         'Obtenez un diagnostic précis de votre consommation, de votre potentiel solaire ou de votre impact carbone.',
     },
     {
       icon: 'savings',
-      title: "Identifiez les gisements d'économies",
+      title: "Identifiez les possibilités d'économies.",
       description:
         'Chiffrez rapidement les économies potentielles et la rentabilité de vos projets.',
     },
     {
       icon: 'plan',
-      title: 'Planifiez vos actions',
+      title: 'Planifiez vos prochaines actions.',
       description:
         'Prenez des décisions éclairées basées sur des données objectives pour construire votre feuille de route énergétique.',
     },

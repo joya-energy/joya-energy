@@ -61,12 +61,12 @@ export class BlogsComponent implements OnInit, OnDestroy {
       document.body.classList.add('blog-route');
     }
     this.seoService.setSEO({
-      title: 'Blogs | JOYA Energy',
+      title: 'Facture STEG, Délestage & Solaire : Le Blog | Joya Energy',
       description:
-        "Articles et actualités sur l'énergie solaire, la transition énergétique et les solutions photovoltaïques pour les entreprises en Tunisie.",
+        "Réduisez votre facture STEG et protégez votre entreprise contre le délestage. Conseils d'experts sur l'énergie solaire et la performance énergétique.",
       url: 'https://joya-energy.com/blogs',
       keywords:
-        'blog énergie solaire Tunisie, actualités solaire, transition énergétique, JOYA Energy',
+        'blog énergie solaire Tunisie, facture STEG, délestage, transition énergétique, JOYA Energy',
     });
   }
 

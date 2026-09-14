@@ -179,8 +179,9 @@ export class EnergyAuditFormService {
     return [
       {
         number: 1,
-        title: 'Profil bâtiment et usages',
-        description: 'Commencez par sélectionner le type de bâtiment et renseigner ses caractéristiques principales.',
+        title: 'Profil du bâtiment et usages',
+        description:
+          'Renseignez les caractéristiques de votre bâtiment, votre activité et vos équipements afin d’obtenir une première analyse de votre situation énergétique.',
         component: 'step-building',
         fields: [
           {
@@ -236,8 +237,9 @@ export class EnergyAuditFormService {
       },
       {
         number: 2,
-        title: 'Équipements & Usages',
-        description: 'Renseignez les équipements et les usages de votre bâtiment.',
+        title: 'Équipements et usages',
+        description:
+          'Des informations précises permettent de mieux comprendre vos usages et d’identifier les possibilités d’amélioration.',
         component: 'step-technical',
         fields: [
           {

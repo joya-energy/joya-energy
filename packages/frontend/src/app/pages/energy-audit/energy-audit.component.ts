@@ -151,10 +151,12 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.seoService.setSEO({
-      title: 'Audit Énergétique | JOYA Energy',
-      description: 'Analyse complète de votre consommation, de vos usages et de votre facture énergétique en Tunisie pour identifier les leviers d\'optimisation les plus pertinents.',
+      title: 'Audit énergétique pour entreprises | Joya Energy',
+      description:
+        'Analysez la consommation et la performance énergétique de votre entreprise avec Joya Energy.',
       url: 'https://joya-energy.com/audit-energetique',
-      keywords: 'audit énergétique Tunisie, diagnostic énergétique Tunisie, analyse consommation énergie Tunisie, optimisation énergétique Tunisie, Tunisia',
+      keywords:
+        'audit énergétique, efficacité énergétique, performance énergétique, consommation énergétique, Tunisie',
     });
     // Subscribe to form value changes to trigger progress updates
     this.form.valueChanges.subscribe(() => {

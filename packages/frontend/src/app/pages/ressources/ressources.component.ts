@@ -25,10 +25,12 @@ export class RessourcesComponent implements OnInit {
 
   ngOnInit(): void {
     this.seoService.setSEO({
-      title: 'Ressources | JOYA Energy',
-      description: 'Accédez à nos outils, simulateurs et ressources pour mieux comprendre l\'énergie solaire en Tunisie et optimiser votre transition énergétique.',
+      title: 'Transition Énergétique & Outils de Calcul Solaire | Joya Energy',
+      description:
+        'Préparez votre transition énergétique. Analysez votre facture STEG, simulez votre potentiel solaire et découvrez les aides ANME avec nos outils gratuits.',
       url: 'https://joya-energy.com/ressources',
-      keywords: 'ressources énergétiques Tunisie, simulateur solaire Tunisie, outils énergie Tunisie, guides énergie solaire Tunisie, Tunisia',
+      keywords:
+        'transition énergétique, efficacité énergétique, facture STEG, audit énergétique, simulateur solaire Tunisie, Tunisia',
     });
   }
 }

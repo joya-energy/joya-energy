@@ -332,11 +332,19 @@
 }
 
 .ip-expect__title {
-  margin: 1.4rem 0 2.8rem;
+  margin: 1.4rem 0 1.6rem;
   font-size: clamp(3rem, 4.2vw, 4rem) !important;
   font-weight: 800;
   line-height: 1.2;
   color: #fff !important;
+}
+
+.ip-expect__lead {
+  margin: 0 auto 2.8rem;
+  max-width: 56rem;
+  font-size: 1.8rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.88);
 }
 
 .ip-expect__list {
