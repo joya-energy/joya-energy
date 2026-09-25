@@ -1,47 +1,37 @@
-<main class="contact-page">
-  <!-- Hero Section -->
-  <section class="contact-hero">
-    <div class="contact-hero__mesh"></div>
-    <div class="contact-hero__glow contact-hero__glow--left"></div>
-    <div class="contact-hero__glow contact-hero__glow--right"></div>
-
-    <div class="container contact-hero__container">
-      <div class="contact-hero__badge">
-        <ng-icon name="lucideMessageSquare" class="contact-hero__badge-icon"></ng-icon>
-        <span>Projet photovoltaïque en Tunisie</span>
+<main id="main" class="contact-page">
+  <section class="pg-hero">
+    <div class="wrap">
+      <div class="pg-hero__head">
+        <div>
+          <span class="eyebrow reveal">Contact</span>
+          <h1 class="reveal reveal-d1">Parlons de votre <span class="accent">projet énergétique</span>.</h1>
+        </div>
+        <div class="pg-hero__side reveal reveal-d2">
+          <p class="pg-hero__lead">
+            Notre équipe vous accompagne dans l'étude et le déploiement de votre projet
+            photovoltaïque partout en Tunisie.
+          </p>
+        </div>
       </div>
-
-      <h1 class="contact-hero__title">
-        Parlons de votre <span class="contact-hero__title-accent">projet énergétique</span>
-      </h1>
-
-      <p class="contact-hero__subtitle">
-        Notre équipe vous accompagne dans l'étude et le déploiement de votre projet photovoltaïque partout en Tunisie.
-      </p>
     </div>
   </section>
 
-  <!-- Main Content -->
   <section class="contact-main">
-    <div class="container">
-      <div class="contact-grid">
-        <!-- Contact Information Sidebar -->
-        <div class="contact-sidebar">
-          <div class="glass-card contact-card">
-            <h2 class="contact-card__heading">
-              <ng-icon name="lucideSparkles" class="contact-card__heading-icon"></ng-icon>
-              Nos coordonnées
-            </h2>
-
+    <div class="wrap">
+      <div class="contact-grid" data-stagger>
+        <aside class="contact-sidebar">
+          <div class="contact-card">
+            <h2 class="contact-card__heading">Nos coordonnées</h2>
             <div class="contact-info-list">
-              @for (item of contactInfo; track item.label) { @if (item.link) {
+              @for (item of contactInfo; track item.label) {
+              @if (item.link) {
               <a
                 [href]="item.link"
                 [attr.target]="item.label === 'Adresse' ? '_blank' : null"
                 [attr.rel]="item.label === 'Adresse' ? 'noopener noreferrer' : null"
                 class="contact-info-item contact-info-item--link"
               >
-                <span class="contact-info-item__icon-wrap">
+                <span class="contact-info-item__icon-wrap" aria-hidden="true">
                   <ng-icon [name]="item.icon" class="contact-info-item__icon"></ng-icon>
                 </span>
                 <span class="contact-info-item__content">
@@ -51,7 +41,7 @@
               </a>
               } @else {
               <div class="contact-info-item">
-                <span class="contact-info-item__icon-wrap">
+                <span class="contact-info-item__icon-wrap" aria-hidden="true">
                   <ng-icon [name]="item.icon" class="contact-info-item__icon"></ng-icon>
                 </span>
                 <span class="contact-info-item__content">
@@ -59,36 +49,40 @@
                   <span class="contact-info-item__value">{{ item.value }}</span>
                 </span>
               </div>
-              } }
+              }
+              }
             </div>
           </div>
 
-          <!-- Book Meeting CTA -->
           <div class="cta-card">
-            <div class="cta-card__pattern"></div>
-            <div class="cta-card__glow"></div>
-            <div class="cta-card__inner">
-              <div class="cta-card__icon-wrap">
-                <ng-icon name="lucideCalendar" class="cta-card__icon"></ng-icon>
-              </div>
-              <h3 class="cta-card__title">Réservez une consultation</h3>
-              <p class="cta-card__text">
-                Planifiez un échange direct avec un spécialiste du photovoltaïque en Tunisie.
-              </p>
-              <a routerLink="/prendre-rendez-vous" class="btn-cta btn-cta--full">
-                Prendre rendez-vous
-                <ng-icon name="lucideArrowRight" class="btn-cta__arrow"></ng-icon>
-              </a>
-            </div>
+            <h3 class="cta-card__title">Réservez une consultation</h3>
+            <p class="cta-card__text">
+              Planifiez un échange direct avec un spécialiste du photovoltaïque en Tunisie.
+            </p>
+            <a routerLink="/prendre-rendez-vous" class="btn btn-primary">
+              <span>Prendre rendez-vous</span>
+              <span class="btn-puck" aria-hidden="true">
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+                  <path
+                    d="M3 11L11 3M11 3H4.5M11 3V9.5"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
+            </a>
           </div>
-        </div>
+        </aside>
 
-        <!-- Contact Form -->
-        <div class="contact-form-wrap glass-card">
+        <div class="contact-form-wrap">
           <div class="contact-form-header">
+            <span class="eyebrow">Formulaire</span>
             <h2 class="contact-form-title">Demander une étude technique</h2>
             <p class="contact-form-desc">
-              Précisez la localisation de votre site (Grand Tunis, Sfax, Sahel) et vos besoins énergétiques pour préparer notre premier échange.
+              Précisez la localisation de votre site (Grand Tunis, Sfax, Sahel) et vos besoins
+              énergétiques pour préparer notre premier échange.
             </p>
           </div>
 
@@ -96,7 +90,6 @@
             <div class="form-row form-row--two">
               <div class="form-group">
                 <label for="name" class="form-label">
-                  <ng-icon name="lucideUser" class="form-label-icon"></ng-icon>
                   Nom complet <span class="form-label-required">*</span>
                 </label>
                 <input
@@ -112,7 +105,6 @@
               </div>
               <div class="form-group">
                 <label for="email" class="form-label">
-                  <ng-icon name="lucideMail" class="form-label-icon"></ng-icon>
                   Email professionnel <span class="form-label-required">*</span>
                 </label>
                 <input
@@ -131,7 +123,6 @@
             <div class="form-row form-row--two">
               <div class="form-group">
                 <label for="companyName" class="form-label">
-                  <ng-icon name="lucideBuilding2" class="form-label-icon"></ng-icon>
                   Entreprise <span class="form-label-required">*</span>
                 </label>
                 <input
@@ -148,7 +139,6 @@
               </div>
               <div class="form-group">
                 <label for="phone" class="form-label">
-                  <ng-icon name="lucidePhone" class="form-label-icon"></ng-icon>
                   Téléphone <span class="form-label-required">*</span>
                 </label>
                 <input
@@ -167,7 +157,6 @@
 
             <div class="form-group">
               <label for="subject" class="form-label">
-                <ng-icon name="lucideMessageSquare" class="form-label-icon"></ng-icon>
                 Sujet <span class="form-label-required">*</span>
               </label>
               <div class="select-wrapper">
@@ -198,20 +187,31 @@
 
             <button
               type="submit"
-              class="btn-cta btn-cta--full btn-cta--submit"
+              class="btn btn-primary contact-submit"
               [disabled]="contactForm.invalid || isSubmitting()"
             >
               @if (isSubmitting()) {
-              <span class="btn-cta__spinner"></span>
-              Envoi en cours... } @else { Envoyer ma demande
-              <ng-icon name="lucideSend" class="btn-cta__arrow"></ng-icon>
+              <span class="btn-cta__spinner" aria-hidden="true"></span>
+              <span>Envoi en cours...</span>
+              } @else {
+              <span>Envoyer ma demande</span>
+              <span class="btn-puck" aria-hidden="true">
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+                  <path
+                    d="M3 11L11 3M11 3H4.5M11 3V9.5"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
               }
             </button>
 
             <p class="form-footer">
               En soumettant ce formulaire, vous acceptez notre
-              <a routerLink="/data-policy" class="form-footer__link">politique de confidentialité</a
-              >.
+              <a routerLink="/data-policy" class="form-footer__link">politique de confidentialité</a>.
             </p>
           </form>
         </div>
@@ -219,10 +219,10 @@
     </div>
   </section>
 
-  <!-- Map Section -->
   <section class="contact-map-section">
-    <div class="container">
+    <div class="wrap">
       <div class="contact-map-header">
+        <span class="eyebrow">Localisation</span>
         <h2 class="contact-map-title">Où nous trouver</h2>
         <p class="contact-map-desc">
           Retrouvez l'équipe Joya Energy aux Berges du Lac, à Tunis.
@@ -241,8 +241,8 @@
           title="Joya Energy Location"
           class="contact-map-iframe"
         ></iframe>
-        <div class="contact-map-overlay glass-card">
-          <div class="contact-map-overlay__icon">
+        <div class="contact-map-overlay">
+          <div class="contact-map-overlay__icon" aria-hidden="true">
             <ng-icon name="lucideMapPin" class="contact-map-overlay__icon-svg"></ng-icon>
           </div>
           <div>

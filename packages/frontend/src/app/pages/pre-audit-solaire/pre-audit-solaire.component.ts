@@ -1,10 +1,18 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, HostBinding, Input } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  Input,
+  computed,
+  inject,
+} from '@angular/core';
 import { ReactiveFormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { startWith } from 'rxjs';
 import { NoGroupingPipe } from '../../shared/pipes/no-grouping.pipe';
+import { HandoffMotionService } from '../../core/services/handoff-motion.service';
 
 type ClimateZoneMini = 'nord' | 'centre' | 'sud';
 type PreSolarAuditFormValue = { monthlyBillDt: unknown; climateZone: ClimateZoneMini };
@@ -16,21 +24,20 @@ type PreSolarAuditFormValue = { monthlyBillDt: unknown; climateZone: ClimateZone
   templateUrl: './pre-audit-solaire.component.html',
   styleUrl: './pre-audit-solaire.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[class.pre-solar-embedded]': 'embedded',
+  },
 })
-export class PreAuditSolaireComponent {
+export class PreAuditSolaireComponent implements AfterViewInit {
   @Input() embedded = false;
+  private readonly motion = inject(HandoffMotionService);
 
-  @HostBinding('class.pre-solar-embedded')
-  get isEmbedded(): boolean {
-    return this.embedded;
-  }
-
-  // Assumptions from the "Pré-Simulateur Solaire Photovoltaïque" doc screenshots.
   // STEG BT unitaire TTC (TVA 19 %): 0.391 × 1.19 = 0.465 DT/kWh
   private readonly tariffDtPerKwh = 0.465;
   private readonly capexDtPerKwc = 2400;
   private readonly opexRate = 0.04;
-  protected readonly maxMonthlyBillDt = 10000;
+  protected readonly minMonthlyBillDt = 100;
+  protected readonly maxMonthlyBillDt = 3000;
 
   private readonly productibleByZone: Record<ClimateZoneMini, number> = {
     nord: 1500,
@@ -41,17 +48,20 @@ export class PreAuditSolaireComponent {
   private coerceNumber(value: unknown): number | null {
     if (typeof value === 'number') return Number.isFinite(value) ? value : null;
     if (typeof value === 'string') {
-      const v = Number(value.replace(',', '.'));
-      return Number.isFinite(v) ? v : null;
+      const parsed = Number(value.replace(',', '.'));
+      return Number.isFinite(parsed) ? parsed : null;
     }
     return null;
   }
 
   protected readonly form = new FormGroup({
-    // Default to half max so the slider starts centered
-    monthlyBillDt: new FormControl<number | null>(0, {
+    monthlyBillDt: new FormControl<number | null>(800, {
       nonNullable: false,
-      validators: [Validators.required, Validators.min(0), Validators.max(this.maxMonthlyBillDt)],
+      validators: [
+        Validators.required,
+        Validators.min(this.minMonthlyBillDt),
+        Validators.max(this.maxMonthlyBillDt),
+      ],
     }),
     climateZone: new FormControl<ClimateZoneMini>('centre', {
       nonNullable: true,
@@ -64,35 +74,34 @@ export class PreAuditSolaireComponent {
     { initialValue: this.form.getRawValue() }
   ) as unknown as () => PreSolarAuditFormValue;
 
-  protected readonly showMonthlyBillError = computed(() => {
-    const c = this.form.controls.monthlyBillDt;
-    return c.invalid && (c.touched || c.dirty);
-  });
-
-  protected readonly selectedZoneLabel = computed(() => {
-    const z = this.form.controls.climateZone.value;
-    return z === 'nord' ? 'Nord' : z === 'centre' ? 'Centre' : 'Sud';
-  });
-
   protected readonly monthlyBillRoundedForDisplay = computed(() => {
     this.formValue();
     const raw = this.form.getRawValue().monthlyBillDt;
-    const v = this.coerceNumber(raw);
-    return v == null ? 0 : Math.max(0, Math.min(this.maxMonthlyBillDt, Math.round(v)));
+    const value = this.coerceNumber(raw);
+    if (value == null) return this.minMonthlyBillDt;
+    return Math.max(
+      this.minMonthlyBillDt,
+      Math.min(this.maxMonthlyBillDt, Math.round(value))
+    );
+  });
+
+  protected readonly sliderFillPercent = computed(() => {
+    const bill = this.monthlyBillRoundedForDisplay();
+    const span = this.maxMonthlyBillDt - this.minMonthlyBillDt;
+    if (span <= 0) return 0;
+    return ((bill - this.minMonthlyBillDt) / span) * 100;
   });
 
   protected readonly annualBillBeforeRounded = computed(() => {
-    this.formValue(); // track reactive form changes
-    const monthlyRaw = this.form.getRawValue().monthlyBillDt;
-    const monthly = this.coerceNumber(monthlyRaw);
+    this.formValue();
+    const monthly = this.coerceNumber(this.form.getRawValue().monthlyBillDt);
     if (monthly == null) return null;
     return Math.round(monthly * 12);
   });
 
   protected readonly annualConsumptionKwh = computed(() => {
-    this.formValue(); // track reactive form changes
-    const monthlyRaw = this.form.getRawValue().monthlyBillDt;
-    const monthly = this.coerceNumber(monthlyRaw);
+    this.formValue();
+    const monthly = this.coerceNumber(this.form.getRawValue().monthlyBillDt);
     if (monthly == null || monthly <= 0) return null;
     return (monthly / this.tariffDtPerKwh) * 12;
   });
@@ -100,7 +109,7 @@ export class PreAuditSolaireComponent {
   protected readonly pvPowerKwc = computed(() => {
     const annualConsumption = this.annualConsumptionKwh();
     if (annualConsumption == null) return null;
-    this.formValue(); // track reactive form changes
+    this.formValue();
     const zone = this.form.getRawValue().climateZone;
     const yspec = this.productibleByZone[zone];
     if (!yspec) return null;
@@ -108,9 +117,9 @@ export class PreAuditSolaireComponent {
   });
 
   protected readonly capexDt = computed(() => {
-    const p = this.pvPowerKwc();
-    if (p == null) return null;
-    return p * this.capexDtPerKwc;
+    const power = this.pvPowerKwc();
+    if (power == null) return null;
+    return power * this.capexDtPerKwc;
   });
 
   protected readonly opexAnnualDt = computed(() => {
@@ -120,21 +129,13 @@ export class PreAuditSolaireComponent {
   });
 
   /**
-   * Mini-sim logic: annual savings for year 1.
-   * We keep it aligned with the UI equation used elsewhere:
-   * Économies = Avant - Après, where "Après" is approximated as 0 DT.
+   * Mini-sim: annual savings for year 1.
+   * Aligned with existing landing formula (Avant − Après ≈ full annual bill).
    */
   protected readonly annualSavingsRounded = computed(() => {
     const before = this.annualBillBeforeRounded();
     if (before == null) return null;
     return Math.max(0, before);
-  });
-
-  protected readonly annualBillAfterRounded = computed(() => {
-    const before = this.annualBillBeforeRounded();
-    const savings = this.annualSavingsRounded();
-    if (before == null || savings == null) return null;
-    return Math.max(0, before - savings);
   });
 
   protected readonly netAnnualGainRounded = computed(() => {
@@ -151,8 +152,17 @@ export class PreAuditSolaireComponent {
     return Math.round((capex / netGain) * 10) / 10;
   });
 
+  protected setZone(zone: ClimateZoneMini): void {
+    this.form.controls.climateZone.setValue(zone);
+  }
+
   protected markMonthlyBillTouched(): void {
     this.form.controls.monthlyBillDt.markAsTouched();
   }
-}
 
+  ngAfterViewInit(): void {
+    if (!this.embedded) {
+      this.motion.refresh();
+    }
+  }
+}

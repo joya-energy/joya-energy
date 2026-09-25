@@ -1,178 +1,67 @@
-import { ChangeDetectionStrategy, Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { NgIconComponent, provideIcons } from '@ng-icons/core';
-import {
-  lucideClipboardList,
-  lucideShield,
-  lucideZap,
-  lucideTrendingUp,
-} from '@ng-icons/lucide';
+import { ChangeDetectionStrategy, Component, OnInit, AfterViewInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { SEOService } from '../../core/services/seo.service';
+import { HandoffMotionService } from '../../core/services/handoff-motion.service';
 import { environment } from '../../../environments/environment';
 
-interface PartnerStat {
-  value: string;
-  title: string;
-  subtitle: string;
-}
-
-interface ProcessStep {
+interface PartnerStep {
   number: string;
   title: string;
   description: string;
-}
-
-interface AdvantageCard {
-  icon: string;
-  title: string;
-  description: string;
-}
-
-interface ExpectationItem {
-  number: string;
-  text: string;
 }
 
 @Component({
   selector: 'app-installateur-partenaire',
   standalone: true,
-  imports: [CommonModule, NgIconComponent],
+  imports: [CommonModule, RouterLink],
   templateUrl: './installateur-partenaire.component.html',
   styleUrl: './installateur-partenaire.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [
-    provideIcons({
-      lucideClipboardList,
-      lucideShield,
-      lucideZap,
-      lucideTrendingUp,
-    }),
-  ],
 })
-export class InstallateurPartenaireComponent implements OnInit {
+export class InstallateurPartenaireComponent implements OnInit, AfterViewInit {
   private readonly seoService = inject(SEOService);
-  private readonly platformId = inject(PLATFORM_ID);
+  private readonly motion = inject(HandoffMotionService);
 
-  /** Installer registration form in the Joya customer app (monorepo). */
+  /** Installer registration form in the Joya customer app. */
   protected readonly devenirPartenaireUrl = `${environment.customerAppUrl.replace(/\/$/, '')}/installateurs`;
 
-  protected scrollToProcessus(event: Event): void {
-    event.preventDefault();
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-    document.getElementById('processus')?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-    });
-  }
-
-  protected readonly stats: PartnerStat[] = [
-    {
-      value: '4',
-      title: 'Installateurs partenaires*',
-      subtitle: 'Réseau actif Joya Energy',
-    },
-    {
-      value: '50 kWc',
-      title: 'Puissance installée via le réseau*',
-      subtitle: 'Et ça continue',
-    },
-    {
-      value: '48h',
-      title: 'Délai de paiement garanti après réception',
-      subtitle: 'Défini dès la commande',
-    },
-    {
-      value: '0 TND',
-      title: 'Avance du client final : 0 TND*',
-      subtitle: 'Contrat de service à la performance',
-    },
-  ];
-
-  protected readonly processSteps: ProcessStep[] = [
+  protected readonly steps: PartnerStep[] = [
     {
       number: '01',
-      title: 'Qualification du site et du projet',
-      description:
-        'Validation du site, de la viabilité technique et du profil financier du client final.',
+      title: 'Candidature',
+      description: 'Présentez votre entreprise et vos références.',
     },
     {
       number: '02',
-      title: 'Signature du contrat client',
-      description:
-        'Joya signe le contrat de service à la performance avec le client final.',
+      title: 'Validation',
+      description: 'Nous vérifions vos qualifications techniques, vous recevez vos accès.',
     },
     {
       number: '03',
-      title: 'Installation selon le cahier des charges',
+      title: 'Projets partagés',
       description:
-        'Vous réalisez les travaux selon le cahier des charges technique Joya.',
+        'Vous recevez des dossiers qualifiés et/ou soumettez les vôtres via votre espace.',
     },
     {
       number: '04',
-      title: 'Réception des travaux et paiement selon les conditions définies',
-      description:
-        'Contrôle qualité à la réception, puis paiement selon le cycle défini.',
-    },
-    {
-      number: '05',
-      title: 'Suivi de la performance en coordination avec Joya Energy',
-      description:
-        'Monitoring de performance continu via Joya OS, en coordination avec vos équipes.',
-    },
-  ];
-
-  protected readonly advantages: AdvantageCard[] = [
-    {
-      icon: 'lucideClipboardList',
-      title: 'Accéder à des projets professionnels qualifiés',
-      description:
-        'Accédez à un flux régulier de projets PME déjà qualifiés et financés par Joya.',
-    },
-    {
-      icon: 'lucideShield',
-      title: 'Travailler dans un cadre technique défini',
-      description:
-        'Le client n’avance rien : Joya structure le contrat et porte le risque de paiement.',
-    },
-    {
-      icon: 'lucideZap',
-      title: 'Développer une relation de projet dans la durée',
-      description:
-        'Délai de paiement défini dès la commande, déclenché après réception des travaux.',
-    },
-    {
-      icon: 'lucideTrendingUp',
-      title: 'Volume, pas one-shot',
-      description:
-        'Un partenariat conçu pour enchaîner les projets, pas pour un seul chantier isolé.',
-    },
-  ];
-
-  protected readonly expectations: ExpectationItem[] = [
-    {
-      number: '01',
-      text: "Capacité d'installation solaire PV commerciale/industrielle (certifications, références clients).",
-    },
-    {
-      number: '02',
-      text: 'Respect du cahier des charges technique Joya : équipements, normes, délais contractuels.',
-    },
-    {
-      number: '03',
-      text: 'Disponibilité pour le suivi M&V post-installation en coordination avec les équipes Joya.',
+      title: 'Suivi continu',
+      description: 'Suivi des dossiers et de la performance, pilotés ensemble sur la plateforme.',
     },
   ];
 
   ngOnInit(): void {
     this.seoService.setSEO({
-      title: 'Devenir Installateur Partenaire Solaire PV | Joya Energy',
+      title: 'Partenaires — Joya Energy',
       description:
-        "Rejoignez le réseau d'installateurs partenaires Joya Energy. Développez des chantiers d'installation solaire PV industrielle et commerciale sécurisés.",
+        "Installateurs, bureaux d'études, apporteurs d'affaires : rejoignez le réseau Joya et déployez plus de projets solaires en Tunisie.",
       url: 'https://joya-energy.com/installateur-partenaire',
       keywords:
-        'installateur partenaire solaire, installation solaire PV commerciale, installation solaire PV industrielle, Joya Energy',
+        'partenaires Joya, installateur solaire Tunisie, réseau partenaires, bureaux d\'études solaire',
     });
+  }
+
+  ngAfterViewInit(): void {
+    this.motion.refresh();
   }
 }

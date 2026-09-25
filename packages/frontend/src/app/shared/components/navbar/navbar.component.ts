@@ -2,20 +2,14 @@ import {
   Component,
   ChangeDetectionStrategy,
   signal,
-  computed,
   OnInit,
   OnDestroy,
   PLATFORM_ID,
   inject,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
-
-interface NavLink {
-  label: string;
-  path: string;
-  id: string;
-}
+import { RouterLink, Router, NavigationEnd } from '@angular/router';
+import { CommonModule, isPlatformBrowser, DOCUMENT } from '@angular/common';
+import { filter, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-navbar',
@@ -30,136 +24,113 @@ interface NavLink {
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   private platformId = inject(PLATFORM_ID);
+  private document = inject(DOCUMENT);
+  private router = inject(Router);
+
   protected readonly isMobileMenuOpen = signal(false);
   protected readonly isScrolled = signal(false);
-  protected readonly isNavbarHidden = signal(false); // New: for hide on scroll down
-  protected readonly isDesktop = signal(true);
+  protected readonly isNavbarHidden = signal(false);
+  protected readonly isResourcesOpen = signal(false);
+  protected readonly isMobileResourcesOpen = signal(false);
+  protected readonly currentUrl = signal('/');
 
   private scrollRAF: number | null = null;
-  private resizeRAF: number | null = null;
+  private scrollIdleTimer: ReturnType<typeof setTimeout> | null = null;
   private lastScrollY = 0;
-  private readonly scrollThreshold = 10; // Minimum scroll distance to trigger hide/show
-
-  // Computed property to check if we should apply scrolled class (desktop only)
-  protected readonly shouldShowScrolled = computed(() => {
-    if (!isPlatformBrowser(this.platformId)) {
-      return false;
-    }
-    return this.isScrolled();
-  });
+  private routerSub?: Subscription;
+  private readonly scrollThreshold = 10;
 
   ngOnInit(): void {
+    this.currentUrl.set(this.router.url);
+    this.routerSub = this.router.events
+      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+      .subscribe((e) => {
+        this.currentUrl.set(e.urlAfterRedirects);
+        this.closeMobileMenu();
+        this.isResourcesOpen.set(false);
+      });
+
     if (isPlatformBrowser(this.platformId)) {
-      this.handleResize(); // Set initial desktop state
-      window.addEventListener('resize', this.handleResize, { passive: true });
       window.addEventListener('scroll', this.handleScroll, { passive: true });
+      this.document.addEventListener('click', this.handleDocClick);
       this.lastScrollY = window.scrollY;
     }
   }
 
   ngOnDestroy(): void {
+    this.routerSub?.unsubscribe();
     if (isPlatformBrowser(this.platformId)) {
-      window.removeEventListener('resize', this.handleResize);
       window.removeEventListener('scroll', this.handleScroll);
-      document.body.style.overflow = '';
-
-      if (this.scrollRAF !== null) {
-        cancelAnimationFrame(this.scrollRAF);
-      }
-      if (this.resizeRAF !== null) {
-        cancelAnimationFrame(this.resizeRAF);
-      }
+      this.document.removeEventListener('click', this.handleDocClick);
+      if (this.scrollRAF !== null) cancelAnimationFrame(this.scrollRAF);
+      if (this.scrollIdleTimer) clearTimeout(this.scrollIdleTimer);
     }
   }
 
-  private handleResize = (): void => {
-    if (!isPlatformBrowser(this.platformId)) return;
-
-    if (this.resizeRAF) {
-      cancelAnimationFrame(this.resizeRAF);
+  private handleDocClick = (event: MouseEvent): void => {
+    const target = event.target as HTMLElement | null;
+    if (!target?.closest('.nav__dd')) {
+      this.isResourcesOpen.set(false);
     }
-
-    this.resizeRAF = requestAnimationFrame(() => {
-      const desktop = window.innerWidth >= 1024;
-      this.isDesktop.set(desktop);
-      if (desktop && this.isMobileMenuOpen()) {
-        this.closeMobileMenu();
-      }
-      this.resizeRAF = null;
-    });
   };
 
   private handleScroll = (): void => {
     if (this.scrollRAF) return;
 
     this.scrollRAF = requestAnimationFrame(() => {
-      if (isPlatformBrowser(this.platformId)) {
-        const scrollY = window.scrollY;
-
-        // Desktop: just track if scrolled for background change
-        this.isScrolled.set(scrollY > 50);
-
-        // Mobile: hide on scroll down, show on scroll up (keep bar visible while menu is open)
-        if (!this.isDesktop() && !this.isMobileMenuOpen()) {
-          const scrollDiff = scrollY - this.lastScrollY;
-
-          // Only trigger if scrolled past threshold
-          if (Math.abs(scrollDiff) > this.scrollThreshold) {
-            if (scrollDiff > 0 && scrollY > 100) {
-              // Scrolling down & past 100px - hide navbar
-              this.isNavbarHidden.set(true);
-            } else if (scrollDiff < 0) {
-              // Scrolling up - show navbar
-              this.isNavbarHidden.set(false);
-            }
-          }
-
-          // Always show navbar at top of page
-          if (scrollY < 100) {
-            this.isNavbarHidden.set(false);
-          }
-        } else {
-          // Desktop or open mobile menu: always show navbar
-          this.isNavbarHidden.set(false);
-        }
-
-        this.lastScrollY = scrollY;
+      if (!isPlatformBrowser(this.platformId)) {
+        this.scrollRAF = null;
+        return;
       }
+
+      const scrollY = window.scrollY;
+      this.isScrolled.set(scrollY > 24);
+
+      const scrollDiff = scrollY - this.lastScrollY;
+      const isMobile = window.innerWidth <= 900;
+
+      if (isMobile && !this.isMobileMenuOpen()) {
+        if (Math.abs(scrollDiff) > this.scrollThreshold && scrollY > 80) {
+          this.isNavbarHidden.set(true);
+        }
+        if (this.scrollIdleTimer) clearTimeout(this.scrollIdleTimer);
+        this.scrollIdleTimer = setTimeout(() => this.isNavbarHidden.set(false), 180);
+      } else {
+        this.isNavbarHidden.set(false);
+      }
+
+      if (scrollY < 80) this.isNavbarHidden.set(false);
+      this.lastScrollY = scrollY;
       this.scrollRAF = null;
     });
   };
 
   protected toggleMobileMenu(): void {
-    const nextOpen = !this.isMobileMenuOpen();
-    this.isMobileMenuOpen.set(nextOpen);
-    if (nextOpen) {
-      this.isNavbarHidden.set(false);
-    }
-    this.syncBodyScrollLock();
+    this.isMobileMenuOpen.update((v) => !v);
+    if (!this.isMobileMenuOpen()) this.isMobileResourcesOpen.set(false);
   }
 
   protected closeMobileMenu(): void {
     this.isMobileMenuOpen.set(false);
-    this.syncBodyScrollLock();
+    this.isMobileResourcesOpen.set(false);
   }
 
-  private syncBodyScrollLock(): void {
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-    document.body.style.overflow = this.isMobileMenuOpen() ? 'hidden' : '';
+  protected toggleResources(event: Event): void {
+    event.stopPropagation();
+    this.isResourcesOpen.update((v) => !v);
   }
 
-  protected readonly navLinks: NavLink[] = [
-    { label: 'Notre solution', path: '/notre-solution', id: 'nav-solution' },
-    { label: 'Plateforme digitale', path: '/plateforme-digitale', id: 'nav-plateforme' },
-    { label: 'Ressources', path: '/ressources', id: 'nav-ressources' },
-    {
-      label: 'Installateur Partenaire',
-      path: '/installateur-partenaire',
-      id: 'nav-installateur-partenaire',
-    },
-    { label: 'Blogs', path: '/blogs', id: 'nav-blogs' },
-    { label: 'Contact', path: '/contact', id: 'nav-contact' },
-  ];
+  protected toggleMobileResources(): void {
+    this.isMobileResourcesOpen.update((v) => !v);
+  }
+
+  protected isActive(path: string): boolean {
+    const url = this.currentUrl().split('?')[0].split('#')[0];
+    return url === path || url.startsWith(`${path}/`);
+  }
+
+  protected isResourcesActive(): boolean {
+    const url = this.currentUrl();
+    return url.startsWith('/ressources') || url.startsWith('/blogs');
+  }
 }

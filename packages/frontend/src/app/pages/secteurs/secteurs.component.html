@@ -1,0 +1,130 @@
+<main id="main" class="secteurs-page">
+  <section class="pg-hero">
+    <div class="wrap">
+      <div class="pg-hero__head">
+        <div>
+          <span class="eyebrow reveal">Secteurs</span>
+          <h1 class="reveal reveal-d1">Une solution pensée pour votre <span class="accent">activité</span>.</h1>
+        </div>
+        <div class="pg-hero__side reveal reveal-d2">
+          <p class="pg-hero__lead">
+            Éducation, santé, agroalimentaire, hôtellerie — chaque secteur a ses propres besoins
+            énergétiques.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--flush-top" id="secteurs-scene">
+    <div class="wrap">
+      <div class="sector-scene" id="sxp" data-anim="scale">
+        <div class="sector-scene__media">
+          @for (sector of sectors; track sector.key; let i = $index) {
+          <img
+            class="sector-scene__img"
+            [class.is-on]="activeIndex() === i"
+            [src]="sector.image"
+            [alt]="activeIndex() === i ? sector.alt : ''"
+            [style.object-position]="sector.objectPosition"
+            [attr.aria-hidden]="activeIndex() !== i"
+            [attr.loading]="i === 0 ? null : 'lazy'"
+          />
+          }
+        </div>
+
+        <div class="sector-scene__panels">
+          @for (sector of sectors; track sector.key; let i = $index) {
+          <div
+            class="sector-scene__panel"
+            [class.is-on]="activeIndex() === i"
+            role="tabpanel"
+            [id]="'p-' + sector.key"
+            [attr.aria-labelledby]="'t-' + sector.key"
+            [attr.tabindex]="activeIndex() === i ? 0 : -1"
+          >
+            <div class="sector-scene__prog" aria-hidden="true">
+              @for (s of sectors; track s.key; let j = $index) {
+              <i [class.on]="j === i"></i>
+              }
+              <span>{{ pad(i + 1) }} / {{ pad(sectors.length) }}</span>
+            </div>
+            <h2 [class.long]="sector.key === 'agro'">{{ sector.title }}</h2>
+            <p>{{ sector.body }}</p>
+            <div class="sector-scene__chips">
+              @for (chip of sector.chips; track chip.small) {
+              <div>
+                <small>{{ chip.small }}</small>
+                <span>{{ chip.span }}</span>
+              </div>
+              }
+            </div>
+            @if (sector.example) {
+            <div class="sector-scene__ex">
+              <b>{{ sector.example.title }}</b>
+              <span>{{ sector.example.text }}</span>
+            </div>
+            }
+            <a class="sector-scene__go" routerLink="/" fragment="simulateur">
+              Estimer mon potentiel
+              <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path
+                  d="M3 7h8M7 3l4 4-4 4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </a>
+          </div>
+          }
+        </div>
+
+        <div class="sector-scene__bar" role="tablist" aria-label="Choisir un secteur">
+          @for (sector of sectors; track sector.key; let i = $index) {
+          <button
+            type="button"
+            class="sector-scene__t"
+            [class.is-on]="activeIndex() === i"
+            role="tab"
+            [id]="'t-' + sector.key"
+            [attr.aria-controls]="'p-' + sector.key"
+            [attr.aria-selected]="activeIndex() === i"
+            [attr.tabindex]="activeIndex() === i ? 0 : -1"
+            (click)="selectSector(i)"
+          >
+            <small>{{ pad(i + 1) }}</small>
+            <span>{{ sector.label }}</span>
+          </button>
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pg-cta" id="pgCta">
+    <div
+      class="pg-cta__bg"
+      id="pgCtaBg"
+      style="background-image: url('/handoff/images/cta-wind-turbines-coast-dusk.jpg')"
+      aria-hidden="true"
+    ></div>
+    <div class="pg-cta__veil" aria-hidden="true"></div>
+    <div class="wrap pg-cta__inner">
+      <h2 class="pg-cta__title" id="pgCtaTitle">Votre secteur<br />n'est pas listé&nbsp;?</h2>
+      <a routerLink="/contact" class="pg-cta__go" id="pgCtaBtn">
+        Parler à un conseiller
+        <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path
+            d="M3 7h8M7 3l4 4-4 4"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </a>
+    </div>
+  </section>
+</main>

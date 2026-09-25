@@ -1,30 +1,32 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  OnDestroy,
   OnInit,
+  AfterViewInit,
   PLATFORM_ID,
+  ViewEncapsulation,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
-  lucideArrowLeft,
-  lucideArrowRight,
-  lucideBadgePercent,
-  lucideCheck,
-  lucideCoins,
-  lucideInfo,
-} from '@ng-icons/lucide';
-import { trigger, transition, style, animate } from '@angular/animations';
+  ReactiveFormsModule,
+  FormBuilder,
+  FormGroup,
+  Validators,
+  AbstractControl,
+  ValidationErrors,
+} from '@angular/forms';
+import { RouterLink } from '@angular/router';
 
 import { UiInputComponent } from '../../shared/components/ui-input/ui-input.component';
-import { UiStepTimelineComponent } from '../../shared/components/ui-step-timeline/ui-step-timeline.component';
-import { UiProgressBarComponent } from '../../shared/components/ui-progress-bar/ui-progress-bar.component';
 import { SEOService } from '../../core/services/seo.service';
+import { HandoffMotionService } from '../../core/services/handoff-motion.service';
 import { LeadService } from '../../core/services/lead.service';
+import { NotificationStore } from '../../core/notifications/notification.store';
 import { SUBVENTION_CATEGORIES, SUBVENTION_CATEGORY_ENTRIES } from './subventions-fte.data';
 import {
   calculateSubventionPrime,
@@ -56,60 +58,60 @@ function phoneNumberValidator(control: AbstractControl): ValidationErrors | null
 interface SimulatorStep {
   number: number;
   title: string;
+  description: string;
   isResult: boolean;
 }
 
 @Component({
   selector: 'app-simulateur-subventions',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    NgIconComponent,
-    UiStepTimelineComponent,
-    UiProgressBarComponent,
-    UiInputComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, UiInputComponent],
   templateUrl: './simulateur-subventions.component.html',
   styleUrl: './simulateur-subventions.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [
-    trigger('stepTransition', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateX(20px)' }),
-        animate('300ms ease-out', style({ opacity: 1, transform: 'translateX(0)' })),
-      ]),
-    ]),
-    trigger('resultCards', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(20px)' }),
-        animate('400ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
-      ]),
-    ]),
-  ],
-  providers: [
-    provideIcons({
-      lucideArrowLeft,
-      lucideArrowRight,
-      lucideBadgePercent,
-      lucideCheck,
-      lucideCoins,
-      lucideInfo,
-    }),
-  ],
+  encapsulation: ViewEncapsulation.None,
+  host: { class: 'aud-host' },
 })
-export class SimulateurSubventionsComponent implements OnInit {
+export class SimulateurSubventionsComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly seoService = inject(SEOService);
+  private readonly motion = inject(HandoffMotionService);
   private readonly leadService = inject(LeadService);
+  private readonly notificationStore = inject(NotificationStore);
   private readonly platformId = inject(PLATFORM_ID);
 
   protected readonly steps: SimulatorStep[] = [
-    { number: 1, title: 'Catégorie', isResult: false },
-    { number: 2, title: 'Action', isResult: false },
-    { number: 3, title: 'Projet', isResult: false },
-    { number: 4, title: 'Contact', isResult: false },
-    { number: 5, title: 'Résultat', isResult: true },
+    {
+      number: 1,
+      title: 'Quelle est la nature de votre projet ?',
+      description:
+        "Réduisez vos factures énergétiques. Faites prendre en charge une partie de vos travaux par l'État.",
+      isResult: false,
+    },
+    {
+      number: 2,
+      title: 'Quelle action souhaitez-vous soutenir ?',
+      description: '',
+      isResult: false,
+    },
+    {
+      number: 3,
+      title: 'Renseignez votre projet',
+      description: '',
+      isResult: false,
+    },
+    {
+      number: 4,
+      title: 'Comment pouvons-nous vous recontacter ?',
+      description: 'Vos coordonnées pour recevoir votre estimation de prime FTE.',
+      isResult: false,
+    },
+    {
+      number: 5,
+      title: 'Résultat',
+      description: '',
+      isResult: true,
+    },
   ];
 
   protected readonly categoryEntries = SUBVENTION_CATEGORY_ENTRIES;
@@ -179,7 +181,58 @@ export class SimulateurSubventionsComponent implements OnInit {
     return this.steps.find((step) => step.number === this.currentStep()) ?? this.steps[0];
   });
 
+  /** Progress bar fill for handoff `.aud__ptrack > i` (step index + in-step fill). */
+  protected readonly audProgressPct = computed(() => {
+    const total = Math.max(this.steps.length, 1);
+    if (this.currentStepData().isResult) {
+      return 100;
+    }
+    const completedBefore = this.currentStep() - 1;
+    const withinStep = this.overallProgress() / 100;
+    const denom = Math.max(total - 1, 1);
+    return Math.min(100, Math.round(((completedBefore + withinStep) / denom) * 100));
+  });
+
+  protected readonly stepTitle = computed(() => this.currentStepData().title);
+
+  protected readonly stepDescription = computed(() => {
+    const step = this.currentStep();
+    if (step === 2) {
+      return this.selectedCategory()?.title ?? '';
+    }
+    if (step === 3) {
+      return this.selectedItem()?.name ?? '';
+    }
+    return this.currentStepData().description;
+  });
+
+  constructor() {
+    effect(() => {
+      const isResult = !!this.currentStepData().isResult;
+      const hasResult = !!this.result();
+      if (!isPlatformBrowser(this.platformId)) {
+        return;
+      }
+
+      document.body.classList.toggle('aud-s4', isResult);
+      if (!isResult) {
+        document.body.classList.remove('aud-s4');
+      }
+
+      if (isResult && hasResult) {
+        window.setTimeout(() => {
+          this.motion.scheduleRefresh(40);
+          document.getElementById('rpt')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 60);
+      }
+    });
+  }
+
   ngOnInit(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.classList.add('aud-page');
+    }
+
     this.seoService.setSEO({
       title: 'Simulateur des subventions FTE | JOYA Energy',
       description:
@@ -189,6 +242,16 @@ export class SimulateurSubventionsComponent implements OnInit {
         'subventions FTE Tunisie, Fonds Transition Énergétique, prime ANME, aide énergie Tunisie, simulateur subvention',
     });
     this.form.valueChanges.subscribe(() => this.formUpdateTrigger.update((value) => value + 1));
+  }
+
+  ngAfterViewInit(): void {
+    this.motion.scheduleRefresh();
+  }
+
+  ngOnDestroy(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.classList.remove('aud-page', 'aud-s4');
+    }
   }
 
   protected getBadge(categoryKey: SubventionCategoryKey, item: SubventionItem): string {
@@ -213,21 +276,11 @@ export class SimulateurSubventionsComponent implements OnInit {
     return `Prime forfaitaire : ${item.amount.toLocaleString('fr-FR')} ${item.unit}`;
   }
 
-  protected isStepClickable(stepNumber: number): boolean {
-    if (stepNumber === 5) {
-      return !!this.result();
+  protected primaryActionLabel(): string {
+    if (this.currentStep() === 4) {
+      return 'Calculer ma prime';
     }
-    return stepNumber <= this.currentStep();
-  }
-
-  protected goToStep(stepNumber: number): void {
-    if (stepNumber === 5 && !this.result()) {
-      return;
-    }
-    if (!this.isStepClickable(stepNumber)) {
-      return;
-    }
-    this.currentStep.set(stepNumber);
+    return 'Continuer';
   }
 
   protected selectCategory(key: SubventionCategoryKey): void {
@@ -310,6 +363,19 @@ export class SimulateurSubventionsComponent implements OnInit {
 
   protected nextStep(): void {
     const step = this.currentStep();
+
+    if (!this.canProceed() && step <= 4) {
+      if (step === 4) {
+        this.form.get('personal')?.markAllAsTouched();
+      }
+      this.notificationStore.addNotification({
+        type: 'warning',
+        title: 'Étape incomplète',
+        message: this.incompleteStepMessage(step),
+      });
+      return;
+    }
+
     if (step === 1) {
       this.nextFromCategoryStep();
       return;
@@ -334,20 +400,25 @@ export class SimulateurSubventionsComponent implements OnInit {
     this.currentStep.update((step) => step - 1);
   }
 
-  protected scrollToSection(sectionId: string): void {
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-    const element = document.getElementById(sectionId);
-    element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
   protected remainingCost(): number {
     const currentResult = this.result();
     if (!currentResult || currentResult.montant === null) {
       return 0;
     }
     return Math.max(currentResult.montant - currentResult.prime, 0);
+  }
+
+  private incompleteStepMessage(step: number): string {
+    if (step === 1) {
+      return 'Veuillez sélectionner une catégorie de projet.';
+    }
+    if (step === 2) {
+      return 'Veuillez sélectionner une action à soutenir.';
+    }
+    if (step === 3) {
+      return 'Veuillez renseigner les informations de votre projet.';
+    }
+    return 'Veuillez remplir tous les champs avant de continuer.';
   }
 
   private createForm(): FormGroup {

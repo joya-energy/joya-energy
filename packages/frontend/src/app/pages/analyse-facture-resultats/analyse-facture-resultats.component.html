@@ -1,464 +1,634 @@
-<div class="analyse-resultats-page">
-  <div class="analyse-resultats-container">
-    <aside class="simulator-sidebar">
-      <div class="sidebar-steps">
-        @for (step of steps; track step.number) {
-          <div
-            class="sidebar-step-item"
-            [class.active]="currentStep() === step.number"
-            [class.clickable]="isStepClickable(step.number) && !step.isResult"
-            [class.disabled]="!isStepClickable(step.number) && !step.isResult && currentStep() !== step.number"
-            (click)="!step.isResult && goToStep(step.number)"
-          >
-            @if (!step.isResult) {
-              <app-ui-progress-bar
-                [step]="step.number"
-                [title]="step.title"
-                [progress]="stepProgress()[step.number]"
-                [completed]="stepProgress()[step.number] === 100"
-                [isFocused]="currentStep() === step.number"
-                class="sidebar-progress-bar"
-              />
-            } @else {
-              <div
-                class="sidebar-result-step"
-                [class.active]="currentStep() === step.number"
-                [class.disabled]="false"
-              >
-                <div class="sidebar-result-step-left">
-                  <div
-                    class="sidebar-step-circle result"
-                    [class.active]="currentStep() === step.number"
-                  >
-                    <span class="step-number">{{ step.number }}</span>
-                  </div>
-                </div>
-                <div class="sidebar-result-step-right">
-                  <h3 class="sidebar-step-title">{{ step.title }}</h3>
-                </div>
-              </div>
-            }
+<div class="aud-page-root is-result">
+  <div class="aud__stage" aria-hidden="true">
+    <div class="aud__flow a"></div>
+    <div class="aud__flow b"></div>
+    <div class="aud__flow c"></div>
+  </div>
+  <div class="aud__grain" aria-hidden="true"></div>
+
+  <div class="aud" id="audRoot">
+    <div class="aud__card aud__card--wide" id="audCard">
+      <button type="button" class="aud__back" (click)="goToStep(2)">
+        <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path
+            d="M11 7H3M6 3 2 7l4 4"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <span>Étape précédente</span>
+      </button>
+
+      @if (tariffType() === 'BT' && btResult()) {
+      <div class="rpt rp-anim rpt--simple" id="rpt">
+        <header class="rp-head" data-sec>
+          <div class="rp-head__txt" data-a>
+            <h2>{{ clientName() }}</h2>
+            <p>votre facture en un coup d'œil</p>
+            <div class="rp-chips">
+              <span>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <rect x="4" y="5" width="16" height="15" rx="2" />
+                  <path d="M4 10h16M9 3v4M15 3v4" />
+                </svg>
+                <b>{{ situationBadge() }}</b>
+              </span>
+              @if (periodSummary()) {
+              <span>
+                <b>{{ periodSummary() }}</b>
+              </span>
+              }
+            </div>
           </div>
-        }
-      </div>
-    </aside>
+          <div class="rp-head__img" aria-hidden="true"></div>
+        </header>
 
-    <main class="simulator-main">
-      <div class="form-timeline-header">
-        <div class="step-progress-header">
-          <span class="step-indicator">Étape {{ currentStep() }} sur {{ steps.length }}</span>
-          <span class="step-completion">Progression: {{ overallProgress }}%</span>
-        </div>
-        <app-ui-step-timeline [currentStep]="currentStep()" [totalSteps]="steps.length" />
-      </div>
-
-      <div class="form-content-scrollable">
-        <div class="form-content">
-    @if (tariffType() === 'BT') {
-      <article class="report">
-        <!-- 1. Situation header -->
-        <section class="report-hero">
-          <span class="report-badge report-badge--gold">{{ situationBadge() }}</span>
-          <h1 class="report-hero__client">{{ clientName() }}</h1>
-          <p class="report-hero__tagline">votre facture en un coup d'œil</p>
-          <p class="report-hero__meta">{{ periodSummary() }}</p>
+        <section class="rp" data-sec>
+          <div class="rp__hd" data-a>
+            <span class="rp__n">01</span>
+            <h3>Synthèse de la facture</h3>
+          </div>
+          <div class="rp-cards">
+            <div class="rc rc--hot" data-a>
+              <span class="rc__lb">Énergie</span>
+              <b>{{ montantEnergie() }} <i>DT</i></b>
+              <span class="rc__t">Montant énergie</span>
+              <span class="rc__d">Part consommation de la facture</span>
+            </div>
+            <div class="rc" data-a>
+              <span class="rc__lb">Consommation</span>
+              <b>{{ formatNumber(facture().consommation_totale_kwh) }} <i>kWh</i></b>
+              <span class="rc__t">Consommation totale</span>
+              <span class="rc__d">Sur la période facturée</span>
+            </div>
+            <div class="rc" data-a>
+              <span class="rc__lb">Puissance</span>
+              <b>{{ formatNumber(facture().puissance_souscrite_kva) }} <i>kVA</i></b>
+              <span class="rc__t">Puissance souscrite</span>
+              <span class="rc__d">Capacité réservée auprès de la STEG</span>
+            </div>
+          </div>
         </section>
 
-        <!-- 2. Key metrics -->
-        <section class="report-kpis">
-          <div class="report-kpi report-kpi--accent">
-            <span class="report-kpi__label">Montant énergie</span>
-            <span class="report-kpi__value">{{ montantEnergie() }} DT</span>
-          </div>
-          <div class="report-kpi report-kpi--bar-blue">
-            <span class="report-kpi__label">Consommation</span>
-            <span class="report-kpi__value">{{ formatNumber(facture().consommation_totale_kwh) }} kWh</span>
-          </div>
-          <div class="report-kpi report-kpi--bar-green">
-            <span class="report-kpi__label">Puissance souscrite</span>
-            <span class="report-kpi__value">{{ formatNumber(facture().puissance_souscrite_kva) }} kVA</span>
-          </div>
-        </section>
-
-        <!-- 3. Info banners -->
         @if (gazBannerText(); as gazText) {
-          <div class="report-banner report-banner--info">
-            <ng-icon name="lucideFlame" size="18" />
-            <p>{{ gazText }}</p>
-          </div>
+        <section class="rp rp--plain" data-sec>
+          <p class="res-note" data-a>
+            <b>Gaz naturel —</b> {{ gazText }}
+          </p>
+        </section>
         }
 
         @if (puissanceAlertText(); as alertText) {
-          <div class="report-banner report-banner--alert">
-            <p><strong>Puissance élevée détectée :</strong> {{ alertText }}</p>
-          </div>
+        <section class="rp rp--plain" data-sec>
+          <p class="res-cap" data-a>
+            <b>Puissance élevée détectée :</b> {{ alertText }}
+          </p>
+        </section>
         }
 
         @if (showBtMtRevision() && etude(); as etudeData) {
-          <!-- 4. Recommendation -->
-          <section class="report-block">
-            <span class="report-badge report-badge--gold">Ce que vous pouvez faire</span>
-            <h2 class="report-block__title">Réviser votre contrat STEG.</h2>
-            <h3 class="report-block__subtitle">Passer en Moyenne Tension.</h3>
-            @if (etudeData.demarche_revision?.contexte; as contexte) {
-              <p class="report-block__contexte">{{ contexte }}</p>
-            }
-          </section>
-
-          <!-- 5. Two-step process -->
-          @if (etudeData.demarche_revision; as demarche) {
-            <section class="report-steps">
-              @if (demarche.intro) {
-                <p class="report-steps__intro">{{ demarche.intro }}</p>
-              }
-              <div class="report-steps__list">
-                @for (step of demarche.etapes; track step.titre; let i = $index) {
-                  <article class="report-step">
-                    <div class="report-step__number">{{ i + 1 }}</div>
-                    <div class="report-step__body">
-                      <h4>{{ step.titre }}</h4>
-                      <p>{{ step.description }}</p>
-                    </div>
-                  </article>
-                }
-              </div>
-            </section>
+        <section class="rp" data-sec>
+          <div class="rp__hd" data-a>
+            <span class="rp__n">02</span>
+            <div>
+              <h3>Réviser votre contrat STEG</h3>
+              <p>Passer en Moyenne Tension</p>
+            </div>
+          </div>
+          @if (etudeData.demarche_revision?.contexte; as contexte) {
+          <p class="res-note" data-a>{{ contexte }}</p>
           }
-
-          <!-- 6. Savings headline + comparison -->
-          <section class="report-block report-block--gain">
-            <span class="report-badge report-badge--blue">Ce que vous gagnez</span>
-            <h2 class="report-block__title">Une seule révision.</h2>
-            <h3 class="report-block__subtitle report-block__subtitle--gain">
-              {{ formatDtValue(etudeData.economie_annuelle_dt) }} DT d'économies par an.
-            </h3>
-          </section>
-
-          <section class="report-comparison">
-            <div class="report-comparison__card report-comparison__card--bt">
-              <span class="report-comparison__label">Facture annuelle BT</span>
-              <span class="report-comparison__value">{{ formatDtValue(etudeData.facture_annuelle_bt_dt) }} DT</span>
-              <span class="report-comparison__meta">{{ formatNumber(facture().puissance_souscrite_kva) }} kVA souscrit</span>
-            </div>
-            <div class="report-comparison__arrow" aria-hidden="true">
-              <ng-icon name="lucideArrowRight" size="20" />
-            </div>
-            <div class="report-comparison__card report-comparison__card--mt">
-              <span class="report-comparison__label">Facture annuelle MT</span>
-              <span class="report-comparison__value">{{ formatDtValue(etudeData.facture_annuelle_mt_dt) }} DT</span>
-              <span class="report-comparison__meta">
-                {{ formatNumber(etudeData.puissance_mt_recommandee_kva ?? etudeData.puissance_souscrite_kva) }} kVA recommandé
+          @if (etudeData.demarche_revision; as demarche) {
+          <div class="res-reco" data-a>
+            @if (demarche.intro) {
+            <p class="res-note" style="margin-bottom: 12px">{{ demarche.intro }}</p>
+            }
+            @for (step of demarche.etapes; track step.titre; let i = $index) {
+            <div class="res-reco__item">
+              <span class="rp__n" aria-hidden="true">{{ i + 1 }}</span>
+              <span>
+                <b>{{ step.titre }}</b>
+                <em style="display: block; font-style: normal; color: var(--muted); margin-top: 4px">
+                  {{ step.description }}
+                </em>
               </span>
             </div>
+            }
+          </div>
+          }
+        </section>
+
+        <section class="rp cmpx" data-sec>
+          <div class="rp__hd" data-a>
+            <span class="rp__n">03</span>
+            <div>
+              <h3>Comparaison des coûts annuels</h3>
+              <p>
+                Une seule révision —
+                {{ formatDtValue(etudeData.economie_annuelle_dt) }} DT d'économies par an
+              </p>
+            </div>
+          </div>
+          <div class="cmpx__grid">
+            <div class="cmpx__col" data-a>
+              <span class="cmpx__lb">Avant</span>
+              <b class="cmpx__v">
+                {{ formatDtValue(etudeData.facture_annuelle_bt_dt) }}
+                <i>DT</i>
+              </b>
+              <span class="cmpx__t">Facture annuelle BT</span>
+              <hr class="cmpx__hr" />
+              <span class="cmpx__d">
+                Puissance souscrite :
+                <em>{{ formatNumber(facture().puissance_souscrite_kva) }} kVA</em>
+              </span>
+            </div>
+
+            <svg
+              class="cmpx__arr"
+              data-a
+              viewBox="0 0 52 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M2 12h46M38 3l10 9-10 9" />
+            </svg>
+
+            <div class="cmpx__mid" data-a>
+              <span class="cmpx__lb">Économie</span>
+              <b class="cmpx__v">
+                <span>{{ formatDtValue(etudeData.economie_annuelle_dt) }}</span>
+                <i>DT</i>
+              </b>
+              <span class="cmpx__t">Économies annuelles</span>
+              <span class="cmpx__sub">soit {{ economieMensuelle() }} DT / mois</span>
+            </div>
+
+            <svg
+              class="cmpx__arr"
+              data-a
+              viewBox="0 0 52 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M2 12h46M38 3l10 9-10 9" />
+            </svg>
+
+            <div class="cmpx__col" data-a>
+              <span class="cmpx__lb">Après</span>
+              <b class="cmpx__v">
+                {{ formatDtValue(etudeData.facture_annuelle_mt_dt) }}
+                <i>DT</i>
+              </b>
+              <span class="cmpx__t">Facture annuelle MT</span>
+              <hr class="cmpx__hr" />
+              <span class="cmpx__d">
+                Puissance recommandée :
+                <em>
+                  {{
+                    formatNumber(
+                      etudeData.puissance_mt_recommandee_kva ?? etudeData.puissance_souscrite_kva
+                    )
+                  }}
+                  kVA
+                </em>
+              </span>
+            </div>
+          </div>
+        </section>
+
+        @if (vanChart(); as chart) {
+        <div class="rp-main" data-sec>
+          <section class="rp">
+            <div class="rp__hd" data-a>
+              <span class="rp__n">04</span>
+              <div>
+                <h3>Analyse économique</h3>
+                <p>Investissement et retour sur la révision BT → MT</p>
+              </div>
+            </div>
+            <div class="an-row" data-a>
+              <div>
+                <span class="lb">Investissement</span>
+                <span class="t">CAPEX</span>
+                <span class="d">Coût d'investissement</span>
+              </div>
+              <b>{{ formatDtValue(etudeData.capex_dt) }} DT</b>
+            </div>
+            <div class="an-row" data-a>
+              <div>
+                <span class="lb">Temps</span>
+                <span class="t">Payback simple</span>
+                <span class="d">Période de remboursement</span>
+              </div>
+              <b>{{ formatPayback(etudeData.payback_simple_ans) }} ans</b>
+            </div>
+            <div class="an-row" data-a>
+              <div>
+                <span class="lb">TRI</span>
+                <span class="t">Taux de Rendement Interne</span>
+                <span class="d">Sur 25 ans</span>
+              </div>
+              <b>{{ formatPercent(etudeData.tri_pct) }} %</b>
+            </div>
+            <div class="an-row" data-a>
+              <div>
+                <span class="lb">Économie</span>
+                <span class="t">Économie annuelle estimée</span>
+                <span class="d">Dès la révision effective</span>
+              </div>
+              <b>{{ formatDtValue(etudeData.economie_annuelle_dt) }} DT</b>
+            </div>
           </section>
 
-          <!-- 7. Financial results -->
-          <section class="report-economy-hero">
-            <span class="report-economy-hero__label">Économie annuelle estimée</span>
-            <span class="report-economy-hero__value">{{ formatDtValue(etudeData.economie_annuelle_dt) }} DT</span>
-            <p class="report-economy-hero__sub">
-              soit {{ economieMensuelle() }} DT récupérés chaque mois, dès la révision effective
-            </p>
-          </section>
-
-          <section class="report-financial-grid">
-            <div class="report-financial-card">
-              <span class="report-financial-card__label">Investissement (CAPEX)</span>
-              <span class="report-financial-card__value">{{ formatDtValue(etudeData.capex_dt) }} DT</span>
+          <section class="rp rp-chart">
+            <div class="rp__hd" data-a>
+              <span class="rp__n">05</span>
+              <div>
+                <h3>Gains nets cumulés vs CAPEX</h3>
+                <p>Projection sur 25 ans</p>
+              </div>
             </div>
-            <div class="report-financial-card">
-              <span class="report-financial-card__label">Payback simple</span>
-              <span class="report-financial-card__value">{{ formatPayback(etudeData.payback_simple_ans) }} ans</span>
-            </div>
-            <div class="report-financial-card">
-              <span class="report-financial-card__label">TRI (25 ans)</span>
-              <span class="report-financial-card__value">{{ formatPercent(etudeData.tri_pct) }} %</span>
-            </div>
-          </section>
-
-          @if (vanChart(); as chart) {
-            <section class="report-chart-section">
-              <h2 class="report-chart__title">Gains nets cumulés vs CAPEX</h2>
-              <div class="report-chart">
-              <div class="report-chart__y-axis">
+            <div class="rp-chart__body afr-chart" data-a>
+              <div class="afr-chart__y-axis">
                 @for (tick of chartYAxisTicks(chart); track tick) {
-                  <span>{{ tick }}</span>
+                <span>{{ tick }}</span>
                 }
               </div>
-              <div class="report-chart__plot">
-                <div class="report-chart__canvas">
-                <svg viewBox="0 0 1000 400" preserveAspectRatio="none" class="report-chart__svg">
-                  <defs>
-                    <linearGradient id="reportVanGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.35" />
-                      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.04" />
-                    </linearGradient>
-                  </defs>
-                  @if (chartAreaPoints(chart); as areaPoints) {
-                    <polygon [attr.points]="areaPoints" class="report-chart__van-area" />
-                  }
-                  @if (chartCapexLineEndX(chart); as capexEndX) {
+              <div class="afr-chart__plot">
+                <div class="afr-chart__canvas">
+                  <svg viewBox="0 0 1000 400" preserveAspectRatio="none" class="afr-chart__svg">
+                    <defs>
+                      <linearGradient id="reportVanGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.35" />
+                        <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.04" />
+                      </linearGradient>
+                    </defs>
+                    @if (chartAreaPoints(chart); as areaPoints) {
+                    <polygon [attr.points]="areaPoints" class="afr-chart__van-area" />
+                    }
+                    @if (chartCapexLineEndX(chart); as capexEndX) {
                     <line
                       [attr.x1]="chartPadding"
                       [attr.y1]="chartCapexY(chart)"
                       [attr.x2]="capexEndX"
                       [attr.y2]="chartCapexY(chart)"
-                      class="report-chart__capex-line"
+                      class="afr-chart__capex-line"
                     />
-                  }
-                  <polyline [attr.points]="chartLinePoints(chart)" class="report-chart__van-line" />
-                  @for (index of chartMarkerIndices(chart); track index) {
+                    }
+                    <polyline [attr.points]="chartLinePoints(chart)" class="afr-chart__van-line" />
+                    @for (index of chartMarkerIndices(chart); track index) {
                     <circle
                       [attr.cx]="chartPointAt(chart, index).x"
                       [attr.cy]="chartPointAt(chart, index).y"
                       r="5"
-                      class="report-chart__van-dot"
+                      class="afr-chart__van-dot"
                     />
-                  }
-                  @if (chartCapexIntersectionPoint(chart); as intersection) {
+                    }
+                    @if (chartCapexIntersectionPoint(chart); as intersection) {
                     <circle
                       [attr.cx]="intersection.x"
                       [attr.cy]="intersection.y"
                       r="8"
-                      class="report-chart__payback-dot"
+                      class="afr-chart__payback-dot"
                     />
-                  }
-                </svg>
-                @if (chartCapexIntersectionPoint(chart); as intersection) {
-                  @if (chartPaybackLabel(); as paybackLabel) {
-                    <div
-                      class="report-chart__payback-label"
-                      [style.left.%]="(intersection.x / 1000) * 100"
-                      [style.top.%]="(intersection.y / 400) * 100"
-                    >
-                      {{ paybackLabel }}
-                    </div>
-                  }
-                }
-                </div>
-                <div class="report-chart__x-axis">
-                  @for (year of chart.points; track year.year) {
-                    @if (year.year === 1 || year.year % 5 === 0 || year.year === 25) {
-                      <span>Année {{ year.year }}</span>
                     }
+                  </svg>
+                  @if (chartCapexIntersectionPoint(chart); as intersection) {
+                  @if (chartPaybackLabel(); as paybackLabel) {
+                  <div
+                    class="afr-chart__payback-label"
+                    [style.left.%]="(intersection.x / 1000) * 100"
+                    [style.top.%]="(intersection.y / 400) * 100"
+                  >
+                    {{ paybackLabel }}
+                  </div>
+                  }
                   }
                 </div>
-                <div class="report-chart__legend">
-                  <span class="report-chart__legend-item">
-                    <span class="report-chart__legend-swatch report-chart__legend-swatch--gains"></span>
+                <div class="afr-chart__x-axis">
+                  @for (year of chart.points; track year.year) {
+                  @if (year.year === 1 || year.year % 5 === 0 || year.year === 25) {
+                  <span>Année {{ year.year }}</span>
+                  }
+                  }
+                </div>
+                <div class="rp-legend">
+                  <span>
+                    <i style="background: #3b82f6"></i>
                     Gains nets cumulés
                   </span>
-                  <span class="report-chart__legend-item">
-                    <span class="report-chart__legend-swatch report-chart__legend-swatch--capex"></span>
+                  <span>
+                    <i style="background: #f97316"></i>
                     CAPEX
                   </span>
                 </div>
               </div>
-              </div>
-            </section>
-          }
+            </div>
+          </section>
+        </div>
+        } @else {
+        <section class="rp" data-sec>
+          <div class="rp__hd" data-a>
+            <span class="rp__n">04</span>
+            <div>
+              <h3>Analyse économique</h3>
+              <p>Investissement et retour sur la révision BT → MT</p>
+            </div>
+          </div>
+          <div class="an-row" data-a>
+            <div>
+              <span class="lb">Investissement</span>
+              <span class="t">CAPEX</span>
+              <span class="d">Coût d'investissement</span>
+            </div>
+            <b>{{ formatDtValue(etudeData.capex_dt) }} DT</b>
+          </div>
+          <div class="an-row" data-a>
+            <div>
+              <span class="lb">Temps</span>
+              <span class="t">Payback simple</span>
+              <span class="d">Période de remboursement</span>
+            </div>
+            <b>{{ formatPayback(etudeData.payback_simple_ans) }} ans</b>
+          </div>
+          <div class="an-row" data-a>
+            <div>
+              <span class="lb">TRI</span>
+              <span class="t">Taux de Rendement Interne</span>
+              <span class="d">Sur 25 ans</span>
+            </div>
+            <b>{{ formatPercent(etudeData.tri_pct) }} %</b>
+          </div>
+          <div class="an-row" data-a>
+            <div>
+              <span class="lb">Économie</span>
+              <span class="t">Économie annuelle estimée</span>
+              <span class="d">Dès la révision effective</span>
+            </div>
+            <b>{{ formatDtValue(etudeData.economie_annuelle_dt) }} DT</b>
+          </div>
+        </section>
+        }
         }
 
         @if (!showBtMtRevision() && btSolarDisplay(); as piste) {
-          <section class="report-solar report-solar--simple">
-            <span class="report-badge report-badge--orange">{{ piste.badge }}</span>
-            <h2 class="report-solar__title">{{ piste.titre }}</h2>
-            <p class="report-solar__text">{{ piste.description }}</p>
-            <div class="report-solar__callout">
-              <p><strong>Piste à explorer :</strong> {{ piste.piste }}</p>
+        <section class="rp rp--hot" data-sec>
+          <div class="rp__hd" data-a>
+            <span class="rp__n">02</span>
+            <div>
+              <h3>{{ piste.titre }}</h3>
+              <p>{{ piste.badge }}</p>
             </div>
-          </section>
+          </div>
+          <p class="res-note" data-a>{{ piste.description }}</p>
+          <p class="res-cap" data-a>
+            <b>Piste à explorer :</b> {{ piste.piste }}
+          </p>
+        </section>
         }
 
-        <!-- 8. Bill detail -->
-        <section class="report-detail">
-          <span class="report-badge report-badge--outline">Détail facture</span>
-          <h2 class="report-detail__title">Données extraites</h2>
+        <section class="rp" data-sec>
+          <div class="rp__hd" data-a>
+            <span class="rp__n">{{ showBtMtRevision() ? (vanChart() ? '06' : '05') : '03' }}</span>
+            <div>
+              <h3>Détail facture</h3>
+              <p>Données extraites de votre facture STEG</p>
+            </div>
+          </div>
           @if (btExtractionQuality(); as quality) {
-            @if (quality.overall !== 'high') {
-              <p
-                class="report-detail__quality"
-                [class.report-detail__quality--medium]="quality.overall === 'medium'"
-                [class.report-detail__quality--low]="quality.overall === 'low'"
-              >
-                {{ quality.summaryFr }}
-                @if (quality.correctionsCount > 0 || quality.suspectsCount > 0) {
-                  <span>
-                    ({{ quality.correctionsCount }} corrigé(s),
-                    {{ quality.suspectsCount }} à vérifier — score {{ quality.score }}/100)
-                  </span>
-                }
-              </p>
+          @if (quality.overall !== 'high') {
+          <p
+            class="res-note afr-quality"
+            data-a
+            [class.afr-quality--medium]="quality.overall === 'medium'"
+            [class.afr-quality--low]="quality.overall === 'low'"
+          >
+            {{ quality.summaryFr }}
+            @if (quality.correctionsCount > 0 || quality.suspectsCount > 0) {
+            <span>
+              ({{ quality.correctionsCount }} corrigé(s),
+              {{ quality.suspectsCount }} à vérifier — score {{ quality.score }}/100)
+            </span>
             }
+          </p>
           }
-          <div class="report-detail__list">
-            @for (row of detailFactureRows(); track row.label) {
-              <div class="report-detail__row" [class.report-detail__row--highlight]="row.highlight">
-                <div class="report-detail__label">
-                  <span>{{ row.label }}</span>
-                  @if (confidenceBadgeLabel(row.confidence); as badge) {
+          }
+          <table class="res-table" data-a>
+            <tbody>
+              @for (row of detailFactureRows(); track row.label) {
+              <tr [class.afr-row--highlight]="row.highlight">
+                <td class="k">
+                  <span class="afr-detail__label">
+                    {{ row.label }}
+                    @if (confidenceBadgeLabel(row.confidence); as badge) {
                     <span
-                      class="report-detail__confidence"
-                      [class.report-detail__confidence--corrected]="row.confidence === 'corrected'"
-                      [class.report-detail__confidence--suspect]="
+                      class="afr-confidence"
+                      [class.afr-confidence--corrected]="row.confidence === 'corrected'"
+                      [class.afr-confidence--suspect]="
                         row.confidence === 'suspect' || row.confidence === 'unverified'
                       "
                       [attr.title]="row.confidenceMessage || null"
                     >
                       {{ badge }}
                     </span>
-                  }
-                  @if (row.explication) {
-                    <div class="report-detail__info-wrap">
+                    }
+                    @if (row.explication) {
+                    <span class="afr-info-wrap">
                       <button
                         type="button"
-                        class="report-detail__info-btn"
+                        class="afr-info-btn"
                         [attr.aria-label]="'En savoir plus : ' + row.label"
                       >
                         i
                       </button>
-                      <div class="report-detail__tooltip" role="tooltip">{{ row.explication }}</div>
-                    </div>
-                  }
-                </div>
-                <div class="report-detail__value">{{ row.value }}</div>
-              </div>
-            }
-          </div>
+                      <span class="afr-tooltip" role="tooltip">{{ row.explication }}</span>
+                    </span>
+                    }
+                  </span>
+                </td>
+                <td class="v">{{ row.value }}</td>
+              </tr>
+              }
+            </tbody>
+          </table>
         </section>
 
-        @if (!showBtMtRevision() && btSolarDisplay(); as piste) {
-          <div class="report-actions report-actions--center report-actions--bottom">
-            <a routerLink="/audit-solaire" class="report-btn report-btn--primary">
-              {{ piste.ctaLabel }}
-              <ng-icon name="lucideArrowUpRight" size="16" />
-            </a>
-          </div>
-        }
-
-        <!-- 9. Solar follow-up (full BT–MT study) -->
         @if (showBtMtRevision() && btSolarDisplay(); as piste) {
-          <section class="report-solar">
-            <span class="report-badge report-badge--blue">{{ piste.badge }}</span>
-            <h2 class="report-solar__title">{{ piste.titre }}</h2>
-            <p class="report-solar__text">{{ piste.description }}</p>
-            <div class="report-solar__callout">
-              <p><strong>Piste à explorer :</strong> {{ piste.piste }}</p>
+        <section class="rp rp--hot" data-sec>
+          <div class="rp__hd" data-a>
+            <span class="rp__n">{{ showBtMtRevision() ? (vanChart() ? '07' : '06') : '02' }}</span>
+            <div>
+              <h3>{{ piste.titre }}</h3>
+              <p>{{ piste.badge }}</p>
             </div>
-            <div class="report-actions report-actions--center">
-              <a routerLink="/audit-solaire" class="report-btn report-btn--primary">
-                {{ piste.ctaLabel }}
-                <ng-icon name="lucideArrowUpRight" size="16" />
-              </a>
-            </div>
-          </section>
-        }
-      </article>
-    } @else {
-      <article class="report">
-        <!-- Hero -->
-        <section class="report-hero">
-          <span class="report-badge report-badge--gold">Votre situation • Mensuelle</span>
-          <h1 class="report-hero__client">{{ mtFacture().client }}</h1>
-          <p class="report-hero__tagline">votre facture en un coup d'œil</p>
-          <p class="report-hero__meta">
-            N° facture {{ mtFacture().numero_facture }}
-            @if (mtFacture().reference_client) {
-              • Réf. client {{ mtFacture().reference_client }}
-            }
-            • {{ mtFacture().periode }} • District {{ mtFacture().district }}
+          </div>
+          <p class="res-note" data-a>{{ piste.description }}</p>
+          <p class="res-cap" data-a>
+            <b>Piste à explorer :</b> {{ piste.piste }}
           </p>
         </section>
+        }
 
-        <hr class="report-divider" />
+        <section class="rp rp-foot" data-sec>
+          <span class="rp__n" data-a>{{
+            showBtMtRevision() ? (vanChart() ? '08' : '07') : '04'
+          }}</span>
+          <button type="button" class="rp-new" data-a (click)="nouvelleAnalyse()">
+            Nouvelle analyse
+          </button>
+          @if (btSolarDisplay(); as piste) {
+          <a routerLink="/audit-solaire" class="btn-next" data-a>
+            {{ piste.ctaLabel }}
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path
+                d="M3 7h8M7 3l4 4-4 4"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </a>
+          }
+        </section>
+      </div>
+      } @else if (tariffType() === 'MT' && mtResult()) {
+      <div class="rpt rp-anim rpt--simple" id="rpt">
+        <header class="rp-head" data-sec>
+          <div class="rp-head__txt" data-a>
+            <h2>{{ mtFacture().client }}</h2>
+            <p>votre facture en un coup d'œil</p>
+            <div class="rp-chips">
+              <span>
+                <b>Votre situation • Mensuelle</b>
+              </span>
+              <span>
+                <b>
+                  N° {{ mtFacture().numero_facture }}
+                  @if (mtFacture().reference_client) {
+                  • Réf. {{ mtFacture().reference_client }}
+                  }
+                  • {{ mtFacture().periode }} • District {{ mtFacture().district }}
+                </b>
+              </span>
+            </div>
+          </div>
+          <div class="rp-head__img" aria-hidden="true"></div>
+        </header>
 
-        <!-- Puissance situation -->
         @if (mtSituationView(); as situation) {
-        <section class="report-block">
-          <span
-            class="report-badge"
-            [class.report-badge--gold]="situation.badgeTone === 'gold'"
-            [class.report-badge--outline]="situation.badgeTone === 'outline'"
-            [class.report-badge--warning]="situation.badgeTone === 'warning'"
-            [class.report-badge--danger]="situation.badgeTone === 'danger'"
-          >
-            {{ situation.badge }}
-          </span>
-          <h2 class="report-block__title">{{ situation.intitule }}</h2>
+        <section class="rp" data-sec>
+          <div class="rp__hd" data-a>
+            <span class="rp__n">01</span>
+            <div>
+              <h3>{{ situation.intitule }}</h3>
+              <p>
+                <span
+                  class="afr-badge"
+                  [class.afr-badge--gold]="situation.badgeTone === 'gold'"
+                  [class.afr-badge--outline]="situation.badgeTone === 'outline'"
+                  [class.afr-badge--warning]="situation.badgeTone === 'warning'"
+                  [class.afr-badge--danger]="situation.badgeTone === 'danger'"
+                >
+                  {{ situation.badge }}
+                </span>
+              </p>
+            </div>
+          </div>
 
           @if (!hasValidMtMaxAppelee()) {
-            <p class="report-solar__text">
-              La ligne <strong>Puissance maximale appelée</strong> n'a pas été correctement extraite de
-              cette facture. Sans cette valeur, les économies de révision de puissance ne peuvent pas être
-              calculées. Relancez l'analyse avec une image plus nette.
-            </p>
+          <p class="res-note" data-a>
+            La ligne <b>Puissance maximale appelée</b> n'a pas été correctement extraite de cette
+            facture. Sans cette valeur, les économies de révision de puissance ne peuvent pas être
+            calculées. Relancez l'analyse avec une image plus nette.
+          </p>
           } @else if (situation.profile === 'P_VERIFY') {
-            <p class="report-solar__text">
-              La valeur lue pour la puissance maximale appelée est identique à la puissance souscrite
-              (<strong>{{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA</strong>).
-              Sur une facture STEG MT, ces deux lignes sont distinctes — la lecture doit être confirmée
-              avant de conclure à un risque de dépassement. Relancez l'analyse avec une image plus nette
-              du bloc Puissance.
-            </p>
+          <p class="res-note" data-a>
+            La valeur lue pour la puissance maximale appelée est identique à la puissance souscrite
+            (<b>{{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA</b>). Sur une
+            facture STEG MT, ces deux lignes sont distinctes — la lecture doit être confirmée avant
+            de conclure à un risque de dépassement. Relancez l'analyse avec une image plus nette du
+            bloc Puissance.
+          </p>
           } @else {
           @switch (situation.profile) {
-            @case ('P1') {
-              <p class="report-solar__text">
-                Votre contrat STEG vous réserve
-                <strong>{{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA</strong>
-                de puissance. Ce mois, votre installation en a consommé
-                <strong>{{ formatComparisonNumber(mtFacture().puissance_max_kva) }} kVA</strong>
-                au maximum. C'est comme louer un entrepôt de
-                {{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} m² pour n'en occuper que
-                {{ formatComparisonNumber(mtFacture().puissance_max_kva) }}.
-              </p>
-            }
-            @case ('P2') {
-              <p class="report-solar__text">
-                Votre contrat STEG vous réserve
-                <strong>{{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA</strong>,
-                mais votre installation n'a appelé que
-                <strong>{{ formatComparisonNumber(mtFacture().puissance_max_kva) }} kVA</strong>
-                au pic du mois. C'est comme garder un abonnement deux fois trop grand pour ce que vous
-                consommez réellement.
-              </p>
-            }
-            @case ('P3') {
-              <p class="report-solar__text">
-                Votre contrat STEG vous réserve
-                <strong>{{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA</strong>,
-                et votre installation a déjà appelé
-                <strong>{{ formatComparisonNumber(mtFacture().puissance_max_kva) }} kVA</strong>
-                ce mois. C'est comme rouler à {{ mtUtilisationPct() }}% de la jauge de votre réservoir
-                sans station essence à proximité.
-              </p>
-            }
-            @case ('P4') {
-              <p class="report-solar__text">
-                Votre contrat STEG vous réserve
-                <strong>{{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA</strong>,
-                mais votre installation a appelé
-                <strong>{{ formatComparisonNumber(mtFacture().puissance_max_kva) }} kVA</strong>
-                ce mois, soit
-                <strong>{{ formatComparisonNumber(mtDepassementKva()) }} kVA</strong>
-                de plus que prévu. C'est comme dépasser le forfait de votre abonnement et payer le
-                hors-forfait chaque mois.
-              </p>
-            }
-            @default {
-              <p class="report-solar__text" [innerHTML]="mtResult()!.situation_texte"></p>
-            }
+          @case ('P1') {
+          <p class="res-note" data-a>
+            Votre contrat STEG vous réserve
+            <b>{{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA</b>
+            de puissance. Ce mois, votre installation en a consommé
+            <b>{{ formatComparisonNumber(mtFacture().puissance_max_kva) }} kVA</b>
+            au maximum. C'est comme louer un entrepôt de
+            {{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} m² pour n'en occuper que
+            {{ formatComparisonNumber(mtFacture().puissance_max_kva) }}.
+          </p>
+          }
+          @case ('P2') {
+          <p class="res-note" data-a>
+            Votre contrat STEG vous réserve
+            <b>{{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA</b>, mais votre
+            installation n'a appelé que
+            <b>{{ formatComparisonNumber(mtFacture().puissance_max_kva) }} kVA</b>
+            au pic du mois. C'est comme garder un abonnement deux fois trop grand pour ce que vous
+            consommez réellement.
+          </p>
+          }
+          @case ('P3') {
+          <p class="res-note" data-a>
+            Votre contrat STEG vous réserve
+            <b>{{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA</b>, et votre
+            installation a déjà appelé
+            <b>{{ formatComparisonNumber(mtFacture().puissance_max_kva) }} kVA</b>
+            ce mois. C'est comme rouler à {{ mtUtilisationPct() }}% de la jauge de votre réservoir
+            sans station essence à proximité.
+          </p>
+          }
+          @case ('P4') {
+          <p class="res-note" data-a>
+            Votre contrat STEG vous réserve
+            <b>{{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA</b>, mais votre
+            installation a appelé
+            <b>{{ formatComparisonNumber(mtFacture().puissance_max_kva) }} kVA</b>
+            ce mois, soit
+            <b>{{ formatComparisonNumber(mtDepassementKva()) }} kVA</b>
+            de plus que prévu. C'est comme dépasser le forfait de votre abonnement et payer le
+            hors-forfait chaque mois.
+          </p>
+          }
+          @default {
+          <p class="res-note" data-a [innerHTML]="mtResult()!.situation_texte"></p>
+          }
           }
           }
 
           <div
-            class="report-mt-usage"
-            [class.report-mt-usage--danger]="situation.donutDanger"
+            class="afr-mt-usage"
+            data-a
+            [class.afr-mt-usage--danger]="situation.donutDanger"
           >
-            <div class="report-donut" aria-hidden="true">
-              <svg viewBox="0 0 120 120" class="report-donut__svg">
+            <div class="afr-donut" aria-hidden="true">
+              <svg viewBox="0 0 120 120" class="afr-donut__svg">
                 <circle
-                  class="report-donut__track"
+                  class="afr-donut__track"
                   cx="60"
                   cy="60"
                   r="50"
@@ -466,7 +636,7 @@
                   stroke-width="12"
                 />
                 <circle
-                  class="report-donut__value"
+                  class="afr-donut__value"
                   cx="60"
                   cy="60"
                   r="50"
@@ -476,30 +646,30 @@
                   transform="rotate(-90 60 60)"
                 />
               </svg>
-              <div class="report-donut__label">
+              <div class="afr-donut__label">
                 @if (situation.profile === 'P_VERIFY') {
-                  <span class="report-donut__pct">?</span>
-                  <span class="report-donut__caption">à vérifier</span>
+                <span class="afr-donut__pct">?</span>
+                <span class="afr-donut__caption">à vérifier</span>
                 } @else {
-                  <span class="report-donut__pct">{{ mtUtilisationPct() }}%</span>
-                  @if (situation.profile !== 'P4') {
-                    <span class="report-donut__caption">utilisé</span>
-                  }
+                <span class="afr-donut__pct">{{ mtUtilisationPct() }}%</span>
+                @if (situation.profile !== 'P4') {
+                <span class="afr-donut__caption">utilisé</span>
+                }
                 }
               </div>
             </div>
-            <dl class="report-mt-usage__metrics">
-              <div class="report-mt-usage__row">
+            <dl class="afr-mt-usage__metrics">
+              <div class="afr-mt-usage__row">
                 <dt>Puissance souscrite</dt>
                 <dd>{{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA</dd>
               </div>
-              <div class="report-mt-usage__row">
+              <div class="afr-mt-usage__row">
                 <dt>Puissance max. appelée</dt>
                 <dd>{{ formatComparisonNumber(mtFacture().puissance_max_kva) }} kVA</dd>
               </div>
               <div
-                class="report-mt-usage__row report-mt-usage__row--highlight"
-                [class.report-mt-usage__row--danger]="situation.metricDanger"
+                class="afr-mt-usage__row afr-mt-usage__row--highlight"
+                [class.afr-mt-usage__row--danger]="situation.metricDanger"
               >
                 <dt>{{ situation.metricLabel }}</dt>
                 <dd>{{ situation.metricValue }}</dd>
@@ -508,212 +678,292 @@
           </div>
 
           @if (situation.optimizationNote) {
-            <p class="report-mt-usage__optimization">{{ situation.optimizationNote }}</p>
+          <p class="afr-mt-usage__optimization" data-a>{{ situation.optimizationNote }}</p>
           }
 
           @if (situation.monthlyGain && situation.annualGain) {
-            <div class="report-mt-usage__gains">
-              <div>
-                <span class="report-mt-usage__gains-label">gain mensuel</span>
-                <span class="report-mt-usage__gains-value">{{ situation.monthlyGain }}</span>
-              </div>
-              <div>
-                <span class="report-mt-usage__gains-label">gain annuel</span>
-                <span class="report-mt-usage__gains-value">{{ situation.annualGain }}</span>
-              </div>
+          <div class="afr-mt-usage__gains" data-a>
+            <div>
+              <span class="afr-mt-usage__gains-label">gain mensuel</span>
+              <span class="afr-mt-usage__gains-value">{{ situation.monthlyGain }}</span>
             </div>
+            <div>
+              <span class="afr-mt-usage__gains-label">gain annuel</span>
+              <span class="afr-mt-usage__gains-value">{{ situation.annualGain }}</span>
+            </div>
+          </div>
           }
         </section>
         }
 
-        <!-- KPI cards -->
-        <section class="report-kpis report-kpis--wide">
-          @for (kpi of mtKpiCards(); track kpi.label) {
-            <div class="report-kpi" [class.report-kpi--accent]="kpi.accent">
-              <div class="report-kpi__label">
-                <span>{{ kpi.label }}</span>
+        <section class="rp" data-sec>
+          <div class="rp__hd" data-a>
+            <span class="rp__n">02</span>
+            <h3>Indicateurs clés</h3>
+          </div>
+          <div class="rp-cards afr-kpis--wide">
+            @for (kpi of mtKpiCards(); track kpi.label) {
+            <div class="rc" data-a [class.rc--hot]="kpi.accent">
+              <span class="rc__lb">
+                {{ kpi.label }}
                 @if (kpi.explication) {
-                  <div class="report-detail__info-wrap">
-                    <button
-                      type="button"
-                      class="report-detail__info-btn"
-                      [attr.aria-label]="'En savoir plus : ' + kpi.label"
-                    >
-                      i
-                    </button>
-                    <div class="report-detail__tooltip report-detail__tooltip--kpi" role="tooltip">
-                      {{ kpi.explication }}
-                    </div>
-                  </div>
+                <span class="afr-info-wrap">
+                  <button
+                    type="button"
+                    class="afr-info-btn"
+                    [attr.aria-label]="'En savoir plus : ' + kpi.label"
+                  >
+                    i
+                  </button>
+                  <span class="afr-tooltip afr-tooltip--kpi" role="tooltip">{{ kpi.explication }}</span>
+                </span>
                 }
-              </div>
-              <span class="report-kpi__value">{{ kpi.value }}</span>
+              </span>
+              <b>{{ kpi.value }}</b>
             </div>
-          }
+            }
+          </div>
         </section>
 
-        <!-- Insights -->
-        <section class="report-block">
-          <span class="report-badge report-badge--gold">• Ce que révèle votre facture</span>
-          <h2 class="report-block__title">{{ mtResult()!.revelle_sous_titre }}</h2>
-          <p class="report-solar__text">{{ mtResult()!.revelle_intro }}</p>
-
-          @for (insight of mtResult()!.insights; track insight.title) {
+        <section class="rp" data-sec>
+          <div class="rp__hd" data-a>
+            <span class="rp__n">03</span>
+            <div>
+              <h3>{{ mtResult()!.revelle_sous_titre }}</h3>
+              <p>Ce que révèle votre facture</p>
+            </div>
+          </div>
+          <p class="res-note" data-a>{{ mtResult()!.revelle_intro }}</p>
+          <div class="res-reco">
+            @for (insight of mtResult()!.insights; track insight.title) {
             <article
-              class="report-insight-card"
-              [class.report-insight-card--positive]="insight.severity === 'positive'"
+              class="res-reco__item afr-insight"
+              data-a
+              [class.afr-insight--positive]="insight.severity === 'positive'"
             >
-              <div class="report-insight-card__head">
-                <div class="report-insight-card__icon" aria-hidden="true">
-                  @if (insight.severity === 'critical') {
-                    <ng-icon name="lucideZap" size="18" />
-                  } @else {
-                    <ng-icon name="lucideCheck" size="18" />
-                  }
-                </div>
-                <h3 class="report-insight-card__title">{{ insight.title }}</h3>
-              </div>
-              <p class="report-insight-card__text">{{ insight.description }}</p>
-              <footer class="report-insight-card__foot">
+              <span class="afr-insight__ic" aria-hidden="true">
+                @if (insight.severity === 'critical') {
+                <ng-icon name="lucideZap" size="18" />
+                } @else {
+                <ng-icon name="lucideCheck" size="18" />
+                }
+              </span>
+              <span>
+                <b>{{ insight.title }}</b>
+                <em style="display: block; font-style: normal; color: var(--muted); margin-top: 4px">
+                  {{ insight.description }}
+                </em>
                 @if (insight.footerNote) {
-                  <p class="report-insight-card__note">{{ insight.footerNote }}</p>
+                <em
+                  style="
+                    display: block;
+                    font-style: normal;
+                    color: var(--muted);
+                    margin-top: 8px;
+                    font-size: 12.5px;
+                  "
+                >
+                  {{ insight.footerNote }}
+                </em>
                 }
                 @if (shouldShowInsightSaving(insight)) {
-                  <span class="report-insight-card__saving">{{ insight.annualSavingLabel }}</span>
+                <em class="afr-insight__saving">{{ insight.annualSavingLabel }}</em>
                 }
-              </footer>
+              </span>
             </article>
-          }
+            }
+          </div>
         </section>
 
-        <!-- Gains (P1/P2 only) -->
         @if (showMtRevisionGains()) {
-          <section class="report-block report-block--gain">
-            <span class="report-badge report-badge--blue">Ce que vous gagnez</span>
-            <h2 class="report-block__title">Une révision de puissance.</h2>
-            <h3 class="report-block__subtitle report-block__subtitle--gain">
-              {{ formatDtValue(mtResult()!.revision.economie_annuelle_dt) }} DT d'économies par an.
-            </h3>
-          </section>
-
-          <section class="report-comparison">
-            <div class="report-comparison__card report-comparison__card--bt">
-              <span class="report-comparison__label">Maintenant</span>
-              <span class="report-comparison__value">{{ formatDtValue(mtResult()!.revision.prime_actuelle_dt) }} DT</span>
-              <span class="report-comparison__meta">
-                prime / mois — {{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA souscrit
+        <section class="rp cmpx" data-sec>
+          <div class="rp__hd" data-a>
+            <span class="rp__n">04</span>
+            <div>
+              <h3>Une révision de puissance</h3>
+              <p>
+                {{ formatDtValue(mtResult()!.revision.economie_annuelle_dt) }} DT d'économies par an
+              </p>
+            </div>
+          </div>
+          <div class="cmpx__grid">
+            <div class="cmpx__col" data-a>
+              <span class="cmpx__lb">Maintenant</span>
+              <b class="cmpx__v">
+                {{ formatDtValue(mtResult()!.revision.prime_actuelle_dt) }}
+                <i>DT</i>
+              </b>
+              <span class="cmpx__t">Prime / mois</span>
+              <hr class="cmpx__hr" />
+              <span class="cmpx__d">
+                Souscrit :
+                <em>{{ formatComparisonNumber(mtFacture().puissance_souscrite_kva) }} kVA</em>
               </span>
             </div>
-            <div class="report-comparison__arrow" aria-hidden="true">
-              <ng-icon name="lucideArrowRight" size="20" />
-            </div>
-            <div class="report-comparison__card report-comparison__card--mt">
-              <span class="report-comparison__label">Après révision</span>
-              <span class="report-comparison__value">{{ formatDtValue(mtResult()!.revision.prime_apres_revision_dt) }} DT</span>
-              <span class="report-comparison__meta">
-                prime / mois — {{ formatComparisonNumber(mtResult()!.revision.puissance_cible_kva) }} kVA souscrit
+
+            <svg
+              class="cmpx__arr"
+              data-a
+              viewBox="0 0 52 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M2 12h46M38 3l10 9-10 9" />
+            </svg>
+
+            <div class="cmpx__mid" data-a>
+              <span class="cmpx__lb">Économie</span>
+              <b class="cmpx__v">
+                <span>{{ formatDtValue(mtResult()!.revision.economie_annuelle_dt) }}</span>
+                <i>DT</i>
+              </b>
+              <span class="cmpx__t">Économies annuelles</span>
+              <span class="cmpx__sub">
+                soit {{ formatDtValue(mtResult()!.revision.economie_mensuelle_dt) }} DT / mois
               </span>
             </div>
-          </section>
 
-          <section class="report-economy-hero">
-            <span class="report-economy-hero__label">Économie annuelle estimée</span>
-            <span class="report-economy-hero__value">{{ formatDtValue(mtResult()!.revision.economie_annuelle_dt) }} DT</span>
-            <p class="report-economy-hero__sub">
-              soit {{ formatDtValue(mtResult()!.revision.economie_mensuelle_dt) }} DT récupérés chaque mois —
-              dès la révision effective
-            </p>
-          </section>
+            <svg
+              class="cmpx__arr"
+              data-a
+              viewBox="0 0 52 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M2 12h46M38 3l10 9-10 9" />
+            </svg>
+
+            <div class="cmpx__col" data-a>
+              <span class="cmpx__lb">Après révision</span>
+              <b class="cmpx__v">
+                {{ formatDtValue(mtResult()!.revision.prime_apres_revision_dt) }}
+                <i>DT</i>
+              </b>
+              <span class="cmpx__t">Prime / mois</span>
+              <hr class="cmpx__hr" />
+              <span class="cmpx__d">
+                Souscrit :
+                <em>
+                  {{ formatComparisonNumber(mtResult()!.revision.puissance_cible_kva) }} kVA
+                </em>
+              </span>
+            </div>
+          </div>
+        </section>
         }
 
-        <!-- Detail -->
-        <section class="report-detail">
-          <span class="report-badge report-badge--outline">Détail facture</span>
-          <h2 class="report-detail__title">Données extraites</h2>
+        <section class="rp" data-sec>
+          <div class="rp__hd" data-a>
+            <span class="rp__n">{{ showMtRevisionGains() ? '05' : '04' }}</span>
+            <div>
+              <h3>Détail facture</h3>
+              <p>Données extraites de votre facture STEG</p>
+            </div>
+          </div>
           @if (mtExtractionQuality(); as quality) {
-            @if (quality.overall !== 'high') {
-              <p
-                class="report-detail__quality"
-                [class.report-detail__quality--medium]="quality.overall === 'medium'"
-                [class.report-detail__quality--low]="quality.overall === 'low'"
-              >
-                {{ quality.summaryFr }}
-                @if (quality.correctionsCount > 0 || quality.suspectsCount > 0) {
-                  <span>
-                    ({{ quality.correctionsCount }} corrigé(s),
-                    {{ quality.suspectsCount }} à vérifier — score {{ quality.score }}/100)
-                  </span>
-                }
-              </p>
+          @if (quality.overall !== 'high') {
+          <p
+            class="res-note afr-quality"
+            data-a
+            [class.afr-quality--medium]="quality.overall === 'medium'"
+            [class.afr-quality--low]="quality.overall === 'low'"
+          >
+            {{ quality.summaryFr }}
+            @if (quality.correctionsCount > 0 || quality.suspectsCount > 0) {
+            <span>
+              ({{ quality.correctionsCount }} corrigé(s),
+              {{ quality.suspectsCount }} à vérifier — score {{ quality.score }}/100)
+            </span>
             }
+          </p>
           }
-          <div class="report-detail__list">
-            @for (row of mtDetailRows(); track row.label) {
-              <div class="report-detail__row" [class.report-detail__row--highlight]="row.highlight">
-                <div class="report-detail__label">
-                  <span>{{ row.label }}</span>
-                  @if (confidenceBadgeLabel(row.confidence); as badge) {
+          }
+          <table class="res-table" data-a>
+            <tbody>
+              @for (row of mtDetailRows(); track row.label) {
+              <tr [class.afr-row--highlight]="row.highlight">
+                <td class="k">
+                  <span class="afr-detail__label">
+                    {{ row.label }}
+                    @if (confidenceBadgeLabel(row.confidence); as badge) {
                     <span
-                      class="report-detail__confidence"
-                      [class.report-detail__confidence--corrected]="row.confidence === 'corrected'"
-                      [class.report-detail__confidence--suspect]="
+                      class="afr-confidence"
+                      [class.afr-confidence--corrected]="row.confidence === 'corrected'"
+                      [class.afr-confidence--suspect]="
                         row.confidence === 'suspect' || row.confidence === 'unverified'
                       "
                       [attr.title]="row.confidenceMessage || null"
                     >
                       {{ badge }}
                     </span>
-                  }
-                  @if (row.explication) {
-                    <div class="report-detail__info-wrap">
+                    }
+                    @if (row.explication) {
+                    <span class="afr-info-wrap">
                       <button
                         type="button"
-                        class="report-detail__info-btn"
+                        class="afr-info-btn"
                         [attr.aria-label]="'En savoir plus : ' + row.label"
                       >
                         i
                       </button>
-                      <div class="report-detail__tooltip" role="tooltip">{{ row.explication }}</div>
-                    </div>
-                  }
-                </div>
-                <div class="report-detail__value">{{ row.value }}</div>
-              </div>
-            }
-          </div>
+                      <span class="afr-tooltip" role="tooltip">{{ row.explication }}</span>
+                    </span>
+                    }
+                  </span>
+                </td>
+                <td class="v">{{ row.value }}</td>
+              </tr>
+              }
+            </tbody>
+          </table>
         </section>
 
-        <!-- Solar -->
         @if (mtResult()!.piste_solaire; as piste) {
-          <section class="report-solar">
-            <span class="report-badge report-badge--blue">{{ piste.badge }}</span>
-            <h2 class="report-solar__title">{{ piste.titre }}</h2>
-            <p class="report-solar__text">{{ piste.description }}</p>
-            <div class="report-solar__callout">
-              <p><strong>Piste à explorer :</strong> {{ piste.piste }}</p>
+        <section class="rp rp--hot" data-sec>
+          <div class="rp__hd" data-a>
+            <span class="rp__n">{{ showMtRevisionGains() ? '06' : '05' }}</span>
+            <div>
+              <h3>{{ piste.titre }}</h3>
+              <p>{{ piste.badge }}</p>
             </div>
-            <div class="report-actions report-actions--center">
-              <a routerLink="/audit-solaire" class="report-btn report-btn--primary">
-                Demander une étude solaire personnalisée
-                <ng-icon name="lucideArrowUpRight" size="16" />
-              </a>
-            </div>
-          </section>
+          </div>
+          <p class="res-note" data-a>{{ piste.description }}</p>
+          <p class="res-cap" data-a>
+            <b>Piste à explorer :</b> {{ piste.piste }}
+          </p>
+        </section>
         }
 
-        <footer class="report-footer">
-          JOYA ENERGY • ANALYSE GÉNÉRÉE AUTOMATIQUEMENT À PARTIR DE VOTRE FACTURE STEG
-        </footer>
-      </article>
-    }
-        </div>
+        <section class="rp rp-foot" data-sec>
+          <span class="rp__n" data-a>{{ showMtRevisionGains() ? '07' : '06' }}</span>
+          <button type="button" class="rp-new" data-a (click)="nouvelleAnalyse()">
+            Nouvelle analyse
+          </button>
+          @if (mtResult()!.piste_solaire) {
+          <a routerLink="/audit-solaire" class="btn-next" data-a>
+            Demander une étude solaire personnalisée
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path
+                d="M3 7h8M7 3l4 4-4 4"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </a>
+          }
+        </section>
       </div>
-
-      <div class="form-actions form-actions--desktop result-actions">
-        <a routerLink="/analyse-facture" class="hero__btn hero__btn--outline">
-          Nouvelle analyse
-        </a>
-      </div>
-    </main>
+      }
+    </div>
   </div>
 </div>

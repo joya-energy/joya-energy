@@ -28,6 +28,12 @@ export const routes: Routes = [
     title: 'Modèle ESCo & Solution Énergétique Entreprise | Joya Energy',
   },
   {
+    path: 'secteurs',
+    loadComponent: () =>
+      import('./pages/secteurs/secteurs.component').then((m) => m.SecteursComponent),
+    title: 'Secteurs — Joya Energy',
+  },
+  {
     path: 'plateforme-digitale',
     loadComponent: () =>
       import('./pages/plateforme-digitale/plateforme-digitale.component').then(
@@ -121,7 +127,7 @@ export const routes: Routes = [
       import('./pages/comparaison-financements/comparaison-financements.component').then(
         (m) => m.ComparaisonFinancementsComponent
       ),
-    title: 'Comparateur de Financements | JOYA Energy',
+    title: "Comparateur d'options | JOYA Energy",
     data: { hideFooter: true },
   },
   {

@@ -1,0 +1,36 @@
+/* ==========================================================================
+   Composants de formulaire des simulateurs (liste déroulante, panneau multi-choix) + règles mobiles.
+   ========================================================================== */
+
+/* Joya Energy — composants de formulaire partagés + règles mobile des simulateurs */
+.in.sel { appearance:none; -webkit-appearance:none; padding-right:40px; cursor:pointer; text-overflow:ellipsis; }
+.ctrl { position:relative; }
+.chevd { position:absolute; right:16px; top:50%; width:8px; height:8px; border-right:2px solid var(--faint); border-bottom:2px solid var(--faint); transform:translateY(-70%) rotate(45deg); pointer-events:none; }
+/* liste multi-choix (plus de 6 options) */
+.msel { position:relative; }
+.msel > summary { list-style:none; display:flex; align-items:center; justify-content:space-between; gap:12px; cursor:pointer; min-height:48px; }
+.msel > summary::-webkit-details-marker { display:none; }
+.msel__t { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.msel > summary .chevd { position:static; flex:none; transform:rotate(45deg); transition:transform .2s ease; }
+.msel[open] > summary .chevd { transform:rotate(-135deg); }
+.msel__p { margin-top:8px; padding:12px; border:1px solid var(--line-2); border-radius:12px; background:rgba(255,255,255,.7); max-height:46vh; overflow:auto; }
+/* info sous une liste déroulante */
+.pick-info { margin-top:10px; padding:12px 14px; border-radius:12px; background:rgba(255,255,255,.6); border:1px solid var(--line-2); font-size:13px; line-height:1.5; color:var(--muted); }
+.pick-info .badge { display:inline-block; margin-top:8px; font-size:12px; font-weight:600; color:var(--coral-d); background:rgba(227,112,81,.1); border-radius:6px; padding:3px 8px; font-variant-numeric:tabular-nums; }
+/* mobile : zones tactiles ≥ 44px, texte ≥ 16px dans les champs (évite le zoom iOS), boutons pleine largeur */
+@media (max-width:600px) {
+  .aud__back { min-height:44px; padding:0 12px; display:inline-flex; align-items:center; }
+  .aud__kicker { font-size:12px; }
+  .geo-btn, .aud__nav button, .tariff button, .seg button { min-height:44px; }
+  .hint { position:relative; }
+  .hint::after { content:""; position:absolute; inset:-12px; }
+  .in, select.in, .in.sel, .msel > summary { font-size:16px; min-height:48px; }
+  .chip { min-height:44px; font-size:14px; }
+  .aud__nav .btn-next { min-height:48px; }
+}
+/* Mobile : la barre « Continuer » reste collée en bas de l'écran MAIS dans le flux (jamais par-dessus le dernier champ) */
+@media (max-width:600px) {
+  .nav__bar { background:rgba(255,250,246,.95); }
+  .aud { padding-bottom:24px !important; }
+  .aud__footrow { position:sticky !important; left:auto !important; right:auto !important; bottom:0 !important; margin:18px 0 0 !important; padding:12px 0 calc(12px + env(safe-area-inset-bottom)) !important; background:rgba(241,245,250,.88) !important; -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); border-top:1px solid var(--line) !important; z-index:20; }
+}

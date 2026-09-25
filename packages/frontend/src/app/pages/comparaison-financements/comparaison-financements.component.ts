@@ -1,36 +1,24 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  ViewEncapsulation,
   computed,
   effect,
   inject,
   OnDestroy,
   OnInit,
+  AfterViewInit,
   PLATFORM_ID,
   signal,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { NgIconComponent, provideIcons } from '@ng-icons/core';
-import {
-  lucideArrowLeft,
-  lucideArrowRight,
-  lucideWallet,
-  lucideBarChart3,
-  lucideZap,
-  lucideMapPin,
-  lucideSun,
-  lucideInfo,
-} from '@ng-icons/lucide';
-import { trigger, transition, style, animate } from '@angular/animations';
 import { finalize } from 'rxjs/operators';
+import { RouterLink } from '@angular/router';
 
 import { NoGroupingPipe } from '../../shared/pipes/no-grouping.pipe';
-import { UiStepTimelineComponent } from '../../shared/components/ui-step-timeline/ui-step-timeline.component';
-import { UiProgressBarComponent } from '../../shared/components/ui-progress-bar/ui-progress-bar.component';
 import { UiSelectComponent } from '../../shared/components/ui-select/ui-select.component';
 import { UiInputComponent } from '../../shared/components/ui-input/ui-input.component';
-import { RouterLink } from '@angular/router';
 
 import {
   FinancingComparisonService,
@@ -39,10 +27,12 @@ import {
 import { Governorates } from '@shared';
 import { NotificationStore } from '../../core/notifications/notification.store';
 import { SEOService } from '../../core/services/seo.service';
+import { HandoffMotionService } from '../../core/services/handoff-motion.service';
 
 interface SimulatorStep {
   number: number;
   title: string;
+  description: string;
   isResult: boolean;
 }
 
@@ -52,10 +42,7 @@ interface SimulatorStep {
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    NgIconComponent,
     NoGroupingPipe,
-    UiStepTimelineComponent,
-    UiProgressBarComponent,
     UiSelectComponent,
     UiInputComponent,
     RouterLink,
@@ -63,47 +50,38 @@ interface SimulatorStep {
   templateUrl: './comparaison-financements.component.html',
   styleUrls: ['./comparaison-financements.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [
-    trigger('stepTransition', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateX(20px)' }),
-        animate('300ms ease-out', style({ opacity: 1, transform: 'translateX(0)' })),
-      ]),
-      transition(':leave', [
-        animate('200ms ease-in', style({ opacity: 0, transform: 'translateX(-20px)' })),
-      ]),
-    ]),
-    trigger('resultCards', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(20px)' }),
-        animate('400ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
-      ]),
-    ]),
-  ],
-  providers: [
-    provideIcons({
-      lucideArrowLeft,
-      lucideArrowRight,
-      lucideWallet,
-      lucideBarChart3,
-      lucideZap,
-      lucideMapPin,
-      lucideSun,
-      lucideInfo,
-    }),
-  ],
+  encapsulation: ViewEncapsulation.None,
+  host: { class: 'aud-host' },
 })
-export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
+export class ComparaisonFinancementsComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly fb = inject(FormBuilder);
   private readonly financingService = inject(FinancingComparisonService);
   private readonly notificationStore = inject(NotificationStore);
   private readonly seoService = inject(SEOService);
+  private readonly motion = inject(HandoffMotionService);
 
   protected readonly steps: SimulatorStep[] = [
-    { number: 1, title: 'Introduction', isResult: false },
-    { number: 2, title: 'Données du projet', isResult: false },
-    { number: 3, title: 'Résultats', isResult: true },
+    {
+      number: 1,
+      title: 'Comparez vos options de projet',
+      description:
+        'Découvrez la solution la plus adaptée à votre entreprise — sans engagement.',
+      isResult: false,
+    },
+    {
+      number: 2,
+      title: 'Paramètres de la comparaison',
+      description:
+        'Choisissez la localisation puis indiquez soit la taille de l\'installation en kWc, soit votre budget d\'investissement en dinars.',
+      isResult: false,
+    },
+    {
+      number: 3,
+      title: 'Résultats',
+      description: 'Comparaison des options de financement sur 7 ans.',
+      isResult: true,
+    },
   ];
 
   protected readonly currentStep = signal(1);
@@ -133,69 +111,13 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
       .filter((s): s is (typeof list)[0] => s != null);
   });
 
-  protected readonly locationOptions = () => {
-    const locs = this.locations();
-    return locs.map((loc) => ({ value: loc.location, label: loc.location }));
-  };
+  protected readonly locationOptions = computed(() => {
+    return this.locations().map((loc) => ({ value: loc.location, label: loc.location }));
+  });
 
-  protected readonly inputTypeOptions: { value: string; label: string }[] = [
-    { value: 'size', label: "Taille de l'installation (kWc)" },
-    { value: 'amount', label: "Budget d'investissement (DT)" },
-  ];
-
-  constructor() {
-    effect(() => {
-      const result = this.comparisonResult();
-      const esco = result?.esco;
-      if (esco && esco.isViable === false && esco.viabilityError) {
-        this.notificationStore.addNotification({
-          type: 'warning',
-          title: 'Solution ESCO non viable',
-          message: esco.viabilityError,
-          duration: 8000,
-        });
-      }
-    });
-  }
-
-  ngOnInit(): void {
-    this.seoService.setSEO({
-      title: 'Comparateur de Financements | JOYA Energy',
-      description: 'Comparez les différentes options de financement pour votre projet solaire en Tunisie : ESCO, crédit bancaire, leasing ou comptant. Trouvez la solution la plus adaptée à votre entreprise.',
-      url: 'https://joya-energy.com/comparaison-financements',
-      keywords: 'financement solaire Tunisie, comparateur financement énergie solaire, ESCO Tunisie, crédit panneaux solaires Tunisie, leasing solaire Tunisie',
-    });
-    if (isPlatformBrowser(this.platformId)) {
-      this.financingService.fetchLocations().subscribe();
-      this.financingService.fetchAdvantages().subscribe();
-    }
-    this.buildForm();
-    this.form.valueChanges.subscribe(() => this.formUpdateTrigger.update((v) => v + 1));
-  }
-
-  ngOnDestroy(): void {}
-
-  private buildForm(): void {
-    this.form = this.fb.group({
-      location: ['', Validators.required],
-      inputType: ['size'],
-      installationSizeKwp: [null as number | null],
-      investmentAmountDt: [null as number | null],
-      fullName: [''],
-      companyName: [''],
-      email: ['', Validators.email],
-    });
-    this.form.get('inputType')?.valueChanges.subscribe((type) => {
-      this.form.patchValue(
-        { installationSizeKwp: null, investmentAmountDt: null },
-        { emitEvent: false }
-      );
-    });
-  }
-
-  protected get currentStepData(): SimulatorStep {
-    return this.steps[this.currentStep() - 1];
-  }
+  protected readonly currentStepData = computed(() => {
+    return this.steps.find((s) => s.number === this.currentStep()) || this.steps[0];
+  });
 
   protected readonly stepProgress = computed<Record<number, number>>(() => {
     this.formUpdateTrigger();
@@ -222,20 +144,102 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
   });
 
   protected readonly overallProgress = computed(() => {
-    const current = this.currentStep();
-    if (current === 3) return this.comparisonResult() ? 100 : 0;
-    return this.stepProgress()[current];
+    const current = this.currentStepData();
+    if (current.isResult) return this.comparisonResult() ? 100 : 0;
+    return this.stepProgress()[current.number];
   });
 
-  protected isStepClickable(stepNumber: number): boolean {
-    if (stepNumber === 3) return !!this.comparisonResult();
-    return stepNumber <= this.currentStep();
+  /** Progress bar fill for handoff `.aud__ptrack > i` (step index + in-step fill). */
+  protected readonly audProgressPct = computed(() => {
+    const total = Math.max(this.steps.length, 1);
+    if (this.currentStepData().isResult) return 100;
+    const completedBefore = this.currentStep() - 1;
+    const withinStep = this.overallProgress() / 100;
+    const denom = Math.max(total - 1, 1);
+    return Math.min(100, Math.round(((completedBefore + withinStep) / denom) * 100));
+  });
+
+  constructor() {
+    effect(() => {
+      const isResult = !!this.currentStepData().isResult;
+      const hasComparison = !!this.comparisonResult();
+      if (!isPlatformBrowser(this.platformId)) return;
+
+      document.body.classList.toggle('aud-s4', isResult);
+      if (!isResult) {
+        document.body.classList.remove('aud-s4');
+      }
+
+      if (isResult && hasComparison) {
+        window.setTimeout(() => {
+          this.motion.scheduleRefresh(40);
+          document.getElementById('rpt')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 60);
+      }
+    });
+
+    effect(() => {
+      const result = this.comparisonResult();
+      const esco = result?.esco;
+      if (esco && esco.isViable === false && esco.viabilityError) {
+        this.notificationStore.addNotification({
+          type: 'warning',
+          title: 'Solution ESCO non viable',
+          message: esco.viabilityError,
+          duration: 8000,
+        });
+      }
+    });
   }
 
-  protected goToStep(stepNumber: number): void {
-    if (!this.isStepClickable(stepNumber) && stepNumber !== 3) return;
-    if (stepNumber === 3 && !this.comparisonResult()) return;
-    this.currentStep.set(stepNumber);
+  ngOnInit(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.classList.add('aud-page');
+    }
+
+    this.seoService.setSEO({
+      title: "Comparateur d'options | JOYA Energy",
+      description:
+        'Comparez les différentes options pour votre projet solaire en Tunisie : ESCO, option bancaire, leasing ou comptant. Trouvez la solution la plus adaptée à votre entreprise.',
+      url: 'https://joya-energy.com/comparaison-financements',
+      keywords:
+        'options projet solaire Tunisie, comparateur options énergie solaire, ESCO Tunisie, panneaux solaires Tunisie, leasing solaire Tunisie',
+    });
+
+    if (isPlatformBrowser(this.platformId)) {
+      this.financingService.fetchLocations().subscribe();
+      this.financingService.fetchAdvantages().subscribe();
+    }
+    this.buildForm();
+    this.form.valueChanges.subscribe(() => this.formUpdateTrigger.update((v) => v + 1));
+  }
+
+  ngAfterViewInit(): void {
+    this.motion.scheduleRefresh();
+  }
+
+  ngOnDestroy(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.classList.remove('aud-page', 'aud-s4');
+    }
+  }
+
+  private buildForm(): void {
+    this.form = this.fb.group({
+      location: ['', Validators.required],
+      inputType: ['size'],
+      installationSizeKwp: [null as number | null],
+      investmentAmountDt: [null as number | null],
+      fullName: [''],
+      companyName: [''],
+      email: ['', Validators.email],
+    });
+    this.form.get('inputType')?.valueChanges.subscribe(() => {
+      this.form.patchValue(
+        { installationSizeKwp: null, investmentAmountDt: null },
+        { emitEvent: false }
+      );
+    });
   }
 
   protected nextStep(): void {
@@ -244,6 +248,18 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
       return;
     }
     if (this.currentStep() === 2) {
+      if (!this.canProceed()) {
+        this.form.get('location')?.markAsTouched();
+        this.form.get('installationSizeKwp')?.markAsTouched();
+        this.form.get('investmentAmountDt')?.markAsTouched();
+        this.notificationStore.addNotification({
+          type: 'warning',
+          title: 'Étape incomplète',
+          message:
+            'Veuillez sélectionner une localisation et indiquer la taille ou le budget du projet.',
+        });
+        return;
+      }
       this.submitComparison();
     }
   }
@@ -327,7 +343,7 @@ export class ComparaisonFinancementsComponent implements OnInit, OnDestroy {
   protected getSolutionTitle(type: string): string {
     const titles: Record<string, string> = {
       cash: 'Comptant',
-      credit: 'Crédit bancaire',
+      credit: 'Option bancaire',
       leasing: 'Leasing',
       esco: 'ESCO JOYA',
     };

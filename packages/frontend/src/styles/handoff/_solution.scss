@@ -1,0 +1,25 @@
+/* ==========================================================================
+   Page Solution
+   ========================================================================== */
+
+/* Modèle de service : schéma « où va votre facture » */
+.model { background:#fff; border-radius:22px; padding:clamp(22px,2.6vw,34px); box-shadow:0 30px 60px -38px rgba(18,50,90,.3); border:1px solid rgba(23,59,94,.08); margin:0; }
+.model__head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+.model__t { font-family:var(--font-display); font-weight:800; letter-spacing:-0.02em; font-size:clamp(17px,1.7vw,20px); color:var(--navy); }
+.model__tag { font-family:var(--font-data); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--navy); opacity:.55; }
+.model__legend { display:flex; flex-wrap:wrap; gap:6px 18px; margin-bottom:22px; font-size:12.5px; color:rgba(18,50,90,.72); }
+.model__legend i { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:7px; vertical-align:middle; }
+.k1 { background:var(--navy); }
+.k2 { background:#9DB5D0; }
+.k3 { background:var(--coral); }
+.model__plot { display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(12px,3vw,32px); align-items:start; }
+.model__col { display:flex; flex-direction:column; }
+.model__bar { height:clamp(170px,20vw,230px); display:flex; flex-direction:column-reverse; gap:2px; border-radius:12px; overflow:hidden; transform-origin:50% 100%; }
+.model__bar span { display:block; }
+.model__cap { margin-top:14px; }
+.model__cap b { display:block; font-family:var(--font-data); font-weight:500; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--coral-dark); margin-bottom:4px; }
+.model__cap span { font-size:13px; line-height:1.4; color:var(--navy); font-weight:600; }
+@media (max-width:560px) {
+  .model__cap span { font-size:12.5px; }
+}
+.pg-cta__bg { background-image:url('../assets/images/cta-wind-turbines-coast-dusk.jpg'); }
