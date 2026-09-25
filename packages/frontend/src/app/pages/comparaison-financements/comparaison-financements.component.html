@@ -1,413 +1,441 @@
-<div class="comparaison-financements-page">
-  <div class="simulator-container">
-    <!-- Sidebar -->
-    <aside class="simulator-sidebar">
-      <div class="sidebar-steps">
-        @for (step of steps; track step.number) {
-        <div
-          class="sidebar-step-item"
-          [class.active]="currentStep() === step.number"
-          [class.clickable]="isStepClickable(step.number)"
-          [class.disabled]="!isStepClickable(step.number)"
-          (click)="isStepClickable(step.number) && goToStep(step.number)"
-        >
-          @if (!step.isResult) {
-          <app-ui-progress-bar
-            [step]="step.number"
-            [title]="step.title"
-            [progress]="stepProgress()[step.number]"
-            [completed]="stepProgress()[step.number] === 100"
-            [isFocused]="currentStep() === step.number"
-            class="sidebar-progress-bar"
-          >
-          </app-ui-progress-bar>
-          } @else {
-          <div class="sidebar-result-step" [class.active]="currentStep() === step.number">
-            <div class="sidebar-result-step-left">
-              <div
-                class="sidebar-step-circle result"
-                [class.active]="currentStep() === step.number"
-              >
-                <span class="step-number">{{ step.number }}</span>
-              </div>
-            </div>
-            <div class="sidebar-result-step-right">
-              <h3 class="sidebar-step-title">{{ step.title }}</h3>
-            </div>
-          </div>
-          }
-        </div>
+<div class="aud-page-root" [class.is-result]="currentStepData().isResult">
+  <div class="aud__stage" aria-hidden="true">
+    <div class="aud__flow a"></div>
+    <div class="aud__flow b"></div>
+    <div class="aud__flow c"></div>
+  </div>
+  <div class="aud__grain" aria-hidden="true"></div>
+
+  <div class="aud" id="audRoot">
+    <div
+      class="aud__card"
+      id="audCard"
+      [class.aud__card--wide]="currentStepData().isResult"
+    >
+      @if (currentStep() === 1) {
+      <a routerLink="/ressources" class="aud__back">
+        <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path
+            d="M11 7H3M6 3 2 7l4 4"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <span>Retour aux ressources</span>
+      </a>
+      } @else if (!currentStepData().isResult) {
+      <button type="button" class="aud__back" (click)="previousStep()">
+        <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path
+            d="M11 7H3M6 3 2 7l4 4"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <span>Étape précédente</span>
+      </button>
+      }
+
+      @if (!currentStepData().isResult) {
+      <div class="aud__prog">
+        <div class="aud__ptrack"><i [style.width.%]="audProgressPct()"></i></div>
+        <div class="aud__eb">Étape {{ currentStep() }} sur {{ steps.length }}</div>
+      </div>
+
+      <div class="aud__lede">
+        <span class="aud__kicker">Comparateur d'options</span>
+        <h1 class="aud__q" id="audQ">{{ currentStepData().title }}</h1>
+        @if (currentStepData().description) {
+        <p class="aud__sub">{{ currentStepData().description }}</p>
         }
       </div>
-    </aside>
+      }
 
-    <!-- Main Content -->
-    <main class="simulator-main">
-      <div class="form-timeline-header">
-        <div class="step-progress-header">
-          <span class="step-indicator">Étape {{ currentStep() }} sur {{ steps.length }}</span>
-          <!-- <span class="step-completion">Progression : {{ overallProgress() }}%</span> -->
+      <!-- ═══ STEP 1 — Introduction ═══ -->
+      @if (currentStep() === 1) {
+      <div class="aud__step" data-step="1">
+        <div class="aud__note">
+          <p>
+            Obtenez une comparaison sur 7&nbsp;ans entre paiement comptant, option bancaire,
+            leasing et notre solution <strong>ESCO JOYA</strong> — sans investissement initial.
+            Saisissez la localisation puis la taille (kWc) ou le budget (DT) de votre projet.
+          </p>
         </div>
-        <app-ui-step-timeline [currentStep]="currentStep()" [totalSteps]="steps.length">
-        </app-ui-step-timeline>
+
+        <ul class="fin-highlights">
+          <li>
+            <strong>Investissement 0</strong>
+            — Avec l'ESCO JOYA, aucun apport initial&nbsp;: JOYA prend en charge 100&nbsp;% de
+            l'installation.
+          </li>
+          <li>
+            <strong>4 solutions comparées</strong>
+            — Comptant, option bancaire, leasing et ESCO sur les mêmes hypothèses de projet.
+          </li>
+          <li>
+            <strong>Cashflow &amp; coûts</strong>
+            — Impact mensuel sur votre trésorerie et coûts totaux sur 7&nbsp;ans.
+          </li>
+        </ul>
+
+        <div class="aud__actions">
+          <button type="button" class="btn-next aud__continue" (click)="nextStep()">
+            <span>Continuer</span>
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path
+                d="M3 7h8M7 3l4 4-4 4"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
+      }
 
-      <div class="form-content-scrollable">
-        <div class="form-content">
-          <div class="step-content" [attr.data-step]="currentStep()">
-            <!-- Step 1: Introduction -->
-            @if (currentStep() === 1) {
-            <div class="step-intro" [@stepTransition]>
-              <div class="simulator-form-header">
-                <span class="simulator-form-title">Comparateur</span>
-                <h2 class="step-title">Comparez vos options de financement</h2>
-                <p class="step-description">
-                  Obtenez une comparaison sur 7 ans entre paiement comptant, crédit bancaire,
-                  leasing et notre solution <strong>ESCO JOYA</strong> — sans investissement
-                  initial. Saisissez la localisation puis la taille (kWc) ou le budget (DT) de votre
-                  projet.
-                </p>
-              </div>
-              <div class="intro-highlights">
-                <div class="intro-card">
-                  <div class="intro-card-icon zero">0</div>
-                  <h3>Investissement</h3>
-                  <p>
-                    Avec l'ESCO JOYA, aucun apport initial : nous finançons 100 % de l'installation.
-                  </p>
-                </div>
-                <div class="intro-card">
-                  <div class="intro-card-icon count">4</div>
-                  <h3>Solutions comparées</h3>
-                  <p>Comptant, crédit, leasing et ESCO sur les mêmes hypothèses de projet.</p>
-                </div>
-                <div class="intro-card">
-                  <div class="intro-card-icon chart">
-                    <ng-icon name="lucideBarChart3" size="20"></ng-icon>
-                  </div>
-                  <h3>Cashflow & coûts</h3>
-                  <p>Impact mensuel sur votre trésorerie et coûts totaux sur 7 ans.</p>
-                </div>
-              </div>
-            </div>
-            }
-
-            <!-- Step 2: Inputs -->
-            @if (currentStep() === 2) {
-            <div class="step-inputs" [@stepTransition]>
-              <div class="simulator-form-header">
-                <span class="simulator-form-title">Données du projet</span>
-                <h2 class="step-title">Paramètres de la comparaison</h2>
-                <p class="step-description-small" style="margin-top: 3rem">
-                  Choisissez la localisation puis indiquez soit la taille de l'installation en kWc,
-                  soit votre budget d'investissement en dinars.
-                </p>
-              </div>
-              <form [formGroup]="form" class="inputs-form-card">
-                <div class="form-block">
-                  <app-ui-select
-                    formControlName="location"
-                    label="Localisation du projet"
-                    [options]="locationOptions()"
-                    placeholder="Sélectionnez une ville"
-                    [required]="true"
-                    variant="dropdown"
-                  >
-                  </app-ui-select>
-                </div>
-                <div class="form-block">
-                  <app-ui-select
-                    formControlName="inputType"
-                    label="Type de saisie"
-                    [options]="inputTypeOptions"
-                    placeholder="Choisir..."
-                    [required]="true"
-                    variant="box"
-                    [columns]="2"
-                  >
-                  </app-ui-select>
-                </div>
-                @if (form.get('inputType')?.value === 'size') {
-                <div class="form-block form-block-input">
-                  <app-ui-input
-                    formControlName="installationSizeKwp"
-                    type="number"
-                    label="Taille de l'installation (kWc)"
-                    placeholder="Ex : 50"
-                    [required]="true"
-                    size="md"
-                  >
-                  </app-ui-input>
-                </div>
-                } @if (form.get('inputType')?.value === 'amount') {
-                <div class="form-block form-block-input">
-                  <app-ui-input
-                    formControlName="investmentAmountDt"
-                    type="number"
-                    label="Budget du projet (DT)"
-                    placeholder="Ex : 150 000"
-                    [required]="true"
-                    size="md"
-                  >
-                  </app-ui-input>
-                </div>
-                }
-                <div class="form-section-header" style="margin-top: 1.5rem">
-                  Vos coordonnées (pour recevoir le récapitulatif par email)
-                </div>
-                <div class="form-block">
-                  <app-ui-input
-                    formControlName="fullName"
-                    type="text"
-                    label="Nom complet"
-                    placeholder="Votre nom"
-                    size="md"
-                  >
-                  </app-ui-input>
-                </div>
-                <div class="form-block">
-                  <app-ui-input
-                    formControlName="companyName"
-                    type="text"
-                    label="Entreprise"
-                    placeholder="Nom de l'entreprise"
-                    size="md"
-                  >
-                  </app-ui-input>
-                </div>
-                <div class="form-block">
-                  <app-ui-input
-                    formControlName="email"
-                    type="text"
-                    label="Email"
-                    placeholder="email@example.com"
-                    size="md"
-                    tooltipTitle="Email"
-                    tooltipDescription="Un récapitulatif de la comparaison vous sera envoyé à cette adresse."
-                  >
-                  </app-ui-input>
-                </div>
-                <div class="info-box">
-                  <ng-icon name="lucideInfo" size="18"></ng-icon>
-                  <span
-                    >Renseignez soit la taille en kWc, soit le budget en dinars (pas les
-                    deux).</span
-                  >
-                </div>
-                @if (error()) {
-                <div class="error-message">{{ error() }}</div>
-                }
-              </form>
-            </div>
-            }
-
-            <!-- Step 3: Results -->
-            @if (currentStep() === 3 && comparisonResult(); as comparison) {
-            <div class="results-view" [@stepTransition]>
-              <div class="results-header">
-                <div class="header-icon">
-                  <ng-icon name="lucideBarChart3" class="chart-icon"></ng-icon>
-                </div>
-                <div class="header-content">
-                  <h2 class="results-title">Comparaison des financements</h2>
-                  <p class="results-subtitle">
-                    4 solutions sur 7 ans avec les mêmes hypothèses de projet
-                  </p>
-                  <div class="results-meta">
-                    <span class="meta-item">
-                      <ng-icon name="lucideMapPin" class="meta-icon"></ng-icon>
-                      {{ comparison.input.location }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="results-container">
-                <h3 class="section-label">Résumé du projet</h3>
-                <div class="results-grid summary-grid">
-                  <div class="result-card size" [@resultCards]>
-                    <div class="result-icon">
-                      <ng-icon name="lucideSun" size="20"></ng-icon>
-                    </div>
-                    <h3>Taille installation</h3>
-                    <div class="result-value">
-                      <span class="amount">{{
-                        comparison.projectCalculation.sizeKwp | noGrouping : '1.0-1'
-                      }}</span>
-                      <span class="unit">kWc</span>
-                    </div>
-                  </div>
-                  <div class="result-card capex" [@resultCards]>
-                    <div class="result-icon">DT</div>
-                    <h3>Investissement total</h3>
-                    <div class="result-value">
-                      <span class="amount">{{
-                        comparison.projectCalculation.capexDt | noGrouping : '1.0-0'
-                      }}</span>
-                      <span class="unit">DT</span>
-                    </div>
-                  </div>
-                  <div class="result-card production" [@resultCards]>
-                    <div class="result-icon">
-                      <ng-icon name="lucideZap" size="20"></ng-icon>
-                    </div>
-                    <h3>Production annuelle</h3>
-                    <div class="result-value">
-                      <span class="amount">{{
-                        comparison.projectCalculation.annualProductionKwh | noGrouping : '1.0-0'
-                      }}</span>
-                      <span class="unit">kWh</span>
-                    </div>
-                  </div>
-                  <div class="result-card savings" [@resultCards]>
-                    <div class="result-icon">€</div>
-                    <h3>Économies mensuelles</h3>
-                    <div class="result-value">
-                      <span class="amount">{{
-                        comparison.projectCalculation.monthlyGrossSavingsDt | noGrouping : '1.0-0'
-                      }}</span>
-                      <span class="unit">DT/mois</span>
-                    </div>
-                  </div>
-                </div>
-
-                <h3 class="section-label solutions-label">Solutions de financement</h3>
-                <div class="solutions-grid">
-                  @for (solution of displaySolutions(); track solution.type) {
-                  <div
-                    class="solution-card"
-                    [class.highlighted]="isBestCashflow(solution.type)"
-                    [class.solution-esco]="solution.type === 'esco'"
-                    [style.--solution-color]="getSolutionColor(solution.type)"
-                  >
-                    <div class="solution-card-header">
-                      <h4 class="solution-title">{{ getSolutionTitle(solution.type) }}</h4>
-                      @if (solution.type === 'esco') {
-                      <span class="recommended-badge">Recommandé</span>
-                      }
-                    </div>
-                    <div class="solution-card-body">
-                      <div class="solution-metric">
-                        <span class="metric-label">Investissement initial</span>
-                        <span class="metric-value">{{
-                          formatCurrency(solution.initialInvestment)
-                        }}</span>
-                      </div>
-                      <div class="solution-metric">
-                        <span class="metric-label">Mensualité</span>
-                        <span class="metric-value">{{
-                          formatCurrency(solution.monthlyPayment)
-                        }}</span>
-                      </div>
-                      <div class="solution-metric">
-                        <span class="metric-label">OPEX mensuel</span>
-                        <span class="metric-value">{{ formatCurrency(solution.monthlyOpex) }}</span>
-                      </div>
-                      <div class="solution-metric-divider"></div>
-                      <div class="solution-metric total">
-                        <span class="metric-label">Coût mensuel total</span>
-                        <span class="metric-value">{{
-                          formatCurrency(solution.totalMonthlyCost)
-                        }}</span>
-                      </div>
-                      <div class="solution-metric">
-                        <span class="metric-label">Économies mensuelles</span>
-                        <span class="metric-value positive">{{
-                          formatCurrency(comparison.projectCalculation.monthlyGrossSavingsDt)
-                        }}</span>
-                      </div>
-                      <div class="solution-metric-divider"></div>
-                      <div
-                        class="solution-metric cashflow"
-                        [class.positive]="solution.monthlyCashflow > 0"
-                        [class.negative]="solution.monthlyCashflow < 0"
-                      >
-                        <span class="metric-label">Cashflow mensuel</span>
-                        <span class="metric-value">{{
-                          formatCurrency(solution.monthlyCashflow)
-                        }}</span>
-                      </div>
-                    </div>
-                    <div class="solution-card-footer">
-                      <span>Durée : {{ solution.durationYears }} ans</span>
-                    </div>
-                  </div>
-                  }
-                </div>
-              </div>
-            </div>
-            }
+      <!-- ═══ STEP 2 — Données du projet ═══ -->
+      @if (currentStep() === 2) {
+      <div class="aud__step" data-step="2">
+        <form [formGroup]="form" id="audForm" novalidate autocomplete="off">
+          <div class="f">
+            <app-ui-select
+              formControlName="location"
+              label="Localisation du projet"
+              [options]="locationOptions()"
+              placeholder="Sélectionnez une ville"
+              [required]="true"
+              variant="dropdown"
+            >
+            </app-ui-select>
           </div>
-        </div>
 
-        <!-- Mobile Navigation Buttons Footer (scrolls with content) -->
-        <div class="form-actions form-actions--mobile" [class.result-actions]="currentStep() === 3">
-          @if (currentStep() === 3) {
-          <button type="button" class="hero__btn hero__btn--outline" (click)="newComparison()">
-            Nouvelle comparaison
-          </button>
-          <a routerLink="/contact" class="hero__btn hero__btn--primary">Parler à un conseiller</a>
-          } @else { @if (currentStep() > 1) {
-          <button type="button" class="hero__btn hero__btn--outline" (click)="previousStep()">
-            <ng-icon name="lucideArrowLeft" size="16"></ng-icon>
-            Précédent
-          </button>
-          } @else {
-          <span></span>
+          <div class="f">
+            <span class="lab">Type de saisie <span class="req">*</span></span>
+            <div class="tariff" role="group" aria-label="Type de saisie">
+              <button
+                type="button"
+                [attr.aria-pressed]="form.get('inputType')?.value === 'size'"
+                (click)="form.get('inputType')?.setValue('size')"
+              >
+                Taille (kWc)
+              </button>
+              <button
+                type="button"
+                [attr.aria-pressed]="form.get('inputType')?.value === 'amount'"
+                (click)="form.get('inputType')?.setValue('amount')"
+              >
+                Budget (DT)
+              </button>
+            </div>
+          </div>
+
+          @if (form.get('inputType')?.value === 'size') {
+          <div class="f">
+            <app-ui-input
+              formControlName="installationSizeKwp"
+              type="number"
+              label="Taille de l'installation (kWc)"
+              placeholder="Ex : 50"
+              [required]="true"
+              size="md"
+            >
+            </app-ui-input>
+          </div>
           }
+
+          @if (form.get('inputType')?.value === 'amount') {
+          <div class="f">
+            <app-ui-input
+              formControlName="investmentAmountDt"
+              type="number"
+              label="Budget du projet (DT)"
+              placeholder="Ex : 150 000"
+              [required]="true"
+              size="md"
+            >
+            </app-ui-input>
+          </div>
+          }
+
+          <p class="form-section-label">
+            Vos coordonnées (pour recevoir le récapitulatif par email)
+          </p>
+
+          <div class="grid2">
+            <div class="f">
+              <app-ui-input
+                formControlName="fullName"
+                type="text"
+                label="Nom complet"
+                placeholder="Votre nom"
+                size="md"
+              >
+              </app-ui-input>
+            </div>
+            <div class="f">
+              <app-ui-input
+                formControlName="companyName"
+                type="text"
+                label="Entreprise"
+                placeholder="Nom de l'entreprise"
+                size="md"
+              >
+              </app-ui-input>
+            </div>
+          </div>
+
+          <div class="f" style="margin-bottom: 0">
+            <app-ui-input
+              formControlName="email"
+              type="text"
+              label="Email"
+              placeholder="email@example.com"
+              size="md"
+              tooltipTitle="Email"
+              tooltipDescription="Un récapitulatif de la comparaison vous sera envoyé à cette adresse."
+            >
+            </app-ui-input>
+          </div>
+
+          <div class="aud__note fin-info" style="margin-top: 18px; margin-bottom: 0">
+            <p>
+              Renseignez soit la taille en kWc, soit le budget en dinars (pas les deux).
+            </p>
+          </div>
+
+          @if (error()) {
+          <div class="fin-error" role="alert">{{ error() }}</div>
+          }
+        </form>
+
+        <div class="aud__actions">
           <button
             type="button"
-            class="hero__btn hero__btn--primary"
-            [disabled]="!canProceed() || (currentStep() === 2 && (loading() || isSubmitting()))"
+            class="btn-next aud__continue"
+            [class.btn-next--loading]="loading() || isSubmitting()"
+            [disabled]="loading() || isSubmitting()"
             (click)="nextStep()"
           >
-            @if (currentStep() === 2 && (loading() || isSubmitting())) {
+            @if (loading() || isSubmitting()) {
             <span>Calcul en cours…</span>
-            } @else if (currentStep() === 1) {
-            <span>Commencer</span>
-            <ng-icon name="lucideArrowRight" size="16"></ng-icon>
             } @else {
             <span>Comparer les solutions</span>
-            <ng-icon name="lucideArrowRight" size="16"></ng-icon>
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path
+                d="M3 7h8M7 3l4 4-4 4"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
             }
           </button>
-          }
         </div>
       </div>
+      }
 
-      <!-- Desktop Navigation Buttons Footer -->
-      <div class="form-actions form-actions--desktop" [class.result-actions]="currentStep() === 3">
-        @if (currentStep() === 3) {
-        <button type="button" class="hero__btn hero__btn--outline" (click)="newComparison()">
-          Nouvelle comparaison
-        </button>
-        <a routerLink="/contact" class="hero__btn hero__btn--primary">Parler à un conseiller</a>
-        } @else { @if (currentStep() > 1) {
-        <button type="button" class="hero__btn hero__btn--outline" (click)="previousStep()">
-          <ng-icon name="lucideArrowLeft" size="16"></ng-icon>
-          Précédent
-        </button>
+      <!-- ═══ RESULTS ═══ -->
+      @if (currentStepData().isResult) {
+      <div class="aud__step" [attr.data-step]="currentStep()">
+        @if (comparisonResult(); as comparison) {
+        <div class="rpt rp-anim" id="rpt">
+          <header class="rp-head" data-sec>
+            <div class="rp-head__txt" data-a>
+              <h2>Comparateur d'options</h2>
+              <p>4 solutions sur 7&nbsp;ans avec les mêmes hypothèses de projet</p>
+              <div class="rp-chips">
+                <span>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 21s7-6 7-11a7 7 0 0 0-14 0c0 5 7 11 7 11z" />
+                    <circle cx="12" cy="10" r="2.5" />
+                  </svg>
+                  <b>{{ comparison.input.location }}</b>
+                </span>
+              </div>
+            </div>
+            <div class="rp-head__img" aria-hidden="true"></div>
+          </header>
+
+          <section class="rp" data-sec>
+            <div class="rp__hd" data-a>
+              <span class="rp__n">01</span>
+              <div>
+                <h3>Résumé du projet</h3>
+                <p>Hypothèses techniques et économiques utilisées pour la comparaison</p>
+              </div>
+            </div>
+            <div class="rp-cards">
+              <div class="rc" data-a>
+                <span class="rc__lb">Taille</span>
+                <b>
+                  {{ comparison.projectCalculation.sizeKwp | noGrouping : '1.0-1' }}
+                  <i>kWc</i>
+                </b>
+                <span class="rc__t">Taille installation</span>
+                <span class="rc__d">Puissance photovoltaïque</span>
+              </div>
+              <div class="rc" data-a>
+                <span class="rc__lb">CAPEX</span>
+                <b>
+                  {{ comparison.projectCalculation.capexDt | noGrouping : '1.0-0' }}
+                  <i>DT</i>
+                </b>
+                <span class="rc__t">Investissement total</span>
+                <span class="rc__d">Coût d'installation estimé</span>
+              </div>
+              <div class="rc" data-a>
+                <span class="rc__lb">Production</span>
+                <b>
+                  {{
+                    comparison.projectCalculation.annualProductionKwh | noGrouping : '1.0-0'
+                  }}
+                  <i>kWh</i>
+                </b>
+                <span class="rc__t">Production annuelle</span>
+                <span class="rc__d">Énergie générée par an</span>
+              </div>
+              <div class="rc rc--hot" data-a>
+                <span class="rc__lb">Économies</span>
+                <b>
+                  {{
+                    comparison.projectCalculation.monthlyGrossSavingsDt | noGrouping : '1.0-0'
+                  }}
+                  <i>DT/mois</i>
+                </b>
+                <span class="rc__t">Économies mensuelles</span>
+                <span class="rc__d">Gain brut estimé</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="rp" data-sec>
+            <div class="rp__hd" data-a>
+              <span class="rp__n">02</span>
+              <div>
+                <h3>Options comparées</h3>
+                <p>Comptant, option bancaire, leasing et ESCO JOYA sur 7&nbsp;ans</p>
+              </div>
+            </div>
+            <div class="solutions-grid">
+              @for (solution of displaySolutions(); track solution.type) {
+              <div
+                class="solution-card"
+                data-a
+                [class.highlighted]="isBestCashflow(solution.type)"
+                [class.solution-esco]="solution.type === 'esco'"
+                [style.--solution-color]="getSolutionColor(solution.type)"
+              >
+                <div class="solution-card-header">
+                  <h4 class="solution-title">{{ getSolutionTitle(solution.type) }}</h4>
+                  @if (solution.type === 'esco') {
+                  <span class="recommended-badge">Recommandé</span>
+                  }
+                </div>
+                <div class="solution-card-body">
+                  <div class="solution-metric">
+                    <span class="metric-label">Investissement initial</span>
+                    <span class="metric-value">{{
+                      formatCurrency(solution.initialInvestment)
+                    }}</span>
+                  </div>
+                  <div class="solution-metric">
+                    <span class="metric-label">Mensualité</span>
+                    <span class="metric-value">{{
+                      formatCurrency(solution.monthlyPayment)
+                    }}</span>
+                  </div>
+                  <div class="solution-metric">
+                    <span class="metric-label">OPEX mensuel</span>
+                    <span class="metric-value">{{ formatCurrency(solution.monthlyOpex) }}</span>
+                  </div>
+                  <div class="solution-metric-divider"></div>
+                  <div class="solution-metric total">
+                    <span class="metric-label">Coût mensuel total</span>
+                    <span class="metric-value">{{
+                      formatCurrency(solution.totalMonthlyCost)
+                    }}</span>
+                  </div>
+                  <div class="solution-metric">
+                    <span class="metric-label">Économies mensuelles</span>
+                    <span class="metric-value positive">{{
+                      formatCurrency(comparison.projectCalculation.monthlyGrossSavingsDt)
+                    }}</span>
+                  </div>
+                  <div class="solution-metric-divider"></div>
+                  <div
+                    class="solution-metric cashflow"
+                    [class.positive]="solution.monthlyCashflow > 0"
+                    [class.negative]="solution.monthlyCashflow < 0"
+                  >
+                    <span class="metric-label">Cashflow mensuel</span>
+                    <span class="metric-value">{{
+                      formatCurrency(solution.monthlyCashflow)
+                    }}</span>
+                  </div>
+                </div>
+                <div class="solution-card-footer">
+                  <span>Durée : {{ solution.durationYears }} ans</span>
+                </div>
+              </div>
+              }
+            </div>
+          </section>
+
+          <section class="rp rp-foot" data-sec>
+            <span class="rp__n" data-a>03</span>
+            <button type="button" class="rp-new" data-a (click)="newComparison()">
+              Nouvelle comparaison
+            </button>
+            <a routerLink="/contact" class="btn-next" data-a>
+              Parler à un conseiller
+              <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path
+                  d="M3 7h8M7 3l4 4-4 4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </a>
+          </section>
+        </div>
         } @else {
-        <span></span>
-        }
-        <button
-          type="button"
-          class="hero__btn hero__btn--primary"
-          [disabled]="!canProceed() || (currentStep() === 2 && (loading() || isSubmitting()))"
-          (click)="nextStep()"
-        >
-          @if (currentStep() === 2 && (loading() || isSubmitting())) {
-          <span>Calcul en cours…</span>
-          } @else if (currentStep() === 1) {
-          <span>Commencer</span>
-          <ng-icon name="lucideArrowRight" size="16"></ng-icon>
-          } @else {
-          <span>Comparer les solutions</span>
-          <ng-icon name="lucideArrowRight" size="16"></ng-icon>
-          }
-        </button>
+        <div class="aud__note">
+          <p>Analyse en cours… Nous comparons vos options de financement.</p>
+        </div>
         }
       </div>
-    </main>
+      }
+
+      @if (!currentStepData().isResult) {
+      <div class="aud__secure">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path
+            d="M12 3 5 6v5c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Z"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linejoin="round"
+          />
+        </svg>
+        Vos données ne sont pas partagées.
+      </div>
+      }
+    </div>
   </div>
 </div>

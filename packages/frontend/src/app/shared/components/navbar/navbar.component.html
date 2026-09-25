@@ -1,127 +1,160 @@
-<nav
-  class="navbar"
-  [class.navbar--scrolled]="shouldShowScrolled()"
-  [class.navbar--hidden]="isNavbarHidden()"
-  role="navigation"
-  aria-label="Main navigation"
+<header
+  class="nav nav--full"
+  [class.is-scrolled]="isScrolled()"
+  [class.is-open]="isMobileMenuOpen()"
+  [class.is-scrolling]="isNavbarHidden()"
+  role="banner"
 >
-  <div class="navbar-container">
-    <div class="navbar-content">
-      <!-- Logo -->
-      <a routerLink="/" class="navbar-logo">
-        <img src="/logo_big.webp" alt="JOYA Energy" class="navbar-logo-image" />
+  <div class="nav__bar">
+    <a routerLink="/" class="nav__logo" aria-label="Joya Energy — accueil" (click)="closeMobileMenu()">
+      <img
+        src="/handoff/brand/joya-energy-logo.png"
+        alt="Joya Energy"
+        class="nav__logo-img"
+        width="120"
+        height="30"
+      />
+    </a>
+
+    <nav class="nav__links" aria-label="Navigation principale">
+      <a
+        routerLink="/notre-solution"
+        [attr.aria-current]="isActive('/notre-solution') ? 'page' : null"
+      >
+        Solution
+      </a>
+      <a routerLink="/secteurs" [attr.aria-current]="isActive('/secteurs') ? 'page' : null">
+        Secteurs
+      </a>
+      <a
+        routerLink="/installateur-partenaire"
+        [attr.aria-current]="isActive('/installateur-partenaire') ? 'page' : null"
+      >
+        Partenaires
       </a>
 
-      <!-- Desktop Navigation Links -->
-      <ul class="navbar-links" role="list">
-        @for (link of navLinks; track link.id) {
-        <li>
-          @if (link.path === '#') {
-          <a
-            href="#"
-            class="navbar-link"
-            [attr.aria-label]="link.label"
-            [attr.data-link-id]="link.id"
-          >
-            {{ link.label }}
-          </a>
-          } @else {
-          <a
-            [routerLink]="link.path"
-            class="navbar-link"
-            [attr.aria-label]="link.label"
-            [attr.data-link-id]="link.id"
-          >
-            {{ link.label }}
-          </a>
-          }
-        </li>
-        }
-      </ul>
-
-      <!-- CTA Buttons -->
-      <div class="navbar-ctas">
-        <a
-          href="https://app.joya-energy.com/"
-          class="navbar-cta navbar-cta--primary"
-          aria-label="Lancer mon projet"
+      <div class="nav__dd" [class.is-open]="isResourcesOpen()">
+        <button
+          type="button"
+          class="nav__dd-btn"
+          aria-haspopup="true"
+          [attr.aria-expanded]="isResourcesOpen()"
+          [attr.aria-current]="isResourcesActive() ? 'page' : null"
+          aria-controls="ddRes"
+          (click)="toggleResources($event)"
         >
-          Lancer mon projet
-        </a>
-        <a
-          href="https://app.joya-energy.com/auth/login"
-          class="navbar-cta navbar-cta--secondary"
-          aria-label="Se Connecter"
-        >
-          Se Connecter
-        </a>
+          Ressources
+          <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
+            <path
+              d="M2.5 4.5 6 8l3.5-3.5"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+        <div class="nav__dd-menu" id="ddRes">
+          <a routerLink="/ressources" fragment="outils" (click)="isResourcesOpen.set(false)">
+            <b>Simulateurs</b>
+            <small>Audit solaire, facture, subventions…</small>
+          </a>
+          <a routerLink="/ressources" fragment="blog" (click)="isResourcesOpen.set(false)">
+            <b>Blog</b>
+            <small>Guides et retours d'expérience</small>
+          </a>
+        </div>
       </div>
+    </nav>
 
-      <!-- Mobile Menu Toggle -->
+    <a routerLink="/contact" class="nav__contact" aria-label="Contact">
+      <svg
+        class="ic"
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M4.5 5.5h15v10.5h-8l-4.5 3.5V16H4.5z" />
+      </svg>
+      <span>Contact</span>
+    </a>
+
+    <a routerLink="/" fragment="simulateur" class="btn btn-primary">
+      <span>Lancer mon projet</span>
+      <span class="btn-puck" aria-hidden="true">
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+          <path
+            d="M3 11L11 3M11 3H4.5M11 3V9.5"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
+    </a>
+
+    <button
+      type="button"
+      class="nav__toggle"
+      [attr.aria-expanded]="isMobileMenuOpen()"
+      [attr.aria-label]="isMobileMenuOpen() ? 'Fermer le menu' : 'Ouvrir le menu'"
+      (click)="toggleMobileMenu()"
+    >
+      <span></span><span></span><span></span>
+    </button>
+
+    <div class="nav__mobile-panel" [attr.hidden]="!isMobileMenuOpen() ? true : null">
+      <a
+        routerLink="/notre-solution"
+        [attr.aria-current]="isActive('/notre-solution') ? 'page' : null"
+        (click)="closeMobileMenu()"
+      >
+        Solution
+      </a>
+      <a
+        routerLink="/secteurs"
+        [attr.aria-current]="isActive('/secteurs') ? 'page' : null"
+        (click)="closeMobileMenu()"
+      >
+        Secteurs
+      </a>
+      <a
+        routerLink="/installateur-partenaire"
+        [attr.aria-current]="isActive('/installateur-partenaire') ? 'page' : null"
+        (click)="closeMobileMenu()"
+      >
+        Partenaires
+      </a>
       <button
         type="button"
-        class="navbar-toggle"
-        [class.navbar-toggle--active]="isMobileMenuOpen()"
-        (click)="toggleMobileMenu()"
-        [attr.aria-expanded]="isMobileMenuOpen()"
-        aria-controls="mobile-menu"
-        aria-label="Toggle navigation menu"
+        class="nav__mdd-btn"
+        [attr.aria-expanded]="isMobileResourcesOpen()"
+        [attr.aria-current]="isResourcesActive() ? 'page' : null"
+        aria-controls="mddRes"
+        (click)="toggleMobileResources()"
       >
-        <span class="navbar-toggle-icon"></span>
-        <span class="navbar-toggle-icon"></span>
-        <span class="navbar-toggle-icon"></span>
+        Ressources
+        <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
+          <path
+            d="M2.5 4.5 6 8l3.5-3.5"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
       </button>
-    </div>
-
-    <!-- Mobile Navigation -->
-    @if (isMobileMenuOpen()) {
-    <div id="mobile-menu" class="navbar-mobile" role="navigation" aria-label="Mobile navigation">
-      <ul class="navbar-mobile-links" role="list">
-        @for (link of navLinks; track link.id) {
-        <li>
-          @if (link.path === '#') {
-          <a
-            href="#"
-            class="navbar-mobile-link"
-            (click)="closeMobileMenu()"
-            [attr.aria-label]="link.label"
-            [attr.data-link-id]="link.id"
-          >
-            {{ link.label }}
-          </a>
-          } @else {
-          <a
-            [routerLink]="link.path"
-            class="navbar-mobile-link"
-            (click)="closeMobileMenu()"
-            [attr.aria-label]="link.label"
-            [attr.data-link-id]="link.id"
-          >
-            {{ link.label }}
-          </a>
-          }
-        </li>
-        }
-      </ul>
-      <div class="navbar-mobile-ctas">
-        <a
-          href="https://app.joya-energy.com/"
-          class="navbar-mobile-cta navbar-mobile-cta--primary"
-          (click)="closeMobileMenu()"
-          aria-label="Lancer mon projet"
-        >
-          Lancer mon projet
-        </a>
-        <a
-          href="https://app.joya-energy.com/auth/login"
-          class="navbar-mobile-cta navbar-mobile-cta--secondary"
-          (click)="closeMobileMenu()"
-          aria-label="Connexion"
-        >
-          Connexion
-        </a>
+      <div class="nav__mdd-sub" id="mddRes" [hidden]="!isMobileResourcesOpen()">
+        <a routerLink="/ressources" fragment="outils" (click)="closeMobileMenu()">Simulateurs</a>
+        <a routerLink="/ressources" fragment="blog" (click)="closeMobileMenu()">Blog</a>
       </div>
     </div>
-    }
   </div>
-</nav>
+</header>

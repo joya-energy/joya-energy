@@ -1,136 +1,378 @@
-<div class="ip-page">
-  <main class="ip-page__main">
-    <!-- Hero -->
-    <section class="ip-hero" aria-labelledby="ip-hero-title">
-      <div class="ip-hero__inner">
-        <span class="ip-hero__badge">Partenaires installateurs</span>
-        <h1 id="ip-hero-title" class="ip-hero__title">
-          Installez plus.
-          <span class="ip-hero__title-accent">Facturez sans attendre.</span>
-        </h1>
-        <p class="ip-hero__lead">
-          Rejoignez le réseau d’installateurs partenaires Joya Energy et déployez des projets
-          solaires couverts par un contrat de service à la performance, sans que vos clients
-          n’avancent un dinar.
-        </p>
-        <p class="ip-hero__tagline">Deux flux de projets. Un seul partenaire financier.</p>
-        <div class="ip-hero__actions">
-          <a
-            [href]="devenirPartenaireUrl"
-            class="ip-btn ip-btn--primary"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Devenir partenaire
-          </a>
-          <a
-            href="#processus"
-            class="ip-btn ip-btn--ghost"
-            (click)="scrollToProcessus($event)"
-          >
-            Voir comment ça marche ↓
-          </a>
+<main id="main" class="partenaires-page">
+  <section class="pg-hero">
+    <div class="wrap">
+      <div class="pg-hero__head">
+        <div>
+          <span class="eyebrow reveal">Partenaires</span>
+          <h1 class="reveal reveal-d1">Développons le solaire <span class="accent">ensemble</span>.</h1>
+        </div>
+        <div class="pg-hero__side reveal reveal-d2">
+          <p class="pg-hero__lead">
+            Installateurs, bureaux d'études, apporteurs d'affaires — un partenariat à double sens
+            pour déployer plus de projets solaires en Tunisie.
+          </p>
+          <div class="pg-hero__actions">
+            <a
+              [href]="devenirPartenaireUrl"
+              class="btn btn-primary"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span>Devenir partenaire</span>
+              <span class="btn-puck" aria-hidden="true">
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+                  <path
+                    d="M3 11L11 3M11 3H4.5M11 3V9.5"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
+            </a>
+            <a routerLink="/contact" class="pg-hero__link">Parler à un conseiller</a>
+          </div>
         </div>
       </div>
-    </section>
+      <div class="pg-hero__media reveal reveal-d3">
+        <img
+          src="/handoff/images/client-and-installer-handshake-wind-farm.jpg"
+          alt="Un dirigeant et un partenaire Joya se serrent la main au coucher du soleil, devant des éoliennes"
+          width="1537"
+          height="1023"
+          style="object-position: center 60%"
+        />
+      </div>
+    </div>
+  </section>
 
-    <!-- Stats -->
-    <section class="ip-stats" aria-label="Chiffres du réseau">
-      <div class="ip-stats__grid">
-        @for (stat of stats; track stat.title) {
-          <div class="ip-stats__item">
-            <p class="ip-stats__value">{{ stat.value }}</p>
-            <p class="ip-stats__title">{{ stat.title }}</p>
-            <p class="ip-stats__subtitle">{{ stat.subtitle }}</p>
+  <section class="section section-tint" id="double-sens">
+    <div class="wrap">
+      <div class="pg-head" data-anim>
+        <div>
+          <span class="eyebrow">Un partenariat à double sens</span>
+          <h2>Comment ça marche<br />entre nous.</h2>
+        </div>
+      </div>
+      <div class="pg-duo">
+        <div class="pg-panel" data-anim>
+          <h3>Des projets<br />dans les deux sens.</h3>
+          <svg
+            class="pg-flow"
+            viewBox="0 0 220 96"
+            role="img"
+            aria-label="Échanges dans les deux sens entre Joya et le partenaire : des projets circulent de Joya vers vous et de vous vers Joya"
+          >
+            <circle class="halo l" cx="34" cy="48" r="28" />
+            <circle class="halo r" cx="186" cy="48" r="28" />
+            <circle class="ring" cx="34" cy="48" r="28" />
+            <circle class="ring" cx="186" cy="48" r="28" />
+            <text x="34" y="52" text-anchor="middle">Joya</text>
+            <text x="186" y="52" text-anchor="middle">Vous</text>
+            <path class="ln d1" d="M70 38H146" />
+            <path class="ln" d="M142 32l8 6-8 6" />
+            <path class="ln d2" d="M150 58H74" />
+            <path class="ln" d="M78 52l-8 6 8 6" />
+            <rect class="pk pk1" x="72" y="35" width="9" height="6" rx="3" />
+            <rect class="pk pk2" x="139" y="55" width="9" height="6" rx="3" />
+          </svg>
+          <p>
+            Joya qualifie et vous envoie des dossiers ; vous déposez les vôtres. Le tout sur une
+            seule plateforme.
+          </p>
+        </div>
+        <div class="pg-items" data-stagger>
+          <div class="pg-item">
+            <span class="pg-item__icon" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 3v11m0 0-4-4m4 4 4-4M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+              </svg>
+            </span>
+            <div>
+              <h3>Joya vous envoie des projets</h3>
+              <p>Nous qualifions la demande, vérifions l'éligibilité, vous installez.</p>
+            </div>
           </div>
+          <div class="pg-item">
+            <span class="pg-item__icon" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 15V4m0 0L8 8m4-4 4 4M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+              </svg>
+            </span>
+            <div>
+              <h3>Vous soumettez vos propres projets</h3>
+              <p>
+                Via votre espace partenaire, déposez directement les projets que vous apportez et
+                suivez leur avancement.
+              </p>
+            </div>
+          </div>
+          <div class="pg-item">
+            <span class="pg-item__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <rect x="3" y="3" width="8" height="8" rx="2" />
+                <rect x="13" y="3" width="8" height="8" rx="2" />
+                <rect x="3" y="13" width="8" height="8" rx="2" />
+                <rect x="13" y="13" width="8" height="8" rx="2" />
+              </svg>
+            </span>
+            <div>
+              <h3>Une seule plateforme pour tout piloter</h3>
+              <p>
+                Statut des dossiers, suivi des installations et performance — tout au même endroit.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="espace">
+    <div class="wrap">
+      <div class="pg-split">
+        <div class="pg-split__body" data-anim>
+          <span class="eyebrow">Votre espace partenaire</span>
+          <h2>Un accès direct à notre plateforme</h2>
+          <p>
+            Chaque partenaire dispose d'un espace dédié pour soumettre des projets, suivre leur
+            statut de validation, et accéder aux données de performance des installations qu'il a
+            réalisées.
+          </p>
+          <ul class="pg-list pg-list--flush">
+            <li>Dépôt de projet en ligne</li>
+            <li>Suivi de validation en temps réel</li>
+            <li>Historique et performance de vos installations</li>
+          </ul>
+        </div>
+        <figure
+          class="portal"
+          id="portal"
+          data-anim="scale"
+          role="img"
+          aria-label="Aperçu de l'espace partenaire : trois projets à des étapes de validation différentes et la performance des installations réalisées."
+        >
+          <div class="portal__head">
+            <span class="portal__t">Espace partenaire</span>
+            <span class="portal__tag">Aperçu · données d'exemple</span>
+          </div>
+          <div class="pj">
+            <div class="pj__top">
+              <div>
+                <span class="pj__n">Toiture — clinique</span>
+                <span class="pj__m">42 kWc · dépôt en ligne</span>
+              </div>
+              <span class="pj__s pj__s--ok">Validé</span>
+            </div>
+            <div class="pj__bar"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+          </div>
+          <div class="pj">
+            <div class="pj__top">
+              <div>
+                <span class="pj__n">Toiture — école privée</span>
+                <span class="pj__m">36 kWc · dépôt en ligne</span>
+              </div>
+              <span class="pj__s pj__s--mid">En validation</span>
+            </div>
+            <div class="pj__bar"><i class="on"></i><i class="on"></i><i></i></div>
+          </div>
+          <div class="pj">
+            <div class="pj__top">
+              <div>
+                <span class="pj__n">Terrasse — boulangerie</span>
+                <span class="pj__m">18 kWc · dépôt en ligne</span>
+              </div>
+              <span class="pj__s pj__s--new">Déposé</span>
+            </div>
+            <div class="pj__bar"><i class="on"></i><i></i><i></i></div>
+          </div>
+          <div class="portal__perf">
+            <div class="pc__head">
+              <b>Performance de vos installations</b>
+              <span class="pc__key"><i></i>Production, kWh</span>
+            </div>
+            <div class="pc" aria-hidden="true">
+              <svg class="pc__svg" viewBox="0 0 300 100">
+                <defs>
+                  <linearGradient id="pcg" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#3D6690" stop-opacity=".26" />
+                    <stop offset="1" stop-color="#3D6690" stop-opacity="0" />
+                  </linearGradient>
+                  <clipPath id="pcclip">
+                    <rect class="pc__clip" x="0" y="0" width="300" height="100" />
+                  </clipPath>
+                </defs>
+                <g class="pc__grid">
+                  <line x1="0" x2="300" y1="14" y2="14" />
+                  <line x1="0" x2="300" y1="40" y2="40" />
+                  <line x1="0" x2="300" y1="66" y2="66" />
+                </g>
+                <line class="pc__axis" x1="0" x2="300" y1="92" y2="92" />
+                <path
+                  class="pc__area"
+                  clip-path="url(#pcclip)"
+                  d="M8.0,56.5 C14.8,55.6 35.0,51.8 48.6,51.3 C62.1,50.8 75.6,54.9 89.1,53.5 C102.7,52.2 116.2,44.4 129.7,43.2 C143.2,41.9 156.8,47.6 170.3,46.1 C183.8,44.6 197.3,35.8 210.9,34.3 C224.4,32.8 237.9,38.7 251.4,37.2 C265.0,35.8 285.2,27.4 292.0,25.4 L292.0,92 L8.0,92 Z"
+                />
+                <path
+                  class="pc__line"
+                  d="M8.0,56.5 C14.8,55.6 35.0,51.8 48.6,51.3 C62.1,50.8 75.6,54.9 89.1,53.5 C102.7,52.2 116.2,44.4 129.7,43.2 C143.2,41.9 156.8,47.6 170.3,46.1 C183.8,44.6 197.3,35.8 210.9,34.3 C224.4,32.8 237.9,38.7 251.4,37.2 C265.0,35.8 285.2,27.4 292.0,25.4"
+                  pathLength="1"
+                />
+                <circle class="pc__dot" cx="8.0" cy="56.5" r="2.7" />
+                <circle class="pc__dot" cx="48.6" cy="51.3" r="2.7" />
+                <circle class="pc__dot" cx="89.1" cy="53.5" r="2.7" />
+                <circle class="pc__dot" cx="129.7" cy="43.2" r="2.7" />
+                <circle class="pc__dot" cx="170.3" cy="46.1" r="2.7" />
+                <circle class="pc__dot" cx="210.9" cy="34.3" r="2.7" />
+                <circle class="pc__dot" cx="251.4" cy="37.2" r="2.7" />
+                <line class="pc__guide" x1="292.0" x2="292.0" y1="25.4" y2="92" />
+                <circle class="pc__halo" cx="292.0" cy="25.4" r="8" />
+                <circle class="pc__dot pc__dot--last" cx="292.0" cy="25.4" r="4.2" />
+              </svg>
+              <div class="pc__x">
+                <span style="left: 2.67%">J</span>
+                <span style="left: 16.19%">F</span>
+                <span style="left: 29.71%">M</span>
+                <span style="left: 43.24%">A</span>
+                <span style="left: 56.76%">M</span>
+                <span style="left: 70.29%">J</span>
+                <span style="left: 83.81%">J</span>
+                <span style="left: 97.33%">A</span>
+              </div>
+            </div>
+          </div>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-tint" id="etapes">
+    <div class="wrap">
+      <div class="pg-head" data-anim>
+        <div>
+          <span class="eyebrow">Comment ça marche</span>
+          <h2>Du dossier de candidature<br />au suivi continu.</h2>
+        </div>
+      </div>
+      <div class="pg-steps pg-steps--4" data-steps>
+        @for (step of steps; track step.number) {
+        <div class="pg-step">
+          <span class="pg-step__rule"></span>
+          <div class="pg-step__in">
+            <span class="pg-step__n">{{ step.number }}</span>
+            <p class="pg-step__t">{{ step.title }}</p>
+            <p class="pg-step__d">{{ step.description }}</p>
+          </div>
+        </div>
         }
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Problem -->
-    <section class="ip-section ip-section--problem" aria-labelledby="ip-problem-title">
-      <div class="ip-section__inner">
-        <span class="ip-pill">Le problème</span>
-        <h2 id="ip-problem-title" class="ip-section__title">
-          Le solaire PME bute sur la structure de paiement, pas sur la technique.
-        </h2>
-        <p class="ip-section__text">
-          Les clients PME veulent du solaire, mais n’ont souvent ni la trésorerie ni l’accès bancaire
-          pour financer l’installation. Joya Energy structure le projet via un contrat de service
-          énergétique : le partenaire installe, Joya Energy paie le chantier. Vous facturez
-          Joya Energy — pas le client final.
-        </p>
-      </div>
-    </section>
-
-    <!-- Process -->
-    <section
-      id="processus"
-      class="ip-section ip-section--process"
-      aria-labelledby="ip-process-title"
-    >
-      <div class="ip-section__inner">
-        <span class="ip-pill">Le processus</span>
-        <h2 id="ip-process-title" class="ip-section__title">Comment ça marche, de A à Z.</h2>
-        <ol class="ip-process">
-          @for (step of processSteps; track step.number) {
-            <li class="ip-process__step">
-              <span class="ip-process__number" aria-hidden="true">{{ step.number }}</span>
-              <h3 class="ip-process__title">{{ step.title }}</h3>
-              <p class="ip-process__text">{{ step.description }}</p>
-            </li>
-          }
-        </ol>
-      </div>
-    </section>
-
-    <!-- Advantages -->
-    <section class="ip-section ip-section--advantages" aria-labelledby="ip-advantages-title">
-      <div class="ip-section__inner">
-        <span class="ip-pill">Vos avantages</span>
-        <h2 id="ip-advantages-title" class="ip-section__title">
-          Ce que le réseau Joya Energy change pour vous.
-        </h2>
-        <div class="ip-advantages">
-          @for (card of advantages; track card.title) {
-            <article class="ip-advantage">
-              <div class="ip-advantage__icon" aria-hidden="true">
-                <ng-icon [name]="card.icon" size="28" />
-              </div>
-              <h3 class="ip-advantage__title">{{ card.title }}</h3>
-              <p class="ip-advantage__text">{{ card.description }}</p>
-            </article>
-          }
+  <section class="section" id="types">
+    <div class="wrap">
+      <div class="pg-head" data-anim>
+        <div>
+          <span class="eyebrow">Types de partenaires</span>
+          <h2>Un réseau ouvert<br />à tous les métiers du solaire.</h2>
         </div>
       </div>
-    </section>
-
-    <!-- Expectations -->
-    <section class="ip-expect" aria-labelledby="ip-expect-title">
-      <div class="ip-expect__inner">
-        <span class="ip-pill ip-pill--dark">Ce qu’on attend de vous</span>
-        <h2 id="ip-expect-title" class="ip-expect__title">
-          Un partenariat exigeant. Dans les deux sens.
-        </h2>
-        <ul class="ip-expect__list">
-          @for (item of expectations; track item.number) {
-            <li class="ip-expect__item">
-              <span class="ip-expect__number">{{ item.number }}</span>
-              <p class="ip-expect__text">{{ item.text }}</p>
-            </li>
-          }
-        </ul>
-        <div class="ip-expect__cta">
-          <a
-            [href]="devenirPartenaireUrl"
-            class="ip-btn ip-btn--primary"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Devenir partenaire
-          </a>
+      <div class="ptypes" data-stagger>
+        <div class="ptype">
+          <span class="ic" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M5.4 4h13.2a1 1 0 0 1 .97.76l1.9 7.5a1 1 0 0 1-.97 1.24H3.5a1 1 0 0 1-.97-1.24l1.9-7.5A1 1 0 0 1 5.4 4Z"
+              />
+              <rect x="11" y="14.5" width="2" height="4" />
+              <rect x="7" y="18.5" width="10" height="2" rx="1" />
+            </svg>
+          </span>
+          <h3>Installateurs solaires</h3>
+        </div>
+        <div class="ptype">
+          <span class="ic" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z" />
+              <rect x="7.5" y="10" width="9" height="2" rx="1" fill="#FFFAF6" />
+              <rect x="7.5" y="14" width="9" height="2" rx="1" fill="#FFFAF6" />
+              <rect x="7.5" y="18" width="5" height="2" rx="1" fill="#FFFAF6" />
+            </svg>
+          </span>
+          <h3>Bureaux d'études</h3>
+        </div>
+        <div class="ptype">
+          <span class="ic" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="8.5" cy="12" r="5.5" />
+              <circle cx="15.5" cy="12" r="5.5" fill-opacity=".55" />
+            </svg>
+          </span>
+          <h3>Apporteurs d'affaires</h3>
+        </div>
+        <div class="ptype">
+          <span class="ic" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2 3 6.5v11L12 22l9-4.5v-11L12 2Z" />
+              <path
+                d="M3.5 6.7 12 11l8.5-4.3M12 11v10.5"
+                stroke="#FFFAF6"
+                stroke-width="1.6"
+                fill="none"
+              />
+            </svg>
+          </span>
+          <h3>Fournisseurs d'équipements</h3>
         </div>
       </div>
-    </section>
-  </main>
-</div>
+    </div>
+  </section>
+
+  <section class="pg-cta" id="pgCta">
+    <div
+      class="pg-cta__bg"
+      id="pgCtaBg"
+      style="background-image: url('/handoff/images/cta-wind-turbines-coast-dusk.jpg')"
+      aria-hidden="true"
+    ></div>
+    <div class="pg-cta__veil" aria-hidden="true"></div>
+    <div class="wrap pg-cta__inner">
+      <h2 class="pg-cta__title" id="pgCtaTitle">Prêt à rejoindre<br />le réseau&nbsp;?</h2>
+      <div class="pg-cta__actions" id="pgCtaBtn">
+        <a
+          [href]="devenirPartenaireUrl"
+          class="pg-cta__go"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Devenir partenaire
+          <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path
+              d="M3 7h8M7 3l4 4-4 4"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </a>
+        <a routerLink="/contact" class="pg-cta__secondary">Parler à un conseiller</a>
+      </div>
+    </div>
+  </section>
+</main>

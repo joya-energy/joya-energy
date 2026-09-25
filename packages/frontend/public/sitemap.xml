@@ -15,7 +15,15 @@
   <!-- Notre solution -->
   <url>
     <loc>https://joya-energy.com/notre-solution</loc>
-    <lastmod>2026-02-12</lastmod>
+    <lastmod>2026-09-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Secteurs -->
+  <url>
+    <loc>https://joya-energy.com/secteurs</loc>
+    <lastmod>2026-09-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>

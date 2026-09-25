@@ -27,7 +27,8 @@ export class RessourcesSimulatorsSectionComponent {
     {
       icon: 'solar',
       title: "Audit Solaire & Potentiel d'Économies",
-      description: 'Visualisez le potentiel solaire de votre site en quelques minutes.',
+      description:
+        "Visualisez le potentiel solaire de votre site et obtenez une première estimation des économies réalisables sur votre facture d'électricité.",
       features: [
         { bold: 'Analyse instantanée', text: 'de votre potentiel solaire.' },
         { bold: 'Estimation précise', text: 'des coûts et aides financières.' },
@@ -40,7 +41,8 @@ export class RessourcesSimulatorsSectionComponent {
     {
       icon: 'energy-audit',
       title: 'Audit Énergétique Complet',
-      description: 'Obtenez une vue à 360° de la performance énergétique de votre bâtiment.',
+      description:
+        "Obtenez une vue d'ensemble de la consommation, des usages et de la performance de votre bâtiment.",
       features: [
         { bold: 'Cartographie détaillée', text: 'de vos flux de consommation.' },
         { bold: 'Recommandations', text: 'chiffrées et priorisées.' },
@@ -53,7 +55,8 @@ export class RessourcesSimulatorsSectionComponent {
     {
       icon: 'carbon',
       title: "Calculateur d'Empreinte Carbone",
-      description: "Mesurez l'impact environnemental de votre activité.",
+      description:
+        "Mesurez l'impact environnemental de votre entreprise et identifiez les leviers de décarbonation adaptés à votre activité.",
       features: [
         { bold: 'Conformité', text: 'avec les standards de reporting.' },
         { bold: 'Visualisation simple', text: "de vos sources d'émissions." },
@@ -66,7 +69,8 @@ export class RessourcesSimulatorsSectionComponent {
     {
       icon: 'bill',
       title: "Simulateur d'Analyse Facture",
-      description: 'Comprenez votre facture STEG en quelques minutes.',
+      description:
+        "Décryptez les lignes de votre facture STEG et identifiez vos gisements d'économies avant d'engager une étude sur site.",
       features: [
         { bold: 'Décryptage automatique', text: 'de votre facture électricité et gaz.' },
         { bold: 'Visualisation claire', text: 'des postes de consommation et des montants.' },
@@ -79,7 +83,8 @@ export class RessourcesSimulatorsSectionComponent {
     {
       icon: 'subsidy',
       title: 'Simulateur des subventions',
-      description: 'Estimez votre prime FTE en quelques minutes.',
+      description:
+        "Consultez les dispositifs d'aide de l'ANME, évaluez vos avantages fiscaux et vérifiez les conditions d'éligibilité applicables à votre projet.",
       features: [
         { bold: 'Barème officiel FTE', text: 'études, équipements et photovoltaïque.' },
         { bold: 'Calcul instantané', text: 'selon votre type de projet.' },

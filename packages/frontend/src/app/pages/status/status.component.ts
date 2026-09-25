@@ -1,8 +1,16 @@
-import { Component, ChangeDetectionStrategy, OnInit, signal, inject } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  OnInit,
+  AfterViewInit,
+  signal,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { SEOService } from '../../core/services/seo.service';
+import { HandoffMotionService } from '../../core/services/handoff-motion.service';
 import { UiBillExtractorComponent } from 'src/app/shared/components/ui-bill-extractor/ui-bill-extractor.component';
 
 export interface BackendHealth {
@@ -20,8 +28,9 @@ export interface BackendHealth {
   styleUrl: './status.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class StatusComponent implements OnInit {
+export class StatusComponent implements OnInit, AfterViewInit {
   private readonly seoService = inject(SEOService);
+  private readonly motion = inject(HandoffMotionService);
 
   /** 'loading' | 'ok' | 'error' */
   readonly state = signal<'loading' | 'ok' | 'error'>('loading');
@@ -50,5 +59,9 @@ export class StatusComponent implements OnInit {
       url: 'https://joya-energy.com/status',
       keywords: 'statut services JOYA Energy, disponibilité plateforme Tunisie',
     });
+  }
+
+  ngAfterViewInit(): void {
+    this.motion.refresh();
   }
 }

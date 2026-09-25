@@ -1,17 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, signal, OnInit, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import { lucideCheck, lucideClock } from '@ng-icons/lucide';
 import { trigger, style, transition, animate, group, query } from '@angular/animations';
-import { LandingBadgeComponent } from '../../components/landing-badge/landing-badge.component';
-import { RouterLink } from '@angular/router';
 
 type ActiveTab = 'roi' | 'comparison';
 
 @Component({
   selector: 'app-landing-hero',
   standalone: true,
-  imports: [CommonModule, NgIconComponent, RouterLink],
+  imports: [CommonModule, NgIconComponent],
   templateUrl: './landing-hero.component.html',
   styleUrl: './landing-hero.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -40,66 +38,12 @@ type ActiveTab = 'roi' | 'comparison';
     ])
   ]
 })
-export class LandingHeroComponent implements OnInit, OnDestroy {
+export class LandingHeroComponent {
   protected activeTab = signal<ActiveTab>('roi');
   protected horizontalLines = [0, 1, 2, 3, 4];
   protected verticalLines = [0, 1, 2, 3, 4, 5, 6, 7, 8];
-  
-  protected readonly rotatingWords = ['Accessible.', 'Garantie.', 'Sans investissement.'];
-  protected displayedText = signal('');
-  
-  private typingTimeout: ReturnType<typeof setTimeout> | null = null;
-  private currentIndex = 0;
-  private currentText = '';
-  private isDeleting = false;
-
-  ngOnInit(): void {
-    this.startTypingAnimation();
-  }
-
-  ngOnDestroy(): void {
-    if (this.typingTimeout) {
-      clearTimeout(this.typingTimeout);
-    }
-  }
-
-  private startTypingAnimation(): void {
-    const type = () => {
-      const words = this.rotatingWords;
-      const currentWord = words[this.currentIndex];
-
-      if (this.isDeleting) {
-        // Delete fast
-        this.currentText = currentWord.substring(0, this.currentText.length - 1);
-        this.displayedText.set(this.currentText);
-
-        if (this.currentText === '') {
-          this.isDeleting = false;
-          this.currentIndex = (this.currentIndex + 1) % words.length;
-          this.typingTimeout = setTimeout(type, 100);
-        } else {
-          this.typingTimeout = setTimeout(type, 50);
-        }
-      } else {
-        // Type slowly
-        this.currentText = currentWord.substring(0, this.currentText.length + 1);
-        this.displayedText.set(this.currentText);
-
-        if (this.currentText === currentWord) {
-          // Wait before deleting
-          this.isDeleting = true;
-          this.typingTimeout = setTimeout(type, 2000);
-        } else {
-          this.typingTimeout = setTimeout(type, 100);
-        }
-      }
-    };
-
-    type();
-  }
 
   protected setTab(tab: ActiveTab): void {
     this.activeTab.set(tab);
   }
 }
-

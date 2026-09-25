@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, OnInit, inject, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, AfterViewInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   ReactiveFormsModule,
@@ -11,6 +11,7 @@ import { RouterLink } from '@angular/router';
 import { ContactService, ContactSubject } from '../../core/services/contact.service';
 import { NotificationStore } from '../../core/notifications/notification.store';
 import { SEOService } from '../../core/services/seo.service';
+import { HandoffMotionService } from '../../core/services/handoff-motion.service';
 import { finalize } from 'rxjs/operators';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
@@ -18,14 +19,7 @@ import {
   lucidePhone,
   lucideMapPin,
   lucideClock,
-  lucideSend,
   lucideChevronDown,
-  lucideMessageSquare,
-  lucideUser,
-  lucideBuilding2,
-  lucideCalendar,
-  lucideArrowRight,
-  lucideSparkles,
 } from '@ng-icons/lucide';
 
 // Define strongly typed form
@@ -48,33 +42,33 @@ interface ContactForm {
       lucidePhone,
       lucideMapPin,
       lucideClock,
-      lucideSend,
       lucideChevronDown,
-      lucideMessageSquare,
-      lucideUser,
-      lucideBuilding2,
-      lucideCalendar,
-      lucideArrowRight,
-      lucideSparkles,
     }),
   ],
   templateUrl: './contact.component.html',
   styleUrl: './contact.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ContactComponent implements OnInit {
+export class ContactComponent implements OnInit, AfterViewInit {
   private fb = inject(FormBuilder);
   private contactService = inject(ContactService);
   private notificationStore = inject(NotificationStore);
   private seoService = inject(SEOService);
+  private readonly motion = inject(HandoffMotionService);
 
   ngOnInit(): void {
     this.seoService.setSEO({
-      title: 'Contactez-nous | JOYA Energy',
-      description: 'Prenez contact avec nos experts en Tunisie pour discuter de votre projet énergétique et obtenir un accompagnement personnalisé.',
+      title: 'Contact Projet Photovoltaïque Tunisie | Joya Energy',
+      description:
+        'Un projet photovoltaïque en Tunisie ? Nos experts vous accompagnent. Contactez Joya Energy pour une étude personnalisée.',
       url: 'https://joya-energy.com/contact',
-      keywords: 'contact JOYA Energy Tunisie, devis énergie solaire Tunisie, conseil énergétique Tunisie, Tunisia',
+      keywords:
+        'contact JOYA Energy Tunisie, projet photovoltaïque Tunisie, devis énergie solaire Tunisie',
     });
+  }
+
+  ngAfterViewInit(): void {
+    this.motion.refresh();
   }
 
   protected subjects = Object.values(ContactSubject);

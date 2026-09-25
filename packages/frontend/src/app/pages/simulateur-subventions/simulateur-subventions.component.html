@@ -1,447 +1,511 @@
-<div class="simulateur-subventions-page">
-  <div class="simulator-container">
-    <aside class="simulator-sidebar">
-      <div class="sidebar-steps">
-        @for (step of steps; track step.number) {
-        <div
-          class="sidebar-step-item"
-          [class.active]="currentStep() === step.number"
-          [class.clickable]="isStepClickable(step.number)"
-          [class.disabled]="!isStepClickable(step.number)"
-          (click)="isStepClickable(step.number) && goToStep(step.number)"
-        >
-          @if (!step.isResult) {
-          <app-ui-progress-bar
-            [step]="step.number"
-            [title]="step.title"
-            [progress]="stepProgress()[step.number]"
-            [completed]="stepProgress()[step.number] === 100"
-            [isFocused]="currentStep() === step.number"
-            class="sidebar-progress-bar"
+<div class="aud-page-root" [class.is-result]="currentStepData().isResult">
+  <div class="aud__stage" aria-hidden="true">
+    <div class="aud__flow a"></div>
+    <div class="aud__flow b"></div>
+    <div class="aud__flow c"></div>
+  </div>
+  <div class="aud__grain" aria-hidden="true"></div>
+
+  <div class="aud" id="audRoot">
+    <div
+      class="aud__card"
+      id="audCard"
+      [class.aud__card--wide]="currentStepData().isResult"
+    >
+      @if (currentStep() === 1) {
+      <a routerLink="/ressources" class="aud__back">
+        <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path
+            d="M11 7H3M6 3 2 7l4 4"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
           />
-          } @else {
-          <div class="sidebar-result-step" [class.active]="currentStep() === step.number">
-            <div class="sidebar-result-step-left">
-              <div
-                class="sidebar-step-circle result"
-                [class.active]="currentStep() === step.number"
-              >
-                <span class="step-number">{{ step.number }}</span>
-              </div>
-            </div>
-            <div class="sidebar-result-step-right">
-              <h3 class="sidebar-step-title">{{ step.title }}</h3>
-            </div>
-          </div>
-          }
-        </div>
+        </svg>
+        <span>Retour aux ressources</span>
+      </a>
+      } @else if (!currentStepData().isResult) {
+      <button type="button" class="aud__back" (click)="previousStep()">
+        <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path
+            d="M11 7H3M6 3 2 7l4 4"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <span>Étape précédente</span>
+      </button>
+      }
+
+      @if (!currentStepData().isResult) {
+      <div class="aud__prog">
+        <div class="aud__ptrack"><i [style.width.%]="audProgressPct()"></i></div>
+        <div class="aud__eb">Étape {{ currentStep() }} sur {{ steps.length }}</div>
+      </div>
+
+      <div class="aud__lede">
+        <span class="aud__kicker">Simulateur de subventions FTE</span>
+        <h1 class="aud__q" id="audQ">{{ stepTitle() }}</h1>
+        @if (stepDescription()) {
+        <p class="aud__sub">{{ stepDescription() }}</p>
         }
       </div>
-    </aside>
+      }
 
-    <main class="simulator-main">
-      <div class="form-timeline-header">
-        <div class="step-progress-header">
-          <span class="step-indicator">Étape {{ currentStep() }} sur {{ steps.length }}</span>
+      <form [formGroup]="form" id="audForm" novalidate autocomplete="off">
+        <!-- ═══ STEP 1 — Catégorie ═══ -->
+        @if (currentStep() === 1) {
+        <div class="aud__step" data-step="1">
+          <div class="aud__note">
+            <p>
+              Jusqu'à <strong>70% de vos études</strong> et
+              <strong>50% de vos équipements</strong> pris en charge, sous forme de prime non
+              remboursable. Estimez la vôtre en 2 minutes.
+            </p>
+          </div>
+
+          <div class="category-grid">
+            @for (entry of categoryEntries; track entry[0]) {
+            <button
+              type="button"
+              class="category-card"
+              [class.selected]="selectedCategoryKey() === entry[0]"
+              (click)="selectCategory(entry[0])"
+            >
+              <span class="category-card__title">{{ entry[1].title }}</span>
+              <span class="category-card__desc">{{ entry[1].desc }}</span>
+              <span class="category-card__range">{{ entry[1].range }}</span>
+            </button>
+            }
+          </div>
+
+          <div class="aud__actions">
+            <button
+              type="button"
+              class="btn-next aud__continue"
+              (click)="nextStep()"
+            >
+              <span>Continuer</span>
+              <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path
+                  d="M3 7h8M7 3l4 4-4 4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
-        <app-ui-step-timeline [currentStep]="currentStep()" [totalSteps]="steps.length" />
-      </div>
+        }
 
-      <div class="form-content-scrollable">
-        <div class="form-content" [class.form-content--hero]="currentStep() === 1">
-          @if (currentStep() === 1) {
-          <div class="step-panel" [@stepTransition]>
-            <section class="simulator-hero">
-              <div class="simulator-hero__badge">
-                <span class="simulator-hero__badge-dot" aria-hidden="true"></span>
-                Simulation en 4 étapes
+        <!-- ═══ STEP 2 — Action ═══ -->
+        @if (currentStep() === 2 && selectedCategory(); as category) {
+        <div class="aud__step" data-step="2">
+          <div class="action-list">
+            @for (item of category.items; track item.id) {
+            <button
+              type="button"
+              class="action-card"
+              [class.selected]="selectedItemId() === item.id"
+              (click)="selectItem(item.id)"
+            >
+              <div class="action-card__content">
+                <span class="action-card__title">{{ item.name }}</span>
+                <span class="action-card__desc">{{ item.desc }}</span>
               </div>
-              <h2 class="simulator-hero__title">
-                Réduisez vos factures énergétiques. Faites financer une partie de vos travaux par l'État.
-              </h2>
-              <p class="simulator-hero__lead">
-                Jusqu'à <strong>70% de vos études</strong> et <strong>50% de vos équipements</strong> pris en charge, sous forme de prime non remboursable. Estimez la vôtre en 2 minutes.
-              </p>
-            </section>
+              <span class="action-card__badge">{{
+                getBadge(selectedCategoryKey()!, item)
+              }}</span>
+            </button>
+            }
+          </div>
 
-            <h3 class="section-label">1 — Quelle est la nature de votre projet ?</h3>
-            <div class="category-grid">
-              @for (entry of categoryEntries; track entry[0]) {
-              <button
-                type="button"
-                class="category-card"
-                [class.selected]="selectedCategoryKey() === entry[0]"
-                (click)="selectCategory(entry[0])"
-              >
-                <span class="category-card__title">{{ entry[1].title }}</span>
-                <span class="category-card__desc">{{ entry[1].desc }}</span>
-                <span class="category-card__range">{{ entry[1].range }}</span>
-              </button>
-              }
-            </div>
+          <div class="aud__actions">
+            <button
+              type="button"
+              class="btn-next aud__continue"
+              (click)="nextStep()"
+            >
+              <span>Continuer</span>
+              <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path
+                  d="M3 7h8M7 3l4 4-4 4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        }
+
+        <!-- ═══ STEP 3 — Projet ═══ -->
+        @if (currentStep() === 3 && selectedCategory(); as category) {
+        @if (selectedItem(); as item) {
+        <div class="aud__step" data-step="3">
+          @if (category.type === 'percent' && !isSolarM2Selected()) {
+          <div class="f">
+            <app-ui-input
+              formControlName="montant"
+              type="number"
+              label="Montant de l'investissement éligible"
+              placeholder="ex : 85 000"
+              [required]="true"
+              size="md"
+            />
+            <p class="field-hint">{{ getPercentHint(item) }}</p>
           </div>
           }
 
-          @if (currentStep() === 2 && selectedCategory(); as category) {
-          <div class="step-panel" [@stepTransition]>
-            <div class="simulator-form-header">
-              <span class="simulator-form-title">{{ category.title }}</span>
-              <h2 class="step-title">Quelle action souhaitez-vous financer ?</h2>
+          @if (isSolarM2Selected()) {
+          <div class="field-grid">
+            <app-ui-input
+              formControlName="montant"
+              type="number"
+              label="Montant de l'investissement"
+              placeholder="ex : 60 000"
+              [required]="true"
+              size="md"
+            />
+            <app-ui-input
+              formControlName="surface"
+              type="number"
+              label="Surface de capteurs solaires"
+              placeholder="ex : 80"
+              [required]="true"
+              size="md"
+            />
+          </div>
+          <p class="field-hint">
+            La prime retenue est la plus basse entre 30% du montant investi et 250 DT par m² de
+            capteurs installés.
+          </p>
+          }
+
+          @if (category.type === 'flat') {
+          <div class="f">
+            <app-ui-input
+              formControlName="quantity"
+              type="number"
+              label="Nombre de systèmes installés"
+              placeholder="1"
+              [required]="true"
+              size="md"
+            />
+            <p class="field-hint">{{ getFlatHint(item) }}</p>
+          </div>
+          }
+
+          @if (category.type === 'offgrid') {
+          <div class="f">
+            <app-ui-input
+              formControlName="power"
+              type="number"
+              label="Puissance installée"
+              placeholder="ex : 3.5"
+              [required]="true"
+              size="md"
+            />
+            <p class="field-hint">
+              ≤0,25 kW : 6 000 DT/kW · 0,25–0,5 kW : 4 500 DT/kW · 0,5–2 kW : 3 500 DT/kW · 2–5 kW
+              : 3 000 DT/kW · 5–10 kW : 1 500 DT/kW · &gt;10 kW : 1 000 DT/kW (plafond 50 000 DT)
+            </p>
+          </div>
+          }
+
+          <div class="aud__actions">
+            <button
+              type="button"
+              class="btn-next aud__continue"
+              (click)="nextStep()"
+            >
+              <span>Continuer</span>
+              <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path
+                  d="M3 7h8M7 3l4 4-4 4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        }
+        }
+
+        <!-- ═══ STEP 4 — Contact ═══ -->
+        @if (currentStep() === 4) {
+        <div class="aud__step" data-step="4">
+          <div class="grid2" formGroupName="personal">
+            <div class="f">
+              <app-ui-input
+                formControlName="fullName"
+                type="text"
+                label="Nom complet"
+                placeholder="Entrez votre nom complet"
+                [required]="true"
+                tooltipTitle="Nom complet"
+                tooltipDescription="Personne référente pour le dossier."
+                size="md"
+              />
             </div>
 
-            <div class="action-list">
-              @for (item of category.items; track item.id) {
-              <button
-                type="button"
-                class="action-card"
-                [class.selected]="selectedItemId() === item.id"
-                (click)="selectItem(item.id)"
-              >
-                <div class="action-card__content">
-                  <span class="action-card__title">{{ item.name }}</span>
-                  <span class="action-card__desc">{{ item.desc }}</span>
+            <div class="f">
+              <app-ui-input
+                formControlName="email"
+                type="text"
+                label="Email"
+                placeholder="email@example.com"
+                [required]="true"
+                tooltipTitle="Email de contact"
+                tooltipDescription="Adresse utilisée pour l'envoi de votre estimation."
+                size="md"
+              />
+            </div>
+
+            <div class="f">
+              <app-ui-input
+                formControlName="phoneNumber"
+                type="text"
+                label="Téléphone"
+                placeholder="Entrez votre numéro de téléphone"
+                [required]="true"
+                tooltipTitle="Téléphone"
+                tooltipDescription="Numéro pour les échanges sur votre dossier."
+                size="md"
+              />
+            </div>
+          </div>
+
+          <div class="aud__actions">
+            <button
+              type="button"
+              class="btn-next aud__continue"
+              (click)="nextStep()"
+            >
+              <span>{{ primaryActionLabel() }}</span>
+              <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path
+                  d="M3 7h8M7 3l4 4-4 4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        }
+
+        <!-- ═══ RESULTS ═══ -->
+        @if (currentStepData().isResult) {
+        <div class="aud__step" data-step="5">
+          @if (result(); as r) {
+          <div class="rpt rp-anim" id="rpt">
+            <header class="rp-head" data-sec>
+              <div class="rp-head__txt" data-a>
+                <h2>Estimation de prime FTE</h2>
+                <p>
+                  Ces résultats sont indicatifs et seront confirmés lors de l'instruction de votre
+                  dossier auprès de l'ANME.
+                </p>
+                <div class="rp-chips">
+                  <span>
+                    <b>{{ r.itemName }}</b>
+                  </span>
+                  <span>
+                    <b>{{ r.tauxLabel }}</b>
+                  </span>
                 </div>
-                <span class="action-card__badge">{{
-                  getBadge(selectedCategoryKey()!, item)
-                }}</span>
-              </button>
-              }
-            </div>
-          </div>
-          }
-
-          @if (currentStep() === 3 && selectedCategory(); as category) {
-          @if (selectedItem(); as item) {
-          <div class="step-panel" [@stepTransition]>
-            <div class="simulator-form-header">
-              <span class="simulator-form-title">{{ item.name }}</span>
-              <h2 class="step-title">Renseignez votre projet</h2>
-            </div>
-
-            <form [formGroup]="form" class="inputs-form-card">
-              @if (category.type === 'percent' && !isSolarM2Selected()) {
-              <app-ui-input
-                formControlName="montant"
-                type="number"
-                label="Montant de l'investissement éligible"
-                placeholder="ex : 85 000"
-                [required]="true"
-                size="md"
-              />
-              <p class="field-hint">{{ getPercentHint(item) }}</p>
-              }
-
-              @if (isSolarM2Selected()) {
-              <div class="field-grid">
-                <app-ui-input
-                  formControlName="montant"
-                  type="number"
-                  label="Montant de l'investissement"
-                  placeholder="ex : 60 000"
-                  [required]="true"
-                  size="md"
-                />
-                <app-ui-input
-                  formControlName="surface"
-                  type="number"
-                  label="Surface de capteurs solaires"
-                  placeholder="ex : 80"
-                  [required]="true"
-                  size="md"
-                />
               </div>
-              <p class="field-hint">
-                La prime retenue est la plus basse entre 30% du montant investi et 250 DT par m² de
-                capteurs installés.
-              </p>
-              }
+              <div class="rp-head__img" aria-hidden="true"></div>
+            </header>
 
-              @if (category.type === 'flat') {
-              <app-ui-input
-                formControlName="quantity"
-                type="number"
-                label="Nombre de systèmes installés"
-                placeholder="1"
-                [required]="true"
-                size="md"
-              />
-              <p class="field-hint">{{ getFlatHint(item) }}</p>
-              }
-
-              @if (category.type === 'offgrid') {
-              <app-ui-input
-                formControlName="power"
-                type="number"
-                label="Puissance installée"
-                placeholder="ex : 3.5"
-                [required]="true"
-                size="md"
-              />
-              <p class="field-hint">
-                ≤0,25 kW : 6 000 DT/kW · 0,25–0,5 kW : 4 500 DT/kW · 0,5–2 kW : 3 500 DT/kW · 2–5 kW
-                : 3 000 DT/kW · 5–10 kW : 1 500 DT/kW · &gt;10 kW : 1 000 DT/kW (plafond 50 000 DT)
-              </p>
-              }
-            </form>
-          </div>
-          }
-          }
-
-          @if (currentStep() === 4) {
-          <div class="step-panel" [@stepTransition]>
-            <div class="simulator-form-header">
-              <span class="simulator-form-title">Vos coordonnées</span>
-              <h2 class="step-title">Comment pouvons-nous vous recontacter ?</h2>
-            </div>
-
-            <form [formGroup]="form">
-              <div class="form-grid" formGroupName="personal">
-                <app-ui-input
-                  formControlName="fullName"
-                  type="text"
-                  label="Nom complet"
-                  placeholder="Entrez votre nom complet"
-                  [required]="true"
-                  tooltipTitle="Nom complet"
-                  tooltipDescription="Personne référente pour le dossier."
-                  size="md"
-                />
-
-                <app-ui-input
-                  formControlName="email"
-                  type="text"
-                  label="Email"
-                  placeholder="email@example.com"
-                  [required]="true"
-                  tooltipTitle="Email de contact"
-                  tooltipDescription="Adresse utilisée pour l'envoi de votre estimation."
-                  size="md"
-                />
-
-                <app-ui-input
-                  formControlName="phoneNumber"
-                  type="text"
-                  label="Téléphone"
-                  placeholder="Entrez votre numéro de téléphone"
-                  [required]="true"
-                  tooltipTitle="Téléphone"
-                  tooltipDescription="Numéro pour les échanges sur votre dossier."
-                  size="md"
-                />
+            <section class="rp" data-sec>
+              <div class="rp__hd" data-a>
+                <span class="rp__n">01</span>
+                <h3>Synthèse de votre prime</h3>
               </div>
-            </form>
-          </div>
-          }
-
-          @if (currentStep() === 5 && result(); as r) {
-          <div class="step-panel" [@resultCards]>
-            <div class="result-card">
-              <span class="result-card__label">Prime FTE estimée</span>
-              <div class="result-card__amount">{{ formatAmount(r.prime) }} DT</div>
-              <p class="result-card__action">{{ r.itemName }}</p>
-
-              <div class="result-breakdown">
-                <div class="breakdown-item">
-                  <span class="breakdown-item__label">Taux / barème appliqué</span>
-                  <span class="breakdown-item__value">{{ r.tauxLabel }}</span>
+              <div class="rp-cards">
+                <div class="rc rc--hot" data-a>
+                  <span class="rc__lb">Prime</span>
+                  <b>
+                    {{ formatAmount(r.prime) }}
+                    <i>DT</i>
+                  </b>
+                  <span class="rc__t">Prime FTE estimée</span>
+                  <span class="rc__d">{{ r.itemName }}</span>
                 </div>
+
+                <div class="rc" data-a>
+                  <span class="rc__lb">Barème</span>
+                  <b>{{ r.tauxLabel }}</b>
+                  <span class="rc__t">Taux / barème appliqué</span>
+                  <span class="rc__d">Référentiel FTE</span>
+                </div>
+
                 @if (r.montant !== null) {
-                <div class="breakdown-item">
-                  <span class="breakdown-item__label">Investissement déclaré</span>
-                  <span class="breakdown-item__value">{{ formatAmount(r.montant) }} DT</span>
+                <div class="rc" data-a>
+                  <span class="rc__lb">Investissement</span>
+                  <b>
+                    {{ formatAmount(r.montant) }}
+                    <i>DT</i>
+                  </b>
+                  <span class="rc__t">Investissement déclaré</span>
+                  <span class="rc__d">Montant éligible saisi</span>
                 </div>
-                <div class="breakdown-item">
-                  <span class="breakdown-item__label">Reste à votre charge</span>
-                  <span class="breakdown-item__value">{{ formatAmount(remainingCost()) }} DT</span>
+
+                <div class="rc" data-a>
+                  <span class="rc__lb">Reste</span>
+                  <b>
+                    {{ formatAmount(remainingCost()) }}
+                    <i>DT</i>
+                  </b>
+                  <span class="rc__t">Reste à votre charge</span>
+                  <span class="rc__d">Après déduction de la prime</span>
                 </div>
                 } @else {
-                <div class="breakdown-item">
-                  <span class="breakdown-item__label">Type de prime</span>
-                  <span class="breakdown-item__value">Forfaitaire</span>
-                </div>
-                <div class="breakdown-item">
-                  <span class="breakdown-item__label">Statut</span>
-                  <span class="breakdown-item__value">Estimation</span>
+                <div class="rc" data-a>
+                  <span class="rc__lb">Type</span>
+                  <b>Forfaitaire</b>
+                  <span class="rc__t">Type de prime</span>
+                  <span class="rc__d">Estimation</span>
                 </div>
                 }
               </div>
 
               @if (r.capHit && r.capVal !== null) {
-              <div class="cap-note">
-                Le montant calculé dépassait le plafond réglementaire — la prime a été ramenée au
-                plafond autorisé ({{ formatAmount(r.capVal) }} DT).
+              <div class="aud__note" data-a style="margin-top: 16px">
+                <p>
+                  Le montant calculé dépassait le plafond réglementaire — la prime a été ramenée au
+                  plafond autorisé ({{ formatAmount(r.capVal) }} DT).
+                </p>
               </div>
               }
-            </div>
+            </section>
 
-            <section class="result-info">
-              <div class="stats-row">
+            <section class="rp" data-sec>
+              <div class="rp__hd" data-a>
+                <span class="rp__n">02</span>
+                <div>
+                  <h3>Chiffres clés</h3>
+                  <p>Repères sur le Fonds de Transition Énergétique</p>
+                </div>
+              </div>
+              <div class="rp-cards">
                 @for (stat of highlightStats; track stat.value) {
-                <div class="stat-item">
-                  <div class="stat-value">{{ stat.value }}</div>
-                  <div class="stat-label">{{ stat.label }}</div>
+                <div class="rc" data-a>
+                  <span class="rc__lb">FTE</span>
+                  <b>{{ stat.value }}</b>
+                  <span class="rc__t">{{ stat.label }}</span>
                 </div>
                 }
               </div>
-
-              <div class="trust-row">
+              <div class="rp-cards" style="margin-top: 12px">
                 @for (stat of trustStats; track stat.value) {
-                <div class="trust-item">
-                  <div class="trust-value">{{ stat.value }}</div>
-                  <div class="trust-label">{{ stat.label }}</div>
+                <div class="rc" data-a>
+                  <span class="rc__lb">Confiance</span>
+                  <b>{{ stat.value }}</b>
+                  <span class="rc__t">{{ stat.label }}</span>
                 </div>
                 }
               </div>
-
-              <nav class="anchor-nav" aria-label="Sections complémentaires">
-                <button type="button" class="anchor-link" (click)="scrollToSection('pourquoi')">
-                  Pourquoi ce fonds
-                </button>
-                <button type="button" class="anchor-link" (click)="scrollToSection('procedure')">
-                  Comment l'obtenir
-                </button>
-              </nav>
             </section>
 
-            <section class="info-section info-section--pourquoi" id="pourquoi">
-              <div class="info-section__header">
-                <span class="info-section__kicker">Pourquoi ce fonds</span>
-                <h3 class="info-section__title">Un financement conçu pour ne pas rester sur le papier</h3>
-                <p class="info-section__lead">
-                  Le FTE n'est pas un crédit : c'est une prime versée par l'État en complément de votre investissement, pour accélérer un projet que vous auriez de toute façon intérêt à faire.
-                </p>
+            <section class="rp" data-sec id="pourquoi">
+              <div class="rp__hd" data-a>
+                <span class="rp__n">03</span>
+                <div>
+                  <h3>Pourquoi ce fonds</h3>
+                  <p>
+                    Le FTE n'est pas un prêt : c'est une prime versée par l'État en complément de
+                    votre investissement.
+                  </p>
+                </div>
               </div>
-
-              <div class="benefit-grid">
+              <div class="rp-cards">
                 @for (benefit of benefitCards; track benefit.title) {
-                <article class="benefit-card">
-                  <div class="benefit-card__icon">{{ benefit.icon }}</div>
-                  <h4 class="benefit-card__title">{{ benefit.title }}</h4>
-                  <p class="benefit-card__text">{{ benefit.description }}</p>
-                </article>
-                }
-              </div>
-            </section>
-
-            <section class="info-section info-section--procedure" id="procedure">
-              <div class="info-section__header">
-                <span class="info-section__kicker">Comment l'obtenir</span>
-                <h3 class="info-section__title">Le parcours, du dépôt au versement</h3>
-                <p class="info-section__lead">
-                  Le simulateur vous donne une estimation. Voici, ensuite, les cinq étapes réelles du dossier auprès de l'ANME.
-                </p>
-              </div>
-
-              <div class="procedure-card">
-                @for (step of procedureSteps; track step.number) {
-                <div class="procedure-step">
-                  <div class="procedure-step__number">{{ step.number }}</div>
-                  <div class="procedure-step__content">
-                    <strong>{{ step.title }}</strong>
-                    <span>{{ step.description }}</span>
-                  </div>
+                <div class="rc" data-a>
+                  <span class="rc__lb">{{ benefit.icon }}</span>
+                  <b>{{ benefit.title }}</b>
+                  <span class="rc__d">{{ benefit.description }}</span>
                 </div>
                 }
               </div>
             </section>
+
+            <section class="rp" data-sec id="procedure">
+              <div class="rp__hd" data-a>
+                <span class="rp__n">04</span>
+                <div>
+                  <h3>Comment l'obtenir</h3>
+                  <p>Les cinq étapes du dossier auprès de l'ANME</p>
+                </div>
+              </div>
+              <div class="rp-steps">
+                @for (step of procedureSteps; track step.number) {
+                <div class="rp-step" data-a>
+                  <span class="rp-step__ic" aria-hidden="true">{{ step.number }}</span>
+                  <span>
+                    <b>{{ step.title }}</b>
+                    <em>{{ step.description }}</em>
+                  </span>
+                </div>
+                }
+              </div>
+            </section>
+
+            <section class="rp rp-foot" data-sec>
+              <span class="rp__n" data-a>05</span>
+              <button type="button" class="rp-new" data-a (click)="resetSimulation()">
+                Nouvelle simulation
+              </button>
+              <a routerLink="/prendre-rendez-vous" class="btn-next" data-a>
+                Prendre rendez-vous
+                <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                  <path
+                    d="M3 7h8M7 3l4 4-4 4"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </a>
+            </section>
+          </div>
+          } @else {
+          <div class="aud__note">
+            <p>Calcul en cours… Nous estimons votre prime FTE.</p>
           </div>
           }
         </div>
-
-        <div
-          class="form-actions form-actions--mobile"
-          [class.result-actions]="currentStepData().isResult"
-        >
-          @if (!currentStepData().isResult) {
-          <button
-            type="button"
-            class="hero__btn hero__btn--outline"
-            [disabled]="!canGoBack()"
-            (click)="previousStep()"
-          >
-            <ng-icon name="lucideArrowLeft" size="16"></ng-icon>
-            Précédent
-          </button>
-
-          @if (currentStep() < 4) {
-          <button
-            type="button"
-            class="hero__btn hero__btn--primary"
-            [disabled]="!canProceed()"
-            (click)="nextStep()"
-          >
-            Suivant
-            <ng-icon name="lucideArrowRight" size="16"></ng-icon>
-          </button>
-          } @else {
-          <button
-            type="button"
-            class="hero__btn hero__btn--primary"
-            [disabled]="!canProceed()"
-            (click)="nextStep()"
-          >
-            Calculer ma prime
-            <ng-icon name="lucideArrowRight" size="16"></ng-icon>
-          </button>
-          }
-          } @else {
-          <button type="button" class="hero__btn hero__btn--outline" (click)="previousStep()">
-            <ng-icon name="lucideArrowLeft" size="16"></ng-icon>
-            Précédent
-          </button>
-          <button type="button" class="hero__btn hero__btn--primary" (click)="resetSimulation()">
-            Nouvelle simulation
-          </button>
-          }
-        </div>
-      </div>
-
-      <div
-        class="form-actions form-actions--desktop"
-        [class.result-actions]="currentStepData().isResult"
-      >
-        @if (!currentStepData().isResult) {
-        <button
-          type="button"
-          class="hero__btn hero__btn--outline"
-          [disabled]="!canGoBack()"
-          (click)="previousStep()"
-        >
-          <ng-icon name="lucideArrowLeft" size="16"></ng-icon>
-          Précédent
-        </button>
-
-        @if (currentStep() < 4) {
-        <button
-          type="button"
-          class="hero__btn hero__btn--primary"
-          [disabled]="!canProceed()"
-          (click)="nextStep()"
-        >
-          Suivant
-          <ng-icon name="lucideArrowRight" size="16"></ng-icon>
-        </button>
-        } @else {
-        <button
-          type="button"
-          class="hero__btn hero__btn--primary"
-          [disabled]="!canProceed()"
-          (click)="nextStep()"
-        >
-          Calculer ma prime
-          <ng-icon name="lucideArrowRight" size="16"></ng-icon>
-        </button>
         }
-        } @else {
-        <button type="button" class="hero__btn hero__btn--outline" (click)="previousStep()">
-          <ng-icon name="lucideArrowLeft" size="16"></ng-icon>
-          Précédent
-        </button>
-        <button type="button" class="hero__btn hero__btn--primary" (click)="resetSimulation()">
-          Nouvelle simulation
-        </button>
-        }
+      </form>
+
+      @if (!currentStepData().isResult) {
+      <div class="aud__secure">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path
+            d="M12 3 5 6v5c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Z"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linejoin="round"
+          />
+        </svg>
+        Vos données ne sont pas partagées.
       </div>
-    </main>
+      }
+    </div>
   </div>
 </div>

@@ -1,0 +1,152 @@
+/* ==========================================================================
+   Composants des pages de contenu (Solution, Secteurs, Partenaires) : héros, cartes, parcours, FAQ, CTA finale.
+   ========================================================================== */
+
+/* ==========================================================================
+   Joya Energy — pages de contenu (Solution · Secteurs · Partenaires)
+   ========================================================================== */
+:root { --navy: #12325A; --navy-2: #0A2038; --ink: #12325A; --ink-2: rgba(18,50,90,0.62); --sky-2: #EAF1F9; }
+/* Lenis pilote le défilement vertical : pas de « double smooth » navigateur */
+html { scroll-behavior:auto; }
+.accent { color:var(--navy); }
+/* libellé de section — maison : mono, navy, sans point corail, filet fin */
+.eyebrow { color:var(--navy); font-weight:500; gap:0 !important; }
+.eyebrow::before { display:none !important; }
+.eyebrow::after { content:""; display:inline-block; width:22px; height:1px; background:currentColor; margin-left:10px; opacity:.5; vertical-align:middle; }
+/* révélations « scrubbées » (repris de la landing) */
+[data-anim] { will-change:opacity, transform; }
+.cine-on [data-anim] { opacity:0; }
+@media (prefers-reduced-motion: reduce) {
+  [data-anim] { opacity:1 !important; transform:none !important; }
+}
+@media (hover:none),(pointer:coarse) {
+  body { cursor:auto; }
+}
+/* Header styles live only in navbar.component — do not restyle .nav here */
+/* ==========================================================================
+   HERO DE PAGE — même gabarit asymétrique que Ressources
+   ========================================================================== */
+.pg-hero { padding:clamp(164px,17vw,200px) 0 clamp(56px,6vw,80px); }
+.pg-hero__head { display:grid; grid-template-columns:1.3fr 1fr; gap:clamp(32px,5vw,64px); align-items:start; }
+.pg-hero h1 { font-family:var(--font-display); font-weight:800; letter-spacing:-0.035em; font-size:clamp(36px,4.8vw,58px); line-height:1.03; color:var(--navy); margin:18px 0 0; max-width:16ch; }
+.pg-hero h1 .accent { color:var(--coral); }
+/* hero → corail autorisé, comme la landing */
+.pg-hero__lead { font-size:15.5px; line-height:1.65; color:var(--ink); opacity:.72; padding-top:10px; margin:0; }
+.pg-hero__side { padding-top:10px; }
+.pg-hero__side .pg-hero__lead { padding-top:0; }
+.pg-hero__side .btn { margin-top:26px; }
+.pg-hero__media { margin-top:clamp(40px,5vw,60px); border-radius:28px; overflow:hidden; position:relative; aspect-ratio:21/8; background:var(--cream-2); box-shadow:0 30px 60px -38px rgba(9,20,34,0.4), 0 10px 24px -16px rgba(9,20,34,0.16); }
+.pg-hero__media img { width:100%; height:100%; object-fit:cover; display:block; }
+.pg-hero + .section { padding-top:clamp(56px,6vw,80px); }
+/* ==========================================================================
+   EN-TÊTE DE SECTION asymétrique (= .method-head)
+   ========================================================================== */
+.pg-head { display:grid; grid-template-columns:1.3fr 1fr; gap:clamp(32px,5vw,64px); align-items:start; margin-bottom:clamp(40px,5vw,56px); }
+.pg-head .eyebrow { margin-bottom:14px; }
+.pg-head h2 { font-family:var(--font-display); font-weight:800; letter-spacing:-0.035em; font-size:clamp(28px,3.4vw,42px); line-height:1.12; color:var(--navy); margin:0; }
+/* ==========================================================================
+   SPLIT — texte d'un côté, visuel de l'autre
+   ========================================================================== */
+.pg-split { display:grid; grid-template-columns:1fr 1.05fr; gap:clamp(36px,6vw,88px); align-items:center; }
+.pg-split--rev { grid-template-columns:1.05fr 1fr; }
+.pg-split--rev > :first-child { order:2; }
+.pg-split__body { display:flex; flex-direction:column; }
+.pg-split__body .eyebrow { margin-bottom:18px; align-self:flex-start; }
+.pg-split__body h2 { font-family:var(--font-display); font-weight:800; letter-spacing:-0.035em; font-size:clamp(28px,3.2vw,42px); line-height:1.1; color:var(--navy); margin:0 0 18px; }
+.pg-split__body > p { font-size:16px; line-height:1.62; color:var(--ink); opacity:.72; max-width:44ch; margin:0 0 26px; }
+.pg-list { list-style:none; margin:0 0 32px; padding:0; display:flex; flex-direction:column; gap:14px; }
+.pg-list li { position:relative; padding-left:20px; font-size:15px; line-height:1.5; color:rgba(18,50,90,0.78); }
+.pg-list li::before { content:""; position:absolute; left:0; top:.55em; width:6px; height:6px; border-radius:50%; background:var(--coral); }
+.pg-split__body .btn { align-self:flex-start; }
+/* ==========================================================================
+   CARTES — icône + titre + texte (= .scard de Ressources)
+   ========================================================================== */
+.pg-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+.pg-card { position:relative; background:#fff; border:1px solid rgba(23,59,94,.08); border-radius:22px; padding:clamp(26px,2.6vw,34px); display:flex; flex-direction:column; transition:transform .3s var(--ease-out,ease), box-shadow .3s var(--ease-out,ease); }
+.pg-card:hover { transform:translateY(-4px); box-shadow:0 28px 50px -30px rgba(18,50,90,.3); }
+.pg-card__n { position:absolute; top:clamp(26px,2.6vw,34px); right:clamp(26px,2.6vw,34px); font-family:var(--font-data); font-size:13px; letter-spacing:.06em; color:var(--coral-dark); }
+.pg-card .ic { width:52px; height:52px; border-radius:50%; background:var(--coral-tint,#FBE4DA); display:grid; place-items:center; color:var(--coral-dark); margin-bottom:22px; }
+.pg-card .ic svg { width:24px; height:24px; }
+.pg-card h3 { font-family:var(--font-display); font-weight:800; font-size:19px; letter-spacing:-.02em; line-height:1.2; color:var(--navy); margin:0 0 10px; }
+.pg-card p { font-size:14px; line-height:1.6; color:var(--ink); opacity:.68; margin:0; }
+/* ==========================================================================
+   PARCOURS — filet corail qui se trace + n° + libellé
+   ========================================================================== */
+.pg-steps { display:grid; gap:clamp(24px,3vw,40px); }
+.pg-steps--4 { grid-template-columns:repeat(4,1fr); }
+.pg-step { position:relative; padding-top:24px; }
+.pg-step__rule { position:absolute; left:0; top:0; right:14px; height:2px; background:var(--coral); transform:scaleX(0); transform-origin:left center; }
+.pg-step__in { opacity:0; transform:translateY(16px); }
+.pg-step__n { font-family:var(--font-data); font-weight:500; font-size:13px; letter-spacing:.06em; color:var(--coral-dark); }
+.pg-step__t { font-family:var(--font-display); font-weight:800; letter-spacing:-0.02em; font-size:19px; color:var(--navy); margin:11px 0 6px; }
+.pg-step__d { font-size:14px; line-height:1.55; color:var(--ink); opacity:.7; }
+.no-gsap .pg-step__rule { transform:scaleX(1); }
+.no-gsap .pg-step__in { opacity:1; transform:none; }
+@media (prefers-reduced-motion:reduce) {
+  .pg-step__rule { transform:scaleX(1) !important; }
+  .pg-step__in { opacity:1 !important; transform:none !important; }
+}
+/* ==========================================================================
+   PANNEAU NAVY + ITEMS (= .method-body de Ressources)
+   ========================================================================== */
+.pg-duo { display:grid; grid-template-columns:minmax(240px,34%) 1fr; gap:clamp(20px,2.4vw,28px); align-items:stretch; }
+.pg-panel { background:var(--navy); border-radius:22px; color:var(--cream); padding:clamp(28px,3vw,36px); display:flex; flex-direction:column; justify-content:space-between; gap:28px; min-height:320px; }
+.pg-panel h3 { font-family:var(--font-display); font-weight:700; letter-spacing:-0.015em; font-size:clamp(20px,2vw,24px); line-height:1.25; margin:0; color:var(--cream); }
+.pg-panel p { font-size:14px; line-height:1.6; color:rgba(255,250,246,0.72); margin:0; }
+.pg-flow { width:100%; max-width:220px; }
+.pg-items { display:flex; flex-direction:column; gap:clamp(16px,2vw,20px); }
+.pg-item { background:#fff; border-radius:18px; padding:clamp(20px,2.2vw,26px); display:flex; gap:16px; align-items:flex-start; flex:1; box-shadow:0 16px 34px -26px rgba(18,50,90,0.3); }
+.pg-item__icon { flex:none; width:44px; height:44px; border-radius:12px; background:var(--coral-tint,#FBE4DA); display:grid; place-items:center; }
+.pg-item__icon svg { width:20px; height:20px; color:var(--coral-dark); }
+.pg-item h3 { font-family:var(--font-display); font-weight:700; font-size:17px; color:var(--navy); margin:0 0 6px; }
+.pg-item p { font-size:13.5px; line-height:1.55; color:var(--ink); opacity:.72; margin:0; }
+/* ==========================================================================
+   PLATEFORME — portable dans un cadre bleu ciel (= .howto__media)
+   ========================================================================== */
+.pg-sky { border-radius:24px; overflow:hidden; background:linear-gradient(165deg, #dcecfa 0%, #bfdcf3 52%, #e9f3fb 100%); display:grid; place-items:center; padding:clamp(22px,3.4vw,44px) clamp(20px,3vw,40px) clamp(26px,3.6vw,48px); box-shadow:0 1px 0 rgba(255,255,255,0.85) inset, 0 30px 66px -32px rgba(15,42,68,0.32), 0 10px 24px -16px rgba(15,42,68,0.16); }
+/* ==========================================================================
+   CTA FINALE — photo plein cadre + lavis navy + titre lettre par lettre
+   ========================================================================== */
+.pg-cta { position:relative; overflow:hidden; isolation:isolate; background:var(--navy-2); color:var(--cream); text-align:center; padding:clamp(140px,19vw,240px) 0; }
+.pg-cta__bg { position:absolute; inset:-14% -7%; z-index:0; background:center 42%/cover no-repeat; will-change:transform, opacity; }
+.pg-cta__veil { position:absolute; inset:0; z-index:1; pointer-events:none; background: linear-gradient(180deg, rgba(9,24,44,0.46) 0%, rgba(9,24,44,0.20) 22%, rgba(9,24,44,0.30) 50%, rgba(6,17,33,0.82) 100%), radial-gradient(62% 44% at 50% 50%, rgba(6,16,32,0.66) 0%, rgba(6,16,32,0.12) 62%, rgba(6,16,32,0) 78%); }
+.pg-cta__inner { position:relative; z-index:2; }
+.pg-cta__inner > * { text-shadow:0 2px 24px rgba(4,12,24,0.45); }
+.pg-cta__title { font-family:var(--font-display); font-weight:800; letter-spacing:-0.035em; font-size:clamp(28px,3.2vw,44px); line-height:1.1; margin:0 auto; max-width:19ch; color:var(--cream); }
+.pg-cta__title .ct-w { display:inline-block; }
+.pg-cta__title .ct-l { display:inline-block; will-change:transform, filter, opacity; }
+.pg-cta__go { display:inline-flex; align-items:center; gap:9px; margin-top:24px; font:700 15px/1 var(--font-body); color:var(--cream); border-bottom:2px solid var(--coral); padding-bottom:6px; }
+.pg-cta__go svg { width:14px; height:14px; }
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+@media (max-width:1100px) {
+  .nav__links a { padding:10px 11px; font-size:14px; }
+}
+@media (max-width:900px) {
+  .pg-hero h1 { max-width:none; }
+  .pg-hero__head, .pg-head, .pg-split, .pg-split--rev, .pg-duo { grid-template-columns:1fr; gap:18px; }
+  .pg-split, .pg-split--rev { gap:36px; }
+  .pg-split--rev > :first-child { order:0; }
+  .pg-hero__lead, .pg-hero__side { padding-top:0; }
+  .pg-hero__media { aspect-ratio:16/9; border-radius:22px; }
+  .pg-cards { grid-template-columns:1fr; }
+  .pg-steps--4 { grid-template-columns:1fr 1fr; gap:28px 22px; }
+  .pg-step__rule { right:0; }
+  .pg-panel { min-height:0; }
+}
+@media (max-width:560px) {
+  .pg-steps--4 { grid-template-columns:1fr; }
+  .pg-hero__side .btn { width:100%; justify-content:center; }
+}
+/* zones tactiles ≥ 44 px sur mobile, sans changer l'aspect */
+@media (max-width:600px) {
+  .pg-cta__go { position:relative; }
+  .pg-cta__go::after { content:""; position:absolute; inset:-14px -6px; }
+  .footer-col a { display:inline-block; padding:10px 0; }
+}
+/* petits écrans : les boutons des sections peuvent passer à la ligne au lieu de déborder */
+@media (max-width:480px) {
+  .pg-split__body .btn { align-self:stretch; justify-content:space-between; white-space:normal; text-align:left; }
+}
+.pg-list--flush { margin-bottom:0; }

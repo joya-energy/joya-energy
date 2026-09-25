@@ -33,10 +33,12 @@ export class PlateformeDigitaleComponent implements OnInit {
 
   ngOnInit(): void {
     this.seoService.setSEO({
-      title: 'Plateforme digitale | JOYA Energy',
-      description: 'Suivez en temps réel votre consommation, votre production solaire et les économies réalisées en Tunisie grâce à notre plateforme digitale dédiée.',
+      title: 'Plateforme Photovoltaïque & Suivi Énergétique | Joya Energy',
+      description:
+        'Pilotez votre centrale photovoltaïque en temps réel. Suivez votre consommation, votre production solaire et vos économies avec la plateforme digitale Joya.',
       url: 'https://joya-energy.com/plateforme-digitale',
-      keywords: 'plateforme digitale Tunisie, suivi énergétique Tunisie, monitoring énergie Tunisie, dashboard énergétique, gestion énergie Tunisie, Tunisia',
+      keywords:
+        'plateforme digitale Tunisie, suivi énergétique Tunisie, monitoring énergie Tunisie, dashboard énergétique, gestion énergie Tunisie, Tunisia',
     });
   }
 }

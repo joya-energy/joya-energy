@@ -1,58 +1,384 @@
 <div class="landing-page">
-  <!-- Navbar intentionally left out (per request) -->
+  <main id="main" class="landing-page__main">
+    <!-- Hero -->
+    <section class="hero hero--centered">
+      <div class="hero-bg" aria-hidden="true">
+        <img
+          src="/handoff/images/hero-solar-roof-sunset.jpg"
+          alt=""
+          width="1920"
+          height="1080"
+          fetchpriority="high"
+        />
+      </div>
+      <div class="hero-scrim" aria-hidden="true"></div>
 
-  <main class="landing-page__main">
-    <app-landing-hero />
+      <div class="wrap hero-center">
+        <h1 class="js-in" style="--i: 0">
+          Passez au solaire.<br />Payez <span class="accent">moins cher</span>.
+        </h1>
+        <p class="hero-sub js-in" style="--i: 2">
+          Installation, suivi et service énergétique en un seul contrat.
+        </p>
+        <div class="hero-ctas js-in" style="--i: 3">
+          <a href="#simulateur" class="btn btn-coral">
+            <span>Estimer mon potentiel</span>
+            <span class="btn-puck" aria-hidden="true">
+              <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+                <path
+                  d="M3 11L11 3M11 3H4.5M11 3V9.5"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+          </a>
+          <a routerLink="/contact" class="hero-link">
+            Parler à un conseiller
+            <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path
+                d="M3 11L11 3M11 3H4.5M11 3V9.5"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </a>
+        </div>
+      </div>
 
-    <section class="landing-presim">
-      <div class="landing-presim__container">
-        <div class="landing-presim__header">
-          <app-landing-badge text="Pré‑estimation solaire" variant="secondary" />
-          <p class="landing-presim__subtitle">
-            Obtenez une
-            <span class="landing-presim__subtitle-accent">première estimation</span>
-            de vos économies et de la taille du système.
+      <div class="hero-analytics-wrap">
+        <div class="wrap">
+          <div class="hero-laptop js-in" style="--i: 4">
+            <div class="hero-laptop__screen">
+              <div class="hero-laptop__scaler" id="heroScaler">
+                <app-hero-os-dashboard dashId="heroOs" />
+              </div>
+            </div>
+            <div class="hero-laptop__base" aria-hidden="true"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Simulateur -->
+    <section class="section section-tint" id="simulateur">
+      <div class="wrap">
+        <div class="section-head reveal" data-anim>
+          <span class="eyebrow">Simulateur</span>
+          <h2>Combien pouvez-vous <span class="accent">économiser</span>&nbsp;?</h2>
+          <p>
+            Renseignez votre facture actuelle pour une première estimation. Aucune donnée
+            requise, aucun engagement.
+          </p>
+        </div>
+        <div class="reveal reveal-scale reveal-d1">
+          <app-pre-audit-solaire [embedded]="true" />
+        </div>
+      </div>
+    </section>
+
+    <!-- Comment ça marche -->
+    <section class="section" id="solution">
+      <div class="wrap">
+        <div class="howto">
+          <div class="howto__body reveal" data-anim>
+            <span class="eyebrow">Comment ça marche</span>
+            <h2>Le solaire, simplifié</h2>
+            <p>
+              <span class="t-d"
+                >Aucune complexité, aucune avance de trésorerie. On s'occupe de tout, de la
+                première analyse au suivi de vos économies.</span
+              >
+              <span class="t-m"
+                >Aucune complexité, aucune avance de trésorerie. On s'occupe de tout, de
+                l'analyse au suivi.</span
+              >
+            </p>
+            <a routerLink="/contact" class="btn btn-primary howto__cta">
+              <span>Lancer mon projet</span>
+              <span class="btn-puck" aria-hidden="true">
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+                  <path
+                    d="M3 11L11 3M11 3H4.5M11 3V9.5"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
+            </a>
+          </div>
+
+          <ol class="howto__steps" id="howtoSteps">
+            <li class="howto__step">
+              <span class="howto__step__n">01</span>
+              <div class="howto__step__t">Analyse</div>
+              <p class="howto__step__d">On analyse votre facture, votre site et votre potentiel.</p>
+            </li>
+            <li class="howto__step">
+              <span class="howto__step__n">02</span>
+              <div class="howto__step__t">Éligibilité</div>
+              <p class="howto__step__d">
+                On vérifie votre éligibilité — confirmée sous 48&nbsp;heures.
+              </p>
+            </li>
+            <li class="howto__step">
+              <span class="howto__step__n">03</span>
+              <div class="howto__step__t">Installation</div>
+              <p class="howto__step__d">On installe, clé en main. 0&nbsp;DT à avancer.</p>
+            </li>
+            <li class="howto__step">
+              <span class="howto__step__n">04</span>
+              <div class="howto__step__t">Économies</div>
+              <p class="howto__step__d">Vous économisez, mesuré dès le premier mois.</p>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- Joya OS -->
+    <section class="section section-tint" id="plateforme">
+      <div class="wrap">
+        <div class="section-head center reveal" data-anim>
+          <span class="eyebrow">La Plateforme énergétique</span>
+          <h2>Joya&nbsp;OS</h2>
+          <p>
+            <span class="t-d"
+              >Connecter, digitaliser, décarboner : Joya&nbsp;OS relie vos installations, vos
+              économies et votre contrat dans un seul espace.</span
+            >
+            <span class="t-m"
+              >Joya&nbsp;OS relie vos installations, vos économies et votre contrat dans un
+              seul espace.</span
+            >
+          </p>
+        </div>
+
+        <div class="plat">
+          <article class="plat-card reveal reveal-d1">
+            <h3>Pour les clients</h3>
+            <p>Installation, suivi et service énergétique dans un seul contrat.</p>
+            <div class="plat-card__media">
+              <img
+                src="/handoff/images/client-and-installer-handshake-wind-farm.jpg"
+                alt="Un dirigeant et un partenaire Joya sur un site équipé en solaire"
+                width="640"
+                height="440"
+                loading="lazy"
+              />
+            </div>
+          </article>
+
+          <article class="plat-card plat-card--feature reveal reveal-d2">
+            <h3>L'IA de la transition<br />énergétique</h3>
+            <p>Production, économies et performance, suivies en temps réel.</p>
+            <div class="plat-card__media">
+              <div
+                class="laptop"
+                role="img"
+                aria-label="Le tableau de bord Joya OS affiché sur un ordinateur portable"
+              >
+                <div class="laptop__screen">
+                  <img
+                    class="plat-fallback"
+                    src="/handoff/images/joya-os-dashboard-screenshot.png"
+                    alt=""
+                    width="1200"
+                    height="750"
+                    loading="lazy"
+                  />
+                  <div class="plat-scaler" id="platScaler">
+                    <app-hero-os-dashboard
+                      dashId="platOs"
+                      [decorative]="true"
+                      observeClosest=".laptop"
+                    />
+                  </div>
+                </div>
+                <div class="laptop__base"></div>
+              </div>
+            </div>
+          </article>
+
+          <article class="plat-card reveal reveal-d3">
+            <h3>Pour les installateurs</h3>
+            <p>Suivi des chantiers, données de performance et projets accompagnés.</p>
+            <div class="plat-card__media">
+              <img
+                src="/handoff/images/installer-crouching-on-solar-array-sunset.jpg"
+                alt="Installateur partenaire Joya sur une toiture solaire"
+                width="640"
+                height="440"
+                loading="lazy"
+              />
+            </div>
+          </article>
+        </div>
+
+        <div class="plateforme-cta reveal reveal-d4">
+          <a routerLink="/plateforme-digitale" class="btn btn-outline btn-plain"
+            >Découvrir Joya OS</a
+          >
+        </div>
+      </div>
+    </section>
+
+    <!-- Secteurs — sticky stack + animated graphs (handoff) -->
+    <section class="section" id="secteurs">
+      <div class="wrap">
+        <div class="section-head reveal" data-anim>
+          <span class="eyebrow">Secteurs</span>
+          <h2>Fait pour votre activité</h2>
+          <p>
+            <span class="t-d"
+              >Industrie, tertiaire, agriculture, tourisme, commerce — chaque secteur a ses
+              besoins, et sa trajectoire d'économies.</span
+            >
+            <span class="t-m">Chaque secteur a ses besoins, et sa trajectoire d'économies.</span>
           </p>
         </div>
       </div>
-      <app-pre-audit-solaire [embedded]="true" />
-    </section>
 
-    <app-landing-joya-presentation />
-
-    <app-landing-esco-explanation />
-
-    <app-landing-how-it-works />
-
-    <!-- <app-landing-simple-section
-      id="estimation"
-      badge="Estimation solaire"
-      title="Estimez votre potentiel solaire"
-      subtitle="En quelques clics, obtenez une première estimation de votre potentiel solaire et des économies énergétiques possibles."
-    >
-      <div class="two-col">
-        <div class="panel">
-          <div class="panel__title">Entrez vos informations</div>
-          <div class="panel__field">
-            <label>Consommation mensuelle (kWh/mois)</label>
-            <input class="input" type="number" placeholder="Ex: 500" />
+      <div class="sector-stack">
+        <div class="wrap">
+          <div class="sector-stack__stack" id="sectorStack">
+            @for (sector of sectors; track sector.n) {
+            <article class="sec-card reveal">
+              <div class="sec-card__text">
+                <span class="eyebrow">Secteur&nbsp;{{ sector.n }}</span>
+                <h3>{{ sector.title }}</h3>
+                <p>{{ sector.body }}</p>
+                <ul class="sec-card__list">
+                  @for (item of sector.bullets; track item) {
+                  <li>{{ item }}</li>
+                  }
+                </ul>
+                <a href="#simulateur" class="btn btn-outline btn-plain sec-card__cta"
+                  >Estimer mon potentiel</a
+                >
+              </div>
+              <div class="sec-card__visual">
+                <div class="sec-card__photo">
+                  <img
+                    [src]="sector.image"
+                    [alt]="sector.alt"
+                    width="640"
+                    height="420"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="sec-card__graph">
+                  @if (sector.graph.kind === 'tri') {
+                  <div class="jg jg-tri" role="img" [attr.aria-label]="sector.graph.ariaLabel">
+                    <span class="jg__title">{{ sector.graph.title }}</span>
+                    <div class="jg-tri__bars">
+                      @for (col of sector.graph.cols; track col.label) {
+                      <div class="jg-tri__col">
+                        <b>{{ col.value }}<i>%</i></b>
+                        <span class="jg-tri__track">
+                          <span
+                            class="jg-tri__fill"
+                            [style.--h]="col.height"
+                            [style.--d]="col.delay"
+                          ></span>
+                        </span>
+                        <span class="jg-tri__lbl">{{ col.label }}</span>
+                      </div>
+                      }
+                    </div>
+                  </div>
+                  } @else {
+                  <div class="jg jg-gauge" role="img" [attr.aria-label]="sector.graph.ariaLabel">
+                    <span class="jg__title">{{ sector.graph.title }}</span>
+                    <div class="jg-gauge__wrap">
+                      <svg class="jg-gauge__svg" viewBox="0 0 200 118" aria-hidden="true">
+                        <path class="jg-gauge__track" d="M12 100 A 88 88 0 0 1 188 100" />
+                        <path
+                          class="jg-gauge__arc"
+                          [style.--off]="sector.graph.offset"
+                          d="M12 100 A 88 88 0 0 1 188 100"
+                        />
+                      </svg>
+                      <div class="jg-gauge__center">
+                        <b>{{ sector.graph.value }}&nbsp;%</b>
+                      </div>
+                    </div>
+                    <span class="jg-gauge__lbl">{{ sector.graph.label }}</span>
+                  </div>
+                  }
+                </div>
+              </div>
+            </article>
+            }
           </div>
-          <div class="panel__field">
-            <label>Adresse</label>
-            <input class="input" type="text" placeholder="Entrez votre adresse..." />
-          </div>
-          <button class="btn">Estimer mon potentiel solaire</button>
-        </div>
-
-        <div class="map">
-          <div class="map__placeholder">Carte (placeholder)</div>
-          <div class="map__hint">Cliquez sur la carte pour positionner votre bâtiment.</div>
         </div>
       </div>
-    </app-landing-simple-section> -->
+    </section>
 
-    <app-landing-faq />
+    <section class="impact-cine" id="impact" data-scenes>
+      <div class="impact-cine__bg" id="impactBg" aria-hidden="true"></div>
+      <div class="impact-cine__veil" aria-hidden="true"></div>
+      <div class="impact-cine__seam" aria-hidden="true"></div>
+      <div class="wrap impact-cine__inner" id="impactInner">
+        <span class="eyebrow eyebrow--on-dark reveal">Impact</span>
+        <h2 class="impact-cine__title reveal reveal-d1">
+          Un impact mesurable,<br /><span class="accent">aujourd'hui</span>.
+        </h2>
+        <p class="impact-cine__lead reveal reveal-d2">
+          <span class="t-d"
+            >Chaque projet solaire devient une performance concrète&nbsp;: des coûts réduits
+            durablement, et moins de dépendance au réseau.</span
+          >
+          <span class="t-m">Des coûts réduits durablement, et moins de dépendance au réseau.</span>
+        </p>
+        <div class="impact-cine__stats reveal reveal-d3" id="impactMetrics">
+          <div class="impact-stat">
+            <b><span class="impact-count" data-target="245">0</span><i>+&nbsp;MWc</i></b>
+            <span>Puissance installée</span>
+          </div>
+          <div class="impact-stat">
+            <b><span class="impact-count" data-target="98450">0</span><i>+&nbsp;t</i></b>
+            <span>CO&#8322; évité</span>
+          </div>
+          <div class="impact-stat">
+            <b><span class="impact-count" data-target="40">0</span><i>%</i></b>
+            <span>d'économies moyennes</span>
+          </div>
+          <div class="impact-stat">
+            <b><span class="impact-count" data-target="127">0</span><i>+</i></b>
+            <span>entreprises accompagnées</span>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    <!-- Footer intentionally left out (per request) -->
+    <!-- FAQ -->
+    <section class="section section-tint" id="faq">
+      <div class="wrap">
+        <div class="pg-faq">
+          <div class="pg-faq__head reveal" data-anim>
+            <span class="eyebrow">FAQ</span>
+            <h2 class="pg-h2">Questions fréquentes</h2>
+          </div>
+          <div class="pg-faq__list reveal reveal-d1" data-anim>
+            @for (item of faqItems; track item.question; let first = $first) {
+            <details class="pg-q" [open]="first">
+              <summary>
+                {{ item.question }}
+                <span class="pg-q__ic" aria-hidden="true"></span>
+              </summary>
+              <p class="pg-q__a">{{ item.answer }}</p>
+            </details>
+            }
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 </div>

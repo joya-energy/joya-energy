@@ -30,23 +30,26 @@ export class PlateformeDigitaleDailyTrackingComponent {
     {
       icon: 'lucideZap',
       title: 'Consommation énergétique',
-      description: 'Suivi de votre consommation réelle, par période, par site et par usage.',
+      description:
+        'Suivez votre consommation réelle par période, par site et par usage lorsque ces données sont disponibles.',
     },
     {
       icon: 'lucideSun',
       title: 'Production solaire',
       description:
-        'Visualisation de la production solaire et de son impact sur votre consommation globale.',
+        'Suivez le rendement continu de vos panneaux photovoltaïques et comparez-le aux prévisions.',
     },
     {
       icon: 'lucideTrendingDown',
       title: 'Économies réalisées',
-      description: 'Mesure des économies générées, comparées à votre situation de référence.',
+      description:
+        'Visualisez les gains financiers générés et constatez la réduction directe de votre facture STEG.',
     },
     {
       icon: 'lucideTrendingUp',
       title: 'Performance globale',
-      description: 'Indicateurs synthétiques pour suivre la performance énergétique dans le temps.',
+      description:
+        "Suivez l'évolution des principaux indicateurs énergétiques dans le temps.",
     },
   ];
 }

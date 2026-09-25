@@ -1,832 +1,916 @@
-<div class="bilan-carbon-page">
-  <div class="simulator-container">
-    <!-- Sidebar with Step Progress -->
-    <aside class="simulator-sidebar">
-      <div class="sidebar-steps">
-        @for (step of steps; track step.number) {
-        <div
-          class="sidebar-step-item"
-          [class.active]="currentStep() === step.number"
-          [class.clickable]="isStepClickable(step.number) && !step.isResult"
-          [class.disabled]="!isStepClickable(step.number) && !step.isResult"
-          (click)="!step.isResult && goToStep(step.number)"
-        >
-          @if (!step.isResult) {
-          <app-ui-progress-bar
-            [step]="step.number"
-            [title]="step.title"
-            [progress]="stepProgress()[step.number]"
-            [completed]="stepProgress()[step.number] === 100"
-            [isFocused]="currentStep() === step.number"
-            class="sidebar-progress-bar"
-          >
-          </app-ui-progress-bar>
-          } @else {
-          <div class="sidebar-result-step" [class.active]="currentStep() === step.number">
-            <div class="sidebar-result-step-left">
-              <div
-                class="sidebar-step-circle result"
-                [class.active]="currentStep() === step.number"
-              >
-                <span class="step-number">{{ step.number }}</span>
-              </div>
-            </div>
-            <div class="sidebar-result-step-right">
-              <h3 class="sidebar-step-title">{{ step.title }}</h3>
-            </div>
-          </div>
-          }
-        </div>
+<div class="aud-page-root" [class.is-result]="currentStepData().isResult">
+  <div class="aud__stage" aria-hidden="true">
+    <div class="aud__flow a"></div>
+    <div class="aud__flow b"></div>
+    <div class="aud__flow c"></div>
+  </div>
+  <div class="aud__grain" aria-hidden="true"></div>
+
+  <div class="aud" id="audRoot">
+    <div
+      class="aud__card"
+      id="audCard"
+      [class.aud__card--wide]="currentStepData().isResult"
+    >
+      @if (currentStep() === 1) {
+      <a routerLink="/ressources" class="aud__back">
+        <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path
+            d="M11 7H3M6 3 2 7l4 4"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <span>Retour aux ressources</span>
+      </a>
+      } @else {
+      <button type="button" class="aud__back" (click)="previousStep()">
+        <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path
+            d="M11 7H3M6 3 2 7l4 4"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <span>{{ currentStepData().isResult ? 'Modifier mes réponses' : 'Étape précédente' }}</span>
+      </button>
+      }
+
+      @if (!currentStepData().isResult) {
+      <div class="aud__prog">
+        <div class="aud__ptrack"><i [style.width.%]="audProgressPct()"></i></div>
+        <div class="aud__eb">Étape {{ currentStep() }} sur {{ steps.length }}</div>
+      </div>
+
+      <div class="aud__lede">
+        <span class="aud__kicker">Calculateur bilan carbone</span>
+        <h1 class="aud__q" id="audQ">{{ currentStepData().title }}</h1>
+        @if (currentStepData().description) {
+        <p class="aud__sub">{{ currentStepData().description }}</p>
         }
       </div>
-    </aside>
+      }
 
-    <!-- Main Content -->
-    <main class="simulator-main">
-      <!-- Fixed Timeline Header -->
-      <div class="form-timeline-header">
-        <div class="step-progress-header">
-          <span class="step-indicator">Étape {{ currentStep() }} sur {{ steps.length }}</span>
-          <span class="step-completion">Progression: {{ overallProgress() }}%</span>
-        </div>
-        <app-ui-step-timeline [currentStep]="currentStep()" [totalSteps]="steps.length">
-        </app-ui-step-timeline>
-      </div>
+      <form [formGroup]="form" id="audForm" novalidate autocomplete="off">
+        <!-- ═══ STEP 1 — Secteur & général ═══ -->
+        @if (currentStep() === 1) {
+        <div class="aud__step" data-step="1" formGroupName="general">
+          <div class="f">
+            <label class="lab">Secteur d'activité <span class="req">*</span></label>
+            <app-ui-select
+              formControlName="sector"
+              [options]="sectorOptionsForSelect"
+              placeholder="Sélectionnez votre secteur"
+              variant="dropdown-icon"
+            >
+            </app-ui-select>
+          </div>
 
-      <!-- Scrollable Step Content Area -->
-      <div class="form-content-scrollable">
-        <div class="form-content">
-          <div class="step-content" [attr.data-step]="currentStep()">
-            @if (currentStepData().isResult && result(); as r) {
-            <!-- Results View -->
-            <div class="results-content" [@resultCards]>
-              <!-- Results Header -->
-              <div class="results-header">
-                <div class="header-icon">
-                  <ng-icon name="lucideLeaf" class="leaf-icon"></ng-icon>
-                </div>
-                <div class="header-content">
-                  <h2 class="results-title">Rapport Bilan Carbone</h2>
-                  <p class="results-subtitle">Analyse détaillée de votre empreinte carbone</p>
-                  <div class="results-meta">
-                    <span class="meta-item">
-                      <ng-icon name="lucideActivity" class="meta-icon"></ng-icon>
-                      {{ r.co2TotalTonnes | noGrouping : '1.1-1' }} tCO2e
-                    </span>
-                  </div>
-                </div>
-              </div>
+          <div class="f">
+            <label class="lab" for="bcCompany">Nom du site / de l'entreprise</label>
+            <div class="ctrl">
+              <input
+                class="in"
+                id="bcCompany"
+                type="text"
+                formControlName="companyName"
+                placeholder="Nom du site"
+                autocomplete="organization"
+              />
+            </div>
+          </div>
 
-              <!-- Executive Summary Cards -->
-              <div class="executive-summary">
-                <div class="summary-card primary">
-                  <div class="card-header">
-                    <div class="card-icon">
-                      <ng-icon name="lucideFlame"></ng-icon>
-                    </div>
-                    <div class="card-category">Émissions</div>
-                  </div>
-                  <div class="card-content">
-                    <div class="card-value">
-                      {{ r.co2TotalTonnes | noGrouping : '1.1-1' }} <span class="unit">tCO2e</span>
-                    </div>
-                    <div class="card-label">Émissions totales</div>
-                    <div class="card-description">Empreinte carbone annuelle</div>
-                  </div>
-                  <div class="card-accent"></div>
-                </div>
+          <div class="f">
+            <label class="lab" for="bcGov">Ville / gouvernorat</label>
+            <div class="ctrl">
+              <select class="in sel" id="bcGov" formControlName="cityGovernorate">
+                <option value="" disabled>Sélectionnez…</option>
+                @for (opt of governorateOptions; track opt.value) {
+                <option [ngValue]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+              <span class="chevd"></span>
+            </div>
+          </div>
 
-                <div class="summary-card success">
-                  <div class="card-header">
-                    <div class="card-icon">
-                      <ng-icon name="lucideUsers"></ng-icon>
-                    </div>
-                    <div class="card-category">Par employé</div>
-                  </div>
-                  <div class="card-content">
-                    <div class="card-value">
-                      {{ emissionsPerEmployee(r) | noGrouping : '1.1-1' }}
-                      <span class="unit">tCO2e</span>
-                    </div>
-                    <div class="card-label">Émissions par employé</div>
-                    <div class="card-description">Par tête</div>
-                  </div>
-                  <div class="card-accent"></div>
-                </div>
+          <div class="f">
+            <span class="lab">Zone climatique <span class="req">*</span></span>
+            <div class="chips" role="group" aria-label="Zone climatique">
+              @for (opt of zoneOptions; track opt.value) {
+              <button
+                type="button"
+                class="chip"
+                [attr.aria-pressed]="form.controls.general.controls.zone.value === opt.value"
+                (click)="setChipValue('general.zone', opt.value)"
+              >
+                {{ opt.label }}
+              </button>
+              }
+            </div>
+          </div>
 
-                <div class="summary-card info">
-                  <div class="card-header">
-                    <div class="card-icon">
-                      <ng-icon name="lucideActivity"></ng-icon>
-                    </div>
-                    <div class="card-category">Intensité</div>
-                  </div>
-                  <div class="card-content">
-                    <div class="card-value">
-                      {{ intensity(r) | noGrouping : '1.1-1' }} <span class="unit">kg CO₂e/m²</span>
-                    </div>
-                    <div class="card-label">Intensité carbone</div>
-                    <div class="card-description">Émissions par m² de surface</div>
-                  </div>
-                  <div class="card-accent"></div>
-                </div>
-              </div>
-
-              <!-- Emissions Detail Section -->
-              <div class="analysis-section">
-                <div class="section-header">
-                  <h3 class="section-title">
-                    <ng-icon name="lucideTrendingUp" class="section-icon"></ng-icon>
-                    Détail de vos émissions
-                  </h3>
-                  <p class="section-description">Répartition par scopes et catégories</p>
-                </div>
-
-                <div class="emissions-detail-grid">
-                  <div class="emissions-card">
-                    <h3 class="emissions-card__title">Par scopes</h3>
-                    <p class="emissions-card__subtitle">Répartition GES</p>
-                    <ul class="scope-legend">
-                      <li>
-                        <span class="scope-dot scope-dot--1"></span>
-                        Scope 1
-                        <span class="scope-pct">{{ scopePct(1, r) }} %</span>
-                      </li>
-                      <li>
-                        <span class="scope-dot scope-dot--2"></span>
-                        Scope 2
-                        <span class="scope-pct">{{ scopePct(2, r) }} %</span>
-                      </li>
-                      <li>
-                        <span class="scope-dot scope-dot--3"></span>
-                        Scope 3
-                        <span class="scope-pct">{{ scopePct(3, r) }} %</span>
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div class="emissions-card">
-                    <h3 class="emissions-card__title">Par catégories</h3>
-                    <p class="emissions-card__subtitle">Sources d'émissions</p>
-                    <div class="categories-block">
-                      <div class="donut-wrapper">
-                        <div
-                          class="donut-chart donut-chart--4"
-                          [style.--donut-energie]="categoryPct('energie_directe', r)"
-                          [style.--donut-electricite]="categoryPct('electricite', r)"
-                          [style.--donut-deplacements]="categoryPct('deplacements', r)"
-                          [style.--donut-it]="categoryPct('equipements_it', r)"
-                        ></div>
-                      </div>
-                      <ul class="category-legend category-legend--with-subtitle">
-                        <li>
-                          <span class="category-dot category-dot--energie"></span>
-                          <span class="category-label">
-                            <span class="category-title">Énergie directe</span>
-                            <span class="category-subtitle"
-                              >chaleur, climatisation & froid, véhicules</span
-                            >
-                          </span>
-                          <span class="scope-pct">{{ categoryPct('energie_directe', r) }} %</span>
-                        </li>
-                        <li>
-                          <span class="category-dot category-dot--electricite"></span>
-                          <span class="category-label">
-                            <span class="category-title">Électricité</span>
-                            <span class="category-subtitle"
-                              >poste principal – réductible par le solaire</span
-                            >
-                          </span>
-                          <span class="scope-pct">{{ categoryPct('electricite', r) }} %</span>
-                        </li>
-                        <li>
-                          <span class="category-dot category-dot--deplacements"></span>
-                          <span class="category-label">
-                            <span class="category-title">Déplacements professionnels</span>
-                            <span class="category-subtitle">avion, train</span>
-                          </span>
-                          <span class="scope-pct">{{ categoryPct('deplacements', r) }} %</span>
-                        </li>
-                        <li>
-                          <span class="category-dot category-dot--it"></span>
-                          <span class="category-label">
-                            <span class="category-title">Équipements informatiques</span>
-                            <span class="category-subtitle">ordinateurs, écrans, téléphones</span>
-                          </span>
-                          <span class="scope-pct">{{ categoryPct('equipements_it', r) }} %</span>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Scopes (recommendation-style cards) -->
-              <div class="analysis-section">
-                <div class="section-header">
-                  <h3 class="section-title">
-                    <ng-icon name="lucideTrendingUp" class="section-icon"></ng-icon>
-                    Détail par scope
-                  </h3>
-                  <p class="section-description">
-                    Répartition de vos émissions selon les scopes GES
-                  </p>
-                </div>
-                <div class="recommendations">
-                  <div class="recommendation-item">
-                    <div class="recommendation-icon">
-                      <ng-icon name="lucideFlame"></ng-icon>
-                    </div>
-                    <div class="recommendation-content">
-                      <h4>Scope 1 – Émissions directes</h4>
-                      <p>
-                        Émissions de gaz à effet de serre directement générées par les activités
-                        contrôlées par l’entreprise, sur son site ou via ses équipements.
-                      </p>
-                    </div>
-                  </div>
-                  <div class="recommendation-item">
-                    <div class="recommendation-icon">
-                      <ng-icon name="lucideZap"></ng-icon>
-                    </div>
-                    <div class="recommendation-content">
-                      <h4>Scope 2 – Électricité</h4>
-                      <p>
-                        Émissions indirectes liées à la production de l’électricité consommée par
-                        l’entreprise, émises hors du site.
-                      </p>
-                    </div>
-                  </div>
-                  <div class="recommendation-item">
-                    <div class="recommendation-icon">
-                      <ng-icon name="lucideGlobe"></ng-icon>
-                    </div>
-                    <div class="recommendation-content">
-                      <h4>Scope 3 – Autres indirectes</h4>
-                      <p>
-                        Ensemble des autres émissions indirectes liées aux activités de
-                        l’entreprise, en amont et en aval, hors énergie.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Recommendation -->
-              <div class="analysis-section">
-                <div class="section-header">
-                  <h3 class="section-title">
-                    Recommandation clé pour la réduction des émissions de CO2
-                  </h3>
-                </div>
-                <div class="recommendation-block">
-                  <div class="recommendation-block__header">
-                    <span class="recommendation-block__tag">RECOMMANDATION</span>
-                  </div>
-                  <p class="recommendation-block__text recommendation-block__text--primary">
-                    En Tunisie, l'électricité constitue l'un des principaux postes d'émissions de
-                    carbone pour les entreprises.
-                  </p>
-                  <p class="recommendation-block__text recommendation-block__text--secondary">
-                    La production d'électricité solaire photovoltaïque permet de réduire
-                    significativement ces émissions, tout en améliorant durablement la performance
-                    économique de l'entreprise.
-                  </p>
-                </div>
+          <div class="grid2">
+            <div class="f">
+              <label class="lab" for="bcYear">Année de référence <span class="req">*</span></label>
+              <div class="ctrl">
+                <input
+                  class="in num"
+                  id="bcYear"
+                  type="number"
+                  inputmode="numeric"
+                  formControlName="referenceYear"
+                  placeholder="2024"
+                />
               </div>
             </div>
-            } @else {
-            <!-- Form Steps -->
-            <form [formGroup]="form" class="simulator-form">
-              <div class="simulator-form-header">
-                <h3 class="simulator-form-title">Calculateur Bilan Carbone</h3>
-                <h2 class="step-title">{{ currentStepData().title }}</h2>
-                @if (currentStepData().description) {
-                <p class="step-description">{{ currentStepData().description }}</p>
+            <div class="f">
+              <label class="lab" for="bcSurface">Surface du site <span class="req">*</span></label>
+              <div class="ctrl">
+                <input
+                  class="in num"
+                  id="bcSurface"
+                  type="number"
+                  inputmode="decimal"
+                  formControlName="surfaceM2"
+                  min="1"
+                  placeholder="0"
+                />
+                <span class="suf">m²</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="f" style="margin-bottom: 0">
+            <label class="lab" for="bcEmp">Employés sur site <span class="req">*</span></label>
+            <div class="ctrl">
+              <input
+                class="in num"
+                id="bcEmp"
+                type="number"
+                inputmode="numeric"
+                formControlName="numberOfEmployees"
+                min="0"
+                placeholder="0"
+              />
+            </div>
+          </div>
+
+          <div class="aud__actions">
+            <button
+              type="button"
+              class="btn-next aud__continue"
+              [disabled]="isSubmitting()"
+              (click)="nextStep()"
+            >
+              <span>Continuer</span>
+              <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path
+                  d="M3 7h8M7 3l4 4-4 4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        }
+
+        <!-- ═══ STEP 2 — Électricité & IT ═══ -->
+        @if (currentStep() === 2) {
+        <div class="aud__step" data-step="2">
+          <div formGroupName="electricity">
+            <div class="f">
+              <label class="lab" for="bcBill"
+                >Facture d'électricité mensuelle <span class="req">*</span></label
+              >
+              <div class="ctrl">
+                <input
+                  class="in num"
+                  id="bcBill"
+                  type="number"
+                  inputmode="decimal"
+                  formControlName="monthlyBillAmountDt"
+                  min="0"
+                  placeholder="0"
+                />
+                <span class="suf">DT</span>
+              </div>
+            </div>
+
+            <div class="f">
+              <span class="lab">Type de raccordement</span>
+              <div class="chips" role="group" aria-label="Type de raccordement">
+                @for (opt of tariffOptions; track opt.value) {
+                <button
+                  type="button"
+                  class="chip"
+                  [attr.aria-pressed]="
+                    form.controls.electricity.controls.tariffType.value === opt.value
+                  "
+                  (click)="setChipValue('electricity.tariffType', opt.value)"
+                >
+                  {{ opt.label }}
+                </button>
                 }
               </div>
+            </div>
 
-              <!-- Step 1: Sector & General -->
-              @if (currentStep() === 1) {
-              <div [@stepTransition]="currentStep()" formGroupName="general">
-                <div class="form-section-header">Secteur d'activité *</div>
-                <div class="form-field">
-                  <app-ui-select
-                    formControlName="sector"
-                    label="Secteur d'activité"
-                    [required]="true"
-                    [options]="sectorOptionsForSelect"
-                    placeholder="Sélectionnez votre secteur"
-                    variant="dropdown-icon"
-                  >
-                  </app-ui-select>
-                </div>
-
-                <div class="form-section-header" style="margin-top: 2rem">
-                  Informations générales
-                </div>
-                <div class="form-grid">
-                  <div class="form-field">
-                    <app-ui-input
-                      formControlName="companyName"
-                      type="text"
-                      label="Nom de l'entreprise / site"
-                      placeholder="Nom du site"
-                      size="md"
-                    >
-                    </app-ui-input>
-                  </div>
-                  <div class="form-field">
-                    <app-ui-select
-                      formControlName="cityGovernorate"
-                      label="Ville / Gouvernorat"
-                      [options]="governorateOptions"
-                      placeholder="Sélectionnez..."
-                      variant="dropdown"
-                    >
-                    </app-ui-select>
-                  </div>
-                  <div class="form-field">
-                    <app-ui-select
-                      formControlName="zone"
-                      label="Zone climatique *"
-                      [options]="zoneOptions"
-                      placeholder="Sélectionnez..."
-                      [required]="true"
-                      variant="dropdown"
-                    >
-                    </app-ui-select>
-                  </div>
-                  <div class="form-field">
-                    <app-ui-input
-                      formControlName="referenceYear"
-                      type="number"
-                      label="Année de référence *"
-                      placeholder="Ex: 2024"
-                      [required]="true"
-                      size="md"
-                    >
-                    </app-ui-input>
-                  </div>
-                  <div class="form-field">
-                    <app-ui-input
-                      formControlName="surfaceM2"
-                      type="number"
-                      label="Surface du site (m²) *"
-                      placeholder="m²"
-                      [required]="true"
-                      size="md"
-                    >
-                    </app-ui-input>
-                  </div>
-                  <div class="form-field">
-                    <app-ui-input
-                      formControlName="numberOfEmployees"
-                      type="number"
-                      label="Nombre d'employés sur site"
-                      placeholder="Nombre"
-                      size="md"
-                      [required]="true"
-                    >
-                    </app-ui-input>
-                  </div>
-                </div>
-              </div>
-              }
-
-              <!-- Step 2: Electricity + IT -->
-              @if (currentStep() === 2) {
-              <div [@stepTransition]="currentStep()">
-                <div class="form-section" formGroupName="electricity">
-                  <div class="form-section-header">Électricité *</div>
-                  <div class="form-grid">
-                    <div class="form-field">
-                      <app-ui-input
-                        formControlName="monthlyBillAmountDt"
-                        type="number"
-                        label="Montant moyen mensuel de la facture (DT) *"
-                        placeholder="DT / mois"
-                        [required]="true"
-                        size="md"
-                      >
-                      </app-ui-input>
-                    </div>
-                    <div class="form-field">
-                      <app-ui-select
-                        formControlName="tariffType"
-                        label="Type de raccordement"
-                        [options]="tariffOptions"
-                        variant="dropdown"
-                      >
-                      </app-ui-select>
-                    </div>
-                    <div class="form-field">
-                      <app-ui-select
-                        formControlName="referenceMonth"
-                        label="Mois de référence de la facture *"
-                        [options]="monthOptionsForSelect"
-                        [required]="true"
-                        placeholder="Sélectionnez..."
-                        variant="dropdown"
-                      >
-                      </app-ui-select>
-                    </div>
-                  </div>
-                </div>
-                <div class="form-section" formGroupName="itEquipment" style="margin-top: 2rem">
-                  <div class="form-section-header">Équipements IT</div>
-                  <div class="form-grid">
-                    <div class="form-field">
-                      <app-ui-input
-                        formControlName="laptopCount"
-                        type="number"
-                        label="Ordinateurs portables"
-                        placeholder="0"
-                        size="md"
-                      >
-                      </app-ui-input>
-                    </div>
-                    <div class="form-field">
-                      <app-ui-input
-                        formControlName="desktopCount"
-                        type="number"
-                        label="Ordinateurs fixes"
-                        placeholder="0"
-                        size="md"
-                      >
-                      </app-ui-input>
-                    </div>
-                    <div class="form-field">
-                      <app-ui-input
-                        formControlName="screenCount"
-                        type="number"
-                        label="Écrans"
-                        placeholder="0"
-                        size="md"
-                      >
-                      </app-ui-input>
-                    </div>
-                    <div class="form-field">
-                      <app-ui-input
-                        formControlName="proPhoneCount"
-                        type="number"
-                        label="Téléphones professionnels"
-                        placeholder="0"
-                        size="md"
-                      >
-                      </app-ui-input>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              }
-
-              <!-- Step 3: Heat, Cold, Vehicles & Travel -->
-              @if (currentStep() === 3) {
-              <div [@stepTransition]="currentStep()">
-                <!-- Heat -->
-                <div class="form-section" formGroupName="heat">
-                  <div class="form-section-header">Chaleur / énergie thermique</div>
-                  <div class="yes-no-question">
-                    <span class="yes-no-label"
-                      >Des usages de chaleur sont-ils présents sur le site ?</span
-                    >
-                    <div class="radio-group">
-                      <label>
-                        <input type="radio" [value]="true" formControlName="hasHeatUsages" />
-                        Oui
-                      </label>
-                      <label>
-                        <input type="radio" [value]="false" formControlName="hasHeatUsages" />
-                        Non
-                      </label>
-                    </div>
-                  </div>
-                  @if (form.controls.heat.controls.hasHeatUsages.value) {
-                  <div class="form-grid" style="margin-top: 1.5rem">
-                    <div class="form-field">
-                      <app-ui-select
-                        formControlName="selectedHeatUsages"
-                        label="Quels usages de chaleur ?"
-                        [options]="heatUsageOptions"
-                        placeholder="Sélectionnez un ou plusieurs..."
-                        [multiple]="true"
-                        variant="dropdown"
-                      >
-                      </app-ui-select>
-                    </div>
-                    <div class="form-field">
-                      <app-ui-select
-                        formControlName="selectedHeatEnergy"
-                        label="Quelles énergies ? "
-                        [options]="heatEnergyOptions"
-                        placeholder="Sélectionnez..."
-                        variant="dropdown"
-                      >
-                      </app-ui-select>
-                    </div>
-                  </div>
+            <div class="f">
+              <label class="lab" for="bcMonth"
+                >Mois de référence de la facture <span class="req">*</span></label
+              >
+              <div class="ctrl">
+                <select class="in sel" id="bcMonth" formControlName="referenceMonth">
+                  <option [ngValue]="null" disabled>Sélectionnez…</option>
+                  @for (m of monthOptionsForSelect; track m.value) {
+                  <option [ngValue]="m.value">{{ m.label }}</option>
                   }
-                </div>
+                </select>
+                <span class="chevd"></span>
+              </div>
+            </div>
+          </div>
 
-                <!-- Cold -->
-                <div class="form-section" formGroupName="cold" style="margin-top: 2rem">
-                  <div class="form-section-header">Climatisation & froid</div>
-                  <div class="yes-no-question">
-                    <span class="yes-no-label"
-                      >Le site dispose-t-il de climatisation ou de systèmes de froid ?</span
-                    >
-                    <div class="radio-group">
-                      <label>
-                        <input type="radio" [value]="true" formControlName="hasCold" />
-                        Oui
-                      </label>
-                      <label>
-                        <input type="radio" [value]="false" formControlName="hasCold" />
-                        Non
-                      </label>
-                    </div>
-                  </div>
-                  @if (form.controls.cold.controls.hasCold.value) {
-                  <div class="form-grid" style="margin-top: 1.5rem">
-                    <div class="form-field">
-                      <app-ui-select
-                        formControlName="intensity"
-                        label="Intensité d'utilisation"
-                        [options]="intensityOptions"
-                        variant="dropdown"
-                      >
-                      </app-ui-select>
-                    </div>
-                    <div class="form-field">
-                      <app-ui-select
-                        formControlName="equipmentAge"
-                        label="Âge approximatif des équipements"
-                        [options]="ageOptions"
-                        variant="dropdown"
-                      >
-                      </app-ui-select>
-                    </div>
-                    <div class="form-field">
-                      <app-ui-select
-                        formControlName="maintenance"
-                        label="Maintenance régulière ?"
-                        [options]="maintenanceOptions"
-                        variant="dropdown"
-                      >
-                      </app-ui-select>
-                    </div>
-                  </div>
-                  }
-                </div>
-
-                <!-- Vehicles -->
-                <div class="form-section" formGroupName="vehicles" style="margin-top: 2rem">
-                  <div class="form-section-header">Véhicules professionnels</div>
-                  <div class="yes-no-question">
-                    <span class="yes-no-label"
-                      >L'entreprise utilise-t-elle des véhicules professionnels ?</span
-                    >
-                    <div class="radio-group">
-                      <label>
-                        <input type="radio" [value]="true" formControlName="hasVehicles" />
-                        Oui
-                      </label>
-                      <label>
-                        <input type="radio" [value]="false" formControlName="hasVehicles" />
-                        Non
-                      </label>
-                    </div>
-                  </div>
-                  @if (form.controls.vehicles.controls.hasVehicles.value) {
-                  <div class="form-grid" style="margin-top: 1.5rem">
-                    <div class="form-field">
-                      <app-ui-input
-                        formControlName="numberOfVehicles"
-                        type="number"
-                        label="Nombre approximatif de véhicules"
-                        placeholder="Nombre"
-                        size="md"
-                      >
-                      </app-ui-input>
-                    </div>
-                    <div class="form-field">
-                      <app-ui-input
-                        formControlName="kmPerVehiclePerYear"
-                        type="number"
-                        label="Kilométrage annuel moyen par véhicule"
-                        placeholder="km"
-                        size="md"
-                      >
-                      </app-ui-input>
-                    </div>
-                    <div class="form-field">
-                      <app-ui-select
-                        formControlName="fuelType"
-                        label="Carburant principal utilisé"
-                        [options]="fuelOptions"
-                        variant="dropdown"
-                      >
-                      </app-ui-select>
-                    </div>
-                    <div class="form-field">
-                      <app-ui-select
-                        formControlName="usageType"
-                        label="À quoi servent ces véhicules ?"
-                        [options]="vehicleUsageOptions"
-                        variant="dropdown"
-                      >
-                      </app-ui-select>
-                    </div>
-                  </div>
-                  }
-                </div>
-
-                <!-- Travel -->
-                <div class="form-section" formGroupName="travel" style="margin-top: 2rem">
-                  <div class="form-section-header">Déplacements professionnels</div>
-                  <div class="form-grid">
-                    <div class="form-field">
-                      <app-ui-select
-                        formControlName="planeFrequency"
-                        label="Avion – Fréquence approximative"
-                        [options]="travelFrequencyOptions"
-                        placeholder="Aucun"
-                        variant="dropdown"
-                      >
-                      </app-ui-select>
-                    </div>
-                    <div class="form-field">
-                      <app-ui-select
-                        formControlName="trainFrequency"
-                        label="Train – Fréquence approximative"
-                        [options]="travelFrequencyOptions"
-                        placeholder="Aucun"
-                        variant="dropdown"
-                      >
-                      </app-ui-select>
-                    </div>
-                  </div>
+          <div class="subhead">Parc informatique</div>
+          <div formGroupName="itEquipment">
+            <div class="grid2">
+              <div class="f">
+                <label class="lab" for="bcLaptop">Ordinateurs portables</label>
+                <div class="ctrl">
+                  <input
+                    class="in num"
+                    id="bcLaptop"
+                    type="number"
+                    inputmode="numeric"
+                    formControlName="laptopCount"
+                    min="0"
+                    placeholder="0"
+                  />
                 </div>
               </div>
-              }
-
-              <!-- Step 4: Personal info (optional) -->
-              @if (currentStep() === 4) {
-              <div [@stepTransition]="currentStep()" formGroupName="personal">
-                <p class="step-info-text">
-                  Ces informations sont facultatives. Si vous les renseignez, nous pourrons vous
-                  envoyer un récapitulatif de votre bilan carbone par email.
-                </p>
-                <div class="form-grid">
-                  <div class="form-field">
-                    <app-ui-input
-                      formControlName="fullName"
-                      type="text"
-                      label="Nom complet"
-                      placeholder="Votre nom"
-                      size="md"
-                    >
-                    </app-ui-input>
-                  </div>
-                  <div class="form-field">
-                    <app-ui-input
-                      formControlName="companyName"
-                      type="text"
-                      label="Entreprise"
-                      placeholder="Nom de l'entreprise"
-                      size="md"
-                    >
-                    </app-ui-input>
-                  </div>
-                  <div class="form-field">
-                    <app-ui-input
-                      formControlName="email"
-                      type="text"
-                      label="Email"
-                      placeholder="email@example.com"
-                      size="md"
-                      tooltipTitle="Email"
-                      tooltipDescription="Un récapitulatif de votre bilan carbone vous sera envoyé à cette adresse."
-                    >
-                    </app-ui-input>
-                  </div>
-                  <div class="form-field">
-                    <app-ui-input
-                      formControlName="phone"
-                      type="tel"
-                      label="Téléphone"
-                      placeholder="+216 XX XXX XXX"
-                      size="md"
-                    >
-                    </app-ui-input>
-                  </div>
+              <div class="f">
+                <label class="lab" for="bcDesktop">Ordinateurs fixes</label>
+                <div class="ctrl">
+                  <input
+                    class="in num"
+                    id="bcDesktop"
+                    type="number"
+                    inputmode="numeric"
+                    formControlName="desktopCount"
+                    min="0"
+                    placeholder="0"
+                  />
                 </div>
               </div>
-              } @if (submitError()) {
-              <p class="errors">{{ submitError() }}</p>
-              }
-            </form>
-            }
+            </div>
+            <div class="grid2">
+              <div class="f">
+                <label class="lab" for="bcScreen">Écrans</label>
+                <div class="ctrl">
+                  <input
+                    class="in num"
+                    id="bcScreen"
+                    type="number"
+                    inputmode="numeric"
+                    formControlName="screenCount"
+                    min="0"
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+              <div class="f" style="margin-bottom: 0">
+                <label class="lab" for="bcPhone">Téléphones pro</label>
+                <div class="ctrl">
+                  <input
+                    class="in num"
+                    id="bcPhone"
+                    type="number"
+                    inputmode="numeric"
+                    formControlName="proPhoneCount"
+                    min="0"
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="aud__actions">
+            <button
+              type="button"
+              class="btn-next aud__continue"
+              [disabled]="isSubmitting()"
+              (click)="nextStep()"
+            >
+              <span>Continuer</span>
+              <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path
+                  d="M3 7h8M7 3l4 4-4 4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
           </div>
         </div>
+        }
 
-        <!-- Mobile Navigation Buttons Footer (scrolls with content) -->
-        <div
-          class="form-actions form-actions--mobile"
-          [class.result-actions]="currentStepData().isResult"
-        >
-          @if (!currentStepData().isResult) {
-          <button
-            type="button"
-            class="hero__btn hero__btn--outline"
-            [disabled]="!canGoBack()"
-            (click)="previousStep()"
-          >
-            <ng-icon name="lucideArrowLeft" size="16"></ng-icon>
-            Précédent
-          </button>
+        <!-- ═══ STEP 3 — Chaleur, froid, véhicules, déplacements ═══ -->
+        @if (currentStep() === 3) {
+        <div class="aud__step" data-step="3">
+          <div formGroupName="heat">
+            <div class="f">
+              <span class="lab">Usages de chaleur (gaz, fioul, GPL) ?</span>
+              <div class="chips" role="group" aria-label="Usages de chaleur">
+                <button
+                  type="button"
+                  class="chip"
+                  [attr.aria-pressed]="hasHeatUsages()"
+                  (click)="setYesNo('heat', 'hasHeatUsages', true)"
+                >
+                  Oui
+                </button>
+                <button
+                  type="button"
+                  class="chip"
+                  [attr.aria-pressed]="!hasHeatUsages()"
+                  (click)="setYesNo('heat', 'hasHeatUsages', false)"
+                >
+                  Non
+                </button>
+              </div>
+            </div>
 
-          @if (currentStep() < lastFormStepNumber) {
-          <button
-            type="button"
-            class="hero__btn hero__btn--primary"
-            [disabled]="!canProceed() || isSubmitting()"
-            (click)="nextStep()"
-          >
-            Suivant
-            <ng-icon name="lucideArrowRight" size="16"></ng-icon>
-          </button>
-          } @else {
-          <button
-            type="button"
-            class="hero__btn hero__btn--primary"
-            [disabled]="!canProceed() || isSubmitting()"
-            (click)="nextStep()"
-          >
-            @if (isSubmitting()) {
-            <span>Calcul en cours...</span>
-            } @else {
-            <span>Calculer le bilan carbone</span>
-            <ng-icon name="lucideArrowRight" size="16"></ng-icon>
+            @if (hasHeatUsages()) {
+            <div class="f">
+              <span class="lab">Quels usages ?</span>
+              <div class="chips" role="group" aria-label="Usages de chaleur" data-multi="1">
+                @for (opt of heatUsageOptions; track opt.value) {
+                <button
+                  type="button"
+                  class="chip"
+                  [attr.aria-pressed]="isHeatUsageSelected(opt.value)"
+                  (click)="toggleHeatUsage(opt.value)"
+                >
+                  {{ opt.label }}
+                </button>
+                }
+              </div>
+            </div>
+
+            <div class="f">
+              <span class="lab">Quelle énergie ?</span>
+              <div class="chips" role="group" aria-label="Énergie thermique">
+                @for (opt of heatEnergyOptions; track opt.value) {
+                <button
+                  type="button"
+                  class="chip"
+                  [attr.aria-pressed]="
+                    form.controls.heat.controls.selectedHeatEnergy.value === opt.value
+                  "
+                  (click)="setChipValue('heat.selectedHeatEnergy', opt.value)"
+                >
+                  {{ opt.label }}
+                </button>
+                }
+              </div>
+            </div>
             }
-          </button>
-          } } @else {
-          <!-- Results step actions -->
-          <button type="button" class="hero__btn hero__btn--outline" (click)="resetForm()">
-            Nouvelle simulation
-          </button>
+          </div>
+
+          <div formGroupName="cold">
+            <div class="f">
+              <span class="lab">Froid / climatisation significatifs ?</span>
+              <div class="chips" role="group" aria-label="Froid et climatisation">
+                <button
+                  type="button"
+                  class="chip"
+                  [attr.aria-pressed]="hasCold()"
+                  (click)="setYesNo('cold', 'hasCold', true)"
+                >
+                  Oui
+                </button>
+                <button
+                  type="button"
+                  class="chip"
+                  [attr.aria-pressed]="!hasCold()"
+                  (click)="setYesNo('cold', 'hasCold', false)"
+                >
+                  Non
+                </button>
+              </div>
+            </div>
+
+            @if (hasCold()) {
+            <div class="f">
+              <span class="lab">Intensité d'utilisation</span>
+              <div class="chips" role="group" aria-label="Intensité d'utilisation">
+                @for (opt of intensityOptions; track opt.value) {
+                <button
+                  type="button"
+                  class="chip"
+                  [attr.aria-pressed]="form.controls.cold.controls.intensity.value === opt.value"
+                  (click)="setChipValue('cold.intensity', opt.value)"
+                >
+                  {{ opt.label }}
+                </button>
+                }
+              </div>
+            </div>
+
+            <div class="f">
+              <span class="lab">Âge des équipements</span>
+              <div class="chips" role="group" aria-label="Âge des équipements">
+                @for (opt of ageOptions; track opt.value) {
+                <button
+                  type="button"
+                  class="chip"
+                  [attr.aria-pressed]="
+                    form.controls.cold.controls.equipmentAge.value === opt.value
+                  "
+                  (click)="setChipValue('cold.equipmentAge', opt.value)"
+                >
+                  {{ opt.label }}
+                </button>
+                }
+              </div>
+            </div>
+
+            <div class="f">
+              <span class="lab">Maintenance régulière ?</span>
+              <div class="chips" role="group" aria-label="Maintenance">
+                @for (opt of maintenanceOptions; track opt.value) {
+                <button
+                  type="button"
+                  class="chip"
+                  [attr.aria-pressed]="form.controls.cold.controls.maintenance.value === opt.value"
+                  (click)="setChipValue('cold.maintenance', opt.value)"
+                >
+                  {{ opt.label }}
+                </button>
+                }
+              </div>
+            </div>
+            }
+          </div>
+
+          <div formGroupName="vehicles">
+            <div class="f">
+              <span class="lab">Véhicules de l'entreprise ?</span>
+              <div class="chips" role="group" aria-label="Véhicules professionnels">
+                <button
+                  type="button"
+                  class="chip"
+                  [attr.aria-pressed]="hasVehicles()"
+                  (click)="setYesNo('vehicles', 'hasVehicles', true)"
+                >
+                  Oui
+                </button>
+                <button
+                  type="button"
+                  class="chip"
+                  [attr.aria-pressed]="!hasVehicles()"
+                  (click)="setYesNo('vehicles', 'hasVehicles', false)"
+                >
+                  Non
+                </button>
+              </div>
+            </div>
+
+            @if (hasVehicles()) {
+            <div class="grid2">
+              <div class="f">
+                <label class="lab" for="bcVehN">Nombre de véhicules</label>
+                <div class="ctrl">
+                  <input
+                    class="in num"
+                    id="bcVehN"
+                    type="number"
+                    inputmode="numeric"
+                    formControlName="numberOfVehicles"
+                    min="0"
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+              <div class="f">
+                <label class="lab" for="bcVehKm">Km / an par véhicule</label>
+                <div class="ctrl">
+                  <input
+                    class="in num"
+                    id="bcVehKm"
+                    type="number"
+                    inputmode="numeric"
+                    formControlName="kmPerVehiclePerYear"
+                    min="0"
+                    placeholder="0"
+                  />
+                  <span class="suf">km</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="f">
+              <span class="lab">Carburant principal</span>
+              <div class="chips" role="group" aria-label="Carburant">
+                @for (opt of fuelOptions; track opt.value) {
+                <button
+                  type="button"
+                  class="chip"
+                  [attr.aria-pressed]="form.controls.vehicles.controls.fuelType.value === opt.value"
+                  (click)="setChipValue('vehicles.fuelType', opt.value)"
+                >
+                  {{ opt.label }}
+                </button>
+                }
+              </div>
+            </div>
+
+            <div class="f">
+              <span class="lab">Usage des véhicules</span>
+              <div class="chips" role="group" aria-label="Usage des véhicules">
+                @for (opt of vehicleUsageOptions; track opt.value) {
+                <button
+                  type="button"
+                  class="chip"
+                  [attr.aria-pressed]="
+                    form.controls.vehicles.controls.usageType.value === opt.value
+                  "
+                  (click)="setChipValue('vehicles.usageType', opt.value)"
+                >
+                  {{ opt.label }}
+                </button>
+                }
+              </div>
+            </div>
+            }
+          </div>
+
+          <div formGroupName="travel">
+            <div class="f">
+              <span class="lab">Avion — fréquence</span>
+              <div class="chips" role="group" aria-label="Fréquence avion">
+                @for (opt of travelFrequencyOptions; track opt.value) {
+                <button
+                  type="button"
+                  class="chip"
+                  [attr.aria-pressed]="
+                    form.controls.travel.controls.planeFrequency.value === opt.value
+                  "
+                  (click)="setChipValue('travel.planeFrequency', opt.value)"
+                >
+                  {{ opt.label }}
+                </button>
+                }
+              </div>
+            </div>
+
+            <div class="f" style="margin-bottom: 0">
+              <span class="lab">Train — fréquence</span>
+              <div class="chips" role="group" aria-label="Fréquence train">
+                @for (opt of travelFrequencyOptions; track opt.value) {
+                <button
+                  type="button"
+                  class="chip"
+                  [attr.aria-pressed]="
+                    form.controls.travel.controls.trainFrequency.value === opt.value
+                  "
+                  (click)="setChipValue('travel.trainFrequency', opt.value)"
+                >
+                  {{ opt.label }}
+                </button>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="aud__actions">
+            <button
+              type="button"
+              class="btn-next aud__continue"
+              [disabled]="isSubmitting()"
+              (click)="nextStep()"
+            >
+              <span>Continuer</span>
+              <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path
+                  d="M3 7h8M7 3l4 4-4 4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        }
+
+        <!-- ═══ STEP 4 — Coordonnées ═══ -->
+        @if (currentStep() === 4) {
+        <div class="aud__step" data-step="4" formGroupName="personal">
+          <div class="grid2">
+            <div class="f">
+              <label class="lab" for="bcName">Nom complet</label>
+              <div class="ctrl">
+                <input
+                  class="in"
+                  id="bcName"
+                  type="text"
+                  formControlName="fullName"
+                  autocomplete="name"
+                  placeholder="Votre nom"
+                />
+              </div>
+            </div>
+            <div class="f">
+              <label class="lab" for="bcPersCompany">Entreprise</label>
+              <div class="ctrl">
+                <input
+                  class="in"
+                  id="bcPersCompany"
+                  type="text"
+                  formControlName="companyName"
+                  autocomplete="organization"
+                  placeholder="Nom de l'entreprise"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="grid2">
+            <div class="f">
+              <label class="lab" for="bcEmail">E-mail</label>
+              <div class="ctrl">
+                <input
+                  class="in"
+                  id="bcEmail"
+                  type="email"
+                  formControlName="email"
+                  autocomplete="email"
+                  placeholder="vous@exemple.com"
+                />
+              </div>
+            </div>
+            <div class="f">
+              <label class="lab" for="bcTel">Téléphone</label>
+              <div class="ctrl">
+                <input
+                  class="in"
+                  id="bcTel"
+                  type="tel"
+                  formControlName="phone"
+                  autocomplete="tel"
+                  placeholder="+216 …"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="f" style="margin-bottom: 0">
+            <label class="consent">
+              <input
+                type="checkbox"
+                [checked]="contactConsent()"
+                (change)="onConsentChange($event)"
+              />
+              <span class="box" aria-hidden="true">
+                <svg viewBox="0 0 12 12" fill="none">
+                  <path
+                    d="M2 6l3 3 5-6"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
+              <span>J'accepte que Joya Energy me recontacte au sujet de ce bilan.</span>
+            </label>
+          </div>
+
+          @if (submitError()) {
+          <p class="aud__err">{{ submitError() }}</p>
+          }
+
+          <div class="aud__actions">
+            <button
+              type="button"
+              class="btn-next aud__continue"
+              [class.btn-next--loading]="isSubmitting()"
+              [disabled]="isSubmitting()"
+              (click)="nextStep()"
+            >
+              <span>{{ primaryActionLabel() }}</span>
+              @if (!isSubmitting()) {
+              <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path
+                  d="M3 7h8M7 3l4 4-4 4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              }
+            </button>
+          </div>
+        </div>
+        }
+
+        <!-- ═══ RESULTS ═══ -->
+        @if (currentStepData().isResult) {
+        <div class="aud__step" data-step="5">
+          @if (result(); as r) {
+          <div class="rpt rpt--simple rp-anim" id="rpt">
+            <header class="rp-head" data-sec>
+              <div class="rp-head__txt">
+                <h2 data-a>Bilan Carbone</h2>
+                <p data-a>
+                  Ces résultats sont indicatifs et seront précisés par un bilan complet.
+                </p>
+              </div>
+              <div class="rp-head__img" aria-hidden="true"></div>
+            </header>
+
+            <section class="rp rp--hot" data-sec>
+              <div class="rp__hd" data-a>
+                <span class="rp__n">01</span>
+                <h3>Synthèse des résultats</h3>
+              </div>
+              <div data-a>
+                <div class="kh">
+                  <div class="kh__v">
+                    <b>{{ r.co2TotalTonnes | noGrouping : '1.1-1' }}</b>
+                    <i>tCO₂e / an</i>
+                  </div>
+                  <p class="res-basis">Empreinte carbone annuelle estimée du site</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="rp" data-sec>
+              <div class="rp__hd" data-a>
+                <span class="rp__n">02</span>
+                <h3>Répartition des émissions</h3>
+              </div>
+              <div data-a>
+                <div class="donut-wrap">
+                  <div
+                    class="donut"
+                    [style.--e]="categoryPct('energie_directe', r)"
+                    [style.--el]="categoryPct('electricite', r)"
+                    [style.--d]="categoryPct('deplacements', r)"
+                    [style.--it]="categoryPct('equipements_it', r)"
+                  ></div>
+                  <div class="donut-legend">
+                    <div>
+                      <i class="lg-energie"></i> Énergie directe (chaleur, froid)
+                      <b>{{ categoryPct('energie_directe', r) }} %</b>
+                    </div>
+                    <div>
+                      <i class="lg-elec"></i> Électricité
+                      <b>{{ categoryPct('electricite', r) }} %</b>
+                    </div>
+                    <div>
+                      <i class="lg-depl"></i> Déplacements & véhicules
+                      <b>{{ categoryPct('deplacements', r) }} %</b>
+                    </div>
+                    <div>
+                      <i class="lg-it"></i> Équipements IT
+                      <b>{{ categoryPct('equipements_it', r) }} %</b>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="rp" data-sec>
+              <div class="rp__hd" data-a>
+                <span class="rp__n">03</span>
+                <h3>Répartition par scope</h3>
+              </div>
+              <div data-a>
+                <div class="scopes">
+                  <div class="scope s1">
+                    <b>Scope 1 — émissions directes</b>
+                    <div class="track">
+                      <div class="fill" [style.width.%]="scopeBarWidth(1, r)">
+                        {{ scopePct(1, r) }} %
+                      </div>
+                    </div>
+                  </div>
+                  <div class="scope s2">
+                    <b>Scope 2 — électricité</b>
+                    <div class="track">
+                      <div class="fill" [style.width.%]="scopeBarWidth(2, r)">
+                        {{ scopePct(2, r) }} %
+                      </div>
+                    </div>
+                  </div>
+                  <div class="scope s3">
+                    <b>Scope 3 — déplacements, IT, amont</b>
+                    <div class="track">
+                      <div class="fill" [style.width.%]="scopeBarWidth(3, r)">
+                        {{ scopePct(3, r) }} %
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="rp" data-sec>
+              <div class="rp__hd" data-a>
+                <span class="rp__n">04</span>
+                <h3>Détail de l'estimation</h3>
+              </div>
+              <div data-a>
+                <table class="res-table">
+                  <tr>
+                    <td class="k">Émissions par employé</td>
+                    <td class="v">
+                      {{ emissionsPerEmployee(r) | noGrouping : '1.1-1' }} tCO₂e / employé
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="k">Intensité carbone</td>
+                    <td class="v">
+                      {{ intensity(r) | noGrouping : '1.1-1' }} kg CO₂e / m²
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="k">Poste le plus émetteur</td>
+                    <td class="v">{{ topEmitterLabel(r) }}</td>
+                  </tr>
+                </table>
+              </div>
+            </section>
+
+            <section class="rp rp--plain" data-sec>
+              <div data-a>
+                <p class="res-note">
+                  Estimation indicative selon la méthode <b>GHG Protocol</b> (scopes 1-2-3), à
+                  partir des données déclarées et de facteurs d'émission moyens (réseau STEG,
+                  combustibles, mobilité). Un bilan complet ISO 14064 précise le périmètre et les
+                  facteurs.
+                </p>
+              </div>
+            </section>
+
+            <section class="rp" data-sec>
+              <div class="res-cta" data-a>
+                <a routerLink="/contact" class="btn-next">
+                  Recevoir le bilan détaillé
+                  <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path
+                      d="M3 7h8M7 3l4 4-4 4"
+                      stroke="currentColor"
+                      stroke-width="1.7"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </a>
+                <a routerLink="/prendre-rendez-vous" class="res-link">Parler à un conseiller</a>
+                <button type="button" class="rp-new" (click)="resetForm()">Recommencer</button>
+              </div>
+            </section>
+          </div>
+          } @else {
+          <div class="aud__note">
+            <p>Analyse en cours… Nous calculons votre empreinte carbone.</p>
+          </div>
           }
         </div>
-      </div>
+        }
+      </form>
 
-      <!-- Desktop Navigation Buttons Footer -->
-      <div
-        class="form-actions form-actions--desktop"
-        [class.result-actions]="currentStepData().isResult"
-      >
-        @if (!currentStepData().isResult) {
-        <button
-          type="button"
-          class="hero__btn hero__btn--outline"
-          [disabled]="!canGoBack()"
-          (click)="previousStep()"
-        >
-          <ng-icon name="lucideArrowLeft" size="16"></ng-icon>
-          Précédent
-        </button>
-
-        @if (currentStep() < lastFormStepNumber) {
-        <button
-          type="button"
-          class="hero__btn hero__btn--primary"
-          [disabled]="!canProceed() || isSubmitting()"
-          (click)="nextStep()"
-        >
-          Suivant
-          <ng-icon name="lucideArrowRight" size="16"></ng-icon>
-        </button>
+      @if (!currentStepData().isResult) {
+      <div class="aud__secure">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path
+            d="M12 3 5 6v5c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Z"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linejoin="round"
+          />
+        </svg>
+        @if (currentStep() === 4) {
+        Vous pouvez aussi voir vos résultats sans laisser de coordonnées.
         } @else {
-        <button
-          type="button"
-          class="hero__btn hero__btn--primary"
-          [disabled]="!canProceed() || isSubmitting()"
-          (click)="nextStep()"
-        >
-          @if (isSubmitting()) {
-          <span>Calcul en cours...</span>
-          } @else {
-          <span>Calculer le bilan carbone</span>
-          <ng-icon name="lucideArrowRight" size="16"></ng-icon>
-          }
-        </button>
-        } } @else {
-        <!-- Results step actions -->
-        <button type="button" class="hero__btn hero__btn--outline" (click)="resetForm()">
-          Nouvelle simulation
-        </button>
+        Vos données ne sont pas partagées.
         }
       </div>
-    </main>
+      }
+    </div>
   </div>
 </div>

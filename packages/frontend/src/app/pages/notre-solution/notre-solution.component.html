@@ -1,164 +1,265 @@
-<div class="notre-solution-page">
-  <main class="notre-solution-page__main">
-    <section class="hero">
-      <div class="hero__container">
-        <div class="hero__grid">
-          <div class="hero__left">
-            <p class="hero__badge">NOTRE SOLUTION</p>
-            <h1 class="hero__title">
-              Nous gérons votre <span>énergie</span>,<br />
-              Vous en voyez les <span>résultats</span>.
-            </h1>
-            <p class="hero__subtitle">
-              Joya agit comme un opérateur énergétique et prend la responsabilité de la performance
-              énergétique de votre site, de bout en bout.
-            </p>
-          </div>
+<main id="main" class="solution-page">
+  <section class="pg-hero">
+    <div class="wrap">
+      <div class="pg-hero__head">
+        <div>
+          <span class="eyebrow reveal">Solution</span>
+          <h1 class="reveal reveal-d1">Toute votre transition solaire, en un <span class="accent">seul contrat</span>.</h1>
+        </div>
+        <div class="pg-hero__side reveal reveal-d2">
+          <p class="pg-hero__lead">
+            De l'audit à la performance dans le temps, Joya prend en charge l'ensemble de votre
+            projet énergétique.
+          </p>
+          <a routerLink="/audit-energetique" class="btn btn-primary">
+            <span>Lancer une étude énergétique</span>
+            <span class="btn-puck" aria-hidden="true">
+              <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+                <path
+                  d="M3 11L11 3M11 3H4.5M11 3V9.5"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+          </a>
+        </div>
+      </div>
+      <div class="pg-hero__media reveal reveal-d3">
+        <img
+          src="/handoff/images/hero-solar-roof-sunset.jpg"
+          alt="Toit équipé de panneaux solaires au coucher du soleil"
+          width="2200"
+          height="1466"
+        />
+      </div>
+    </div>
+  </section>
 
-          <div class="hero__right">
-            <div class="hero__image-wrap">
+  <section class="section" id="piliers">
+    <div class="wrap">
+      <div class="pg-head" data-anim>
+        <div>
+          <span class="eyebrow">Les 3 piliers</span>
+          <h2>Une solution complète,<br />pensée pour durer.</h2>
+        </div>
+      </div>
+      <div class="pg-cards" data-stagger>
+        <article class="pg-card">
+          <span class="pg-card__n">01</span>
+          <span class="ic" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <rect x="4" y="13" width="4" height="8" rx="1.4" />
+              <rect x="10" y="8" width="4" height="13" rx="1.4" />
+              <rect x="16" y="3" width="4" height="18" rx="1.4" />
+            </svg>
+          </span>
+          <h3>Audit énergétique intelligent</h3>
+          <p>
+            Analyse de votre consommation, de vos usages et de votre facture pour identifier les
+            leviers de performance les plus pertinents.
+          </p>
+        </article>
+        <article class="pg-card">
+          <span class="pg-card__n">02</span>
+          <span class="ic" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M5.4 4h13.2a1 1 0 0 1 .97.76l1.9 7.5a1 1 0 0 1-.97 1.24H3.5a1 1 0 0 1-.97-1.24l1.9-7.5A1 1 0 0 1 5.4 4Z"
+              />
+              <rect x="11" y="14.5" width="2" height="4" />
+              <rect x="7" y="18.5" width="10" height="2" rx="1" />
+            </svg>
+          </span>
+          <h3>Installation &amp; optimisation</h3>
+          <p>
+            Conception et déploiement d'une solution solaire adaptée à votre site, pour réduire
+            durablement votre dépendance au réseau.
+          </p>
+        </article>
+        <article class="pg-card">
+          <span class="pg-card__n">03</span>
+          <span class="ic" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M3 13h4l2.5-6 4 11 2.5-5H21" />
+            </svg>
+          </span>
+          <h3>Suivi de la performance</h3>
+          <p>
+            Pilotage continu de votre consommation, de votre production et de vos économies, en
+            toute transparence.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-tint" id="modele">
+    <div class="wrap">
+      <div class="pg-split">
+        <div class="pg-split__body" data-anim>
+          <span class="eyebrow">Le modèle de service</span>
+          <h2>Vous économisez dès le premier jour</h2>
+          <ul class="pg-list">
+            <li>Installation prise en charge à 100&nbsp;% par Joya — 0&nbsp;DT pour vous</li>
+            <li>Vous économisez dès le 1<sup>er</sup> jour sur votre facture</li>
+            <li>L'installation devient la vôtre en fin de contrat</li>
+          </ul>
+          <a routerLink="/notre-solution" fragment="faq" class="btn btn-primary">
+            <span>En savoir plus sur notre solution</span>
+            <span class="btn-puck" aria-hidden="true">
+              <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+                <path
+                  d="M3 11L11 3M11 3H4.5M11 3V9.5"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+          </a>
+        </div>
+        <figure
+          class="model"
+          id="model"
+          data-anim="scale"
+          role="img"
+          aria-label="Schéma illustratif : la facture initiale se réduit pendant le contrat, avec une redevance mensuelle inférieure aux économies ; en fin de contrat, les économies reviennent à 100 % au client."
+        >
+          <figcaption class="model__head">
+            <span class="model__t">Où va votre facture</span>
+            <span class="model__tag">Schéma illustratif</span>
+          </figcaption>
+          <div class="model__legend">
+            <span><i class="k1"></i>Facture d'électricité</span>
+            <span><i class="k2"></i>Redevance mensuelle</span>
+            <span><i class="k3"></i>Vos économies</span>
+          </div>
+          <div class="model__plot">
+            <div class="model__col">
+              <div class="model__bar"><span class="k1" style="flex: 100"></span></div>
+              <div class="model__cap">
+                <b>Aujourd'hui</b>
+                <span>Facture initiale</span>
+              </div>
+            </div>
+            <div class="model__col">
+              <div class="model__bar">
+                <span class="k1" style="flex: 70"></span>
+                <span class="k2" style="flex: 20"></span>
+                <span class="k3" style="flex: 10"></span>
+              </div>
+              <div class="model__cap">
+                <b>Pendant le contrat</b>
+                <span>Facture réduite, redevance sur vos économies</span>
+              </div>
+            </div>
+            <div class="model__col">
+              <div class="model__bar">
+                <span class="k1" style="flex: 70"></span>
+                <span class="k3" style="flex: 30"></span>
+              </div>
+              <div class="model__cap">
+                <b>Fin de contrat</b>
+                <span>Économies à 100&nbsp;% pour vous</span>
+              </div>
+            </div>
+          </div>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="plateforme">
+    <div class="wrap">
+      <div class="pg-split pg-split--rev">
+        <div class="pg-split__body" data-anim>
+          <span class="eyebrow">La plateforme</span>
+          <h2>Vous voyez vos vraies économies, pas une estimation</h2>
+          <p>
+            Votre production, votre consommation et vos économies sont suivies en continu. Vous
+            savez exactement ce que vous économisez, chaque mois.
+          </p>
+          <ul class="pg-list pg-list--flush">
+            <li>Suivi en temps réel de votre installation</li>
+            <li>Alertes en cas d'anomalie ou de sous-performance</li>
+            <li>Rapport mensuel de vos économies</li>
+          </ul>
+        </div>
+        <div class="pg-sky" data-anim="scale">
+          <div
+            class="laptop"
+            role="img"
+            aria-label="Le tableau de bord Joya OS affiché sur un ordinateur portable"
+          >
+            <div class="laptop__screen">
               <img
-                src="/Solution_Hero_Img.webp"
-                alt="Notre solution Joya – gestion de l'énergie de bout en bout"
-                class="hero__image"
-                loading="eager"
-                fetchpriority="high"
+                src="/handoff/images/joya-os-dashboard-screenshot.png"
+                alt=""
+                loading="lazy"
               />
             </div>
+            <div class="laptop__base"></div>
           </div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section class="solution-cards">
-      <div class="solution-cards__container">
-        <div class="solution-cards__grid">
-          @for (card of cards; track card.id) {
-          <div class="solution-card">
-            <div class="solution-card__icon-wrapper">
-              <ng-icon [name]="card.icon" class="solution-card__icon" />
-            </div>
-            <h3 class="solution-card__title">{{ card.title }}</h3>
-            <p class="solution-card__description">{{ card.description }}</p>
-          </div>
+  <section class="section section-tint" id="faq">
+    <div class="wrap">
+      <div class="pg-faq">
+        <div class="pg-faq__head" data-anim>
+          <span class="eyebrow">FAQ</span>
+          <h2 class="pg-h2">Questions fréquentes</h2>
+        </div>
+        <div class="pg-faq__list" data-anim>
+          @for (item of faqs; track item.question) {
+          <details class="pg-q" [open]="item.open === true">
+            <summary>
+              {{ item.question }}
+              <span class="pg-q__ic" aria-hidden="true"></span>
+            </summary>
+            <p class="pg-q__a">{{ item.answer }}</p>
+          </details>
           }
         </div>
       </div>
-    </section>
-    <section class="how-it-works">
-      <div class="how-it-works__container">
-        <div class="how-it-works__header">
-          <h2 class="how-it-works__title">
-            Comment fonctionne notre
-            <span class="how-it-works__title-accent">solution énergétique</span>
-          </h2>
-          <p class="how-it-works__subtitle">
-            Une approche structurée pour améliorer durablement la performance énergétique de votre
-            entreprise, sans complexité.
-          </p>
-        </div>
-        <div class="how-it-works__grid">
-          <div class="how-it-works__left">
-            <h2 class="how-it-works__step-title">Comprendre votre énergie</h2>
-            <p class="how-it-works__step-description">
-              Analyse de votre consommation, de vos usages et de votre site pour identifier les
-              leviers réels de performance énergétique.
-            </p>
-            <h2 class="how-it-works__step-title">Déployer la bonne solution</h2>
-            <p class="how-it-works__step-description">
-              Conception et mise en œuvre d’une solution énergétique adaptée à votre site, intégrant
-              production solaire et optimisation des usages.
-            </p>
-            <h2 class="how-it-works__step-title">Piloter la performance</h2>
-            <p class="how-it-works__step-description">
-              Suivi continu de la consommation, de la production et des économies via la plateforme
-              digitale Joya.
-            </p>
-          </div>
-          <div class="how-it-works__img-wrapper">
-            <img
-              src="/Solution_steps_SS_Img.png"
-              alt="Comment ça marche ?"
-              class="how-it-works__img"
-            />
-          </div>
-        </div>
-      </div>
-      <div class="how-it-works__container" style="margin-top: 3rem">
-        <div class="how-it-works__header">
-          <h2 class="how-it-works__title">
-            Ce que Joya prend en
-            <span class="how-it-works__title-accent">charge</span>
-          </h2>
-          <p class="how-it-works__subtitle">
-            De l’analyse à la maintenance, nous assurons l’ensemble du cycle pour une performance
-            énergétique optimale et sans surprise.
-          </p>
-        </div>
-        <div class="how-it-works__grid">
-          <div class="how-it-works__img-wrapper">
-            <img src="/Solution_Steps_Img.png" alt="Comment ça marche ?" class="screenshot-img" />
-          </div>
-          <div class="how-it-works__left" style="margin-left: 60px !important">
-            <h2 class="how-it-works__step-title">Joya s’occupe de tout</h2>
-            <ul class="how-it-works__list how-it-works__list--with-checks">
-              <li class="how-it-works__list-item">
-                <ng-icon name="lucideCheckCircle" class="how-it-works__list-icon" />
-                <span>Analyse et diagnostic énergétique</span>
-              </li>
-              <li class="how-it-works__list-item">
-                <ng-icon name="lucideCheckCircle " class="how-it-works__list-icon" />
-                <span>Conception de la solution</span>
-              </li>
-              <li class="how-it-works__list-item">
-                <ng-icon name="lucideCheckCircle " class="how-it-works__list-icon" />
-                <span>Installation et coordination technique</span>
-              </li>
-              <li class="how-it-works__list-item">
-                <ng-icon name="lucideCheckCircle " class="how-it-works__list-icon" />
-                <span>Suivi, maintenance et optimisation</span>
-              </li>
-              <li class="how-it-works__list-item">
-                <ng-icon name="lucideCheckCircle " class="how-it-works__list-icon" />
-                <span>Reporting et pilotage de la performance</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
+    </div>
+  </section>
 
-    <section class="Transition-plateforme">
-      <div class="solution-cards__container">
-        <div class="solution-card__grid">
-          <div class="solution-card">
-            <div class="solution-card__icon-wrapper">
-              <ng-icon name="lucideBarChart2" class="solution-card__icon" />
-            </div>
-            <h3 class="solution-card__title">La performance repose sur des données réelles</h3>
-            <p class="solution-card__description">
-              Toutes les décisions et optimisations sont basées sur des données mesurées,
-              accessibles via la plateforme digitale Joya.
-            </p>
-            <a href="#contact" class="solution-card__cta-btn"> Découvrir la plateforme digitale</a>
-          </div>
-
-          <div class="cta-card">
-            <p class="cta-card__phrase">
-              Prêt à voir ce que Joya peut faire pour votre site ? Découvrez votre potentiel solaire
-              et les économies réalisables grâce à une simulation personnalisée.
-            </p>
-            <div class="cta-card__actions">
-              <a routerLink="/audit-solaire" class="cta-card__btn cta-card__btn--primary">
-                Simuler mon potentiel solaire
-              </a>
-              <a routerLink="/prendre-rendez-vous" class="cta-card__btn cta-card__btn--outline">
-                Parler à un conseiller
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
-</div>
+  <section class="pg-cta" id="pgCta">
+    <div
+      class="pg-cta__bg"
+      id="pgCtaBg"
+      style="background-image: url('/handoff/images/cta-wind-turbines-coast-dusk.jpg')"
+      aria-hidden="true"
+    ></div>
+    <div class="pg-cta__veil" aria-hidden="true"></div>
+    <div class="wrap pg-cta__inner">
+      <h2 class="pg-cta__title" id="pgCtaTitle">Prêt à démarrer<br />votre projet&nbsp;?</h2>
+      <a routerLink="/contact" class="pg-cta__go" id="pgCtaBtn">
+        Parler à un conseiller
+        <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path
+            d="M3 7h8M7 3l4 4-4 4"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </a>
+    </div>
+  </section>
+</main>

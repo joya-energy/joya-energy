@@ -1,18 +1,21 @@
 import {
-  Component,
-  signal,
-  computed,
+  AfterViewInit,
   ChangeDetectionStrategy,
-  OnInit,
-  OnDestroy,
-  PLATFORM_ID,
-  inject,
   ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  OnInit,
+  PLATFORM_ID,
+  ViewEncapsulation,
+  computed,
+  effect,
+  inject,
+  signal,
 } from '@angular/core';
-import { CommonModule, isPlatformBrowser, DatePipe } from '@angular/common';
-import { ReactiveFormsModule, FormGroup } from '@angular/forms';
-import { NgIconComponent, provideIcons } from '@ng-icons/core';
-import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
+import { CommonModule, DatePipe, isPlatformBrowser } from '@angular/common';
+import { ReactiveFormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { provideIcons } from '@ng-icons/core';
 import { finalize } from 'rxjs/operators';
 import {
   lucideArrowRight,
@@ -39,23 +42,19 @@ import {
   lucideCalendar,
 } from '@ng-icons/lucide';
 
-// Base Components
 import { NoGroupingPipe } from '../../shared/pipes/no-grouping.pipe';
-import { UiStepTimelineComponent } from '../../shared/components/ui-step-timeline/ui-step-timeline.component';
-import { UiProgressBarComponent } from '../../shared/components/ui-progress-bar/ui-progress-bar.component';
 
-// Step Components
 import { StepBuildingComponent } from './steps/step-building/step-building.component';
 import { StepTechnicalComponent } from './steps/step-technical/step-technical.component';
 import { StepEquipmentComponent } from './steps/step-equipment/step-equipment.component';
 import { StepPersonalComponent } from './steps/step-personal/step-personal.component';
 
-// Services and Types
 import { EnergyAuditFormService } from './services/energy-audit-form.service';
 import { EnergyAuditService } from './services/energy-audit.service';
 import { NotificationStore } from '../../core/notifications/notification.store';
 import { SEOService } from '../../core/services/seo.service';
-import { SimulatorStep, StepField, EnergyAuditRequest } from './types/energy-audit.types';
+import { HandoffMotionService } from '../../core/services/handoff-motion.service';
+import { EnergyAuditRequest, StepField } from './types/energy-audit.types';
 import { AuditEnergetiqueResponse } from '../../core/services/audit-energetique.service';
 
 @Component({
@@ -64,10 +63,8 @@ import { AuditEnergetiqueResponse } from '../../core/services/audit-energetique.
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    NgIconComponent,
+    RouterLink,
     NoGroupingPipe,
-    UiStepTimelineComponent,
-    UiProgressBarComponent,
     DatePipe,
     StepBuildingComponent,
     StepTechnicalComponent,
@@ -77,25 +74,8 @@ import { AuditEnergetiqueResponse } from '../../core/services/audit-energetique.
   templateUrl: './energy-audit.component.html',
   styleUrls: ['./energy-audit.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [
-    // Step transition animation - simple fade and slide
-    trigger('stepTransition', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateX(20px)' }),
-        animate('300ms ease-out', style({ opacity: 1, transform: 'translateX(0)' })),
-      ]),
-      transition(':leave', [
-        animate('200ms ease-in', style({ opacity: 0, transform: 'translateX(-20px)' })),
-      ]),
-    ]),
-    // Result cards fade in - simple fade and slide up
-    trigger('resultCards', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(20px)' }),
-        animate('400ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
-      ]),
-    ]),
-  ],
+  encapsulation: ViewEncapsulation.None,
+  host: { class: 'aud-host' },
   providers: [
     provideIcons({
       lucideArrowRight,
@@ -123,21 +103,21 @@ import { AuditEnergetiqueResponse } from '../../core/services/audit-energetique.
     }),
   ],
 })
-export class EnergyAuditComponent implements OnInit, OnDestroy {
-  private platformId = inject(PLATFORM_ID);
+export class EnergyAuditComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly platformId = inject(PLATFORM_ID);
   private readonly formService = inject(EnergyAuditFormService);
-  private auditService = inject(EnergyAuditService);
-  private notificationStore = inject(NotificationStore);
-  private seoService = inject(SEOService);
-  private cdr = inject(ChangeDetectorRef);
+  private readonly auditService = inject(EnergyAuditService);
+  private readonly notificationStore = inject(NotificationStore);
+  private readonly seoService = inject(SEOService);
+  private readonly motion = inject(HandoffMotionService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   protected readonly form = this.formService.buildForm();
   protected readonly steps = this.formService.getSteps();
   protected readonly buildingCategories = this.formService.buildingCategories;
   protected readonly buildingTypes = this.formService.buildingTypes;
 
-  // Expose formService for template access
-  protected get formServiceInstance() {
+  protected get formServiceInstance(): EnergyAuditFormService {
     return this.formService;
   }
 
@@ -146,43 +126,18 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
   protected readonly isGeneratingPDF = signal(false);
   protected readonly simulationResult = signal<AuditEnergetiqueResponse['data'] | null>(null);
 
-  // Force recomputation signal - updates when form changes
   private readonly formUpdateTrigger = signal(0);
 
-  ngOnInit(): void {
-    this.seoService.setSEO({
-      title: 'Audit Énergétique | JOYA Energy',
-      description: 'Analyse complète de votre consommation, de vos usages et de votre facture énergétique en Tunisie pour identifier les leviers d\'optimisation les plus pertinents.',
-      url: 'https://joya-energy.com/audit-energetique',
-      keywords: 'audit énergétique Tunisie, diagnostic énergétique Tunisie, analyse consommation énergie Tunisie, optimisation énergétique Tunisie, Tunisia',
-    });
-    // Subscribe to form value changes to trigger progress updates
-    this.form.valueChanges.subscribe(() => {
-      // Update validity for all controls
-      Object.keys(this.form.controls).forEach((key) => {
-        const control = this.form.get(key);
-        if (control) {
-          control.updateValueAndValidity({ emitEvent: false });
-        }
-      });
+  /** Last form step (4). Result step is 5. */
+  protected readonly lastFormStepNumber = (() => {
+    const resultStep = this.steps.find((s) => s.isResult);
+    return resultStep ? resultStep.number - 1 : this.steps.length - 1;
+  })();
 
-      // Trigger recomputation of progress
-      this.formUpdateTrigger.update((v) => v + 1);
-
-      // Force change detection to update progress bars
-      this.cdr.markForCheck();
-    });
-  }
-
-  ngOnDestroy(): void {}
-
-  // Calculate progress for each step - based on all fields being filled AND valid
   protected readonly stepProgress = computed(() => {
-    // Access trigger to recompute when form changes
     this.formUpdateTrigger();
 
     const progress: Record<number, number> = {};
-    const formValue = this.form.value;
 
     this.steps.forEach((step) => {
       if (step.isResult) {
@@ -190,10 +145,8 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
         return;
       }
 
-      // Get visible fields for this step
       const stepFields = step.fields.filter((field) => this.isFieldVisible(field));
 
-      // For step 3 (equipment), also include hasExistingMeasures
       const fieldsToCheck =
         step.number === 3
           ? [...stepFields, { name: 'hasExistingMeasures', required: true } as StepField]
@@ -204,23 +157,19 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
         return;
       }
 
-      // Count filled AND valid fields (progress only increases when fields are valid)
       const filledFields = fieldsToCheck.filter((field) => {
         const control = this.form.get(field.name);
         if (!control) return false;
         const value = control.value;
 
-        // Check if value is filled
         const isFilled =
           value !== null &&
           value !== '' &&
           value !== undefined &&
           (Array.isArray(value) ? value.length > 0 : true);
 
-        // Check if control is valid (no validation errors)
         const isValid = control.valid;
 
-        // Both filled and valid required for progress
         return isFilled && isValid;
       });
 
@@ -230,53 +179,89 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
     return progress;
   });
 
-  // Get current step data
   protected readonly currentStepData = computed(() => {
     return this.steps.find((s) => s.number === this.currentStep()) || this.steps[0];
   });
 
-  // Calculate overall progress - only for current step
   protected readonly overallProgress = computed(() => {
     const current = this.currentStepData();
-    if (current.isResult) return 0;
-
+    if (current.isResult) return 100;
     return this.stepProgress()[current.number];
   });
 
-  // Check if we can proceed to next step - requires 100% completion
+  /** Progress bar fill for handoff `.aud__ptrack > i`. */
+  protected readonly audProgressPct = computed(() => {
+    const total = Math.max(this.steps.length, 1);
+    if (this.currentStepData().isResult) return 100;
+    const completedBefore = this.currentStep() - 1;
+    const withinStep = this.overallProgress() / 100;
+    const denom = Math.max(total - 1, 1);
+    return Math.min(100, Math.round(((completedBefore + withinStep) / denom) * 100));
+  });
+
   protected readonly canProceed = computed(() => {
     const step = this.currentStepData();
     if (step.isResult) return false;
-
-    // Check if current step is 100% complete
     return this.stepProgress()[step.number] === 100;
   });
 
-  // Check if previous button should be enabled
-  protected readonly canGoBack = computed(() => {
-    return this.currentStep() > 1;
-  });
+  protected readonly canGoBack = computed(() => this.currentStep() > 1);
 
-  /** Last form step (4). Result step is 5. */
-  protected readonly lastFormStepNumber = (() => {
-    const resultStep = this.steps.find((s) => s.isResult);
-    return resultStep ? resultStep.number - 1 : this.steps.length - 1;
-  })();
+  constructor() {
+    effect(() => {
+      const isResult = !!this.currentStepData().isResult;
+      const hasSimulation = !!this.simulationResult();
+      if (!isPlatformBrowser(this.platformId)) return;
 
-  // Check if a step is clickable in sidebar - ONLY allows going back
-  protected isStepClickable(stepNumber: number): boolean {
-    const step = this.steps.find((s) => s.number === stepNumber);
-    if (!step) return false;
+      document.body.classList.toggle('aud-s4', isResult);
+      if (!isResult) {
+        document.body.classList.remove('aud-s4');
+      }
 
-    // Result step is never clickable
-    if (step.isResult) {
-      return false;
+      if (isResult && hasSimulation) {
+        window.setTimeout(() => {
+          this.motion.scheduleRefresh(40);
+          document.getElementById('rpt')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 60);
+      }
+    });
+  }
+
+  ngOnInit(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.classList.add('aud-page');
     }
 
-    const current = this.currentStep();
+    this.seoService.setSEO({
+      title: 'Audit énergétique pour entreprises | Joya Energy',
+      description:
+        'Analysez la consommation et la performance énergétique de votre entreprise avec Joya Energy.',
+      url: 'https://joya-energy.com/audit-energetique',
+      keywords:
+        'audit énergétique, efficacité énergétique, performance énergétique, consommation énergétique, Tunisie',
+    });
 
-    // Can only go back to previous steps (not forward, not current)
-    return stepNumber < current;
+    this.form.valueChanges.subscribe(() => {
+      Object.keys(this.form.controls).forEach((key) => {
+        const control = this.form.get(key);
+        if (control) {
+          control.updateValueAndValidity({ emitEvent: false });
+        }
+      });
+
+      this.formUpdateTrigger.update((v) => v + 1);
+      this.cdr.markForCheck();
+    });
+  }
+
+  ngAfterViewInit(): void {
+    this.motion.scheduleRefresh();
+  }
+
+  ngOnDestroy(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.classList.remove('aud-page', 'aud-s4');
+    }
   }
 
   protected isFieldVisible(field: StepField): boolean {
@@ -284,9 +269,21 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
     return field.condition(this.form.value);
   }
 
+  protected isStepClickable(stepNumber: number): boolean {
+    const step = this.steps.find((s) => s.number === stepNumber);
+    if (!step || step.isResult) return false;
+    return stepNumber < this.currentStep();
+  }
+
+  protected goToStep(stepNumber: number): void {
+    if (!this.isStepClickable(stepNumber)) return;
+    if (stepNumber < this.currentStep()) {
+      this.currentStep.set(stepNumber);
+    }
+  }
+
   protected nextStep(): void {
     if (!this.canProceed()) {
-      // Mark current step fields as touched to show validation errors
       const currentStep = this.currentStepData();
       currentStep.fields.forEach((field) => {
         const control = this.form.get(field.name);
@@ -303,6 +300,11 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.currentStep() === this.lastFormStepNumber) {
+      this.submitForm();
+      return;
+    }
+
     const nextStepNum = this.currentStep() + 1;
     if (nextStepNum <= this.steps.length) {
       this.currentStep.set(nextStepNum);
@@ -313,19 +315,6 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
     const prevStepNum = this.currentStep() - 1;
     if (prevStepNum >= 1) {
       this.currentStep.set(prevStepNum);
-    }
-  }
-
-  protected goToStep(stepNumber: number): void {
-    if (!this.isStepClickable(stepNumber)) {
-      return;
-    }
-
-    const current = this.currentStep();
-
-    // Can only go back to previous steps
-    if (stepNumber < current) {
-      this.currentStep.set(stepNumber);
     }
   }
 
@@ -358,7 +347,6 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
             title: 'Simulation terminée',
             message: 'Voici les résultats de votre audit.',
           });
-          // Send report by email at the end (non-blocking)
           this.auditService.generateAndSendPDF(response.data.simulationId).subscribe({
             next: (emailRes) => {
               if (emailRes?.email) {
@@ -374,8 +362,7 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
             },
           });
         },
-        error: (error) => {
-          console.error(error);
+        error: () => {
           this.notificationStore.addNotification({
             type: 'error',
             title: 'Erreur',
@@ -398,10 +385,8 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
 
     this.isGeneratingPDF.set(true);
 
-    // First, download the PDF directly
     this.auditService.downloadPDF(result.simulationId).subscribe({
       next: (blob: Blob) => {
-        // Create download link and trigger download
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
@@ -412,19 +397,15 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
         window.URL.revokeObjectURL(url);
         this.isGeneratingPDF.set(false);
 
-        // Note: Email is sent automatically after calculation completes, not on PDF download
-        // This prevents duplicate emails when users download the PDF
         this.notificationStore.addNotification({
           type: 'success',
           title: 'PDF téléchargé',
           message: 'Le rapport PDF a été téléchargé avec succès.',
         });
       },
-      error: (error) => {
+      error: (error: { error?: { error?: string }; message?: string }) => {
         this.isGeneratingPDF.set(false);
-        console.error('Error downloading PDF:', error);
 
-        // Extract error message from response if available
         let errorMessage = 'Impossible de générer le PDF. Veuillez réessayer.';
         if (error?.error?.error) {
           errorMessage = error.error.error;
@@ -455,15 +436,9 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
   private buildPayload(): EnergyAuditRequest {
     const formValue = this.form.getRawValue();
 
-    // COMMENTED OUT: Since we removed recentBillConsumption field, set hasRecentBill to false
-    // to avoid backend validation errors. Backend requires recentBillConsumption when hasRecentBill is true.
-    // const hasRecentBill = formValue.monthlyBillAmount !== null &&
-    //                      formValue.monthlyBillAmount !== undefined &&
-    //                      formValue.monthlyBillAmount > 0;
-    const hasRecentBill = false; // Set to false since we removed recentBillConsumption field
+    const hasRecentBill = false;
 
     return {
-      // Personal
       fullName: formValue.fullName || '',
       companyName: formValue.companyName || '',
       email: formValue.email || '',
@@ -471,14 +446,12 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
       address: formValue.address || '',
       governorate: formValue.governorate || '',
 
-      // Building
       buildingType: formValue.buildingType || '',
       surfaceArea: formValue.surfaceArea || 0,
       floors: formValue.floors || 0,
       activityType: formValue.activityType || '',
       climateZone: formValue.climateZone || '',
 
-      // Technical
       openingDaysPerWeek: formValue.openingDaysPerWeek || 0,
       openingHoursPerDay: formValue.openingHoursPerDay || 0,
       insulation: formValue.insulation || '',
@@ -499,19 +472,12 @@ export class EnergyAuditComponent implements OnInit, OnDestroy {
           : [],
       lightingType: formValue.lightingType || '',
 
-      // Consumption
       tariffType: formValue.tariffType || '',
-      // COMMENTED OUT: contractedPower field removed from UI
-      // contractedPower: formValue.contractedPower && formValue.contractedPower > 0 ? formValue.contractedPower : undefined,
-      contractedPower: undefined, // Field removed - send undefined
+      contractedPower: undefined,
       monthlyBillAmount: formValue.monthlyBillAmount || 0,
-      hasRecentBill: hasRecentBill, // Set to false since recentBillConsumption field was removed
-      // COMMENTED OUT: recentBillConsumption field removed from UI
-      // recentBillConsumption: hasRecentBill && formValue.recentBillConsumption ? formValue.recentBillConsumption : undefined,
-      recentBillConsumption: undefined, // Field removed - send undefined (backend will accept this when hasRecentBill is false)
+      hasRecentBill: hasRecentBill,
+      recentBillConsumption: undefined,
       billAttachmentUrl: undefined,
-      // COMMENTED OUT: referenceMonth is not sent to backend yet - will be integrated in future
-      // referenceMonth: formValue.referenceMonth
     };
   }
 }

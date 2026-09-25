@@ -1,0 +1,292 @@
+/**
+ * Joya Energy handoff design tokens
+ * Source: joya-energy-site-handoff DESIGN-SYSTEM / css/styles.css
+ */
+
+:root {
+  --coral: #e37051;
+  --coral-dark: #c85a3c;
+  --coral-tint: #fbe4da;
+  --navy: #173b5e;
+  --navy-2: #0f2a44;
+  --ink: #173b5e;
+  --cream: #fffaf6;
+  --cream-2: #fcf3ea;
+  --hairline: rgba(23, 59, 94, 0.1);
+  --hairline-strong: rgba(23, 59, 94, 0.2);
+  --blue-accent: #3d6690;
+
+  --font-display: 'Archivo', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-data: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --radius-lg: 28px;
+  --radius-md: 18px;
+  --radius-sm: 10px;
+  --radius-xl: 40px;
+  --radius-pill: 100px;
+  --container: 1220px;
+  --gutter: 80px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-1: 0 1px 2px -1px rgba(23, 59, 94, 0.1), 0 6px 16px -8px rgba(23, 59, 94, 0.12);
+  --shadow-2: 0 2px 4px -2px rgba(23, 59, 94, 0.14), 0 24px 48px -20px rgba(23, 59, 94, 0.22);
+
+  /* Bridge legacy landing vars to handoff palette */
+  --landing-primary: var(--coral);
+  --landing-primary-dark: var(--coral-dark);
+  --landing-primary-light: #f0a68a;
+  --landing-primary-lightest: var(--coral-tint);
+  --landing-secondary: var(--navy);
+  --landing-secondary-dark: var(--navy-2);
+  --landing-heading: var(--navy);
+  --landing-muted: rgba(23, 59, 94, 0.72);
+
+  --bg-page: var(--cream);
+  --text-primary: var(--navy);
+  --text-body: var(--ink);
+  --font-family-primary: var(--font-body);
+  --font-family-display: var(--font-display);
+
+  /* Simulator / aud-* bridge (handoff simulator-base + report) */
+  --bg: var(--cream);
+  --g1: rgba(227, 112, 81, 0.28);
+  --g2: rgba(61, 102, 144, 0.22);
+  --card-bg: rgba(255, 250, 246, 0.82);
+  --card-bd: rgba(23, 59, 94, 0.1);
+  --sh-card: 0 24px 48px -28px rgba(23, 59, 94, 0.28);
+  --muted: rgba(23, 59, 94, 0.62);
+  --faint: rgba(23, 59, 94, 0.45);
+  --label: var(--navy);
+  --track: rgba(23, 59, 94, 0.1);
+  --fill: rgba(255, 255, 255, 0.72);
+  --line: rgba(23, 59, 94, 0.14);
+  --line-2: rgba(23, 59, 94, 0.08);
+  --ease: var(--ease-out);
+  --coral-d: var(--coral-dark);
+  --err: #c62828;
+  --report-header-img: url('/handoff/images/report-header-solar-array-concentric-rings.jpg');
+}
+
+@media (max-width: 1180px) {
+  :root {
+    --gutter: 40px;
+  }
+}
+
+@media (max-width: 560px) {
+  :root {
+    --gutter: 20px;
+  }
+}
+
+.wrap {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-data);
+  font-size: 12.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--coral-dark);
+  font-weight: 500;
+}
+
+.eyebrow::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--coral);
+}
+
+.accent {
+  color: var(--coral);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 0; /* override legacy _buttons.scss 210px which breaks the navbar CTA */
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  transition:
+    transform 0.25s var(--ease-out),
+    background 0.25s ease,
+    border-color 0.2s ease,
+    box-shadow 0.25s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn-primary {
+  background: var(--coral);
+  color: #fff;
+  border-radius: var(--radius-pill);
+  padding: 8px 8px 8px 22px;
+}
+
+.btn-primary:hover {
+  background: var(--coral-dark);
+  box-shadow: 0 14px 28px -14px rgba(227, 112, 81, 0.45);
+  color: #fff;
+}
+
+.btn-puck {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition:
+    transform 0.35s var(--ease-out),
+    background 0.25s ease;
+}
+
+.btn:hover .btn-puck {
+  transform: rotate(45deg);
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 999;
+  background: var(--navy);
+  color: var(--cream);
+  padding: 12px 20px;
+  border-radius: 0 0 10px 0;
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
+/* Scroll reveal (handoff) */
+[data-anim] {
+  will-change: opacity, transform;
+}
+
+html.cine-on [data-anim] {
+  opacity: 0;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.5s ease-out,
+    transform 0.65s var(--ease-out);
+}
+
+.reveal.is-live {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-scale {
+  transform: translateY(26px) scale(0.97);
+}
+
+.reveal-scale.is-live {
+  transform: translateY(0) scale(1);
+}
+
+.reveal-d1.is-live {
+  transition-delay: 0.08s;
+}
+
+.reveal-d2.is-live {
+  transition-delay: 0.16s;
+}
+
+.reveal-d3.is-live {
+  transition-delay: 0.24s;
+}
+
+.reveal-d4.is-live {
+  transition-delay: 0.32s;
+}
+
+html.cine-off .reveal,
+html.cine-off .reveal-scale {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+html.cine-off [data-anim] {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-scale,
+  .js-in,
+  [data-anim] {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}
+
+/* Before GSAP boots, keep animated-hidden blocks readable */
+html:not(.cine-on) [data-anim] {
+  opacity: 1 !important;
+}
+
+html:not(.cine-on) .res-step__in,
+html:not(.cine-on) .pg-step__in,
+html:not(.cine-on) .method-item,
+html:not(.cine-on) .sgrid > .scard,
+html:not(.cine-on) .pg-cards > .pg-card,
+html:not(.cine-on) [data-stagger] > * {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+html.cine-off .sgrid > .scard,
+html.cine-off .method-list > .method-item,
+html.cine-off .pg-cards > .pg-card,
+html.cine-off [data-stagger] > * {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* CTA finale — letter split (handoff .ct-w / .ct-l) */
+.pg-cta__title .ct-w,
+.res-cta__title .ct-w {
+  display: inline-block;
+}
+
+.pg-cta__title .ct-l,
+.res-cta__title .ct-l {
+  display: inline-block;
+}
+
+.pg-cta__bg,
+.res-cta__bg {
+  will-change: transform, opacity;
+}
+
