@@ -1482,6 +1482,19 @@ export class SolarAuditComponent implements OnInit, AfterViewInit, OnDestroy {
       });
   }
 
+  /** kWh printed on the bill, only when the user uploaded an invoice. */
+  private readExtractedMonthlyKwh(): number | undefined {
+    if (this.form.get('consumption.hasInvoice')?.value !== 'yes') {
+      return undefined;
+    }
+    const fields = extractSolarAuditFields(this.billExtractionStore.getExtractedData());
+    const monthlyKwh = fields?.measuredConsumptionKwh;
+    if (monthlyKwh == null || monthlyKwh <= 0) {
+      return undefined;
+    }
+    return monthlyKwh;
+  }
+
   private buildCreateSimulationPayload(overrides?: {
     tariffTension?: 'BT' | 'MT';
     operatingHoursCase?: string | null;
@@ -1527,9 +1540,12 @@ export class SolarAuditComponent implements OnInit, AfterViewInit, OnDestroy {
       referenceMonth = month ? month.value : 1;
     }
 
+    const extractedKwh = this.readExtractedMonthlyKwh();
+
     return {
       address: value.location?.address ?? '',
       measuredAmountTnd: value.consumption?.measuredAmountTnd ?? 0,
+      ...(extractedKwh != null ? { measuredConsumptionKwh: extractedKwh } : {}),
       referenceMonth,
       buildingType: value.building?.buildingType ?? '',
       climateZone: value.building?.climateZone ?? this.climateZones[0] ?? '',

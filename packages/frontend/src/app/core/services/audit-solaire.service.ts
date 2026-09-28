@@ -12,6 +12,8 @@ export interface CreateSimulationPayload {
   email: string;
   phoneNumber: string;
   measuredAmountTnd: number;
+  /** Monthly kWh from the bill quantity. Omitted when the user types an amount. */
+  measuredConsumptionKwh?: number;
   referenceMonth: number;
   
   // Building

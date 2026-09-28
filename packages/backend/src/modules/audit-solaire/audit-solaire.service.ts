@@ -58,6 +58,8 @@ export interface CreateSimulationInput {
   buildingType: BuildingTypes;
   climateZone: ClimateZones;
   measuredAmountTnd: number;
+  /** Monthly kWh read from the bill. Skips the amount÷tariff estimate when set. */
+  measuredConsumptionKwh?: number;
   referenceMonth: number;
   /** Optional MT/BT info coming from frontend (solar-MT branch) */
   tariffTension?: 'BT' | 'MT';
@@ -86,22 +88,38 @@ export class AuditSolaireSimulationService extends CommonService<
     super(auditSolaireSimulationRepository);
   }
 
+  /**
+   * Use the kWh printed on the bill when the extractor read them.
+   * Otherwise estimate kWh from the monthly amount and the tariff.
+   */
+  private resolveMeasuredConsumptionKwh(input: CreateSimulationInput): number {
+    if (input.measuredConsumptionKwh != null && input.measuredConsumptionKwh > 0) {
+      return input.measuredConsumptionKwh;
+    }
+
+    if (input.tariffTension === 'MT' && (input.tariffRegime === 'uniforme' || input.tariffRegime === 'horaire')) {
+      const rate = input.tariffRegime === 'uniforme'
+        ? MT_TARIFF_UNIFORME_DT_PER_KWH
+        : MT_TARIFF_HORAIRE_DT_PER_KWH;
+      return Number((input.measuredAmountTnd / rate).toFixed(2));
+    }
+
+    return convertAmountToConsumptionFlatRate({
+      monthlyAmount: input.measuredAmountTnd,
+    }).monthlyConsumption;
+  }
+
   public async createSimulation(input: CreateSimulationInput): Promise<IAuditSolaireSimulation> {
 
 
     try {
-      // Amount (DT) → consumption (kWh): BT uses bracket tariff (0.465 TTC for 500+ kWh);
-      // MT uses regime TTC (uniforme 0.291×1.19, horaire 0.279×1.19)
-      let measuredConsumptionKwh: number;
-      if (input.tariffTension === 'MT' && (input.tariffRegime === 'uniforme' || input.tariffRegime === 'horaire')) {
-        const rate = input.tariffRegime === 'uniforme' ? MT_TARIFF_UNIFORME_DT_PER_KWH : MT_TARIFF_HORAIRE_DT_PER_KWH;
-        measuredConsumptionKwh = input.measuredAmountTnd / rate;
-      } else {
-        const consumptionConversion = convertAmountToConsumptionFlatRate({
-          monthlyAmount: input.measuredAmountTnd,
-        });
-        measuredConsumptionKwh = consumptionConversion.monthlyConsumption;
-      }
+      const measuredConsumptionKwh = this.resolveMeasuredConsumptionKwh(input);
+      Logger.info(
+        `Measured consumption: ${measuredConsumptionKwh} kWh` +
+          (input.measuredConsumptionKwh != null && input.measuredConsumptionKwh > 0
+            ? ' (from bill quantity)'
+            : ' (from amount / tariff)')
+      );
 
       const coordinates = await this.resolveGeoCoordinates(input);
 

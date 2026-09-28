@@ -1,4 +1,8 @@
-import type { ExtractedBillData } from '@shared/interfaces/bill-extraction.interface';
+import type {
+  AmountValue,
+  ExtractedBillData,
+  ExtractedField,
+} from '@shared/interfaces/bill-extraction.interface';
 
 /**
  * Solar audit fields extracted from bill data
@@ -6,6 +10,8 @@ import type { ExtractedBillData } from '@shared/interfaces/bill-extraction.inter
 export interface SolarAuditBillFields {
   /** Monthly bill amount in TND (BillAmountDividedByPeriod) */
   measuredAmountTnd: number;
+  /** Monthly electricity quantity in kWh, when the bill states it */
+  measuredConsumptionKwh: number | null;
   /** Reference month (1-12) (MonthOfReferance) */
   referenceMonth: number;
   /** Tariff tension: 'BT' or 'MT' (derived from tariffType) */
@@ -105,11 +111,34 @@ export function extractSolarAuditFields(
 
   return {
     measuredAmountTnd: billAmount,
+    measuredConsumptionKwh: monthlyKwhFromBill(extractedData),
     referenceMonth: monthOfReference,
     tariffTension,
     tariffRegime: tariffRegime ?? null,
     operatingHoursCase: operatingHoursCase ?? null,
   };
+}
+
+function amountTotal(field: ExtractedField<AmountValue> | undefined): number | null {
+  const value = field?.value;
+  if (value == null) {
+    return null;
+  }
+  if (typeof value === 'number') {
+    return value > 0 ? value : null;
+  }
+  return value.total > 0 ? value.total : null;
+}
+
+/** Quantity on the bill divided by the number of billed months. */
+export function monthlyKwhFromBill(data: ExtractedBillData): number | null {
+  const quantity = amountTotal(data.recentBillConsumption);
+  if (quantity == null) {
+    return null;
+  }
+  const period = data.period?.value;
+  const months = period != null && period >= 1 && period <= 12 ? period : 1;
+  return Number((quantity / months).toFixed(2));
 }
 
 /**
