@@ -3,7 +3,7 @@
     <div class="aud__flow a"></div>
     <div class="aud__flow b"></div>
     <div class="aud__flow c"></div>
-  </div>
+              </div>
   <div class="aud__grain" aria-hidden="true"></div>
 
   <div class="aud" id="audRoot">
@@ -15,12 +15,12 @@
       @if (currentStep() === 1) {
       <a routerLink="/ressources" class="aud__back">
         <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
-          <path
+                          <path
             d="M11 7H3M6 3 2 7l4 4"
             stroke="currentColor"
             stroke-width="1.7"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
           />
         </svg>
         <span>Retour aux ressources</span>
@@ -32,10 +32,10 @@
             d="M11 7H3M6 3 2 7l4 4"
             stroke="currentColor"
             stroke-width="1.7"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                        </svg>
         <span>Étape précédente</span>
       </button>
       }
@@ -44,72 +44,72 @@
       <div class="aud__prog">
         <div class="aud__ptrack"><i [style.width.%]="audProgressPct()"></i></div>
         <div class="aud__eb">Étape {{ currentStep() }} sur {{ steps().length }}</div>
-      </div>
+                </div>
 
       <div class="aud__lede">
         <span class="aud__kicker">
           {{ isBillAnalysisMode() ? 'Analyse facture' : "Calculateur d'audit solaire" }}
         </span>
         <h1 class="aud__q" id="audQ">{{ currentStepData().title }}</h1>
-        @if (currentStepData().description) {
+                @if (currentStepData().description) {
         <p class="aud__sub">{{ currentStepData().description }}</p>
-        }
-      </div>
+                }
+              </div>
       }
 
       <form [formGroup]="form" id="audForm" novalidate autocomplete="off">
         <!-- ═══ STEP 1 — Facture ═══ -->
-        @if (currentStep() === 1) {
+              @if (currentStep() === 1) {
         <div class="aud__step" data-step="1">
-          @if (isBillAnalysisMode()) {
+                @if (isBillAnalysisMode()) {
           <div class="f">
             <span class="lab">Insérer une facture photo <span class="req">*</span></span>
-            <app-ui-bill-extractor
-              [hideExtractButton]="true"
-              [uploadOnly]="true"
-              (fileChange)="onBillFileChange($event)"
-            ></app-ui-bill-extractor>
-          </div>
-          } @else {
+                  <app-ui-bill-extractor
+                    [hideExtractButton]="true"
+                    [uploadOnly]="true"
+                    (fileChange)="onBillFileChange($event)"
+                  ></app-ui-bill-extractor>
+                </div>
+                } @else {
           <div class="aud__note">
             <p>
               Ce simulateur analyse les informations renseignées pour estimer la production
               photovoltaïque de votre bâtiment, votre potentiel solaire, vos économies d'énergie et
               la baisse de votre coût au kWh
-            </p>
-            <p>
+                  </p>
+                  <p>
               Pour obtenir une estimation plus précise, renseignez le montant de votre dernière
               facture STEG et son mois de référence.
-            </p>
-          </div>
+                  </p>
+                </div>
 
           <div class="f" formGroupName="consumption">
             <span class="lab">Avez-vous une facture photo&nbsp;?</span>
             <div class="tariff" role="group" aria-label="Avez-vous une facture photo ?">
-              <button
-                type="button"
+                    <button
+                      type="button"
                 [attr.aria-pressed]="hasInvoice()"
                 (click)="form.get('consumption.hasInvoice')?.setValue('yes', { emitEvent: true })"
-              >
-                Oui
-              </button>
-              <button
-                type="button"
+                    >
+                      Oui
+                    </button>
+                    <button
+                      type="button"
                 [attr.aria-pressed]="!hasInvoice()"
                 (click)="form.get('consumption.hasInvoice')?.setValue('no', { emitEvent: true })"
-              >
-                Non
-              </button>
-            </div>
-          </div>
+                    >
+                      Non
+                    </button>
+                  </div>
+                </div>
 
-          @if (hasInvoice()) {
+                @if (hasInvoice()) {
           <div class="f">
-            <app-ui-bill-extractor></app-ui-bill-extractor>
-          </div>
-          }
+                  <app-ui-bill-extractor></app-ui-bill-extractor>
+                </div>
+                }
 
-          @if (!hasInvoice()) {
+                @if (!hasInvoice()) {
           <div formGroupName="consumption">
             <div class="grid2">
               <div class="f">
@@ -153,27 +153,27 @@
                   </select>
                   <span class="chevd"></span>
                 </div>
-              </div>
-            </div>
+                    </div>
+                  </div>
 
             <div class="f">
               <span class="lab">Régime tarifaire</span>
               <div class="tariff" role="group" aria-label="Régime tarifaire">
-                <button
-                  type="button"
+                      <button
+                        type="button"
                   [attr.aria-pressed]="form.get('consumption.tariffTension')?.value === 'BT'"
-                  (click)="form.get('consumption.tariffTension')?.setValue('BT')"
-                >
-                  Basse Tension
-                </button>
-                <button
-                  type="button"
+                        (click)="form.get('consumption.tariffTension')?.setValue('BT')"
+                      >
+                        Basse Tension
+                      </button>
+                      <button
+                        type="button"
                   [attr.aria-pressed]="form.get('consumption.tariffTension')?.value === 'MT'"
-                  (click)="form.get('consumption.tariffTension')?.setValue('MT')"
-                >
-                  Moyenne Tension
-                </button>
-              </div>
+                        (click)="form.get('consumption.tariffTension')?.setValue('MT')"
+                      >
+                        Moyenne Tension
+                      </button>
+                    </div>
               <p class="tariff-help">
                 {{
                   form.get('consumption.tariffTension')?.value === 'MT'
@@ -181,70 +181,70 @@
                     : 'Pour les particuliers et les commerces.'
                 }}
               </p>
-            </div>
+                  </div>
 
-            @if (form.get('consumption.tariffTension')?.value === 'MT') {
+                  @if (form.get('consumption.tariffTension')?.value === 'MT') {
             <div #mtOptionsContainer class="grid2">
               <div class="f">
                 <span class="lab">Horaire de fonctionnement</span>
                 <div class="seg seg--fill" role="group" aria-label="Horaire de fonctionnement">
-                  <button
-                    type="button"
+                        <button
+                          type="button"
                     [attr.aria-pressed]="
-                      form.get('consumption.operatingHoursCase')?.value === 'jour'
-                    "
-                    (click)="form.get('consumption.operatingHoursCase')?.setValue('jour')"
-                  >
-                    Jour
-                  </button>
-                  <button
-                    type="button"
+                            form.get('consumption.operatingHoursCase')?.value === 'jour'
+                          "
+                          (click)="form.get('consumption.operatingHoursCase')?.setValue('jour')"
+                        >
+                          Jour
+                        </button>
+                        <button
+                          type="button"
                     [attr.aria-pressed]="
-                      form.get('consumption.operatingHoursCase')?.value === '24_7'
-                    "
-                    (click)="form.get('consumption.operatingHoursCase')?.setValue('24_7')"
-                  >
-                    24/24
-                  </button>
-                  <button
-                    type="button"
+                            form.get('consumption.operatingHoursCase')?.value === '24_7'
+                          "
+                          (click)="form.get('consumption.operatingHoursCase')?.setValue('24_7')"
+                        >
+                          24/24
+                        </button>
+                        <button
+                          type="button"
                     [attr.aria-pressed]="
-                      form.get('consumption.operatingHoursCase')?.value === 'jour_soir'
-                    "
+                            form.get('consumption.operatingHoursCase')?.value === 'jour_soir'
+                          "
                     (click)="form.get('consumption.operatingHoursCase')?.setValue('jour_soir')"
-                  >
-                    Jour + soir
-                  </button>
-                </div>
-              </div>
+                        >
+                          Jour + soir
+                        </button>
+                      </div>
+                    </div>
               <div class="f">
                 <span class="lab">Régime</span>
                 <div class="seg seg--fill" role="group" aria-label="Régime">
-                  <button
-                    type="button"
+                        <button
+                          type="button"
                     [attr.aria-pressed]="
-                      form.get('consumption.tariffRegime')?.value === 'uniforme'
-                    "
-                    (click)="form.get('consumption.tariffRegime')?.setValue('uniforme')"
-                  >
-                    Tarif uniforme
-                  </button>
-                  <button
-                    type="button"
+                            form.get('consumption.tariffRegime')?.value === 'uniforme'
+                          "
+                          (click)="form.get('consumption.tariffRegime')?.setValue('uniforme')"
+                        >
+                          Tarif uniforme
+                        </button>
+                        <button
+                          type="button"
                     [attr.aria-pressed]="
-                      form.get('consumption.tariffRegime')?.value === 'horaire'
-                    "
-                    (click)="form.get('consumption.tariffRegime')?.setValue('horaire')"
-                  >
-                    Tarif horaire
-                  </button>
+                            form.get('consumption.tariffRegime')?.value === 'horaire'
+                          "
+                          (click)="form.get('consumption.tariffRegime')?.setValue('horaire')"
+                        >
+                          Tarif horaire
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  }
                 </div>
-              </div>
-            </div>
-            }
-          </div>
-          }
-          }
+                }
+                }
 
           <div class="aud__actions">
             <button
@@ -269,22 +269,22 @@
               }
             </button>
           </div>
-        </div>
-        }
+              </div>
+              }
 
         <!-- ═══ STEP 2 — Bâtiment (full audit only) ═══ -->
-        @if (!isBillAnalysisMode() && currentStep() === 2) {
+              @if (!isBillAnalysisMode() && currentStep() === 2) {
         <div class="aud__step" data-step="2" formGroupName="building">
           <div class="f">
             <label class="lab">Type de bâtiment <span class="req">*</span></label>
-            <app-ui-select
-              formControlName="buildingType"
-              [options]="buildingTypeOptionsForSelect"
-              placeholder="Sélectionnez le type de bâtiment"
-              variant="dropdown-icon"
-            >
-            </app-ui-select>
-          </div>
+                    <app-ui-select
+                      formControlName="buildingType"
+                      [options]="buildingTypeOptionsForSelect"
+                      placeholder="Sélectionnez le type de bâtiment"
+                      variant="dropdown-icon"
+                    >
+                    </app-ui-select>
+                  </div>
 
           <div class="f" style="margin-bottom: 0">
             <span class="lab">Zone climatique</span>
@@ -298,8 +298,8 @@
                 {{ zone }}
               </button>
               }
-            </div>
-          </div>
+                  </div>
+                </div>
 
           <div class="aud__actions">
             <button
@@ -320,14 +320,14 @@
               </svg>
             </button>
           </div>
-        </div>
-        }
+              </div>
+              }
 
         <!-- ═══ STEP 3 / bill step 2 — Contact ═══ -->
-        @if (
-          (!isBillAnalysisMode() && currentStep() === 3) ||
-          (isBillAnalysisMode() && currentStep() === 2)
-        ) {
+              @if (
+                (!isBillAnalysisMode() && currentStep() === 3) ||
+                (isBillAnalysisMode() && currentStep() === 2)
+              ) {
         <div class="aud__step" [attr.data-step]="currentStep()">
           <div formGroupName="personal">
             <div class="grid2">
@@ -345,7 +345,7 @@
                 </div>
               </div>
 
-              @if (!isBillAnalysisMode()) {
+                  @if (!isBillAnalysisMode()) {
               <div class="f">
                 <label class="lab" for="audEntreprise"
                   >Entreprise <span class="req">*</span></label
@@ -392,34 +392,34 @@
                 </div>
               </div>
             </div>
-          </div>
+                </div>
 
-          @if (!isBillAnalysisMode()) {
+                @if (!isBillAnalysisMode()) {
           <div class="f" formGroupName="location" style="margin-bottom: 0">
-            <app-google-maps-input
-              formControlName="address"
-              label="Adresse complète du bâtiment"
-              placeholder="Entrez l'adresse complète"
-              [required]="true"
-              size="md"
-              (addressSelected)="onAddressChange($event)"
-            >
-            </app-google-maps-input>
-          </div>
-          }
+                  <app-google-maps-input
+                    formControlName="address"
+                    label="Adresse complète du bâtiment"
+                    placeholder="Entrez l'adresse complète"
+                    [required]="true"
+                    size="md"
+                    (addressSelected)="onAddressChange($event)"
+                  >
+                  </app-google-maps-input>
+                </div>
+                }
 
           <div class="aud__actions">
-            <button
-              type="button"
+          <button
+            type="button"
               class="btn-next aud__continue"
               [class.btn-next--loading]="isSubmitting()"
               [disabled]="isSubmitting()"
-              (click)="nextStep()"
-            >
-              @if (isSubmitting()) {
+            (click)="nextStep()"
+          >
+            @if (isSubmitting()) {
               <span>{{ primaryActionLabel() }}</span>
-              } @else {
-              <span>{{ primaryActionLabel() }}</span>
+            } @else {
+            <span>{{ primaryActionLabel() }}</span>
               <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
                 <path
                   d="M3 7h8M7 3l4 4-4 4"
@@ -429,8 +429,8 @@
                   stroke-linejoin="round"
                 />
               </svg>
-              }
-            </button>
+            }
+          </button>
           </div>
         </div>
         }
@@ -481,16 +481,16 @@
                 </div>
               </div>
               <div class="rp-head__img" aria-hidden="true"></div>
-              <button
-                type="button"
+          <button
+            type="button"
                 class="rp-dl"
                 data-a
                 [disabled]="isGeneratingPDF() || !simulation.id"
-                (click)="downloadPVReport()"
-              >
-                @if (isGeneratingPDF()) {
+            (click)="downloadPVReport()"
+          >
+            @if (isGeneratingPDF()) {
                 Génération…
-                } @else {
+            } @else {
                 Télécharger le rapport PV
                 <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
                   <path
@@ -501,8 +501,8 @@
                     stroke-linejoin="round"
                   />
                 </svg>
-                }
-              </button>
+            }
+          </button>
             </header>
 
             <section class="rp" data-sec>
@@ -559,14 +559,14 @@
                   <span class="rc__d"
                     >{{ (annualSavingsForDisplay() ?? 0) | noGrouping : '1.0-0' }} DT/an</span
                   >
-                </div>
+        </div>
 
                 <div class="rc rc--hot" data-a>
                   <span class="rc__lb">Temps</span>
                   <b>{{ formatPaybackPeriod(simulation.paybackMonths) }}</b>
                   <span class="rc__t">Temps de Retour sur Investissement</span>
                   <span class="rc__d">Période de remboursement</span>
-                </div>
+      </div>
 
                 @if (simulation.mtSelfConsumedEnergy != null) {
                 <div class="rc" data-a>
@@ -1037,18 +1037,18 @@
             <section class="rp rp-foot" data-sec>
               <span class="rp__n" data-a>07</span>
               <button type="button" class="rp-new" data-a (click)="resetForm()">
-                Nouvelle simulation
-              </button>
-              <button
-                type="button"
+          Nouvelle simulation
+        </button>
+        <button
+          type="button"
                 class="btn-next"
                 data-a
                 [disabled]="isGeneratingPDF() || !simulation.id"
-                (click)="downloadPVReport()"
-              >
-                @if (isGeneratingPDF()) {
+          (click)="downloadPVReport()"
+        >
+          @if (isGeneratingPDF()) {
                 Génération…
-                } @else {
+          } @else {
                 Télécharger le rapport PV
                 <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
                   <path
@@ -1059,16 +1059,16 @@
                     stroke-linejoin="round"
                   />
                 </svg>
-                }
-              </button>
+          }
+        </button>
             </section>
           </div>
           } @else {
           <div class="aud__note">
             <p>Analyse en cours… Nous calculons votre solution solaire optimale.</p>
           </div>
-          }
-        </div>
+        }
+      </div>
         }
       </form>
 

@@ -10,6 +10,7 @@ import {
 import { RouterLink, Router, NavigationEnd } from '@angular/router';
 import { CommonModule, isPlatformBrowser, DOCUMENT } from '@angular/common';
 import { filter, Subscription } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-navbar',
@@ -33,6 +34,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   protected readonly isResourcesOpen = signal(false);
   protected readonly isMobileResourcesOpen = signal(false);
   protected readonly currentUrl = signal('/');
+  protected readonly startProjectUrl = `${environment.customerAppUrl.replace(/\/$/, '')}/`;
+  protected readonly loginUrl = `${environment.customerAppUrl.replace(/\/$/, '')}/auth/login`;
 
   private scrollRAF: number | null = null;
   private scrollIdleTimer: ReturnType<typeof setTimeout> | null = null;
