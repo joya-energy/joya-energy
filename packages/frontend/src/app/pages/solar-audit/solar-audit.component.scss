@@ -317,6 +317,201 @@ body.aud-s4 .aud__card,
   }
 }
 
+.rp.rp-chart .sol-chart {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  grid-template-rows: 250px auto auto;
+  column-gap: 10px;
+  row-gap: 8px;
+  align-content: center;
+  flex: 1;
+  min-height: 0;
+  justify-content: stretch;
+}
+
+.sol-chart__y {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  min-width: 4.2rem;
+  padding: 0 4px 0 0;
+  font-size: 12px;
+  line-height: 1;
+  color: #9aa6b5;
+  font-variant-numeric: tabular-nums;
+}
+
+.sol-chart__y span {
+  position: relative;
+  top: -0.45em;
+}
+
+.sol-chart__plot {
+  display: contents;
+}
+
+.sol-chart__canvas {
+  grid-column: 2;
+  grid-row: 1;
+  position: relative;
+  width: 100%;
+  height: 250px;
+}
+
+.rp.rp-chart .sol-chart__svg {
+  width: 100%;
+  height: 250px;
+  display: block;
+  overflow: visible;
+}
+
+.sol-chart__grid {
+  stroke: #e7edf3;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.sol-chart__gains {
+  fill: none;
+  stroke: #12325a;
+  stroke-width: 2.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.sol-chart__capex {
+  fill: none;
+  stroke: #e37051;
+  stroke-width: 1.75;
+  stroke-dasharray: 6 5;
+  vector-effect: non-scaling-stroke;
+}
+
+.sol-chart__capex-dot {
+  fill: #e37051;
+  stroke: none;
+}
+
+.sol-chart__guide {
+  stroke: #12325a;
+  stroke-width: 1.35;
+  stroke-dasharray: 2 5;
+  vector-effect: non-scaling-stroke;
+}
+
+.sol-chart__hit {
+  fill: #fff;
+  stroke: #12325a;
+  stroke-width: 2.25;
+  vector-effect: non-scaling-stroke;
+}
+
+.sol-chart__end {
+  fill: #12325a;
+  stroke: #12325a;
+  stroke-width: 0;
+}
+
+.sol-chart__payback,
+.sol-chart__tag,
+.sol-chart__tip {
+  position: absolute;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.sol-chart__payback {
+  transform: translate(-50%, -50%);
+  background: #12325a;
+  color: #fff;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.sol-chart__tag {
+  transform: translate(calc(-100% - 12px), -50%);
+  color: #12325a;
+  background: #fff;
+  border: 1.5px solid #12325a;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.sol-chart__tag--capex {
+  transform: translate(calc(-100% - 12px), -50%);
+  color: #e37051;
+  border-color: #e37051;
+}
+
+.sol-chart__tip {
+  transform: translate(-50%, calc(-100% - 10px));
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: #fff;
+  border: 1px solid #d7e0ea;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: #31435c;
+  box-shadow: 0 10px 24px -16px rgba(18, 50, 90, 0.6);
+}
+
+.sol-chart__x {
+  grid-column: 2;
+  grid-row: 2;
+  position: relative;
+  height: 18px;
+  margin-top: 2px;
+}
+
+.sol-chart__x span {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: var(--muted, #45566e);
+  white-space: nowrap;
+}
+
+.sol-chart__x span:first-child {
+  transform: none;
+}
+
+.sol-chart__x span:last-child {
+  transform: translateX(-100%);
+}
+
+.sol-chart .rp-legend {
+  grid-column: 2;
+  grid-row: 3;
+  margin-top: 10px;
+}
+
+.sol-chart .rp-legend span {
+  color: #1b2f49;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.sol-chart__key--gains {
+  background: #12325a;
+}
+
+.sol-chart__key--capex {
+  background: #e37051;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .aud__flow {
     animation: none !important;

@@ -760,6 +760,33 @@
             <section class="rp" data-sec>
               <div class="rp__hd" data-a>
                 <span class="rp__n">02</span>
+                <h3>Détail de l'estimation</h3>
+              </div>
+              <div data-a>
+                <table class="res-table">
+                  <tr>
+                    <td class="k">Émissions par employé</td>
+                    <td class="v">
+                      {{ emissionsPerEmployee(r) | noGrouping : '1.1-1' }} tCO₂e / employé
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="k">Intensité carbone</td>
+                    <td class="v">
+                      {{ intensity(r) | noGrouping : '1.1-1' }} kg CO₂e / m²
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="k">Poste le plus émetteur</td>
+                    <td class="v">{{ topEmitterLabel(r) }}</td>
+                  </tr>
+                </table>
+              </div>
+            </section>
+
+            <section class="rp" data-sec>
+              <div class="rp__hd" data-a>
+                <span class="rp__n">03</span>
                 <h3>Répartition des émissions</h3>
               </div>
               <div data-a>
@@ -795,7 +822,7 @@
 
             <section class="rp" data-sec>
               <div class="rp__hd" data-a>
-                <span class="rp__n">03</span>
+                <span class="rp__n">04</span>
                 <h3>Répartition par scope</h3>
               </div>
               <div data-a>
@@ -828,31 +855,100 @@
               </div>
             </section>
 
-            <section class="rp" data-sec>
-              <div class="rp__hd" data-a>
-                <span class="rp__n">04</span>
-                <h3>Détail de l'estimation</h3>
+            <section class="rp bc-detail" data-sec>
+              <header class="bc-detail__head" data-a>
+                <span class="bc-detail__mark" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M12 21c0-6 4-9 8-10-1 6-4 9-8 10Z"
+                      stroke="currentColor"
+                      stroke-width="1.6"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M12 21C12 15 8 12 4 11c1 6 4 9 8 10Z"
+                      stroke="currentColor"
+                      stroke-width="1.6"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M12 21V10"
+                      stroke="currentColor"
+                      stroke-width="1.6"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                </span>
+                <h3>Détail par scope</h3>
+                <p>Répartition de vos émissions selon les scopes GES</p>
+              </header>
+              <div class="bc-detail__list" data-a>
+                @for (scope of scopeDetails; track scope.id) {
+                <article class="bc-scope">
+                  <span class="bc-scope__ic" aria-hidden="true">
+                    @switch (scope.id) {
+                    @case ('s1') {
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M12 3s4 4.2 4 8a4 4 0 1 1-8 0c0-3.8 4-8 4-8Z"
+                        stroke="currentColor"
+                        stroke-width="1.6"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M12 21v-4"
+                        stroke="currentColor"
+                        stroke-width="1.6"
+                        stroke-linecap="round"
+                      />
+                    </svg>
+                    }
+                    @case ('s2') {
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M13 3 6 13h6l-1 8 7-10h-6l1-8Z"
+                        stroke="currentColor"
+                        stroke-width="1.6"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                    }
+                    @case ('s3') {
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6" />
+                      <path
+                        d="M4 12h16M12 4c2.2 2.4 3.3 5.1 3.3 8S14.2 17.6 12 20c-2.2-2.4-3.3-5.1-3.3-8S9.8 6.4 12 4Z"
+                        stroke="currentColor"
+                        stroke-width="1.6"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                    }
+                    }
+                  </span>
+                  <div>
+                    <h4>{{ scope.title }}</h4>
+                    <p>{{ scope.text }}</p>
+                  </div>
+                </article>
+                }
               </div>
-              <div data-a>
-                <table class="res-table">
-                  <tr>
-                    <td class="k">Émissions par employé</td>
-                    <td class="v">
-                      {{ emissionsPerEmployee(r) | noGrouping : '1.1-1' }} tCO₂e / employé
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="k">Intensité carbone</td>
-                    <td class="v">
-                      {{ intensity(r) | noGrouping : '1.1-1' }} kg CO₂e / m²
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="k">Poste le plus émetteur</td>
-                    <td class="v">{{ topEmitterLabel(r) }}</td>
-                  </tr>
-                </table>
-              </div>
+            </section>
+
+            <section class="rp bc-keyrec" data-sec>
+              <h3 data-a>Recommandation clé pour la réduction des émissions de CO₂</h3>
+              <article class="bc-key" data-a>
+                <span class="bc-key__badge">Recommandation</span>
+                <p class="bc-key__lead">
+                  En Tunisie, l'électricité constitue l'un des principaux postes d'émissions de
+                  carbone pour les entreprises.
+                </p>
+                <p>
+                  La production d'électricité solaire photovoltaïque permet de réduire
+                  significativement ces émissions, tout en améliorant durablement la performance
+                  économique de l'entreprise.
+                </p>
+              </article>
             </section>
 
             <section class="rp rp--plain" data-sec>

@@ -594,7 +594,7 @@
                 <div class="rc" data-a>
                   <span class="rc__lb">Couverture</span>
                   <b>
-                    {{ simulation.coverage | noGrouping : '1.1-1' }}
+                    {{ simulation.coverage | noGrouping : '1.2-2' }}
                     <i>%</i>
                   </b>
                   <span class="rc__t">Taux de couverture</span>
@@ -664,7 +664,7 @@
                           simulation.mtActualCoverageRate * 100 | noGrouping : '1.1-1'
                         }}%</b
                       >
-                      <span>Autoconsommation</span>
+                      <span>Couverture</span>
                     </div>
                     <i class="sep"></i>
                     <div>
@@ -792,6 +792,152 @@
                   <b>{{ simulation.irr | noGrouping : '1.1-1' }}%</b>
                 </div>
               </section>
+
+              @if (simulation.annualEconomics && simulation.annualEconomics.length > 0) {
+              <section class="rp rp-chart">
+                <div class="rp__hd" data-a>
+                  <span class="rp__n">04</span>
+                  <div>
+                    <h3>Gains nets cumulés vs CAPEX</h3>
+                  </div>
+                </div>
+                <div class="rp-chart__body sol-chart" data-a>
+                  <div class="sol-chart__y">
+                    @for (tick of getLineChartYAxisTicks(); track $index) {
+                    <span>{{ formatChartAxisValue(tick) }}</span>
+                    }
+                  </div>
+                  <div class="sol-chart__plot">
+                    <div
+                      class="sol-chart__canvas"
+                      #lineChartSvgContainer
+                      (mouseleave)="onChartMouseLeave()"
+                    >
+                      <svg
+                        #lineChartSvg
+                        viewBox="0 0 1000 400"
+                        preserveAspectRatio="none"
+                        class="sol-chart__svg"
+                        (mousemove)="onChartMouseMove($event)"
+                      >
+                        <defs>
+                          <linearGradient id="solarGainsGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#D7E2EF" stop-opacity="0.95" />
+                            <stop offset="70%" stop-color="#EEF3F8" stop-opacity="0.35" />
+                            <stop offset="100%" stop-color="#F7F9FC" stop-opacity="0" />
+                          </linearGradient>
+                        </defs>
+                        @for (tick of getLineChartYAxisTicks(); track $index) {
+                        <line
+                          x1="0"
+                          [attr.y1]="chartTickY(tick)"
+                          x2="1000"
+                          [attr.y2]="chartTickY(tick)"
+                          class="sol-chart__grid"
+                        />
+                        }
+                        @if (getGainsAreaPath(); as areaPath) {
+                        <path [attr.d]="areaPath" fill="url(#solarGainsGradient)" />
+                        }
+                        @if (getFinalCapexPoint(); as capexPoint) {
+                        <line
+                          x1="0"
+                          [attr.y1]="capexPoint.y"
+                          x2="980"
+                          [attr.y2]="capexPoint.y"
+                          class="sol-chart__capex"
+                        />
+                        <circle
+                          cx="980"
+                          [attr.cy]="capexPoint.y"
+                          r="4.5"
+                          class="sol-chart__capex-dot"
+                        />
+                        }
+                        <polyline
+                          [attr.points]="getGainsLinePoints()"
+                          class="sol-chart__gains"
+                        />
+                        @if (getIntersectionPoint(); as hit) {
+                        <line
+                          [attr.x1]="hit.x"
+                          [attr.y1]="chartGuideStartY(hit.y) + 22"
+                          [attr.x2]="hit.x"
+                          [attr.y2]="hit.y"
+                          class="sol-chart__guide"
+                        />
+                        <circle
+                          [attr.cx]="hit.x"
+                          [attr.cy]="hit.y"
+                          r="6.5"
+                          class="sol-chart__hit"
+                        />
+                        }
+                        @if (getFinalGainsPoint(); as endPoint) {
+                        <circle
+                          [attr.cx]="endPoint.x"
+                          [attr.cy]="endPoint.y"
+                          r="5"
+                          class="sol-chart__end"
+                        />
+                        }
+                      </svg>
+                      @if (getIntersectionPoint(); as hit) {
+                      <div
+                        class="sol-chart__payback"
+                        [style.left.%]="(hit.x / 1000) * 100"
+                        [style.top.%]="(chartGuideStartY(hit.y) / 400) * 100"
+                      >
+                        {{ formatPaybackPeriod(simulation.paybackMonths) }}
+                      </div>
+                      }
+                      @if (getFinalGainsPoint(); as endPoint) {
+                      @if (getFinalGainsValue(); as finalGain) {
+                      <div
+                        class="sol-chart__tag"
+                        [style.left.%]="(endPoint.x / 1000) * 100"
+                        [style.top.%]="(endPoint.y / 400) * 100"
+                      >
+                        {{ formatChartAxisValue(finalGain) }} DT
+                      </div>
+                      }
+                      }
+                      @if (getFinalCapexPoint(); as capexPoint) {
+                      @if (getFinalCapexValue(); as capexValue) {
+                      <div
+                        class="sol-chart__tag sol-chart__tag--capex"
+                        [style.left.%]="98"
+                        [style.top.%]="(capexPoint.y / 400) * 100"
+                      >
+                        {{ formatChartAxisValue(capexValue) }} DT
+                      </div>
+                      }
+                      }
+                      @if (chartTooltip(); as tip) {
+                      <div
+                        class="sol-chart__tip"
+                        [style.left.px]="tip.bubbleLocalX"
+                        [style.top.px]="tip.bubbleLocalY"
+                      >
+                        <b>Année {{ tip.year }}</b>
+                        <span>Gains {{ formatChartAxisValue(tip.gains) }} DT</span>
+                        <span>CAPEX {{ formatChartAxisValue(tip.capex) }} DT</span>
+                      </div>
+                      }
+                    </div>
+                    <div class="sol-chart__x">
+                      @for (year of getSparseChartYears(); track year) {
+                      <span [style.left.%]="chartYearPercent(year)">Année {{ year }}</span>
+                      }
+                    </div>
+                    <div class="rp-legend">
+                      <span><i class="sol-chart__key sol-chart__key--gains"></i>Gains nets cumulés</span>
+                      <span><i class="sol-chart__key sol-chart__key--capex"></i>CAPEX</span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              }
             </div>
 
             <section class="rp rp-impc" data-sec>

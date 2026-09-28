@@ -37,7 +37,7 @@ export class PreAuditSolaireComponent implements AfterViewInit {
   private readonly capexDtPerKwc = 2400;
   private readonly opexRate = 0.04;
   protected readonly minMonthlyBillDt = 100;
-  protected readonly maxMonthlyBillDt = 3000;
+  protected readonly maxMonthlyBillDt = 10000;
 
   private readonly productibleByZone: Record<ClimateZoneMini, number> = {
     nord: 1500,

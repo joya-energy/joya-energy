@@ -286,17 +286,21 @@ export function buildPvReportDataFromSolaire(
   // MT: revenue from selling surplus to STEG (DT).
   // Surplus sale tariff (injection) = 0.08 DT/kWh.
   const SURPLUS_BUYBACK_TARIFF_DT_PER_KWH = 0.08;
-  const surplusRevenueSTEG = gridSurplus != null && gridSurplus > 0
-    ? round(gridSurplus * SURPLUS_BUYBACK_TARIFF_DT_PER_KWH, 0)
-    : null;
+  const surplusRevenueExact =
+    gridSurplus != null && gridSurplus > 0
+      ? gridSurplus * SURPLUS_BUYBACK_TARIFF_DT_PER_KWH
+      : 0;
+  const surplusRevenueSTEG = surplusRevenueExact > 0 ? surplusRevenueExact : null;
 
-  // MT: Eco_brute,1 = Eco_annuel = F_sans - F_avec + Vente_exc
+  // MT: Eco_annuel = F_sans - F_avec + Vente_exc, rounded once, same as the simulator.
   if (
     selfConsumedEnergy != null &&
     annualBillWithoutPV != null &&
     annualBillWithPV != null
   ) {
-    annualSavings = annualBillWithoutPV - annualBillWithPV + (surplusRevenueSTEG ?? 0);
+    annualSavings = Math.round(
+      annualBillWithoutPV - annualBillWithPV + surplusRevenueExact
+    );
   }
 
   // Validate required financial metrics are present
@@ -468,7 +472,7 @@ export function buildPvReportDataFromSolaire(
     pvPower: safeRound(pvPower, 2),
     pvYield: safeRound(pvYield, 0),
     pvProductionYear1: safeRound(pvProductionYear1, 0),
-    coverageRate: safeRound(coverageRate as number | null, 1),
+    coverageRate: safeRound(coverageRate as number | null, 2),
     selfConsumedEnergy: safeRound(selfConsumedEnergy, 0),
     gridSurplus: safeRound(gridSurplus, 0),
     surplusRatePercent: safeRound(surplusRatePercent, 1),

@@ -353,6 +353,137 @@ body.aud-s4 .aud__card,
   background: #9b7fc7;
 }
 
+.rpt .bc-detail__head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.rpt .bc-detail__mark {
+  width: 28px;
+  height: 28px;
+  color: #2f8f62;
+  margin-bottom: 8px;
+}
+
+.rpt .bc-detail__mark svg {
+  width: 28px;
+  height: 28px;
+}
+
+.rpt .bc-detail__head h3 {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: clamp(20px, 2vw, 24px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--rn, #12325a);
+}
+
+.rpt .bc-detail__head p {
+  margin: 6px 0 0;
+  font-size: var(--t-body, 13px);
+  color: var(--muted, #45566e);
+}
+
+.rpt .bc-detail__list {
+  display: grid;
+  gap: 14px;
+}
+
+.rpt .bc-scope {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1px solid var(--rline, #e4e9f0);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.rpt .bc-scope__ic {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #e7f6ee;
+  color: #2f8f62;
+}
+
+.rpt .bc-scope__ic svg {
+  width: 18px;
+  height: 18px;
+}
+
+.rpt .bc-scope h4 {
+  margin: 2px 0 4px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1d4d38;
+}
+
+.rpt .bc-scope p {
+  margin: 0;
+  font-size: var(--t-body, 13px);
+  line-height: 1.5;
+  color: var(--muted, #45566e);
+}
+
+.rpt .bc-keyrec h3 {
+  margin: 0 0 16px;
+  text-align: center;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: clamp(18px, 2vw, 22px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--rn, #12325a);
+}
+
+.rpt .bc-key {
+  position: relative;
+  border-radius: 16px;
+  padding: 18px 18px 16px;
+  background: #fff;
+  border: 1px solid var(--rline, #e4e9f0);
+}
+
+.rpt .bc-key__badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: #fff;
+  border: 1px solid var(--rline, #e4e9f0);
+  color: #6b6258;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rpt .bc-key__lead {
+  margin: 8px 0 10px;
+  max-width: 62ch;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.45;
+  color: #1b2f49;
+}
+
+.rpt .bc-key p:last-child {
+  margin: 0;
+  max-width: 68ch;
+  font-size: var(--t-body, 13px);
+  line-height: 1.55;
+  color: #31435c;
+}
+
 .aud__card app-ui-select {
   display: block;
   width: 100%;
