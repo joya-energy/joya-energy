@@ -17,6 +17,52 @@ export class BillExtractionService {
     this.llmClient = createOpenRouterClient();
   }
 
+  private parseBillNumber(value: string | number | null | undefined): number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+    if (typeof value !== 'string') {
+      return null;
+    }
+    const compact = value.replace(/[\s\u00a0\u202f]/g, '').replace(',', '.');
+    const parsed = Number(compact);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  private normalizeAmountTotal(field: ExtractedBillData['monthlyBillAmount'] | undefined): void {
+    if (!field?.value) {
+      return;
+    }
+    if (typeof field.value === 'number') {
+      const total = this.parseBillNumber(field.value);
+      if (total != null) {
+        field.value = { total };
+      }
+      return;
+    }
+    const total = this.parseBillNumber(field.value.total);
+    if (total != null) {
+      field.value.total = total;
+    }
+  }
+
+  private normalizeExtractedNumbers(data: ExtractedBillData): void {
+    this.normalizeAmountTotal(data.monthlyBillAmount);
+    this.normalizeAmountTotal(data.recentBillConsumption);
+    const period = this.parseBillNumber(data.period?.value);
+    if (data.period && period != null) {
+      data.period.value = period;
+    }
+    const amount = data.monthlyBillAmount?.value?.total;
+    if (amount != null && period != null && period > 0) {
+      data.BillAmountDividedByPeriod = {
+        value: Number((amount / period).toFixed(3)),
+        explanation:
+          "Le montant total de l'électricité consommée hors taxes (HT) divisé par le nombre de mois.",
+      };
+    }
+  }
+
   /**
    * Extract data from a bill image using vision LLM (OpenRouter)
    * @param imageBuffer Buffer of the image
@@ -74,6 +120,8 @@ export class BillExtractionService {
         For each field, also provide a brief "explanation" (in French) of what this value represents on the bill, suitable for a user tooltip.
 
         IMPORTANT EXTRACTION RULES:
+        - Numbers: a space (or narrow space) is a thousands separator, never a field break.
+          "15 965.703" means 15965.703. "40 833" means 40833. Return the full number. Never drop the digits before the space.
         - monthlyBillAmount: 
             value:
               Return an object with ONLY: { "total": number } (DO NOT return "items" at all).
@@ -264,6 +312,7 @@ export class BillExtractionService {
       try {
         extractedData = JSON.parse(jsonString);
         Logger.info('JSON parsed successfully');
+        this.normalizeExtractedNumbers(extractedData);
       } catch (parseError) {
         Logger.error('JSON parsing failed:', parseError);
         Logger.error(
@@ -336,6 +385,7 @@ export class BillExtractionService {
       Logger.info('Extracted bill data structure:', {
         hasMonthlyBillAmount: !!extractedData.monthlyBillAmount?.value?.total,
         monthlyBillAmountTotal: extractedData.monthlyBillAmount?.value?.total,
+        recentBillConsumption: extractedData.recentBillConsumption?.value?.total,
         hasPeriod: !!extractedData.period?.value,
         periodValue: extractedData.period?.value,
         hasBillAmountDividedByPeriod:

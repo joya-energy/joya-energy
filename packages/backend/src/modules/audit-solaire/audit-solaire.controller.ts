@@ -12,6 +12,19 @@ import { BuildingTypes, ClimateZones } from '@shared/enums/audit-general.enum';
 import { type OperatingHoursCase } from './config';
 import { LeadCollectorService } from '../lead/lead-collector.service';
 
+function readOptionalPositiveNumber(value: string | number | boolean | undefined): number | undefined {
+  if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+    return value;
+  }
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+  return undefined;
+}
+
 export class AuditSolaireSimulationController {
   public createSimulation = async (
     req: Request,
@@ -189,6 +202,7 @@ export class AuditSolaireSimulationController {
         }
       ),
       referenceMonth,
+      measuredConsumptionKwh: readOptionalPositiveNumber(body['measuredConsumptionKwh']),
       // Optional MT fields - tolerate absence for BT flows
       tariffTension: (body.tariffTension === 'MT' ? 'MT' : 'BT') as 'BT' | 'MT',
       operatingHoursCase:
