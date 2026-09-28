@@ -1,12 +1,12 @@
 @use 'sass:color';
 
-$teal-deep: var(--teal-deep, #0a3d46);
-$orange-solar: var(--orange-solar, #f3a31c);
-$orange-solar-color: #f3a31c;
-$background: var(--bg-page, #ffffff);
-$muted-foreground: var(--text-muted, #64748b);
-$foreground: var(--text-primary, #0a3d46);
-$border: var(--neutral-300, #d4d4d4);
+$teal-deep: var(--navy, #173b5e);
+$orange-solar: var(--coral, #e37051);
+$orange-solar-color: #e37051;
+$background: var(--cream, #fffaf6);
+$muted-foreground: rgba(23, 59, 94, 0.62);
+$foreground: var(--navy, #173b5e);
+$border: var(--hairline-strong, rgba(23, 59, 94, 0.2));
 $error-color: #ef4444;
 
 .login-backdrop {

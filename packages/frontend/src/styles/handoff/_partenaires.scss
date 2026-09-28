@@ -1,0 +1,81 @@
+/* ==========================================================================
+   Page Partenaires
+   ========================================================================== */
+
+.pg-flow text { font-family:var(--font-body); font-size:13px; font-weight:600; fill:var(--cream); }
+.pg-flow .ln { stroke:rgba(255,250,246,.8); stroke-width:1.8; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+.pg-flow .ring { stroke:rgba(255,250,246,.85); stroke-width:1.6; fill:none; }
+/* flux animé : des « projets » (points corail) circulent dans les deux sens ; l'anneau qui reçoit émet une onde */
+.pg-flow .ln.d1 { stroke-dasharray:3 5; animation:pfDashR 1.3s linear infinite; }
+.pg-flow .ln.d2 { stroke-dasharray:3 5; animation:pfDashL 1.3s linear infinite; }
+.pg-flow .pk { fill:var(--coral); opacity:0; }
+.pg-flow .pk1 { animation:pfPkR 2.8s cubic-bezier(.45,0,.25,1) infinite; }
+.pg-flow .pk2 { animation:pfPkL 2.8s cubic-bezier(.45,0,.25,1) 1.4s infinite; }
+.pg-flow .halo { fill:none; stroke:rgba(255,250,246,.7); stroke-width:1.3; opacity:0; transform-box:fill-box; transform-origin:center; }
+.pg-flow .halo.r { animation:pfHalo 2.8s ease-out infinite; }
+.pg-flow .halo.l { animation:pfHalo 2.8s ease-out 1.4s infinite; }
+@keyframes pfDashR {
+  to{ stroke-dashoffset:-16; }
+}
+@keyframes pfDashL {
+  to{ stroke-dashoffset:16; }
+}
+@keyframes pfPkR {
+  0%{ transform:translateX(0); opacity:0; } 14%{ opacity:1; } 82%{ opacity:1; } 100%{ transform:translateX(66px); opacity:0; }
+}
+@keyframes pfPkL {
+  0%{ transform:translateX(0); opacity:0; } 14%{ opacity:1; } 82%{ opacity:1; } 100%{ transform:translateX(-66px); opacity:0; }
+}
+@keyframes pfHalo {
+  0%,74%{ opacity:0; transform:scale(1); } 88%{ opacity:.75; } 100%{ opacity:0; transform:scale(1.24); }
+}
+/* aperçu de l'espace partenaire */
+.portal { background:#fff; border-radius:22px; padding:clamp(20px,2.4vw,30px); border:1px solid rgba(23,59,94,.08); box-shadow:0 30px 60px -38px rgba(18,50,90,.34); margin:0; }
+.portal__head { display:flex; align-items:center; justify-content:space-between; gap:10px; padding-bottom:16px; border-bottom:1px solid var(--hairline); }
+.portal__t { font-family:var(--font-display); font-weight:800; letter-spacing:-0.02em; font-size:clamp(17px,1.7vw,20px); color:var(--navy); }
+.portal__tag { font-family:var(--font-data); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--navy); opacity:.55; }
+.pj { padding:16px 0; border-bottom:1px solid var(--hairline); }
+.pj__top { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.pj__n { font-size:14.5px; font-weight:600; color:var(--navy); line-height:1.3; }
+.pj__m { display:block; margin-top:3px; font-family:var(--font-data); font-size:11.5px; color:rgba(18,50,90,.58); }
+.pj__s { flex:none; font-size:12px; font-weight:600; padding:6px 12px; border-radius:100px; white-space:nowrap; }
+.pj__s--ok { background:var(--navy); color:#fff; }
+.pj__s--mid { background:var(--sky-2); color:var(--navy); }
+.pj__s--new { border:1.5px solid var(--hairline-strong); color:var(--navy); }
+.pj__bar { display:grid; grid-template-columns:repeat(3,1fr); gap:5px; margin-top:12px; }
+.pj__bar i { height:5px; border-radius:100px; background:var(--sky-2); position:relative; overflow:hidden; }
+.pj__bar i.on::after { content:""; position:absolute; inset:0; background:var(--coral); transform-origin:left center; transform:scaleX(var(--pj-fill, 1)); }
+.portal__perf { padding-top:18px; }
+.pc__head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:10px; }
+.pc__head b { font-family:var(--font-data); font-weight:500; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--navy); opacity:.55; margin:0; }
+.pc__key { display:inline-flex; align-items:center; gap:7px; font-size:12px; color:rgba(18,50,90,.62); white-space:nowrap; }
+.pc__key i { width:14px; height:2px; border-radius:2px; background:var(--blue-accent); display:block; }
+.pc { position:relative; }
+.pc__svg { width:100%; height:auto; overflow:visible; display:block; }
+.pc__grid line { stroke:rgba(23,59,94,.08); stroke-width:1; }
+.pc__axis { stroke:rgba(23,59,94,.2); stroke-width:1; }
+.pc__area { fill:url(#pcg); }
+.pc__line { fill:none; stroke:var(--blue-accent); stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:1 2; stroke-dashoffset:0; }
+.pc__dot { fill:#fff; stroke:var(--blue-accent); stroke-width:1.6; transform-box:fill-box; transform-origin:center; }
+.pc__dot--last { fill:var(--navy); stroke:#fff; stroke-width:2; }
+.pc__halo { fill:rgba(61,102,144,.2); transform-box:fill-box; transform-origin:center; }
+.pc__guide { stroke:rgba(61,102,144,.5); stroke-width:1; stroke-dasharray:2 3; }
+.pc__x { position:relative; height:16px; margin-top:6px; }
+.pc__x span { position:absolute; top:0; transform:translateX(-50%); font-family:var(--font-data); font-size:11px; color:rgba(18,50,90,.5); }
+.portal__perf > b__unused { display:block; font-family:var(--font-data); font-weight:500; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--navy); opacity:.55; margin-bottom:10px; }
+/* types de partenaires */
+.ptypes { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
+.ptype { background:#fff; border:1px solid rgba(23,59,94,.08); border-radius:20px; padding:26px; display:flex; flex-direction:column; gap:18px; min-height:170px; transition:transform .3s var(--ease-out,ease), box-shadow .3s var(--ease-out,ease); }
+.ptype:hover { transform:translateY(-4px); box-shadow:0 28px 50px -30px rgba(18,50,90,.3); }
+.ptype .ic { width:48px; height:48px; border-radius:50%; background:var(--coral-tint,#FBE4DA); display:grid; place-items:center; color:var(--coral-dark); }
+.ptype .ic svg { width:22px; height:22px; }
+.ptype h3 { margin:auto 0 0; font-family:var(--font-display); font-weight:800; font-size:18px; letter-spacing:-.02em; line-height:1.2; color:var(--navy); }
+@media (max-width:900px) {
+  .ptypes { grid-template-columns:1fr 1fr; }
+}
+@media (max-width:560px) {
+  .ptypes { grid-template-columns:1fr; }
+  .ptype { min-height:0; flex-direction:row; align-items:center; }
+  .ptype h3 { margin:0; }
+}
+.pg-cta__bg { background-image:url('../assets/images/installer-crouching-on-solar-array-sunset.jpg'); }

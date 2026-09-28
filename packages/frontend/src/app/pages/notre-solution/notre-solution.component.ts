@@ -1,73 +1,72 @@
-import { Component, ChangeDetectionStrategy, OnInit, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, AfterViewInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { NgIconComponent, provideIcons } from '@ng-icons/core';
-import {
-  lucideBarChart2,
-  lucideSun,
-  lucideLineChart,
-  lucideCheck,
-  lucideCheckCircle,
-} from '@ng-icons/lucide';
 import { SEOService } from '../../core/services/seo.service';
+import { HandoffMotionService } from '../../core/services/handoff-motion.service';
 
-interface SolutionCard {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
+interface FaqItem {
+  question: string;
+  answer: string;
+  open?: boolean;
 }
 
 @Component({
   selector: 'app-notre-solution',
   standalone: true,
-  imports: [CommonModule, RouterLink, NgIconComponent],
+  imports: [CommonModule, RouterLink],
   templateUrl: './notre-solution.component.html',
   styleUrl: './notre-solution.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [
-    provideIcons({
-      lucideBarChart2,
-      lucideSun,
-      lucideLineChart,
-      lucideCheckCircle,
-    }),
-  ],
 })
-export class NotreSolutionComponent implements OnInit {
-  private seoService = inject(SEOService);
+export class NotreSolutionComponent implements OnInit, AfterViewInit {
+  private readonly seoService = inject(SEOService);
+  private readonly motion = inject(HandoffMotionService);
+
+  protected readonly faqs: FaqItem[] = [
+    {
+      question: 'Comment fonctionne la solution Joya\u00a0?',
+      answer:
+        "Joya prend en charge 100\u00a0% de l'installation solaire sur votre bâtiment professionnel. Vous ne payez qu'une redevance mensuelle, calculée sur vos économies réelles — toujours inférieure à votre facture actuelle.",
+      open: true,
+    },
+    {
+      question: 'À quelles entreprises s\'adresse cette solution\u00a0?',
+      answer:
+        'Écoles privées, cliniques, pharmacies, boulangeries, hôtels et PME avec une consommation électrique significative.',
+    },
+    {
+      question: 'Quelles économies puis-je espérer\u00a0?',
+      answer:
+        "Jusqu'à 30\u00a0% sur votre facture d'électricité, selon votre profil de consommation et votre zone climatique.",
+    },
+    {
+      question: "Combien de temps dure l'installation\u00a0?",
+      answer: 'De 4 à 8 semaines, selon la taille du projet.',
+    },
+    {
+      question: 'Que se passe-t-il en cas de panne ou de problème technique\u00a0?',
+      answer:
+        'La maintenance est incluse pendant toute la durée du contrat. Notre plateforme détecte les anomalies et notre équipe intervient rapidement.',
+    },
+    {
+      question: "Puis-je devenir propriétaire de l'installation\u00a0?",
+      answer:
+        "Oui. À l'issue du contrat de service énergétique, l'installation vous appartient et 100\u00a0% des économies vous reviennent.",
+    },
+  ];
 
   ngOnInit(): void {
     this.seoService.setSEO({
-      title: 'Modèle ESCo & Solution Énergétique Entreprise | Joya Energy',
+      title: 'Solution — Joya Energy',
       description:
-        'Joya Energy finance, installe et pilote votre projet via un contrat ESCo et de garantie de performance énergétique. Découvrez notre modèle',
+        "Audit, installation et suivi de la performance dans un seul contrat de service énergétique — 0 DT d'investissement initial.",
       url: 'https://joya-energy.com/notre-solution',
       keywords:
-        'solution énergétique Tunisie, énergie solaire Tunisie, panneaux solaires Tunisie, transition énergétique Tunisie, audit énergétique Tunisie, Tunisia',
+        'solution énergétique Tunisie, contrat de service énergétique, solaire entreprise, suivi performance Joya OS',
     });
   }
-  protected readonly cards: SolutionCard[] = [
-    {
-      id: 'comprendre',
-      title: 'Comprendre votre énergie',
-      description:
-        'Analyse de votre consommation, de vos usages et de votre site pour identifier les leviers réels de performance énergétique.',
-      icon: 'lucideBarChart2',
-    },
-    {
-      id: 'deployer',
-      title: 'Déployer la bonne solution',
-      description:
-        'Conception, financement et pose de centrales photovoltaïques sur mesure via notre modèle ESCo avantageux.',
-      icon: 'lucideSun',
-    },
-    {
-      id: 'piloter',
-      title: 'Piloter la performance',
-      description:
-        'Suivi de la consommation, de la production solaire et des économies réalisées.',
-      icon: 'lucideLineChart',
-    },
-  ];
+
+  ngAfterViewInit(): void {
+    this.motion.refresh();
+  }
 }

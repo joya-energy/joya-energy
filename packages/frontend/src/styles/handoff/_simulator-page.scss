@@ -1,0 +1,363 @@
+/* ==========================================================================
+   Shared handoff restyle for Angular marketing simulators.
+   Include via mixin at the END of each simulator component SCSS so overrides win.
+   Does not rewrite wizard markup — maps existing page/sidebar/form/result classes.
+   ========================================================================== */
+
+@mixin handoff-simulator-shell {
+  /* Page shells */
+  .energy-audit-page,
+  .bilan-carbon-page,
+  .simulateur-subventions-page,
+  .comparaison-financements-page,
+  .analyse-resultats-page {
+    background:
+      radial-gradient(120% 80% at 100% 0%, rgba(227, 112, 81, 0.08) 0%, transparent 45%),
+      radial-gradient(90% 70% at 0% 100%, rgba(61, 102, 144, 0.1) 0%, transparent 50%),
+      var(--cream-2);
+    color: var(--ink);
+    font-family: var(--font-body);
+    box-shadow: none;
+  }
+
+  .energy-audit-container,
+  .simulator-container,
+  .analyse-resultats-container {
+    gap: 0;
+  }
+
+  /* Sidebar */
+  .simulator-sidebar {
+    background: rgba(255, 250, 246, 0.55);
+    border-right: 1px solid var(--hairline);
+    box-shadow: none;
+    backdrop-filter: blur(12px);
+  }
+
+  .sidebar-step-item.active {
+    ::ng-deep .ui-progress-bar-container {
+      border-color: var(--coral) !important;
+    }
+  }
+
+  .sidebar-step-item.clickable:hover {
+    background: rgba(227, 112, 81, 0.06);
+  }
+
+  .sidebar-step-circle {
+    background: rgba(23, 59, 94, 0.08);
+    color: var(--navy);
+
+    &.active {
+      background: var(--coral);
+      color: #fff;
+      box-shadow: 0 8px 18px -10px rgba(227, 112, 81, 0.55);
+    }
+
+    &.result.active {
+      background: var(--navy);
+      color: #fff;
+    }
+  }
+
+  .sidebar-result-step.active {
+    background: rgba(23, 59, 94, 0.05);
+  }
+
+  .sidebar-step-title {
+    .sidebar-result-step.active & {
+      color: var(--navy);
+    }
+  }
+
+  /* Timeline / progress header */
+  .form-timeline-header {
+    background: transparent;
+  }
+
+  .step-progress-header {
+    color: var(--muted);
+  }
+
+  /* Form chrome */
+  .simulator-form-title,
+  .simulator-form-header .simulator-form-title {
+    font-family: var(--font-data);
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--coral-dark);
+  }
+
+  .step-title,
+  .simulator-hero__title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--navy);
+  }
+
+  .step-description,
+  .simulator-hero__lead {
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  .simulator-form-header,
+  .step-intro,
+  .step-panel,
+  .inputs-form-card {
+    background: transparent;
+  }
+
+  /* Pill CTAs (existing hero__btn classes) */
+  .hero__btn {
+    border-radius: var(--radius-pill);
+    font-family: var(--font-body);
+    font-weight: 600;
+    letter-spacing: 0;
+    transition:
+      transform 0.25s var(--ease-out),
+      background 0.25s ease,
+      box-shadow 0.25s ease,
+      border-color 0.2s ease;
+  }
+
+  .hero__btn--primary {
+    background: var(--coral);
+    box-shadow: 0 14px 28px -14px rgba(227, 112, 81, 0.45);
+
+    &:hover:not(:disabled) {
+      background: var(--coral-dark);
+      transform: translateY(-2px);
+    }
+  }
+
+  .hero__btn--outline {
+    background: transparent;
+    color: var(--navy);
+    border: 1.5px solid var(--hairline-strong);
+
+    &:hover:not(:disabled) {
+      border-color: var(--navy);
+      background: rgba(255, 255, 255, 0.7);
+    }
+  }
+
+  /* Building / category selection cards */
+  .building-card,
+  .category-card,
+  .action-card,
+  .intro-card {
+    border-radius: var(--radius-md);
+    border-color: var(--hairline);
+    background: rgba(255, 255, 255, 0.78);
+    box-shadow: var(--shadow-1);
+    transition:
+      transform 0.3s var(--ease-out),
+      box-shadow 0.3s ease,
+      border-color 0.2s ease;
+
+    &:hover,
+    &.selected,
+    &.building-card--active {
+      border-color: rgba(227, 112, 81, 0.45);
+      box-shadow: var(--shadow-2);
+      transform: translateY(-2px);
+    }
+  }
+
+  .tariff-toggle--active,
+  .zone-toggle .active {
+    background: var(--coral) !important;
+    border-color: var(--coral) !important;
+    color: #fff !important;
+  }
+
+  /* Results header — photo backdrop (handoff report feel) */
+  .results-header,
+  .report-hero {
+    position: relative;
+    overflow: hidden;
+    text-align: left;
+    padding: clamp(24px, 4vw, 48px) !important;
+    min-height: 200px;
+    border-radius: 22px !important;
+    border: 1px solid rgba(23, 59, 94, 0.1) !important;
+    background: #fff !important;
+    box-shadow: var(--shadow-1) !important;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 50%;
+      background: var(--report-header-img) center / cover no-repeat;
+      -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 45%);
+      mask-image: linear-gradient(90deg, transparent 0%, #000 45%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .header-icon,
+    .header-content,
+    .report-badge,
+    .report-hero__client,
+    .report-hero__tagline,
+    .report-hero__meta {
+      position: relative;
+      z-index: 1;
+    }
+
+    .header-icon {
+      margin-bottom: 0;
+
+      .sun-icon,
+      ng-icon,
+      svg {
+        width: 3rem;
+        height: 3rem;
+        color: var(--coral-dark);
+        background: var(--coral-tint);
+        border-radius: 14px;
+        padding: 0.65rem;
+        border: 0;
+      }
+    }
+
+    .results-title,
+    .report-hero__client {
+      font-family: var(--font-display);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--navy);
+      max-width: 52%;
+    }
+
+    .results-subtitle,
+    .report-hero__tagline,
+    .report-hero__meta {
+      color: var(--muted);
+      max-width: 46ch;
+    }
+
+    .results-meta .meta-item {
+      background: #fff;
+      border: 1px solid rgba(23, 59, 94, 0.1);
+      border-radius: 100px;
+      color: var(--muted);
+
+      .meta-icon {
+        color: var(--coral);
+      }
+    }
+
+    @media (max-width: 700px) {
+      &::after {
+        width: 80%;
+        opacity: 0.22;
+      }
+
+      .results-title,
+      .report-hero__client {
+        max-width: none;
+      }
+    }
+  }
+
+  /* Result / summary cards */
+  .summary-card,
+  .report-kpi,
+  .result-card,
+  .metric-card,
+  .solution-card {
+    border-radius: 18px;
+    border: 1px solid rgba(23, 59, 94, 0.1);
+    background: #f2f6fb;
+    box-shadow: none;
+    transition:
+      transform 0.35s var(--ease-out),
+      box-shadow 0.35s ease;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 18px 34px -22px rgba(18, 50, 90, 0.45);
+    }
+
+    &.primary,
+    &.success,
+    &--accent,
+    &.hot {
+      background: #fff7f3;
+      border-color: #f7d9cd;
+    }
+
+    .card-value,
+    .report-kpi__value,
+    .metric-value {
+      font-family: var(--font-display);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--navy);
+    }
+
+    .card-category,
+    .report-kpi__label,
+    .card-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+  }
+
+  .recommendation-item,
+  .res-reco__item {
+    border-radius: 14px;
+    background: #f2f6fb;
+    border: 1px solid #d6e1ee;
+  }
+
+  .recommendation-icon {
+    background: var(--coral-tint);
+    color: var(--coral);
+    border-radius: 14px;
+  }
+
+  /* Analyse facture report shell */
+  .report {
+    background: transparent;
+  }
+
+  .report-badge {
+    font-family: var(--font-data);
+    letter-spacing: 0.06em;
+  }
+
+  .report-badge--gold {
+    color: var(--coral-dark);
+    background: var(--coral-tint);
+  }
+
+  .report-block,
+  .report-kpis {
+    margin-top: 1.25rem;
+  }
+
+  /* Subventions hero badge */
+  .simulator-hero__badge {
+    font-family: var(--font-data);
+    color: var(--coral-dark);
+  }
+
+  .simulator-hero__badge-dot {
+    background: var(--coral);
+  }
+}

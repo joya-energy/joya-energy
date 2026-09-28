@@ -98,7 +98,7 @@ transition énergétique à un expert qui prend tous les risques à sa charge. U
 service company** comme Joya Energy n'est pas un simple installateur de panneaux
 solaires (c'est un partenaire global qui finance, construit et exploite vos infrastructures).
 Vous vous demandez probablement où se trouve le bénéfice pour vous ? Dans ce modèle
-de **tiers-investissement**, Joya Energy assume 100 % du financement solaire. Vous ne
+de **tiers-investissement**, Joya Energy assume 100 % du tiers-investissement solaire. Vous ne
 payez pas les équipements, vous payez uniquement l'énergie produite à un tarif inférieur à
 celui du réseau, ou vous louez simplement votre surface disponible.
 
@@ -113,9 +113,9 @@ d'investissement lourde en une charge d'exploitation (OPEX) maîtrisée et prév
 Le levier financier principal de cette stratégie est le PPA. Ce contrat de vente directe
 d'électricité vous permet d'acheter l'énergie générée sur votre toit à un prix fixe et connu à
 l'avance sur 15 à 20 ans. Alors que les tarifs du réseau continuent de subir l'inflation, votre
-**financement solaire** via Joya Energy vous offre une visibilité budgétaire totale.
+**tiers-investissement solaire** via Joya Energy vous offre une visibilité budgétaire totale.
 
-## Pourquoi le financement solaire est-il devenu indispensable en 2026 ?
+## Pourquoi le tiers-investissement solaire est-il devenu indispensable en 2026 ?
 Les entreprises font face à un effet de ciseau inédit : les prix de l'énergie restent instables et
 la loi devient de plus en plus contraignante. Ignorer ces signaux n'est plus une option viable
 pour la rentabilité à long terme.
@@ -155,7 +155,7 @@ Tout le monde veut réduire sa facture, mais le modèle de tiers-investissement 
 certaines conditions techniques pour être viable pour l'investisseur. Joya Energy sélectionne
 les projets où l'impact énergétique sera le plus significatif.
 Le point de départ est toujours votre profil de consommation. Voici les critères principaux
-que nous analysons pour valider votre dossier de **financement solaire**.
+que nous analysons pour valider votre dossier de \*\*tiers-investissement\*\*.
 
 ### Toitures industrielles et ombrières de parking : les surfaces idéales
 Pour que le modèle soit rentable sans apport, nous recherchons généralement des surfaces
@@ -255,9 +255,9 @@ Les solutions de stockage solaire intelligentes permettent de gérer l'énergie 
 
 Chez Joya Energy, nous proposons des solutions de stockage d'énergie solaire adaptées aux besoins spécifiques de chaque entreprise. Nous vous accompagnons dans l'évaluation de vos besoins énergétiques, le choix des systèmes de stockage les plus adaptés à votre activité et l'intégration de ces solutions à vos installations solaires existantes.
 
-### Un financement flexible pour le stockage
+### Un accompagnement flexible pour le stockage
 
-Tout comme avec l'installation des panneaux solaires, Joya Energy propose des solutions de financement pour les systèmes de stockage d'énergie. Grâce à nos options de tiers-investissement, vous pouvez bénéficier d'un stockage solaire performant sans avoir à avancer de capital. Vous payez uniquement pour l'énergie stockée et utilisée, selon un modèle OPEX (Operating Expenditures).
+Tout comme avec l'installation des panneaux solaires, Joya Energy propose des solutions de tiers-investissement pour les systèmes de stockage d'énergie. Grâce à nos options de tiers-investissement, vous pouvez bénéficier d'un stockage solaire performant sans avoir à avancer de capital. Vous payez uniquement pour l'énergie stockée et utilisée, selon un modèle OPEX (Operating Expenditures).
 
 ### Maintenance et monitoring inclus
 

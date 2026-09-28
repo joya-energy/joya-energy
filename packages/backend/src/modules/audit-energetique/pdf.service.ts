@@ -1,4 +1,4 @@
-import puppeteer, { type Browser } from 'puppeteer';
+import puppeteer, { type Browser, type Page } from 'puppeteer';
 import fs from 'fs';
 import path from 'path';
 import sharp from 'sharp';
@@ -29,6 +29,14 @@ const MAX_IMAGE_HEIGHT = 600;
 
 /** Cover images are loaded at full quality (no compression or resize) */
 const COVER_IMAGE_FILES = ['cover.png', 'pv-cover.png'];
+
+const PDF_FONT_FAMILY = 'Joya Sans';
+
+const PDF_FONT_FILES: ReadonlyArray<{ fileName: string; weight: string }> = [
+  { fileName: 'selawk.ttf', weight: '400 500' },
+  { fileName: 'selawksb.ttf', weight: '600' },
+  { fileName: 'selawkb.ttf', weight: '700 800' },
+];
 
 type PDFInputDto =
   | AuditEnergetiqueResponseDto
@@ -143,6 +151,27 @@ export class AuditPDFService {
   }
 
   /**
+   * Embed Joya Sans so the PDF uses the same face on Windows and on Linux.
+   */
+  private loadEmbeddedFontCss(fontsDir: string): string {
+    return PDF_FONT_FILES
+      .map((font) => this.readFontFace(fontsDir, font.fileName, font.weight))
+      .filter((rule) => rule.length > 0)
+      .join('\n');
+  }
+
+  private readFontFace(fontsDir: string, fileName: string, weight: string): string {
+    const fontPath = path.join(fontsDir, fileName);
+    if (!fs.existsSync(fontPath)) {
+      Logger.warn(`⚠️ PDF font missing: ${fileName}`);
+      return '';
+    }
+
+    const base64 = fs.readFileSync(fontPath).toString('base64');
+    return `@font-face{font-family:"${PDF_FONT_FAMILY}";src:url("data:font/ttf;base64,${base64}") format("truetype");font-weight:${weight};font-style:normal;}`;
+  }
+
+  /**
    * Initialize static assets cache on service creation
    * Loads all templates, CSS files, and images into memory
    * Images are compressed to reduce PDF size
@@ -172,10 +201,9 @@ export class AuditPDFService {
         path.join(auditTemplateDir, 'bootstrap.min.css'),
         'utf8'
       ));
-      this.assetsCache.css.set('audit-style', fs.readFileSync(
-        path.join(auditTemplateDir, 'style.css'),
-        'utf8'
-      ));
+      const auditStyle = fs.readFileSync(path.join(auditTemplateDir, 'style.css'), 'utf8');
+      const fontCss = this.loadEmbeddedFontCss(path.resolve(__dirname, './template/fonts'));
+      this.assetsCache.css.set('audit-style', `${fontCss}\n${auditStyle}`);
       this.assetsCache.css.set('pv-bt-bootstrap', fs.readFileSync(
         path.join(pvBtTemplateDir, 'bootstrap.min.css'),
         'utf8'
@@ -410,6 +438,19 @@ export class AuditPDFService {
     return html;
   }
 
+  private async waitForDocumentFonts(page: Page): Promise<void> {
+    await page.setJavaScriptEnabled(true);
+    const client = await page.createCDPSession();
+    try {
+      await client.send('Runtime.evaluate', {
+        expression: 'document.fonts.ready',
+        awaitPromise: true,
+      });
+    } finally {
+      await client.detach();
+    }
+  }
+
   /**
    * Generate PDF buffer from HTML
    */
@@ -426,6 +467,7 @@ export class AuditPDFService {
       // Since all content is already in memory (templates, CSS, images as base64),
       // we don't need to wait for network requests
       await page.setContent(html, { waitUntil: 'domcontentloaded' });
+      await this.waitForDocumentFonts(page);
 
       const pdf = await page.pdf({
         format: 'A4',
@@ -699,7 +741,7 @@ export class AuditPDFService {
       flattened.pvPower = formatNumber(pvData.pvPower, 2);
       flattened.pvYield = formatNumber(pvData.pvYield, 0);
       flattened.pvProductionYear1 = formatNumber(pvData.pvProductionYear1, 0);
-      flattened.coverageRate = formatNumber(pvData.coverageRate, 1);
+      flattened.coverageRate = formatNumber(pvData.coverageRate, 2);
       flattened.selfConsumedEnergy = formatNumber(pvData.selfConsumedEnergy, 0);
       flattened.gridSurplus = formatNumber(pvData.gridSurplus, 0);
       flattened.surplusRatePercent = formatNumber(pvData.surplusRatePercent, 1);
@@ -929,8 +971,7 @@ export class AuditPDFService {
             }
           }
 
-          const formatPaybackYearsAndMonths = (yearDecimal: number): string => {
-            const totalMonths = Math.round(yearDecimal * 12);
+          const formatPaybackMonths = (totalMonths: number): string => {
             if (totalMonths <= 0) return '0 mois';
             const years = Math.floor(totalMonths / 12);
             const remainingMonths = totalMonths % 12;
@@ -938,7 +979,13 @@ export class AuditPDFService {
             if (remainingMonths === 0) return `${years} an${years > 1 ? 's' : ''}`;
             return `${years} an${years > 1 ? 's' : ''} et ${remainingMonths} mois`;
           };
-          const intersectionYearText = intersectionYear !== null ? formatPaybackYearsAndMonths(intersectionYear) : '';
+          const storedPaybackMonths = finalSolaireDto?.paybackMonths;
+          const intersectionYearText =
+            storedPaybackMonths != null && Number.isFinite(storedPaybackMonths) && storedPaybackMonths > 0
+              ? formatPaybackMonths(Math.round(storedPaybackMonths))
+              : intersectionYear !== null
+                ? formatPaybackMonths(Math.round(intersectionYear * 12))
+                : '';
           flattened.lineChartIntersectionYear = intersectionYearText;
           flattened.lineChartIntersectionX = intersectionX !== null ? intersectionX.toFixed(2) : '';
           flattened.lineChartIntersectionY = intersectionY !== null ? intersectionY.toFixed(2) : '';

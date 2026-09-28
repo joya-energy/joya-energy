@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   OnInit,
   OnDestroy,
+  AfterViewInit,
   inject,
   signal,
   computed,
@@ -11,6 +12,7 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SEOService } from '../../core/services/seo.service';
+import { HandoffMotionService } from '../../core/services/handoff-motion.service';
 import { getBlogPostById, getRelatedPosts } from '../data/blog-posts';
 import { Subscription } from 'rxjs';
 
@@ -22,10 +24,11 @@ import { Subscription } from 'rxjs';
   styleUrl: './blog-detail.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BlogDetailComponent implements OnInit, OnDestroy {
+export class BlogDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly route = inject(ActivatedRoute);
   private readonly seoService = inject(SEOService);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly motion = inject(HandoffMotionService);
 
   private readonly id = signal<string | null>(null);
   private paramSub?: Subscription;
@@ -59,7 +62,12 @@ export class BlogDetailComponent implements OnInit, OnDestroy {
     updateId(this.route.snapshot.paramMap.get('id'));
     this.paramSub = this.route.paramMap.subscribe((params) => {
       updateId(params.get('id'));
+      setTimeout(() => this.motion.refresh(), 50);
     });
+  }
+
+  ngAfterViewInit(): void {
+    this.motion.refresh();
   }
 
   ngOnDestroy(): void {

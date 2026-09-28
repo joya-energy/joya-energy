@@ -28,11 +28,10 @@ export interface SolarIrradianceData {
   annualYieldKwhPerKwp: number;
 }
 
+const PVGIS_V5_3_URL = 'https://re.jrc.ec.europa.eu/api/v5_3/PVcalc';
+
 export class PVGISService {
   private static readonly API_CONFIG = {
-    URL: (typeof process !== 'undefined' && process.env?.['PVGIS_API_URL']) 
-      ? process.env['PVGIS_API_URL'].trim()
-      : 'https://re.jrc.ec.europa.eu/api/PVcalc',
     DEFAULT_PEAK_POWER: 1, // 1 kWp
     DEFAULT_SYSTEM_LOSS: 14, // 14% system losses
     DEFAULT_PANEL_ANGLE: 30, // 30° tilt angle
@@ -41,6 +40,12 @@ export class PVGISService {
       ? Number(process.env['EXTERNAL_APIS_TIMEOUT']) 
       : 30000, // 30 seconds
   } as const;
+
+  /** PVGIS endpoint, read at call time so dotenv has already loaded. */
+  public static getApiUrl(): string {
+    const configuredUrl = typeof process !== 'undefined' ? process.env?.['PVGIS_API_URL']?.trim() : '';
+    return configuredUrl && configuredUrl.length > 0 ? configuredUrl : PVGIS_V5_3_URL;
+  }
 
   /**
    * Fetch solar irradiance data for given coordinates
@@ -63,7 +68,7 @@ export class PVGISService {
     };
 
     try {
-      const response = await axios.get<PVGISResponse>(this.API_CONFIG.URL, {
+      const response = await axios.get<PVGISResponse>(this.getApiUrl(), {
         params: requestParams,
         timeout: this.API_CONFIG.TIMEOUT,
       });

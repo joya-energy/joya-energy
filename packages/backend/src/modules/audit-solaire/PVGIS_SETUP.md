@@ -12,7 +12,7 @@ Create or update your `.env` file in `packages/backend/`:
 
 ```bash
 # PVGIS API (Photovoltaic Geographical Information System)
-PVGIS_API_URL=https://re.jrc.ec.europa.eu/api/v5_2/PVcalc
+PVGIS_API_URL=https://re.jrc.ec.europa.eu/api/v5_3/PVcalc
 EXTERNAL_APIS_TIMEOUT=30000
 ```
 
@@ -43,7 +43,7 @@ GOOGLE_MAPS_API_KEY=your-google-maps-api-key
 GOOGLE_MAPS_API_URL=https://maps.googleapis.com/maps/api/geocode/json
 
 # PVGIS (for solar calculations)
-PVGIS_API_URL=https://re.jrc.ec.europa.eu/api/v5_2/PVcalc
+PVGIS_API_URL=https://re.jrc.ec.europa.eu/api/v5_3/PVcalc
 EXTERNAL_APIS_TIMEOUT=30000
 
 # Other configs...
@@ -76,12 +76,12 @@ PVGIS (Photovoltaic Geographical Information System) is a free service provided 
 
 1. **Check the URL is correct:**
    ```
-   https://re.jrc.ec.europa.eu/api/v5_2/PVcalc
+   https://re.jrc.ec.europa.eu/api/v5_3/PVcalc
    ```
 
 2. **Test the API manually:**
    ```bash
-   curl "https://re.jrc.ec.europa.eu/api/v5_2/PVcalc?lat=36.8&lon=10.18&peakpower=1&loss=14&angle=30&outputformat=json"
+   curl "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=36.8&lon=10.18&peakpower=1&loss=14&angle=30&outputformat=json"
    ```
 
 3. **Check your internet connection** - PVGIS requires internet access

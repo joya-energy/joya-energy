@@ -16,7 +16,7 @@ export const routes: Routes = [
     path: '',
     loadComponent: () =>
       import('./pages/landing/landing.component').then((m) => m.LandingComponent),
-    title: 'Solaire pour entreprises en Tunisie | Joya Energy',
+    title: 'Joya Energy — Joya investit. Vous économisez.',
     data: { hideFooter: false },
   },
   {
@@ -26,6 +26,12 @@ export const routes: Routes = [
         (m) => m.NotreSolutionComponent
       ),
     title: 'Modèle ESCo & Solution Énergétique Entreprise | Joya Energy',
+  },
+  {
+    path: 'secteurs',
+    loadComponent: () =>
+      import('./pages/secteurs/secteurs.component').then((m) => m.SecteursComponent),
+    title: 'Secteurs — Joya Energy',
   },
   {
     path: 'plateforme-digitale',
@@ -121,7 +127,7 @@ export const routes: Routes = [
       import('./pages/comparaison-financements/comparaison-financements.component').then(
         (m) => m.ComparaisonFinancementsComponent
       ),
-    title: 'Comparateur de Financements | JOYA Energy',
+    title: "Comparateur d'options | JOYA Energy",
     data: { hideFooter: true },
   },
   {

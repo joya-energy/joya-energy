@@ -5,69 +5,46 @@ import {
   ElementRef,
   OnDestroy,
   OnInit,
+  AfterViewInit,
   PLATFORM_ID,
+  ViewEncapsulation,
   computed,
+  effect,
   inject,
   signal,
   ViewChild,
 } from '@angular/core';
 import { CommonModule, DatePipe, isPlatformBrowser } from '@angular/common';
 import { ReactiveFormsModule, FormGroup } from '@angular/forms';
-import { NgIconComponent, provideIcons } from '@ng-icons/core';
+import { provideIcons } from '@ng-icons/core';
 import {
   lucideArrowLeft,
   lucideArrowRight,
-  lucideSun,
-  lucideZap,
-  lucideCalendar,
   lucideBuilding2,
-  lucideMapPin,
-  lucideDownload,
-  lucideClock,
-  lucideBarChart3,
-  lucideTrendingUp,
-  lucideWallet,
-  lucideSettings,
-  lucidePercent,
-  lucideLeaf,
-  lucideCloud,
-  lucideTreePine,
-  lucideLightbulb,
-  lucidePhone,
-  lucideFileText,
-  lucideCreditCard,
-  lucideActivity,
 } from '@ng-icons/lucide';
-import { Router, ActivatedRoute } from '@angular/router';
-import { trigger, transition, style, animate } from '@angular/animations';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
+import { switchMap } from 'rxjs';
 import { finalize } from 'rxjs/operators';
+import { BillExtractionService } from '../../core/services/bill-extraction.service';
 
-// Base layout components (from energy audit template)
 import { NoGroupingPipe } from '../../shared/pipes/no-grouping.pipe';
-import { UiStepTimelineComponent } from '../../shared/components/ui-step-timeline/ui-step-timeline.component';
-import { UiProgressBarComponent } from '../../shared/components/ui-progress-bar/ui-progress-bar.component';
-
-// Form UI components reused from old solar simulator
 import { UiSelectComponent } from '../../shared/components/ui-select/ui-select.component';
-import { UiInputComponent } from '../../shared/components/ui-input/ui-input.component';
-import { FieldTooltipComponent } from '../../shared/components/field-tooltip/field-tooltip.component';
 import {
   GoogleMapsInputComponent,
   AddressData,
 } from '../../shared/components/google-maps-input/google-maps-input.component';
-import { UploadCardComponent, UploadCardConfig } from '../../shared/components/upload-card';
+import { UploadCardConfig } from '../../shared/components/upload-card';
 import { UiBillExtractorComponent } from '../../shared/components/ui-bill-extractor/ui-bill-extractor.component';
 
 // Services and Types
 import { NotificationStore } from '../../core/notifications/notification.store';
 import { SEOService } from '../../core/services/seo.service';
+import { HandoffMotionService } from '../../core/services/handoff-motion.service';
 import {
   AuditSolaireService,
   CreateSimulationPayload,
 } from '../../core/services/audit-solaire.service';
-import { AuditEnergetiqueService } from '../../core/services/audit-energetique.service';
 import { AuditSolaireFormService } from '../audit-solaire/audit-solaire.form.service';
-import { AuditSolaireFormStep } from '../audit-solaire/audit-solaire.types';
 import { IAuditSolaireSimulation } from '@shared/interfaces';
 import { BuildingTypes, ClimateZones } from '@shared';
 import { BillExtractionStore } from '../../core/stores/bill-extraction.store';
@@ -140,13 +117,13 @@ const BILL_ANALYSIS_PERSONAL_FIELDS: StepField[] = [
 const FULL_AUDIT_STEPS: SimulatorStep[] = [
   {
     number: 1,
-    title: "Facture et consommation d'électricité",
-    description: "Indiquez le montant de votre facture mensuelle d'électricité.",
+    title: "Facture et consommation d’électricité",
+    description: "Indiquez le montant de votre facture mensuelle d’électricité.",
     fields: STEP_1_FIELDS,
   },
   {
     number: 2,
-    title: "Bâtiment et profil d'activité",
+    title: "Bâtiment et profil d’activité",
     description: 'Précisez le type de bâtiment et sa zone climatique.',
     fields: [
       { name: 'building.buildingType', label: 'Type de bâtiment', type: 'select', required: true },
@@ -202,13 +179,9 @@ const BILL_ANALYSIS_STEPS: SimulatorStep[] = [
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    NgIconComponent,
+    RouterLink,
     NoGroupingPipe,
-    UiStepTimelineComponent,
-    UiProgressBarComponent,
     UiSelectComponent,
-    UiInputComponent,
-    FieldTooltipComponent,
     GoogleMapsInputComponent,
     UiBillExtractorComponent,
     DatePipe,
@@ -216,62 +189,29 @@ const BILL_ANALYSIS_STEPS: SimulatorStep[] = [
   templateUrl: './solar-audit.component.html',
   styleUrls: ['./solar-audit.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [
-    trigger('stepTransition', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateX(20px)' }),
-        animate('300ms ease-out', style({ opacity: 1, transform: 'translateX(0)' })),
-      ]),
-      transition(':leave', [
-        animate('200ms ease-in', style({ opacity: 0, transform: 'translateX(-20px)' })),
-      ]),
-    ]),
-    trigger('resultCards', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(20px)' }),
-        animate('400ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
-      ]),
-    ]),
-  ],
+  encapsulation: ViewEncapsulation.None,
+  host: { class: 'aud-host' },
   providers: [
     provideIcons({
       ...BUILDING_ICON_REGISTRY,
       lucideArrowRight,
       lucideArrowLeft,
-      lucideSun,
-      lucideZap,
-      lucideCalendar,
       lucideBuilding2,
-      lucideMapPin,
-      lucideDownload,
-      lucideClock,
-      lucideBarChart3,
-      lucideTrendingUp,
-      lucideWallet,
-      lucideSettings,
-      lucidePercent,
-      lucideLeaf,
-      lucideCloud,
-      lucideTreePine,
-      lucideLightbulb,
-      lucidePhone,
-      lucideFileText,
-      lucideCreditCard,
-      lucideActivity,
     }),
   ],
 })
-export class SolarAuditComponent implements OnInit, OnDestroy {
+export class SolarAuditComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly formService = inject(AuditSolaireFormService);
   private readonly auditService = inject(AuditSolaireService);
-  private readonly auditEnergetiqueService = inject(AuditEnergetiqueService);
   private readonly notificationStore = inject(NotificationStore);
   private readonly seoService = inject(SEOService);
+  private readonly motion = inject(HandoffMotionService);
   protected readonly cdr = inject(ChangeDetectorRef);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly billExtractionStore = inject(BillExtractionStore);
+  private readonly billExtractionService = inject(BillExtractionService);
   private readonly analyseFactureService = inject(AnalyseFactureService);
   private readonly analyseFactureStore = inject(AnalyseFactureStore);
   private readonly leadService = inject(LeadService);
@@ -331,7 +271,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     icon: card.icon,
   }));
   protected readonly uploadCardConfig: UploadCardConfig = {
-    title: "Téléchargez votre facture d'électricité",
+    title: "Téléchargez votre facture d’électricité",
     subtitle: 'ou cliquez pour sélectionner un fichier',
     acceptedTypes: 'image/*,application/pdf',
     maxSizeText: 'Formats: PDF, JPG, PNG (max 10MB)',
@@ -454,7 +394,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       }
 
       // Special handling for step 1: when hasInvoice === 'yes', we need to count
-      // measuredAmountTnd and referenceMonth even though they're not visible (auto-populated)
+      // measuredAmountTnd and referenceMonth even though they’re not visible (auto-populated)
       let fieldsToCount: StepField[] = [];
       if (step.number === 1) {
         const hasInvoice = this.form.get('consumption.hasInvoice')?.value === 'yes';
@@ -480,6 +420,10 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
         if (!control) return false;
 
         const value = control.value;
+        if (field.name === 'consumption.referenceMonth') {
+          return this.isReferenceMonthFilled(value);
+        }
+
         // Check if value is actually filled (not empty object, empty string, null, undefined)
         const isFilled =
           value !== null &&
@@ -507,6 +451,25 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     return this.stepProgress()[current.number];
   });
 
+  /** Progress bar fill for handoff `.aud__ptrack > i` (step index + in-step fill). */
+  protected readonly audProgressPct = computed(() => {
+    const steps = this.steps();
+    const total = Math.max(steps.length, 1);
+    if (this.currentStepData().isResult) return 100;
+    const completedBefore = this.currentStep() - 1;
+    const withinStep = this.overallProgress() / 100;
+    const denom = Math.max(total - 1, 1);
+    return Math.min(100, Math.round(((completedBefore + withinStep) / denom) * 100));
+  });
+
+  /** Facture reduction % for cmpx banner. */
+  protected readonly savingsPctForDisplay = computed(() => {
+    const simulation = this.simulationResult();
+    const savings = this.annualSavingsForDisplay();
+    if (!simulation || savings == null || !simulation.annualBillWithoutPV) return null;
+    return Math.round((savings / simulation.annualBillWithoutPV) * 100);
+  });
+
   protected readonly canProceed = computed(() => {
     const step = this.currentStepData();
     if (step.isResult) return false;
@@ -516,10 +479,9 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   protected readonly canGoBack = computed(() => this.currentStep() > 1);
 
   protected primaryActionDisabled(): boolean {
-    if (this.isSubmitting()) {
-      return true;
-    }
-    return !this.canProceed();
+    // Only block while a request is in flight. Incomplete steps stay clickable so
+    // nextStep() can surface a clear validation toast instead of a dead control.
+    return this.isSubmitting();
   }
 
   protected primaryActionLabel(): string {
@@ -527,18 +489,77 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       return this.isBillAnalysisMode() ? 'Analyse en cours...' : 'Calcul en cours...';
     }
     if (this.isBillAnalysisMode() && this.currentStep() === this.lastFormStepNumber()) {
-      return "Lancer l'analyse";
+      return "Lancer l’analyse";
     }
     return 'Lancer la simulation';
   }
 
   protected readonly lastFormStepNumber = computed(() => (this.isBillAnalysisMode() ? 2 : 3));
 
-  ngOnDestroy(): void {}
+  constructor() {
+    effect(() => {
+      const isResult = !!this.currentStepData().isResult;
+      // Also depend on simulation so we re-wire after results paint
+      const hasSimulation = !!this.simulationResult();
+      if (!isPlatformBrowser(this.platformId)) return;
+
+      document.body.classList.toggle('aud-s4', isResult);
+      if (!isResult) {
+        document.body.classList.remove('aud-s4');
+      }
+
+      if (isResult && hasSimulation) {
+        // Wait for report DOM, then scrub scroll + run .rp-anim reveals
+        window.setTimeout(() => {
+          this.motion.scheduleRefresh(40);
+          document.getElementById('rpt')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 60);
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.classList.remove('aud-page', 'aud-s4');
+    }
+  }
 
   protected isFieldVisible(field: StepField): boolean {
     if (!field.condition) return true;
     return field.condition(this.form.value);
+  }
+
+  /** Accepts numeric 1–12 or legacy month labels used by older UI bindings. */
+  private isReferenceMonthFilled(value: number | string | null | undefined): boolean {
+    if (value === null || value === undefined || value === '') return false;
+    if (typeof value === 'number') {
+      return Number.isFinite(value) && value >= 1 && value <= 12;
+    }
+    const asNumber = Number(value);
+    if (Number.isFinite(asNumber) && asNumber >= 1 && asNumber <= 12) return true;
+    return this.months.some((m) => m.label === value);
+  }
+
+  /** Coerce legacy label / string month values to 1–12 so validators stay green. */
+  private normalizeReferenceMonthControl(): void {
+    const control = this.form.get('consumption.referenceMonth');
+    if (!control) return;
+    const value = control.value;
+    if (value === null || value === undefined || value === '') return;
+
+    if (typeof value === 'number' && value >= 1 && value <= 12) return;
+
+    if (typeof value === 'string') {
+      const asNumber = Number(value);
+      if (Number.isFinite(asNumber) && asNumber >= 1 && asNumber <= 12) {
+        control.setValue(asNumber, { emitEvent: false });
+        return;
+      }
+      const month = this.months.find((m) => m.label === value);
+      if (month) {
+        control.setValue(month.value, { emitEvent: false });
+      }
+    }
   }
 
   protected isStepClickable(stepNumber: number): boolean {
@@ -653,11 +674,11 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
 
     if (
       !measuredAmountControl?.value ||
-      !referenceMonthControl?.value ||
+      !this.isReferenceMonthFilled(referenceMonthControl?.value) ||
       !tariffTensionControl?.value ||
-      measuredAmountControl.invalid ||
-      referenceMonthControl.invalid
+      measuredAmountControl.invalid
     ) {
+      this.normalizeReferenceMonthControl();
       measuredAmountControl?.markAsTouched();
       referenceMonthControl?.markAsTouched();
       tariffTensionControl?.markAsTouched();
@@ -699,7 +720,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
         });
         return;
       }
-      this.finishNextStep(stepNumber);
+      this.goForwardFrom(stepNumber);
       return;
     }
 
@@ -707,9 +728,88 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       if (!this.validateFullAuditStep1()) {
         return;
       }
+      // Advance directly after step-1 validation — do not re-gate on canProceed/stepProgress
+      this.goForwardFrom(stepNumber);
+      return;
+    }
+
+    if (stepNumber === 2 && !this.isBillAnalysisMode()) {
+      if (!this.validateFullAuditStep2()) {
+        return;
+      }
+      this.goForwardFrom(stepNumber);
+      return;
+    }
+
+    // Contact / last form step — validate then submit or advance
+    if (stepNumber === this.lastFormStepNumber()) {
+      this.normalizeReferenceMonthControl();
+      this.formUpdateTrigger.update((v) => v + 1);
+      if (!this.canProceed()) {
+        const currentStep = this.currentStepData();
+        currentStep.fields.forEach((field) => {
+          this.form.get(field.name)?.markAsTouched();
+        });
+        this.notificationStore.addNotification({
+          type: 'warning',
+          title: 'Étape incomplète',
+          message: 'Veuillez remplir tous les champs avant de continuer.',
+        });
+        return;
+      }
+      this.goForwardFrom(stepNumber);
+      return;
     }
 
     this.finishNextStep(stepNumber);
+  }
+
+  /** Move to next step or submit — no progress-percent gate. */
+  private goForwardFrom(stepNumber: number): void {
+    this.normalizeReferenceMonthControl();
+    this.formUpdateTrigger.update((v) => v + 1);
+
+    const lastFormStep = this.lastFormStepNumber();
+    const next = stepNumber + 1;
+    if (next <= lastFormStep) {
+      this.currentStep.set(next);
+      if (
+        (!this.isBillAnalysisMode() && next === 3) ||
+        (this.isBillAnalysisMode() && next === 2)
+      ) {
+        this.autoPopulatePersonalInfoFromBillExtraction();
+      }
+      this.cdr.markForCheck();
+      return;
+    }
+
+    if (stepNumber === lastFormStep) {
+      if (this.isBillAnalysisMode()) {
+        this.runBillAnalysisFlow();
+        return;
+      }
+      this.submitForm();
+    }
+  }
+
+  private validateFullAuditStep2(): boolean {
+    const buildingType = this.form.get('building.buildingType');
+    const climateZone = this.form.get('building.climateZone');
+    const typeValue = buildingType?.value;
+    const isTypeValid = typeof typeValue === 'string' && typeValue.trim().length > 0;
+    const isZoneValid = typeof climateZone?.value === 'string' && climateZone.value.trim().length > 0;
+
+    if (!isTypeValid || !isZoneValid) {
+      buildingType?.markAsTouched();
+      climateZone?.markAsTouched();
+      this.notificationStore.addNotification({
+        type: 'warning',
+        title: 'Informations manquantes',
+        message: 'Veuillez sélectionner le type de bâtiment et la zone climatique.',
+      });
+      return false;
+    }
+    return true;
   }
 
   private runBillAnalysisFlow(): void {
@@ -826,6 +926,9 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   }
 
   private finishNextStep(stepNumber: number): void {
+    this.normalizeReferenceMonthControl();
+    this.formUpdateTrigger.update((v) => v + 1);
+
     if (!this.canProceed()) {
       const currentStep = this.currentStepData();
       currentStep.fields.forEach((field) => {
@@ -977,12 +1080,12 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
 
     const referenceMonthControl = this.form.get('consumption.referenceMonth');
     if (referenceMonthControl) {
-      // Find the month label that matches the reference month number
       const monthOption = this.months.find(
         (m) => m.value === solarAuditFields.referenceMonth
       );
       if (monthOption) {
-        referenceMonthControl.setValue(monthOption.label, { emitEvent: true });
+        // Always store the numeric month (1–12) so Validators.min/max stay valid
+        referenceMonthControl.setValue(monthOption.value, { emitEvent: true });
       }
     }
 
@@ -1017,7 +1120,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
    * Auto-populate personal information and location fields from bill extraction store if available
    * Extracts: clientName (for fullName/companyName), address
    * Note: Email and phone are not available in bill extraction data
-   * Only populates fields that are currently empty (doesn't overwrite user input)
+   * Only populates fields that are currently empty (doesn’t overwrite user input)
    */
   private autoPopulatePersonalInfoFromBillExtraction(): void {
     const extractedData = this.billExtractionStore.getExtractedData();
@@ -1062,6 +1165,10 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.classList.add('aud-page');
+    }
+
     const isBillAnalysis = this.router.url.includes('/analyse-facture');
     this.isBillAnalysisMode.set(isBillAnalysis);
 
@@ -1123,6 +1230,8 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
     }
 
     this.form.valueChanges.subscribe(() => {
+      this.normalizeReferenceMonthControl();
+
       // Update validity for all controls
       Object.keys(this.form.controls).forEach((key) => {
         const groupOrControl = (this.form as FormGroup).get(key);
@@ -1142,6 +1251,9 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       this.cdr.markForCheck();
     });
 
+    // Normalize any pre-filled / legacy month value on first paint
+    this.normalizeReferenceMonthControl();
+
     // Subscribe to bill extraction store changes to auto-populate when bill is extracted
     // Only auto-populate if user has selected 'yes' for hasInvoice
     this.billExtractionStore.extractedData$.subscribe((extractedData) => {
@@ -1160,6 +1272,10 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
         setTimeout(() => this.scrollToMtOptions(), 0);
       }
     });
+  }
+
+  ngAfterViewInit(): void {
+    this.motion.scheduleRefresh();
   }
 
   private scrollToMtOptions(): void {
@@ -1246,7 +1362,25 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const value = this.form.getRawValue() as any;
+    const value = this.form.getRawValue() as {
+      location?: { address?: string };
+      consumption?: {
+        measuredAmountTnd?: number;
+        referenceMonth?: number | string;
+        tariffTension?: string;
+        operatingHoursCase?: string | null;
+        tariffRegime?: string | null;
+        billAttachment?: File | null;
+        hasInvoice?: 'yes' | 'no' | null;
+      };
+      building?: { buildingType?: string; climateZone?: string };
+      personal?: {
+        fullName?: string;
+        companyName?: string;
+        email?: string;
+        phoneNumber?: string;
+      };
+    };
     // Read Régime tarifaire (BT/MT) and MT options directly from controls so payload always matches UI selection
     const tariffTension = (
       this.form.get('consumption.tariffTension')?.value === 'MT' ? 'MT' : 'BT'
@@ -1257,87 +1391,86 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
         : null;
     const tariffRegime =
       tariffTension === 'MT' ? this.form.get('consumption.tariffRegime')?.value ?? null : null;
-    // Bill upload feature temporarily disabled
-    // const billFile = value.consumption?.billAttachment as File | null;
-    // if (billFile && this.invoiceChoice() === 'yes') {
-    //   this.submitFormWithBill(billFile);
-    //   return;
-    // }
 
-    // Regular JSON submission
-    // Ensure referenceMonth is always a valid month number (1-12)
-    const rawReferenceMonth = value.consumption?.referenceMonth;
-    let referenceMonth: number = 1;
-    if (typeof rawReferenceMonth === 'number') {
-      referenceMonth = rawReferenceMonth || 1;
-    } else if (typeof rawReferenceMonth === 'string') {
-      const month = this.months.find((m) => m.label === rawReferenceMonth);
-      referenceMonth = month ? month.value : 1;
+    const billFile = value.consumption?.billAttachment ?? null;
+    if (billFile && value.consumption?.hasInvoice === 'yes') {
+      this.submitFormWithBill(billFile);
+      return;
     }
 
-    // Build payload with all required fields
-    // NOTE: Personal info fields (fullName, companyName, email, phoneNumber) are included
-    // but backend currently doesn't use them. They will be added to backend API soon.
-    // When backend is updated, these fields will already be sent automatically.
-    const payload: CreateSimulationPayload = {
-      // Location
-      address: value.location?.address ?? '',
-
-      // Consumption
-      measuredAmountTnd: value.consumption?.measuredAmountTnd ?? 0,
-      referenceMonth,
-
-      // Building
-      buildingType: value.building?.buildingType ?? '',
-      climateZone: value.building?.climateZone ?? this.climateZones[0] ?? '',
-
-      // Personal Info (ready for backend integration)
-      // TODO: Backend will accept these fields soon - they're already being sent
-      fullName: value.personal?.fullName ?? '',
-      companyName: value.personal?.companyName ?? '',
-      email: value.personal?.email ?? '',
-      phoneNumber: value.personal?.phoneNumber ?? '',
-      // MT / BT + operating-hours
+    this.createSimulationFromFormValues({
       tariffTension,
-      operatingHoursCase: operatingHoursCase ?? undefined,
-      tariffRegime: tariffRegime ?? undefined,
-    };
+      operatingHoursCase,
+      tariffRegime,
+    });
+  }
 
+  /**
+   * Extract bill via BillExtractionService when needed, then create simulation
+   * through the standard JSON API (no /with-bill endpoint).
+   */
+  private submitFormWithBill(billFile: File): void {
+    const existing = this.billExtractionStore.getExtractedData();
+    if (existing && extractSolarAuditFields(existing)) {
+      this.autoPopulateFromBillExtraction();
+      this.autoPopulatePersonalInfoFromBillExtraction();
+      this.createSimulationFromFormValues();
+      return;
+    }
 
     this.isSubmitting.set(true);
+    const formData = new FormData();
+    formData.append('billImage', billFile);
 
-    this.auditService
-      .createSimulation(payload)
-      .pipe(finalize(() => this.isSubmitting.set(false)))
-      .subscribe({
-        next: (result: IAuditSolaireSimulation) => {
-          this.simulationResult.set(result);
-          const resultStep = this.steps().find((s) => s.isResult);
-          if (resultStep) {
-            this.currentStep.set(resultStep.number);
+    this.billExtractionService
+      .extractBillData(formData)
+      .pipe(
+        switchMap((response) => {
+          if (!response.success || !response.data) {
+            throw new Error('INVALID_EXTRACTION');
           }
+          this.billExtractionStore.setExtractedData(response.data);
+          this.autoPopulateFromBillExtraction();
+          this.autoPopulatePersonalInfoFromBillExtraction();
+
+          const fields = extractSolarAuditFields(response.data);
+          if (!fields) {
+            throw new Error('MISSING_FIELDS');
+          }
+
+          return this.auditService.createSimulation(this.buildCreateSimulationPayload());
+        }),
+        finalize(() => this.isSubmitting.set(false))
+      )
+      .subscribe({
+        next: (result: IAuditSolaireSimulation) => this.handleSimulationSuccess(result, true),
+        error: (error: { error?: { message?: string }; message?: string }) => {
+          const message =
+            error?.message === 'MISSING_FIELDS'
+              ? "Impossible d’extraire le montant et le mois de référence de la facture."
+              : error?.error?.message ||
+                "Une erreur est survenue lors de l’extraction des données de la facture ou de la création de la simulation.";
           this.notificationStore.addNotification({
-            type: 'success',
-            title: 'Simulation terminée',
-            message: 'Voici les résultats de votre audit solaire.',
-          });
-          // Send PV report by email at the end (non-blocking)
-          this.auditService.sendPVReportByEmail(result.id).subscribe({
-            next: (emailRes) => {
-              if (emailRes?.email) {
-                this.notificationStore.addNotification({
-                  type: 'success',
-                  title: 'Rapport envoyé par email',
-                  message: `Le rapport PV sera envoyé à ${emailRes.email}. Vérifiez votre boîte de réception.`,
-                });
-              }
-            },
-            error: () => {
-              /* email optional */
-            },
+            type: 'error',
+            title: 'Erreur',
+            message,
           });
         },
-        error: (error) => {
+      });
+  }
+
+  private createSimulationFromFormValues(overrides?: {
+    tariffTension?: 'BT' | 'MT';
+    operatingHoursCase?: string | null;
+    tariffRegime?: string | null;
+  }): void {
+    this.isSubmitting.set(true);
+    this.auditService
+      .createSimulation(this.buildCreateSimulationPayload(overrides))
+      .pipe(finalize(() => this.isSubmitting.set(false)))
+      .subscribe({
+        next: (result: IAuditSolaireSimulation) => this.handleSimulationSuccess(result, false),
+        error: (error: { error?: { message?: string } }) => {
           this.notificationStore.addNotification({
             type: 'error',
             title: 'Erreur',
@@ -1349,86 +1482,113 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       });
   }
 
-  private submitFormWithBill(billFile: File): void {
-    const value = this.form.value as any;
+  /** kWh printed on the bill, only when the user uploaded an invoice. */
+  private readExtractedMonthlyKwh(): number | undefined {
+    if (this.form.get('consumption.hasInvoice')?.value !== 'yes') {
+      return undefined;
+    }
+    const fields = extractSolarAuditFields(this.billExtractionStore.getExtractedData());
+    const monthlyKwh = fields?.measuredConsumptionKwh;
+    if (monthlyKwh == null || monthlyKwh <= 0) {
+      return undefined;
+    }
+    return monthlyKwh;
+  }
 
-    // Ensure referenceMonth is always a valid month number (1-12)
+  private buildCreateSimulationPayload(overrides?: {
+    tariffTension?: 'BT' | 'MT';
+    operatingHoursCase?: string | null;
+    tariffRegime?: string | null;
+  }): CreateSimulationPayload {
+    const value = this.form.getRawValue() as {
+      location?: { address?: string };
+      consumption?: {
+        measuredAmountTnd?: number;
+        referenceMonth?: number | string;
+      };
+      building?: { buildingType?: string; climateZone?: string };
+      personal?: {
+        fullName?: string;
+        companyName?: string;
+        email?: string;
+        phoneNumber?: string;
+      };
+    };
+
+    const tariffTension =
+      overrides?.tariffTension ??
+      (this.form.get('consumption.tariffTension')?.value === 'MT' ? 'MT' : 'BT');
+    const operatingHoursCase =
+      overrides?.operatingHoursCase !== undefined
+        ? overrides.operatingHoursCase
+        : tariffTension === 'MT'
+          ? this.form.get('consumption.operatingHoursCase')?.value ?? null
+          : null;
+    const tariffRegime =
+      overrides?.tariffRegime !== undefined
+        ? overrides.tariffRegime
+        : tariffTension === 'MT'
+          ? this.form.get('consumption.tariffRegime')?.value ?? null
+          : null;
+
     const rawReferenceMonth = value.consumption?.referenceMonth;
-    let referenceMonth: number | undefined = undefined;
+    let referenceMonth = 1;
     if (typeof rawReferenceMonth === 'number') {
-      referenceMonth = rawReferenceMonth || undefined;
+      referenceMonth = rawReferenceMonth || 1;
     } else if (typeof rawReferenceMonth === 'string') {
       const month = this.months.find((m) => m.label === rawReferenceMonth);
-      referenceMonth = month ? month.value : undefined;
+      referenceMonth = month ? month.value : 1;
     }
 
-    // Build FormData with file and form fields
-    const formData = new FormData();
-    formData.append('billImage', billFile);
-    formData.append('address', value.location?.address ?? '');
-    formData.append('buildingType', value.building?.buildingType ?? '');
-    formData.append('climateZone', value.building?.climateZone ?? this.climateZones[0] ?? '');
+    const extractedKwh = this.readExtractedMonthlyKwh();
 
-    // Add measuredAmountTnd if provided (will be overridden by extracted value if present)
-    if (value.consumption?.measuredAmountTnd) {
-      formData.append('measuredAmountTnd', value.consumption.measuredAmountTnd.toString());
+    return {
+      address: value.location?.address ?? '',
+      measuredAmountTnd: value.consumption?.measuredAmountTnd ?? 0,
+      ...(extractedKwh != null ? { measuredConsumptionKwh: extractedKwh } : {}),
+      referenceMonth,
+      buildingType: value.building?.buildingType ?? '',
+      climateZone: value.building?.climateZone ?? this.climateZones[0] ?? '',
+      fullName: value.personal?.fullName ?? '',
+      companyName: value.personal?.companyName ?? '',
+      email: value.personal?.email ?? '',
+      phoneNumber: value.personal?.phoneNumber ?? '',
+      tariffTension,
+      operatingHoursCase: (operatingHoursCase as CreateSimulationPayload['operatingHoursCase']) ?? undefined,
+      tariffRegime: (tariffRegime as CreateSimulationPayload['tariffRegime']) ?? undefined,
+    };
+  }
+
+  private handleSimulationSuccess(
+    result: IAuditSolaireSimulation,
+    fromBillExtraction: boolean
+  ): void {
+    this.simulationResult.set(result);
+    const resultStep = this.steps().find((s) => s.isResult);
+    if (resultStep) {
+      this.currentStep.set(resultStep.number);
     }
-
-    // Add referenceMonth if provided (will be overridden by extracted value if present)
-    if (referenceMonth) {
-      formData.append('referenceMonth', referenceMonth.toString());
-    }
-
-    // Personal Info
-    formData.append('fullName', value.personal?.fullName ?? '');
-    formData.append('companyName', value.personal?.companyName ?? '');
-    formData.append('email', value.personal?.email ?? '');
-    formData.append('phoneNumber', value.personal?.phoneNumber ?? '');
-
-    this.isSubmitting.set(true);
-
-    this.auditService
-      .createSimulationWithBill(formData)
-      .pipe(finalize(() => this.isSubmitting.set(false)))
-      .subscribe({
-        next: (result: IAuditSolaireSimulation) => {
-          this.simulationResult.set(result);
-          const resultStep = this.steps().find((s) => s.isResult);
-          if (resultStep) {
-            this.currentStep.set(resultStep.number);
-          }
+    this.notificationStore.addNotification({
+      type: 'success',
+      title: 'Simulation terminée',
+      message: fromBillExtraction
+        ? 'Les données de votre facture ont été extraites et la simulation a été créée.'
+        : 'Voici les résultats de votre audit solaire.',
+    });
+    this.auditService.sendPVReportByEmail(result.id).subscribe({
+      next: (emailRes) => {
+        if (emailRes?.email) {
           this.notificationStore.addNotification({
             type: 'success',
-            title: 'Simulation terminée',
-            message: 'Les données de votre facture ont été extraites et la simulation a été créée.',
+            title: 'Rapport envoyé par email',
+            message: `Le rapport PV sera envoyé à ${emailRes.email}. Vérifiez votre boîte de réception.`,
           });
-          // Send PV report by email at the end (non-blocking)
-          this.auditService.sendPVReportByEmail(result.id).subscribe({
-            next: (emailRes) => {
-              if (emailRes?.email) {
-                this.notificationStore.addNotification({
-                  type: 'success',
-                  title: 'Rapport envoyé par email',
-                  message: `Le rapport PV sera envoyé à ${emailRes.email}. Vérifiez votre boîte de réception.`,
-                });
-              }
-            },
-            error: () => {
-              /* email optional */
-            },
-          });
-        },
-        error: (error) => {
-          console.error('Error creating simulation with bill:', error);
-          this.notificationStore.addNotification({
-            type: 'error',
-            title: 'Erreur',
-            message:
-              error.error?.message ||
-              "Une erreur est survenue lors de l'extraction des données de la facture ou de la création de la simulation.",
-          });
-        },
-      });
+        }
+      },
+      error: () => {
+        /* email optional */
+      },
+    });
   }
 
   protected downloadPVReport(): void {
@@ -1437,7 +1597,7 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
       this.notificationStore.addNotification({
         type: 'error',
         title: 'Erreur',
-        message: "Aucune simulation trouvée. Veuillez d'abord compléter l'audit solaire.",
+        message: "Aucune simulation trouvée. Veuillez d’abord compléter l’audit solaire.",
       });
       return;
     }
@@ -1598,6 +1758,31 @@ export class SolarAuditComponent implements OnInit, OnDestroy {
 
   protected getSparseChartYears(): number[] {
     return [1, 5, 10, 15, 20, 25];
+  }
+
+  protected chartGuideStartY(hitY: number): number {
+    const aboveHit = hitY - 56;
+    return Math.max(36, Math.min(78, aboveHit));
+  }
+
+  protected chartTickY(tick: number): number {
+    const maxValue = this.getLineChartMaxValue();
+    const minValue = this.getLineChartMinValue();
+    const range = maxValue - minValue;
+    if (range === 0) return 200;
+    return 400 - ((tick - minValue) / range) * 400;
+  }
+
+  protected chartYearPercent(year: number): number {
+    const years = this.getChartYears();
+    if (years.length <= 1) return 0;
+    const index = years.indexOf(year);
+    if (index < 0) return 0;
+    return (index / (years.length - 1)) * 100;
+  }
+
+  protected formatChartAxisValue(value: number): string {
+    return Math.round(value).toLocaleString('fr-FR').replace(/\s/g, ' ');
   }
 
   protected getLineChartMaxValue(): number {

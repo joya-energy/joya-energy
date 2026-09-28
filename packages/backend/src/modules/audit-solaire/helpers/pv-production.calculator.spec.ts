@@ -73,36 +73,40 @@ describe('PVProductionCalculator', () => {
   });
 
   describe('calculateNetConsumptionAndCredits', () => {
-    it('should calculate net consumption with credits rollover', () => {
+    it('should use a later surplus month to reduce an earlier deficit', () => {
       const monthlyRawConsumptions = [1000, 900, 800, 700, 600, 500, 400, 500, 600, 700, 800, 900];
       const monthlyPVProductions = [200, 250, 300, 350, 400, 450, 500, 450, 400, 350, 300, 250];
 
       const result = calculateNetConsumptionAndCredits(monthlyRawConsumptions, monthlyPVProductions);
 
       expect(result).toHaveLength(12);
-
-      // July: raw 400 - PV 500 = -100 → credit 100, net 0
+      expect(result[0].netConsumption).toBe(700);
       expect(result[6].netConsumption).toBe(0);
-      expect(result[6].credit).toBe(100);
-
-      // August: raw 500 - PV 450 = 50 + credit 100 = 150 → net 150, credit 0
-      expect(result[7].netConsumption).toBe(150);
-      expect(result[7].credit).toBe(0);
+      expect(result[7].netConsumption).toBe(50);
+      expect(result.reduce((sum, month) => sum + month.netConsumption, 0)).toBe(4200);
     });
 
-    it('should handle credit rollover across year boundary', () => {
-      // December has surplus that carries to next year (simulated)
+    it('should bill nothing when annual production exceeds annual consumption', () => {
+      const monthlyRawConsumptions = [120, 110, 100, 90, 80, 70, 60, 70, 80, 90, 100, 110];
+      const monthlyPVProductions = [40, 50, 70, 90, 110, 130, 150, 140, 120, 90, 60, 40];
+
+      const result = calculateNetConsumptionAndCredits(monthlyRawConsumptions, monthlyPVProductions);
+      const billed = result.reduce((sum, month) => sum + month.netConsumption, 0);
+
+      expect(billed).toBe(0);
+      expect(result[0].netConsumption).toBe(0);
+      expect(result[1].netConsumption).toBe(0);
+    });
+
+    it('should keep the unused annual surplus as credit when every month is in surplus', () => {
       const monthlyRawConsumptions = Array(12).fill(1000);
-      const monthlyPVProductions = Array(12).fill(1200); // Always more production than consumption
+      const monthlyPVProductions = Array(12).fill(1200);
 
       const result = calculateNetConsumptionAndCredits(monthlyRawConsumptions, monthlyPVProductions);
 
-      // Each month: 1000 - 1200 = -200 → credit accumulates
-      let expectedCredit = 0;
       result.forEach((month) => {
-        expectedCredit += 200;
         expect(month.netConsumption).toBe(0);
-        expect(month.credit).toBe(expectedCredit);
+        expect(month.credit).toBe(-2400);
       });
     });
   });

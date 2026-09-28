@@ -12,6 +12,8 @@ export interface CreateSimulationPayload {
   email: string;
   phoneNumber: string;
   measuredAmountTnd: number;
+  /** Monthly kWh from the bill quantity. Omitted when the user types an amount. */
+  measuredConsumptionKwh?: number;
   referenceMonth: number;
   
   // Building
@@ -45,10 +47,6 @@ export class AuditSolaireService {
 
   createSimulation(payload: CreateSimulationPayload): Observable<IAuditSolaireSimulation> {
     return this.api.post<IAuditSolaireSimulation>('/audit-solaire-simulations', payload);
-  }
-
-  createSimulationWithBill(formData: FormData): Observable<IAuditSolaireSimulation> {
-    return this.api.postFormData<IAuditSolaireSimulation>('/audit-solaire-simulations/with-bill', formData);
   }
 
   getSimulations(page = 1, limit = 10): Observable<PaginatedSimulationsResponse> {

@@ -1,0 +1,149 @@
+/* ==========================================================================
+   Shared .aud simulator page chrome (dark stage, glass card, Continuer).
+   Used by audit-solaire and all other handoff simulators.
+   Requires body.aud-page (set by each page OnInit).
+   ========================================================================== */
+
+body.aud-page {
+  --bg: #0a1420;
+  --g1: #5194e0;
+  --g2: #1f5691;
+  --card-bg: rgba(255, 253, 250, 0.84);
+  --card-bd: rgba(255, 255, 255, 0.72);
+  --sh-card:
+    0 46px 100px -36px rgba(4, 14, 26, 0.62),
+    0 4px 16px rgba(4, 14, 26, 0.16);
+  --track: rgba(23, 59, 94, 0.14);
+  --fill: rgba(255, 255, 255, 0.52);
+  --line: rgba(23, 59, 94, 0.15);
+  --line-2: rgba(23, 59, 94, 0.1);
+  --muted: #45566e;
+  --label: #31435c;
+  --faint: #697a90;
+  --ink: #1b2f49;
+  --navy: #173b5e;
+  --coral: #e37051;
+  --coral-d: #cf5a3d;
+  --err: #b23a22;
+}
+
+.aud-page-root {
+  position: relative;
+  min-height: 100vh;
+}
+
+.aud-page-root:not(.is-result) .aud__card {
+  max-width: 720px;
+  padding: clamp(28px, 3.5vw, 40px) clamp(28px, 4vw, 48px);
+}
+
+.aud-page-root:not(.is-result) .aud {
+  padding-left: clamp(20px, 4vw, 40px);
+  padding-right: clamp(20px, 4vw, 40px);
+}
+
+.aud-page-root.is-result .aud__card,
+.aud__card--wide {
+  max-width: 1180px;
+  padding: clamp(14px, 2.2vw, 24px);
+}
+
+.aud-page-root.is-result .aud__lede,
+.aud-page-root.is-result .aud__prog,
+.aud-page-root.is-result .aud__secure {
+  display: none;
+}
+
+.aud__kicker {
+  display: block;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--coral-d);
+  margin: 0 0 8px;
+}
+
+.aud__q {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: clamp(22px, 2.4vw, 26px);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+  margin: 0;
+}
+
+.aud__q:focus,
+.aud__q:focus-visible {
+  outline: none;
+}
+
+.aud__note {
+  margin: 0 0 20px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(61, 102, 144, 0.08);
+  border: 1px solid rgba(61, 102, 144, 0.14);
+}
+
+.aud__note p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.aud__note p + p {
+  margin-top: 8px;
+}
+
+.aud__actions {
+  display: flex !important;
+  margin-top: 28px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line-2, rgba(23, 59, 94, 0.1));
+}
+
+.aud__continue,
+button.aud__continue.btn-next {
+  display: inline-flex !important;
+  visibility: visible !important;
+  width: 100%;
+  justify-content: center;
+  margin-left: 0 !important;
+  min-height: 52px;
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff !important;
+  background: #e37051 !important;
+  border: 0 !important;
+  border-radius: 12px;
+  cursor: pointer;
+  opacity: 1 !important;
+}
+
+.aud__continue:hover:not(:disabled) {
+  background: #cf5a3d !important;
+}
+
+.aud__continue:disabled {
+  opacity: 0.7 !important;
+  cursor: wait;
+}
+
+@media (max-width: 600px) {
+  .aud-page-root:not(.is-result) .aud__card,
+  .aud-page-root .aud__card {
+    max-width: none;
+    border-radius: 18px;
+    padding: 20px 18px 26px;
+  }
+
+  .aud-page-root .aud {
+    padding: 132px 12px 96px;
+    align-items: flex-start;
+  }
+}

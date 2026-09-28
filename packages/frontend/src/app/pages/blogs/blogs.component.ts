@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   OnInit,
   OnDestroy,
+  AfterViewInit,
   inject,
   signal,
   computed,
@@ -11,6 +12,7 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { SEOService } from '../../core/services/seo.service';
+import { HandoffMotionService } from '../../core/services/handoff-motion.service';
 import { BLOG_POSTS } from '../../blogs/data/blog-posts';
 
 const PAGE1_SIZE = 7;
@@ -24,9 +26,10 @@ const PAGE_OTHER_SIZE = 6;
   styleUrl: './blogs.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BlogsComponent implements OnInit, OnDestroy {
+export class BlogsComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly seoService = inject(SEOService);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly motion = inject(HandoffMotionService);
 
   protected readonly currentPage = signal(1);
 
@@ -76,6 +79,10 @@ export class BlogsComponent implements OnInit, OnDestroy {
     }
   }
 
+  ngAfterViewInit(): void {
+    this.motion.refresh();
+  }
+
   protected getAuthorInitial(name: string): string {
     return name.charAt(0).toUpperCase();
   }
@@ -84,6 +91,7 @@ export class BlogsComponent implements OnInit, OnDestroy {
     const max = this.totalPages();
     if (page >= 1 && page <= max) {
       this.currentPage.set(page);
+      setTimeout(() => this.motion.refresh(), 50);
     }
   }
 }

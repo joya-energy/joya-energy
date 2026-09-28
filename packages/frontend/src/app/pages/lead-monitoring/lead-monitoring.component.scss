@@ -1,21 +1,19 @@
 @use 'sass:color';
 
-// Design tokens matching React TSX design
-// Sass color values (for color functions)
-$orange-solar-color: #f3a31c;
-$teal-deep-color: #0a3d46;
-$teal-soft-color: #0d5757;
+// Handoff tokens (navy / coral / cream)
+$orange-solar-color: #e37051;
+$teal-deep-color: #173b5e;
+$teal-soft-color: #3d6690;
 
-// CSS variables (for direct usage)
-$teal-deep: var(--teal-deep, #0a3d46);
-$orange-solar: var(--orange-solar, #f3a31c);
-$orange-glow: #fbbf24;
-$teal-soft: var(--teal-soft, #0d5757);
-$background: var(--bg-page, #ffffff);
-$muted-foreground: var(--text-muted, #64748b);
-$foreground: var(--text-primary, #0a3d46);
-$border: var(--neutral-300, #d4d4d4);
-$muted: var(--neutral-100, #f5f5f5);
+$teal-deep: var(--navy, #173b5e);
+$orange-solar: var(--coral, #e37051);
+$orange-glow: #f0a68a;
+$teal-soft: var(--blue-accent, #3d6690);
+$background: var(--cream, #fffaf6);
+$muted-foreground: rgba(23, 59, 94, 0.62);
+$foreground: var(--navy, #173b5e);
+$border: var(--hairline-strong, rgba(23, 59, 94, 0.2));
+$muted: var(--cream-2, #fcf3ea);
 
 // Status colors matching Tailwind classes from React
 $status-nouveau-bg: #dbeafe;
@@ -81,7 +79,7 @@ $status-perdu-border: #fecaca;
 .leads-dashboard {
   min-height: 100vh;
   position: relative;
-  background: linear-gradient(135deg, #ffffff 0%, #fdf5ea 25%, #eff6f8 50%, #ffffff 100%);
+  background: linear-gradient(135deg, var(--cream) 0%, var(--cream-2) 35%, #fff 100%);
   padding: 2.5rem 1rem 3rem;
   box-sizing: border-box;
   animation: fade-in 0.5s ease-in;
@@ -147,31 +145,30 @@ $status-perdu-border: #fecaca;
 
 .leads-dashboard__badge {
   margin: 0 0 0.5rem;
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-family: var(--font-data);
+  font-size: 12.5px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: $orange-solar;
+  letter-spacing: 0.08em;
+  color: var(--coral-dark);
 }
 
 .leads-dashboard__title {
   margin: 0;
-  font-size: 3rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
   color: $teal-deep;
-  line-height: 1.2;
-
-  @media (min-width: 640px) {
-    font-size: 2.75rem;
-  }
+  line-height: 1.15;
 }
 
 .leads-dashboard__subtitle {
   margin: 0.75rem 0 0;
-  font-size: 1.5rem;
+  font-size: 15px;
   color: $muted-foreground;
- 
   line-height: 1.6;
+  max-width: 42rem;
 }
 
 .leads-dashboard__cta {
@@ -179,12 +176,12 @@ $status-perdu-border: #fecaca;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.75rem;
+  gap: 0.65rem;
+  padding: 0.7rem 1.35rem;
+  border-radius: var(--radius-pill);
   background: $orange-solar;
   color: white;
-  font-size: 1.5rem;
+  font-size: 14.5px;
   font-weight: 600;
   text-decoration: none;
   border: none;

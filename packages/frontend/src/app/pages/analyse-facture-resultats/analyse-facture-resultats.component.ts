@@ -1,27 +1,24 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   computed,
   inject,
+  OnDestroy,
   OnInit,
+  PLATFORM_ID,
   signal,
   ViewEncapsulation,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
-  lucideArrowRight,
-  lucideArrowUpRight,
   lucideCheck,
-  lucideFlame,
-  lucideInfo,
-  lucidePlus,
   lucideZap,
 } from '@ng-icons/lucide';
-import { UiProgressBarComponent } from '../../shared/components/ui-progress-bar/ui-progress-bar.component';
-import { UiStepTimelineComponent } from '../../shared/components/ui-step-timeline/ui-step-timeline.component';
 import { SEOService } from '../../core/services/seo.service';
+import { HandoffMotionService } from '../../core/services/handoff-motion.service';
 import { AnalyseFactureStore } from '../../core/stores/analyse-facture.store';
 import { mapStegAnalyseResponse, fieldConfidenceFromView } from '../../core/utils/analyse-facture.mapper';
 import { formatMtDtAmount } from '@shared/functions/steg-numbers';
@@ -52,18 +49,6 @@ function isMtPrimaryPowerProfile(
 function isMtRevisionProfile(categorie: string | undefined): boolean {
   return categorie === 'P1' || categorie === 'P2';
 }
-
-interface BillAnalysisFlowStep {
-  number: number;
-  title: string;
-  isResult?: boolean;
-}
-
-const BILL_ANALYSIS_FLOW_STEPS: BillAnalysisFlowStep[] = [
-  { number: 1, title: 'Facture' },
-  { number: 2, title: 'Informations personnelles' },
-  { number: 3, title: 'Résultats', isResult: true },
-];
 
 const BT_FIELD_TIPS: Record<string, string> = {
   periode_facturation: 'Nombre de mois facturés (colonne « Nbre de Mois » sur la facture STEG).',
@@ -112,37 +97,24 @@ const MT_FIELD_TIPS: Record<string, string> = {
 @Component({
   selector: 'app-analyse-facture-resultats',
   standalone: true,
-  imports: [CommonModule, RouterLink, NgIconComponent, UiProgressBarComponent, UiStepTimelineComponent],
+  imports: [CommonModule, RouterLink, NgIconComponent],
   templateUrl: './analyse-facture-resultats.component.html',
   styleUrl: './analyse-facture-resultats.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   providers: [
     provideIcons({
-      lucideArrowRight,
-      lucideArrowUpRight,
       lucideCheck,
-      lucideFlame,
-      lucideInfo,
-      lucidePlus,
       lucideZap,
     }),
   ],
 })
-export class AnalyseFactureResultatsComponent implements OnInit {
+export class AnalyseFactureResultatsComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly seoService = inject(SEOService);
+  private readonly motion = inject(HandoffMotionService);
   private readonly router = inject(Router);
   private readonly analyseFactureStore = inject(AnalyseFactureStore);
-
-  protected readonly steps = BILL_ANALYSIS_FLOW_STEPS;
-  protected readonly currentStep = signal(3);
-  protected readonly overallProgress = 100;
-
-  protected readonly stepProgress = (): Record<number, number> => ({
-    1: 100,
-    2: 100,
-    3: 0,
-  });
+  private readonly platformId = inject(PLATFORM_ID);
 
   protected readonly tariffType = signal<TariffType>('BT');
 
@@ -657,6 +629,10 @@ export class AnalyseFactureResultatsComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.classList.add('aud-page', 'aud-s4');
+    }
+
     const stored = this.analyseFactureStore.getMappedResult();
     if (!stored?.raw) {
       void this.router.navigate(['/analyse-facture']);
@@ -680,16 +656,25 @@ export class AnalyseFactureResultatsComponent implements OnInit {
     });
   }
 
-  protected isStepClickable(stepNumber: number): boolean {
-    const step = this.steps.find((s) => s.number === stepNumber);
-    return !!step && !step.isResult && stepNumber < this.currentStep();
+  ngAfterViewInit(): void {
+    this.motion.scheduleRefresh(40);
+  }
+
+  ngOnDestroy(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.classList.remove('aud-page', 'aud-s4');
+    }
   }
 
   protected goToStep(stepNumber: number): void {
-    if (!this.isStepClickable(stepNumber)) {
+    if (stepNumber < 1 || stepNumber > 2) {
       return;
     }
     void this.router.navigate(['/analyse-facture'], { queryParams: { step: stepNumber } });
+  }
+
+  protected nouvelleAnalyse(): void {
+    void this.router.navigate(['/analyse-facture']);
   }
 
   protected chartLinePoints(chart: VanChartData): string {

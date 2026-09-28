@@ -1,125 +1,129 @@
-<div class="pre-solar-page">
-  <div class="pre-solar-container">
-    <div class="pre-solar-card">
-      <div class="pre-solar-card__left">
-        <h1 class="pre-solar-card__title">
-          Indiquez votre facture mensuelle et votre zone climatique pour obtenir une première
-          estimation du potentiel solaire de votre site.
-        </h1>
+<div [class.pre-solar-page]="!embedded">
+  @if (!embedded) {
+  <div class="wrap pre-solar-page__intro">
+    <span class="eyebrow">Simulateur</span>
+    <h1>Combien pouvez-vous <span class="accent">économiser</span>&nbsp;?</h1>
+    <p>Renseignez votre facture actuelle pour une première estimation.</p>
+  </div>
+  }
 
-        <form class="pre-solar-form" [formGroup]="form">
-          <div class="pre-solar-form__field">
-            <div class="pre-solar-form__label-row">
-              <label class="pre-solar-form__label">Montant de la facture (DT / mois)</label>
-              <div class="pre-solar-form__label-value">
-                {{ monthlyBillRoundedForDisplay() | noGrouping : '1.0-0' }} DT
-              </div>
-            </div>
-
-            <input
-              class="pre-solar-form__range"
-              type="range"
-              min="0"
-              [max]="maxMonthlyBillDt"
-              step="100"
-              formControlName="monthlyBillDt"
-              (blur)="markMonthlyBillTouched()"
-            />
-          </div>
-
-          <div class="pre-solar-form__field">
-            <label class="pre-solar-form__label">Zone climatique</label>
-            <div class="pre-solar-form__segmented">
-              <button
-                type="button"
-                class="pre-solar-form__seg-btn"
-                [class.is-active]="form.controls.climateZone.value === 'nord'"
-                (click)="form.controls.climateZone.setValue('nord')"
-              >
-                Nord
-              </button>
-              <button
-                type="button"
-                class="pre-solar-form__seg-btn"
-                [class.is-active]="form.controls.climateZone.value === 'centre'"
-                (click)="form.controls.climateZone.setValue('centre')"
-              >
-                Centre
-              </button>
-              <button
-                type="button"
-                class="pre-solar-form__seg-btn"
-                [class.is-active]="form.controls.climateZone.value === 'sud'"
-                (click)="form.controls.climateZone.setValue('sud')"
-              >
-                Sud
-              </button>
-            </div>
-          </div>
-
-        </form>
-      </div>
-
-      <div class="pre-solar-card__right">
-        <div class="pre-solar-result">
-          <div class="pre-solar-result__headline">Vous pouvez économiser jusqu'à</div>
-          <div class="pre-solar-result__value">
-            {{ (annualSavingsRounded() ?? 0) | noGrouping : '1.0-0' }} <span class="unit">DT/an</span>
-          </div>
-
-
-          <div class="pre-solar-metrics">
-            <div class="pre-solar-metric">
-              <div class="pre-solar-metric__label">Puissance crête</div>
-              <div class="pre-solar-metric__value">
-                {{ (pvPowerKwc() ?? 0) | noGrouping : '1.1-1' }} <span class="unit">kWc</span>
-              </div>
-            </div>
-            <div class="pre-solar-metric">
-              <div class="pre-solar-metric__label">Coût d'investissement</div>
-              <div class="pre-solar-metric__value">
-                {{ (capexDt() ?? 0) | noGrouping : '1.0-0' }} <span class="unit">DT</span>
-              </div>
-            </div>
-            <div class="pre-solar-metric">
-              <div class="pre-solar-metric__label">Coût de maintenance annuel</div>
-              <div class="pre-solar-metric__value">
-                {{ (opexAnnualDt() ?? 0) | noGrouping : '1.0-0' }} <span class="unit">DT/an</span>
-              </div>
-            </div>
-            <div class="pre-solar-metric">
-              <div class="pre-solar-metric__label">Temps de retour sur investissement</div>
-              <div class="pre-solar-metric__value">
-                @if (paybackYearsRounded() != null) {
-                {{ paybackYearsRounded() }} <span class="unit">ans</span>
-                } @else {
-                —
-                }
-              </div>
-            </div>
-          </div>
-
-          <div class="pre-solar-result__cta">
-            <a
-              class="pre-solar-btn pre-solar-btn--primary"
-              routerLink="/audit-solaire"
-            >
-              <span>Obtenir une estimation personnalisée</span>
-              <svg class="pre-solar-btn__icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path
-                  fill-rule="evenodd"
-                  d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-            </a>
-            <div class="pre-solar-result__note">
-              Pour un calcul plus précis, réaliser une simulation gratuite et sans engagement de votre part.
-            </div>
-          </div>
+  <form
+    class="sim-panel"
+    [class.sim-panel--standalone]="!embedded"
+    [formGroup]="form"
+  >
+    <div class="sim-inputs">
+      <div class="field">
+        <div class="field__head">
+          <label for="preFacture">Montant de la facture</label>
+          <span class="field__value">
+            {{ monthlyBillRoundedForDisplay() | noGrouping : '1.0-0' }} DT / mois
+          </span>
+        </div>
+        <input
+          type="range"
+          id="preFacture"
+          class="slider"
+          autocomplete="off"
+          [min]="minMonthlyBillDt"
+          [max]="maxMonthlyBillDt"
+          step="10"
+          formControlName="monthlyBillDt"
+          [style.--fill.%]="sliderFillPercent()"
+          [attr.aria-label]="'Montant de la facture, en dinars tunisiens par mois'"
+          (blur)="markMonthlyBillTouched()"
+        />
+        <div class="slider__scale" aria-hidden="true">
+          <span>{{ minMonthlyBillDt }} DT</span>
+          <span>{{ maxMonthlyBillDt | noGrouping : '1.0-0' }} DT</span>
         </div>
       </div>
-    </div>
-  </div>
-</div>
 
+      <div class="field">
+        <label>Zone climatique</label>
+        <div class="zone-toggle" role="group" aria-label="Zone climatique">
+          <button
+            type="button"
+            [class.active]="form.controls.climateZone.value === 'nord'"
+            (click)="setZone('nord')"
+          >
+            Nord
+          </button>
+          <button
+            type="button"
+            [class.active]="form.controls.climateZone.value === 'centre'"
+            (click)="setZone('centre')"
+          >
+            Centre
+          </button>
+          <button
+            type="button"
+            [class.active]="form.controls.climateZone.value === 'sud'"
+            (click)="setZone('sud')"
+          >
+            Sud
+          </button>
+        </div>
+      </div>
+
+      <p class="sim-micro">
+        Pour un calcul plus précis, réalisez une simulation gratuite et sans engagement.
+      </p>
+    </div>
+
+    <div class="sim-results">
+      <span class="sim-results__title">Résultat estimé</span>
+
+      <div class="sim-hero-stat">
+        <span class="num">
+          {{ (annualSavingsRounded() ?? 0) | noGrouping : '1.0-0' }} DT/an
+        </span>
+        <span class="label">Vous pouvez économiser jusqu'à</span>
+      </div>
+
+      <div class="sim-grid">
+        <div class="stat">
+          <span class="num">{{ (pvPowerKwc() ?? 0) | noGrouping : '1.1-1' }} kWc</span>
+          <span class="label">Puissance crête estimée</span>
+        </div>
+        <div class="stat">
+          <span class="num">{{ (capexDt() ?? 0) | noGrouping : '1.0-0' }} DT</span>
+          <span class="label">Coût d'investissement</span>
+        </div>
+        <div class="stat">
+          <span class="num">
+            {{ (opexAnnualDt() ?? 0) | noGrouping : '1.0-0' }} DT/an
+          </span>
+          <span class="label">Coût de maintenance annuel</span>
+        </div>
+        <div class="stat">
+          <span class="num">
+            @if (paybackYearsRounded() != null) {
+              {{ paybackYearsRounded() }} ans
+            } @else {
+              —
+            }
+          </span>
+          <span class="label">Retour sur investissement</span>
+        </div>
+      </div>
+
+      <div class="sim-cta">
+        <a routerLink="/audit-solaire" class="btn btn-coral">
+          <span>Simulation avancée</span>
+          <span class="btn-puck" aria-hidden="true">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+              <path
+                d="M3 11L11 3M11 3H4.5M11 3V9.5"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </span>
+        </a>
+      </div>
+    </div>
+  </form>
+</div>

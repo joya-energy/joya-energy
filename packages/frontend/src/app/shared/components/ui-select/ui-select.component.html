@@ -32,7 +32,13 @@
     </div>
 
     @if (isOpen()) {
-      <div class="ui-select-dropdown" [class.drop-up]="shouldDropUp()">
+      <div
+        class="ui-select-dropdown"
+        [class.drop-up]="shouldDropUp()"
+        data-lenis-prevent
+        data-lenis-prevent-wheel
+        (wheel)="$event.stopPropagation()"
+      >
         @for (option of normalizedOptions(); track getOptionValue(option)) {
           <div
             class="ui-select-option"

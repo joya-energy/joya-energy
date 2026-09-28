@@ -23,7 +23,7 @@ export class SolutionCardComponent {
   public getSolutionTitle(type: string): string {
     const titles: Record<string, string> = {
       cash: 'Paiement Comptant',
-      credit: 'Crédit Bancaire',
+      credit: 'Option bancaire',
       leasing: 'Leasing',
       esco: 'ESCO JOYA ⭐',
     };

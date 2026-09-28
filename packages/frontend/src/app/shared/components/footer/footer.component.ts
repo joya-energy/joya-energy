@@ -2,39 +2,27 @@ import { Component, ChangeDetectionStrategy, signal, inject } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { NgIconComponent, provideIcons } from '@ng-icons/core';
-import { lucideLinkedin } from '@ng-icons/lucide';
 import { FooterVisibilityService } from '../../services/footer-visibility.service';
 import { LeadService } from '../../../core/services/lead.service';
 import { finalize } from 'rxjs/operators';
 
-interface NavigationLink {
+interface FooterLink {
   name: string;
   href: string;
-}
-
-interface NavigationGroup {
-  solutions: NavigationLink[];
-  support: NavigationLink[];
-  company: NavigationLink[];
-  legal: NavigationLink[];
-  social: Array<NavigationLink & { icon: string }>;
 }
 
 @Component({
   selector: 'app-footer',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, NgIconComponent],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './footer.component.html',
   styleUrl: './footer.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [provideIcons({ lucideLinkedin })],
 })
 export class FooterComponent {
   private readonly footerVisibilityService = inject(FooterVisibilityService);
   private readonly leadService = inject(LeadService);
 
-  // Expose visibility signal
   readonly isVisible = this.footerVisibilityService.isVisible;
 
   protected readonly email = signal('');
@@ -42,39 +30,20 @@ export class FooterComponent {
   protected readonly submitStatus = signal<{ type: 'success' | 'error'; message: string } | null>(
     null
   );
-  
-  protected readonly navigation: NavigationGroup = {
-    solutions: [
-      { name: 'Ressources', href: '/ressources' },
-      { name: 'Audit Solaire', href: '/audit-solaire' },
-      { name: 'Audit Énergétique', href: '/audit-energetique' },
 
-      { name: 'Comparateur de financement', href: '/comparaison-financements' },
-      { name: 'Bilan Carbone', href: '/bilan-carbon' },
-    ],
-    support: [
-      { name: 'FAQ', href: '/faq' },
-      { name: 'Contact', href: '/contact' },
-      { name: 'État des services', href: '/status' },
-    ],
-    company: [
-      { name: 'À propos', href: '/about' },
-      { name: 'Blog', href: '/blog' },
-      { name: 'Installateur Partenaire', href: '/installateur-partenaire' },
-      { name: 'Partenaires', href: '/devenir-partenaire' },
-    ],
-    legal: [
-      { name: 'Confidentialité', href: '/privacy' },
-      { name: 'Politique de données', href: '/data-policy' },
-    ],
-    social: [
-      {
-        name: 'LinkedIn',
-        href: 'https://www.linkedin.com/company/juya-energy/?viewAsMember=true',
-        icon: 'lucideLinkedin',
-      },
-    ],
-  };
+  protected readonly navLinks: FooterLink[] = [
+    { name: 'Solution', href: '/notre-solution' },
+    { name: 'Secteurs', href: '/secteurs' },
+    { name: 'Partenaires', href: '/installateur-partenaire' },
+    { name: 'Ressources', href: '/ressources' },
+  ];
+
+  protected readonly social: FooterLink[] = [
+    {
+      name: 'LinkedIn',
+      href: 'https://www.linkedin.com/company/juya-energy/?viewAsMember=true',
+    },
+  ];
 
   protected readonly currentYear = new Date().getFullYear();
 
@@ -91,7 +60,6 @@ export class FooterComponent {
       return;
     }
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(emailValue)) {
       this.submitStatus.set({
@@ -112,7 +80,6 @@ export class FooterComponent {
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: (response) => {
-          // Check if email already exists
           if ('message' in response && response.message === 'already exist') {
             this.submitStatus.set({
               type: 'success',
@@ -121,7 +88,7 @@ export class FooterComponent {
           } else {
             this.submitStatus.set({
               type: 'success',
-              message: 'Merci pour votre inscription ! Vous recevrez bientôt nos actualités.',
+              message: 'Merci pour votre inscription !',
             });
           }
           this.email.set('');

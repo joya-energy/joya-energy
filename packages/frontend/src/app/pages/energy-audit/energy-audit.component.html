@@ -1,377 +1,498 @@
-<div class="energy-audit-page">
-  <div class="energy-audit-container">
-    <!-- Sidebar with Step Progress -->
-    <aside class="simulator-sidebar">
-      <div class="sidebar-steps">
-        @for (step of steps; track step.number) {
-        <div
-          class="sidebar-step-item"
-          [class.active]="currentStep() === step.number"
-          [class.clickable]="isStepClickable(step.number) && !step.isResult"
-          [class.disabled]="!isStepClickable(step.number) && !step.isResult"
-          (click)="!step.isResult && goToStep(step.number)"
-        >
-          @if (!step.isResult) {
-          <app-ui-progress-bar
-            [step]="step.number"
-            [title]="step.title"
-            [progress]="stepProgress()[step.number]"
-            [completed]="stepProgress()[step.number] === 100"
-            [isFocused]="currentStep() === step.number"
-            class="sidebar-progress-bar"
-          >
-          </app-ui-progress-bar>
-          } @else {
-          <!-- Result step - matches progress bar layout but without progress bar -->
-          <div
-            class="sidebar-result-step"
-            [class.active]="currentStep() === step.number"
-            [class.disabled]="true"
-          >
-            <div class="sidebar-result-step-left">
-              <div
-                class="sidebar-step-circle result"
-                [class.active]="currentStep() === step.number"
-              >
-                <span class="step-number">{{ step.number }}</span>
-              </div>
-            </div>
-            <div class="sidebar-result-step-right">
-              <h3 class="sidebar-step-title">{{ step.title }}</h3>
-            </div>
-          </div>
-          }
-        </div>
+<div class="aud-page-root" [class.is-result]="currentStepData().isResult">
+  <div class="aud__stage" aria-hidden="true">
+    <div class="aud__flow a"></div>
+    <div class="aud__flow b"></div>
+    <div class="aud__flow c"></div>
+  </div>
+  <div class="aud__grain" aria-hidden="true"></div>
+
+  <div class="aud" id="audRoot">
+    <div
+      class="aud__card"
+      id="audCard"
+      [class.aud__card--wide]="currentStepData().isResult"
+    >
+      @if (currentStep() === 1) {
+      <a routerLink="/ressources" class="aud__back">
+        <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path
+            d="M11 7H3M6 3 2 7l4 4"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <span>Retour aux ressources</span>
+      </a>
+      } @else if (!currentStepData().isResult) {
+      <button type="button" class="aud__back" (click)="previousStep()">
+        <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path
+            d="M11 7H3M6 3 2 7l4 4"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <span>Étape précédente</span>
+      </button>
+      }
+
+      @if (!currentStepData().isResult) {
+      <div class="aud__prog">
+        <div class="aud__ptrack"><i [style.width.%]="audProgressPct()"></i></div>
+        <div class="aud__eb">Étape {{ currentStep() }} sur {{ steps.length }}</div>
+      </div>
+
+      <div class="aud__lede">
+        <span class="aud__kicker">Calculateur d'audit énergétique</span>
+        <h1 class="aud__q" id="audQ">{{ currentStepData().title }}</h1>
+        @if (currentStepData().description) {
+        <p class="aud__sub">{{ currentStepData().description }}</p>
         }
       </div>
-    </aside>
+      }
 
-    <!-- Main Content Area -->
-    <main class="simulator-main">
-      <!-- Fixed Timeline Header -->
-      <div class="form-timeline-header">
-        <div class="step-progress-header">
-          <span class="step-indicator">Étape {{ currentStep() }} sur {{ steps.length }}</span>
-          <span class="step-completion">Progression: {{ overallProgress() }}%</span>
+      <form [formGroup]="form" id="audForm" novalidate autocomplete="off">
+        <!-- ═══ STEP 1 — Bâtiment ═══ -->
+        @if (currentStep() === 1) {
+        <div class="aud__step" data-step="1">
+          <app-step-building
+            [form]="form"
+            [buildingCategories]="buildingCategories"
+            [buildingTypes]="buildingTypes"
+            [activityTypes]="formServiceInstance.activityTypes"
+            [climateZones]="formServiceInstance.climateZones"
+          >
+          </app-step-building>
+
+          <div class="aud__actions">
+            <button
+              type="button"
+              class="btn-next aud__continue"
+              [disabled]="isSubmitting()"
+              (click)="nextStep()"
+            >
+              <span>Continuer</span>
+              <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path
+                  d="M3 7h8M7 3l4 4-4 4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
-        <app-ui-step-timeline [currentStep]="currentStep()" [totalSteps]="steps.length">
-        </app-ui-step-timeline>
-      </div>
+        }
 
-      <!-- Scrollable Step Content Area -->
-      <div class="form-content-scrollable">
-        <div class="form-content">
-          <!-- Dynamic Step Content - Unique div that changes per step -->
-          <div class="step-content" [attr.data-step]="currentStep()">
-            @if (currentStepData().isResult) {
-            <!-- Results View -->
-            <div class="results-view">
-              @if (simulationResult(); as result) {
-              <!-- Results Header -->
-              <div class="results-header">
-                <div class="header-icon">
-                  <ng-icon name="lucideZap" class="energy-icon"></ng-icon>
-                </div>
-                <div class="header-content">
-                  <h2 class="results-title">Rapport d'Audit Énergétique</h2>
-                  <p class="results-subtitle">
-                    Les résultats constituent une première base d’analyse et peuvent nécessiter une
-                    étude complémentaire selon votre projet.
-                  </p>
-                  <div class="results-meta">
-                    <span class="meta-item">
-                      <ng-icon name="lucideCalendar" class="meta-icon"></ng-icon>
-                      {{ result.createdAt | date : 'dd/MM/yyyy' }}
-                    </span>
-                    <span class="meta-item">
-                      <ng-icon name="lucideMapPin" class="meta-icon"></ng-icon>
-                      {{ form.get('address')?.value || 'Adresse non spécifiée' }}
-                    </span>
-                  </div>
-                </div>
-              </div>
+        <!-- ═══ STEP 2 — Technique ═══ -->
+        @if (currentStep() === 2) {
+        <div class="aud__step" data-step="2">
+          <app-step-technical [form]="form"></app-step-technical>
 
-              <div class="results-container">
-                <div class="results-grid">
-                  <!-- Energy Consumption -->
-                  <div class="result-card consumption" [@resultCards]>
-                    <div class="result-icon">⚡</div>
-                    <h3>Consommation Énergétique</h3>
-                    <div class="result-value">
-                      <span class="amount">{{
-                        result.results.energyConsumption.annual.value
-                      }}</span>
-                      <span class="unit">{{ result.results.energyConsumption.annual.unit }}</span>
-                    </div>
-                    <div class="result-subvalues">
-                      <div class="subvalue">
-                        <span>Mensuel:</span>
-                        <strong
-                          >{{ result.results.energyConsumption.monthly.value }}
-                          {{ result.results.energyConsumption.monthly.unit }}</strong
-                        >
-                      </div>
-                      <div class="subvalue">
-                        <span>Ratio:</span>
-                        <strong
-                          >{{ result.results.energyConsumption.perSquareMeter.value }}
-                          {{ result.results.energyConsumption.perSquareMeter.unit }}</strong
-                        >
-                      </div>
-                    </div>
-                  </div>
+          <div class="aud__actions">
+            <button
+              type="button"
+              class="btn-next aud__continue"
+              [disabled]="isSubmitting()"
+              (click)="nextStep()"
+            >
+              <span>Continuer</span>
+              <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path
+                  d="M3 7h8M7 3l4 4-4 4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        }
 
-                  <!-- Energy Cost -->
-                  <div class="result-card cost" [@resultCards]>
-                    <div class="result-icon">💰</div>
-                    <h3>Coût Estimé</h3>
-                    <div class="result-value">
-                      <span class="amount">{{ result.results.energyCost.annual.value }}</span>
-                      <span class="unit">{{ result.results.energyCost.annual.unit }}</span>
-                    </div>
-                    <div class="result-subvalues">
-                      <div class="subvalue">
-                        <span>Mensuel:</span>
-                        <strong
-                          >{{ result.results.energyCost.monthly.value }}
-                          {{ result.results.energyCost.monthly.unit }}</strong
-                        >
-                      </div>
-                    </div>
-                  </div>
+        <!-- ═══ STEP 3 — Équipements ═══ -->
+        @if (currentStep() === 3) {
+        <div class="aud__step" data-step="3">
+          <app-step-equipment [form]="form"></app-step-equipment>
 
-                  <!-- CO2 Emissions -->
-                  <div class="result-card co2" [@resultCards]>
-                    <div class="result-icon">🌱</div>
-                    <h3>Impact Carbone</h3>
-                    <div class="result-value">
-                      <span class="amount">{{
-                        result.results.co2Emissions.annual.tons | noGrouping : '1.1-2'
-                      }}</span>
-                      <span class="unit">Tonnes CO₂/an</span>
-                    </div>
-                    <div class="result-subvalues">
-                      <div class="subvalue">
-                        <span>Ratio:</span>
-                        <strong
-                          >{{ result.results.co2Emissions.perSquareMeter.value }}
-                          {{ result.results.co2Emissions.perSquareMeter.unit }}</strong
-                        >
-                      </div>
-                    </div>
-                  </div>
-                </div>
+          <div class="aud__actions">
+            <button
+              type="button"
+              class="btn-next aud__continue"
+              [disabled]="isSubmitting()"
+              (click)="nextStep()"
+            >
+              <span>Continuer</span>
+              <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path
+                  d="M3 7h8M7 3l4 4-4 4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        }
 
-                <div class="recommendation-banners-container">
-                  <!-- Energy Classification -->
-                  @if (result.results.energyClassification &&
-                  result.results.energyClassification.isApplicable) {
-                  <div class="recommendation-banner" [@resultCards]>
-                    <div
-                      class="classification-badge"
-                      [class]="'class-' + result.results.energyClassification.class"
-                    >
-                      {{ result.results.energyClassification.class }}
-                    </div>
-                    <div class="recommendation-text">
-                      <h4>Classe Énergétique</h4>
-                      <!-- <p>{{ result.results.energyClassification.description }}</p>
-                        <small >BECTh: {{ result.results.energyClassification.becth }} kWh/m².an</small> -->
-                    </div>
-                  </div>
-                  }
+        <!-- ═══ STEP 4 — Contact ═══ -->
+        @if (currentStep() === 4) {
+        <div class="aud__step" data-step="4">
+          <app-step-personal [form]="form"></app-step-personal>
 
-                  <!-- Carbon Classification -->
-                  @if (result.results.carbonClassification &&
-                  result.results.carbonClassification.isApplicable) {
-                  <div class="recommendation-banner carbon-banner" [@resultCards]>
-                    <div
-                      class="classification-badge"
-                      [class]="'class-' + result.results.carbonClassification.class"
-                    >
-                      {{ result.results.carbonClassification.class }}
-                    </div>
-                    <div class="recommendation-text">
-                      <h4>Classement Carbone</h4>
-                      <!-- <p>{{ result.results.carbonClassification.description }}</p>
-                        <small >{{ result.results.carbonClassification.intensity }} {{ result.results.carbonClassification.unit }}</small> -->
-                    </div>
-                  </div>
-                  }
-                </div>
-              </div>
+          <div class="aud__actions">
+            <button
+              type="button"
+              class="btn-next aud__continue"
+              [class.btn-next--loading]="isSubmitting()"
+              [disabled]="isSubmitting()"
+              (click)="nextStep()"
+            >
+              @if (isSubmitting()) {
+              <span>Calcul en cours…</span>
               } @else {
-              <p>Les calculs sont en cours...</p>
+              <span>Voir les résultats</span>
+              <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path
+                  d="M3 7h8M7 3l4 4-4 4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
               }
-            </div>
-            } @else {
-            <!-- Form Fields -->
-            <form [formGroup]="form" class="simulator-form">
-              <div class="simulator-form-header">
-                <h3 class="simulator-form-title">Calculateur d'audit énergétique</h3>
-                @if (currentStep() === 1) {
-                <h1 class="step-title">
-                  Comprenez la performance énergétique de votre entreprise
-                </h1>
-                } @else {
-                <h2 class="step-title">{{ currentStepData().title }}</h2>
-                }
-                @if (currentStepData().description) {
-                <p class="step-description">{{ currentStepData().description }}</p>
-                }
-              </div>
-
-              <!-- Step Components (Modular) -->
-              @if (currentStep() === 1) {
-              <div [@stepTransition]="currentStep()">
-                <app-step-building
-                  [form]="form"
-                  [buildingCategories]="buildingCategories"
-                  [buildingTypes]="buildingTypes"
-                  [activityTypes]="formServiceInstance.activityTypes"
-                  [climateZones]="formServiceInstance.climateZones"
-                >
-                </app-step-building>
-              </div>
-              } @else if (currentStep() === 2) {
-              <div [@stepTransition]="currentStep()">
-                <app-step-technical [form]="form"></app-step-technical>
-              </div>
-              } @else if (currentStep() === 3) {
-              <div [@stepTransition]="currentStep()">
-                <app-step-equipment [form]="form"></app-step-equipment>
-              </div>
-              } @else if (currentStep() === 4) {
-              <div [@stepTransition]="currentStep()">
-                <app-step-personal [form]="form"></app-step-personal>
-              </div>
-              }
-            </form>
-            }
+            </button>
           </div>
         </div>
+        }
 
-        <!-- Mobile Navigation Buttons Footer (scrolls with content) -->
-        <div
-          class="form-actions form-actions--mobile"
-          [class.result-actions]="currentStepData().isResult"
-        >
-          @if (!currentStepData().isResult) {
-          <button
-            type="button"
-            class="hero__btn hero__btn--outline"
-            [disabled]="!canGoBack()"
-            (click)="previousStep()"
-          >
-            <ng-icon name="lucideArrowLeft" size="16"></ng-icon>
-            Précédent
-          </button>
+        <!-- ═══ RESULTS ═══ -->
+        @if (currentStepData().isResult) {
+        <div class="aud__step" [attr.data-step]="currentStep()">
+          @if (simulationResult(); as result) {
+          <div class="rpt rp-anim" id="rpt">
+            <header class="rp-head" data-sec>
+              <div class="rp-head__txt" data-a>
+                <h2>Rapport d'Audit Énergétique</h2>
+                <p>
+                  Les résultats constituent une première base d'analyse et peuvent nécessiter une
+                  étude complémentaire selon votre projet.
+                </p>
+                <div class="rp-chips">
+                  <span>
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <rect x="4" y="5" width="16" height="15" rx="2" />
+                      <path d="M4 10h16M9 3v4M15 3v4" />
+                    </svg>
+                    <b>{{ result.createdAt | date : 'dd/MM/yyyy' }}</b>
+                  </span>
+                  <span>
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M12 21s7-6 7-11a7 7 0 0 0-14 0c0 5 7 11 7 11z" />
+                      <circle cx="12" cy="10" r="2.5" />
+                    </svg>
+                    <b>{{ form.get('address')?.value || 'Adresse non spécifiée' }}</b>
+                  </span>
+                </div>
+              </div>
+              <div class="rp-head__img" aria-hidden="true"></div>
+              <button
+                type="button"
+                class="rp-dl"
+                data-a
+                [disabled]="isGeneratingPDF() || !result.simulationId"
+                (click)="downloadPDF()"
+              >
+                @if (isGeneratingPDF()) {
+                Génération…
+                } @else {
+                Télécharger le rapport
+                <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                  <path
+                    d="M7 2v8m0 0 3-3m-3 3-3-3M2 12h10"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                }
+              </button>
+            </header>
 
-          @if (currentStep() < lastFormStepNumber) {
-          <button
-            type="button"
-            class="hero__btn hero__btn--primary"
-            [disabled]="!canProceed() || isSubmitting()"
-            (click)="nextStep()"
-          >
-            Suivant
-            <ng-icon name="lucideArrowRight" size="16"></ng-icon>
-          </button>
+            <section class="rp" data-sec>
+              <div class="rp__hd" data-a>
+                <span class="rp__n">01</span>
+                <div>
+                  <h3>Synthèse des résultats</h3>
+                  <p>Consommation, coûts et impact carbone estimés</p>
+                </div>
+              </div>
+              <div class="rp-cards">
+                <div class="rc" data-a>
+                  <span class="rc__lb">Consommation</span>
+                  <b>
+                    {{ result.results.energyConsumption.annual.value | noGrouping : '1.0-0' }}
+                    <i>{{ result.results.energyConsumption.annual.unit }}</i>
+                  </b>
+                  <span class="rc__t">Consommation annuelle</span>
+                  <span class="rc__d">
+                    Mensuel :
+                    {{ result.results.energyConsumption.monthly.value | noGrouping : '1.0-0' }}
+                    {{ result.results.energyConsumption.monthly.unit }} · Ratio :
+                    {{ result.results.energyConsumption.perSquareMeter.value | noGrouping : '1.1-1' }}
+                    {{ result.results.energyConsumption.perSquareMeter.unit }}
+                  </span>
+                </div>
+
+                <div class="rc rc--hot" data-a>
+                  <span class="rc__lb">Coût</span>
+                  <b>
+                    {{ result.results.energyCost.annual.value | noGrouping : '1.0-0' }}
+                    <i>{{ result.results.energyCost.annual.unit }}</i>
+                  </b>
+                  <span class="rc__t">Coût énergétique estimé</span>
+                  <span class="rc__d">
+                    Mensuel :
+                    {{ result.results.energyCost.monthly.value | noGrouping : '1.0-0' }}
+                    {{ result.results.energyCost.monthly.unit }}
+                  </span>
+                </div>
+
+                <div class="rc" data-a>
+                  <span class="rc__lb">Carbone</span>
+                  <b>
+                    {{ result.results.co2Emissions.annual.tons | noGrouping : '1.1-2' }}
+                    <i>t CO₂/an</i>
+                  </b>
+                  <span class="rc__t">Impact carbone</span>
+                  <span class="rc__d">
+                    Ratio :
+                    {{ result.results.co2Emissions.perSquareMeter.value | noGrouping : '1.1-1' }}
+                    {{ result.results.co2Emissions.perSquareMeter.unit }}
+                  </span>
+                </div>
+              </div>
+            </section>
+
+            @if (
+              (result.results.energyClassification &&
+                result.results.energyClassification.isApplicable) ||
+              (result.results.carbonClassification &&
+                result.results.carbonClassification.isApplicable)
+            ) {
+            <section class="rp" data-sec>
+              <div class="rp__hd" data-a>
+                <span class="rp__n">02</span>
+                <div>
+                  <h3>Classifications</h3>
+                  <p>Classe énergétique et classement carbone</p>
+                </div>
+              </div>
+              <div class="rp-cards ea-class-cards">
+                @if (
+                  result.results.energyClassification &&
+                  result.results.energyClassification.isApplicable
+                ) {
+                <div class="rc" data-a>
+                  <span class="rc__lb">Énergie</span>
+                  <b class="ea-class-badge" [attr.data-class]="result.results.energyClassification.class">
+                    {{ result.results.energyClassification.class }}
+                  </b>
+                  <span class="rc__t">Classe énergétique</span>
+                  <span class="rc__d">Performance estimée du bâtiment</span>
+                </div>
+                }
+                @if (
+                  result.results.carbonClassification &&
+                  result.results.carbonClassification.isApplicable
+                ) {
+                <div class="rc" data-a>
+                  <span class="rc__lb">Carbone</span>
+                  <b class="ea-class-badge" [attr.data-class]="result.results.carbonClassification.class">
+                    {{ result.results.carbonClassification.class }}
+                  </b>
+                  <span class="rc__t">Classement carbone</span>
+                  <span class="rc__d">Intensité carbone estimée</span>
+                </div>
+                }
+              </div>
+            </section>
+            }
+
+            <section class="rp rp-impc" data-sec>
+              <div class="rp__hd" data-a>
+                <span class="rp__n">03</span>
+                <div>
+                  <h3>Détail de la consommation</h3>
+                  <p>Répartition annuelle, mensuelle et par surface</p>
+                </div>
+              </div>
+              <div class="rp-imp">
+                <div data-a>
+                  <span class="rc__lb">Annuel</span>
+                  <b>
+                    {{ result.results.energyConsumption.annual.value | noGrouping : '1.0-0' }}
+                    <i>{{ result.results.energyConsumption.annual.unit }}</i>
+                  </b>
+                  <span class="rc__t">Consommation annuelle</span>
+                  <span class="rc__d">Estimation sur 12 mois</span>
+                </div>
+                <div data-a>
+                  <span class="rc__lb">Par m²</span>
+                  <b>
+                    {{
+                      result.results.energyConsumption.perSquareMeter.value | noGrouping : '1.1-1'
+                    }}
+                    <i>{{ result.results.energyConsumption.perSquareMeter.unit }}</i>
+                  </b>
+                  <span class="rc__t">Intensité énergétique</span>
+                  <span class="rc__d">Consommation rapportée à la surface</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="rp" data-sec>
+              <div class="rp__hd" data-a>
+                <span class="rp__n">04</span>
+                <h3>Prochaines étapes recommandées</h3>
+              </div>
+              <div class="rp-steps">
+                <a routerLink="/contact" class="rp-step" data-a>
+                  <span class="rp-step__ic" aria-hidden="true">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M4 5h16v11H9l-5 4z" />
+                    </svg>
+                  </span>
+                  <span>
+                    <b>Parler à un conseiller</b>
+                    <em>Obtenez un accompagnement personnalisé pour votre audit</em>
+                  </span>
+                </a>
+                <a routerLink="/prendre-rendez-vous" class="rp-step" data-a>
+                  <span class="rp-step__ic" aria-hidden="true">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h7" />
+                    </svg>
+                  </span>
+                  <span>
+                    <b>Étude sur site</b>
+                    <em>Visite technique pour affiner le diagnostic énergétique</em>
+                  </span>
+                </a>
+                <a routerLink="/audit-solaire" class="rp-step" data-a>
+                  <span class="rp-step__ic" aria-hidden="true">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="4" />
+                      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+                    </svg>
+                  </span>
+                  <span>
+                    <b>Simuler le solaire</b>
+                    <em>Estimez le potentiel photovoltaïque de votre bâtiment</em>
+                  </span>
+                </a>
+              </div>
+            </section>
+
+            <section class="rp rp-foot" data-sec>
+              <span class="rp__n" data-a>05</span>
+              <button type="button" class="rp-new" data-a (click)="resetForm()">
+                Nouvelle simulation
+              </button>
+              <button
+                type="button"
+                class="btn-next"
+                data-a
+                [disabled]="isGeneratingPDF() || !result.simulationId"
+                (click)="downloadPDF()"
+              >
+                @if (isGeneratingPDF()) {
+                Génération…
+                } @else {
+                Télécharger le rapport PDF
+                <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                  <path
+                    d="M7 2v8m0 0 3-3m-3 3-3-3M2 12h10"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                }
+              </button>
+            </section>
+          </div>
           } @else {
-          <button
-            type="button"
-            class="hero__btn hero__btn--primary"
-            [disabled]="!canProceed() || isSubmitting()"
-            (click)="submitForm()"
-          >
-            @if (isSubmitting()) {
-            <span>Envoi...</span>
-            } @else {
-            <span>Voir les résultats</span>
-            <ng-icon name="lucideArrowRight" size="16"></ng-icon>
-            }
-          </button>
-          } } @else {
-          <!-- Results step actions -->
-          <button type="button" class="hero__btn hero__btn--outline" (click)="resetForm()">
-            Nouvelle simulation
-          </button>
-          <button
-            type="button"
-            class="hero__btn hero__btn--primary"
-            [disabled]="isGeneratingPDF() || !simulationResult()?.simulationId"
-            (click)="downloadPDF()"
-          >
-            @if (isGeneratingPDF()) {
-            <span>Génération...</span>
-            } @else {
-            <span>Télécharger le rapport PDF</span>
-            }
-          </button>
+          <div class="aud__note">
+            <p>Analyse en cours… Nous calculons la performance énergétique de votre site.</p>
+          </div>
           }
         </div>
-      </div>
-
-      <!-- Desktop Navigation Buttons Footer -->
-      <div
-        class="form-actions form-actions--desktop"
-        [class.result-actions]="currentStepData().isResult"
-      >
-        @if (!currentStepData().isResult) {
-        <button
-          type="button"
-          class="hero__btn hero__btn--outline"
-          [disabled]="!canGoBack()"
-          (click)="previousStep()"
-        >
-          <ng-icon name="lucideArrowLeft" size="16"></ng-icon>
-          Précédent
-        </button>
-
-        @if (currentStep() < lastFormStepNumber) {
-        <button
-          type="button"
-          class="hero__btn hero__btn--primary"
-          [disabled]="!canProceed() || isSubmitting()"
-          (click)="nextStep()"
-        >
-          Suivant
-          <ng-icon name="lucideArrowRight" size="16"></ng-icon>
-        </button>
-        } @else {
-        <button
-          type="button"
-          class="hero__btn hero__btn--primary"
-          [disabled]="!canProceed() || isSubmitting()"
-          (click)="submitForm()"
-        >
-          @if (isSubmitting()) {
-          <span>Envoi...</span>
-          } @else {
-          <span>Voir les résultats</span>
-          <ng-icon name="lucideArrowRight" size="16"></ng-icon>
-          }
-        </button>
-        } } @else {
-        <!-- Results step actions -->
-        <button type="button" class="hero__btn hero__btn--outline" (click)="resetForm()">
-          Nouvelle simulation
-        </button>
-        <button
-          type="button"
-          class="hero__btn hero__btn--primary"
-          [disabled]="isGeneratingPDF() || !simulationResult()?.simulationId"
-          (click)="downloadPDF()"
-        >
-          @if (isGeneratingPDF()) {
-          <span>Génération...</span>
-          } @else {
-          <span>Télécharger le rapport complet</span>
-          <ng-icon name="lucideDownload" size="16"></ng-icon>
-          }
-        </button>
         }
+      </form>
+
+      @if (!currentStepData().isResult) {
+      <div class="aud__secure">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path
+            d="M12 3 5 6v5c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Z"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linejoin="round"
+          />
+        </svg>
+        Vos données ne sont pas partagées.
       </div>
-    </main>
+      }
+    </div>
   </div>
 </div>
