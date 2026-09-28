@@ -156,6 +156,12 @@
   font-weight: 700;
 }
 
+#pourquoi .rc b {
+  white-space: normal;
+  overflow-wrap: break-word;
+  line-height: 1.25;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .aud__flow {
     animation: none !important;

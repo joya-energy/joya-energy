@@ -360,7 +360,9 @@ export class AuditSolaireSimulationService extends CommonService<
     latitude: number,
     longitude: number
   ): Promise<SolarProductibleData> {
-    Logger.info(`Fetching solar data from PVGIS: lat=${latitude}, lon=${longitude}`);
+    Logger.info(
+      `Fetching solar data from PVGIS: lat=${latitude}, lon=${longitude}, url=${PVGISService.getApiUrl()}`
+    );
 
     try {
       // Validate coordinates

@@ -77,6 +77,30 @@ interface CategoryShare {
   pct: number;
 }
 
+interface ScopeDetail {
+  id: 's1' | 's2' | 's3';
+  title: string;
+  text: string;
+}
+
+const SCOPE_DETAILS: readonly ScopeDetail[] = [
+  {
+    id: 's1',
+    title: 'Scope 1 – Émissions directes',
+    text: "Émissions de gaz à effet de serre directement générées par les activités contrôlées par l'entreprise, sur son site ou via ses équipements.",
+  },
+  {
+    id: 's2',
+    title: 'Scope 2 – Électricité',
+    text: "Émissions indirectes liées à la production de l'électricité consommée par l'entreprise, émises hors du site.",
+  },
+  {
+    id: 's3',
+    title: 'Scope 3 – Autres indirectes',
+    text: "Ensemble des autres émissions indirectes liées aux activités de l'entreprise, en amont et en aval, hors énergie.",
+  },
+];
+
 const CLIMATE_ZONES = ['Nord', 'Centre', 'Sud'] as const;
 type ClimateZone = (typeof CLIMATE_ZONES)[number];
 
@@ -124,6 +148,7 @@ export class BilanCarbonComponent implements OnInit, AfterViewInit, OnDestroy {
   protected readonly submitError = signal<string | null>(null);
   protected readonly currentStep = signal(1);
   protected readonly contactConsent = signal(false);
+  protected readonly scopeDetails = SCOPE_DETAILS;
 
   /** Ticks when form values change so stepProgress computed re-runs */
   private readonly formUpdateTrigger = signal(0);

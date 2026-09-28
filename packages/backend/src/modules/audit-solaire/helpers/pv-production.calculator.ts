@@ -90,47 +90,50 @@ export function calculateMonthlyPVProduction(
   );
 }
 
+function annualProductionSurplus(balances: number[]): number {
+  return balances.reduce((sum, balance) => sum + Math.max(0, -balance), 0);
+}
+
+function settleDeficit(balance: number, remainingSurplus: number): { billed: number; remainingSurplus: number } {
+  if (balance <= 0) {
+    return { billed: 0, remainingSurplus };
+  }
+
+  const covered = Math.min(balance, remainingSurplus);
+  return {
+    billed: balance - covered,
+    remainingSurplus: remainingSurplus - covered,
+  };
+}
+
+/**
+ * Billed energy after the year's surplus months offset deficit months.
+ * Surplus from any month covers a deficit in any other month.
+ * When annual production covers annual consumption, every month is billed at 0.
+ * Credit is the unused surplus after the month (negative = surplus left).
+ */
 export function calculateNetConsumptionAndCredits(
   monthlyRawConsumptions: number[],
   monthlyPVProductions: number[]
 ): MonthlyPVProduction[] {
-  const results: MonthlyPVProduction[] = [];
-  let previousCredit = 0;
+  const balances = monthlyRawConsumptions.map(
+    (rawConsumption, index) => rawConsumption - monthlyPVProductions[index]
+  );
+  let remainingSurplus = annualProductionSurplus(balances);
 
-  for (let month = 1; month <= 12; month++) {
-    const index = month - 1;
-    const rawConsumption = monthlyRawConsumptions[index];
-    const pvProduction = monthlyPVProductions[index];
+  return balances.map((balance, index) => {
+    const settled = settleDeficit(balance, remainingSurplus);
+    remainingSurplus = settled.remainingSurplus;
+    const unusedSurplus = remainingSurplus > 0 ? -remainingSurplus : 0;
 
-    const netBeforeCredit = rawConsumption - pvProduction;
-    const balance = netBeforeCredit + previousCredit;
-
-    let billedConsumption: number;
-    let credit: number;
-
-    if (balance < 0) {
-      billedConsumption = 0;
-      credit = balance;
-    } else if (balance > 0) {
-      billedConsumption = balance;
-      credit = 0;
-    } else {
-      billedConsumption = 0;
-      credit = 0;
-    }
-
-    results.push({
-      month,
-      rawConsumption: Number(rawConsumption.toFixed(2)),
-      pvProduction: Number(pvProduction.toFixed(2)),
-      netConsumption: Number(billedConsumption.toFixed(2)),
-      credit: Number(credit.toFixed(2)),
-    });
-
-    previousCredit = credit;
-  }
-
-  return results;
+    return {
+      month: index + 1,
+      rawConsumption: Number(monthlyRawConsumptions[index].toFixed(2)),
+      pvProduction: Number(monthlyPVProductions[index].toFixed(2)),
+      netConsumption: Number(settled.billed.toFixed(2)),
+      credit: Number(unusedSurplus.toFixed(2)),
+    };
+  });
 }
 
 /**
@@ -156,7 +159,7 @@ export function calculateEnergyCoverageRate(
  * 1. PPV,th = Eann / Yspec (Yspec from PVGIS)
  * 2. P_PV,inst = PPV,th
  * 3. Prod(m) = P_PV × Y_mensuel(m)
- * 4. Apply credit rollover logic
+ * 4. Offset deficit months with the year's production surplus
  * 5. Calculate coverage rate
  * 
  * @param input - PV production input parameters
@@ -191,7 +194,7 @@ export function calculatePVProduction(input: PVProductionInput): PVProductionRes
   // Step 4: Calculate monthly PV production Prod(m) = P_PV × Y_mensuel(m)
   const monthlyPVProductions = calculateMonthlyPVProduction(installedPower, input.monthlyProductible);
 
-  // Step 5: Apply credit rollover logic Calculate C_fact(m) and Cr(m) with rollover
+  // Step 5: Offset deficit months with surplus months, then C_fact(m) and Cr(m)
   const monthlyProductions = calculateNetConsumptionAndCredits(input.monthlyConsumptions, monthlyPVProductions);
 
   // Step 6: Calculate annual production and coverage Taux_couv = EPV / Eann

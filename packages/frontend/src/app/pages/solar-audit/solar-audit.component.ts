@@ -1744,6 +1744,31 @@ export class SolarAuditComponent implements OnInit, AfterViewInit, OnDestroy {
     return [1, 5, 10, 15, 20, 25];
   }
 
+  protected chartGuideStartY(hitY: number): number {
+    const aboveHit = hitY - 56;
+    return Math.max(36, Math.min(78, aboveHit));
+  }
+
+  protected chartTickY(tick: number): number {
+    const maxValue = this.getLineChartMaxValue();
+    const minValue = this.getLineChartMinValue();
+    const range = maxValue - minValue;
+    if (range === 0) return 200;
+    return 400 - ((tick - minValue) / range) * 400;
+  }
+
+  protected chartYearPercent(year: number): number {
+    const years = this.getChartYears();
+    if (years.length <= 1) return 0;
+    const index = years.indexOf(year);
+    if (index < 0) return 0;
+    return (index / (years.length - 1)) * 100;
+  }
+
+  protected formatChartAxisValue(value: number): string {
+    return Math.round(value).toLocaleString('fr-FR').replace(/\s/g, ' ');
+  }
+
   protected getLineChartMaxValue(): number {
     const simulation = this.simulationResult();
     if (!simulation?.annualEconomics || simulation.annualEconomics.length === 0) return 500000;

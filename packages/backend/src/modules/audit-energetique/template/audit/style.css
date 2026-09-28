@@ -6,6 +6,7 @@
 html, body {
   margin: 0;
   padding: 0;
+  font-family: "Joya Sans", "Segoe UI", Arial, sans-serif;
 }
 
 :root {
@@ -23,6 +24,9 @@ html, body {
   --scale-bar-gap: 10px;
   --scale-radius: 6px;
   --scale-active-border: 3px;
+
+  --bs-body-font-family: "Joya Sans", "Segoe UI", Arial, sans-serif;
+  --bs-font-sans-serif: "Joya Sans", "Segoe UI", Arial, sans-serif;
 }
 
 h1 {
@@ -66,7 +70,7 @@ h3 {
   min-height: 297mm;
   margin: 0;
   padding: 0;
-  font-family: Arial, sans-serif;
+  font-family: "Joya Sans", "Segoe UI", Arial, sans-serif;
   overflow: hidden;
   box-sizing: border-box;
   border-radius: 0;
@@ -288,12 +292,15 @@ h3 {
 }
 
 .energy-row.active::after {
-  content: "✓";
+  content: "";
   position: absolute;
-  right: 14px;
-  font-size: 18px;
-  font-weight: 700;
-  color: #ffffff;
+  right: 22px;
+  top: 50%;
+  width: 6px;
+  height: 11px;
+  border: solid #ffffff;
+  border-width: 0 2.5px 2.5px 0;
+  transform: translateY(-65%) rotate(45deg);
 }
 
 
@@ -314,10 +321,15 @@ h3 {
 }
 
 .co2-bar.active::after {
-  content: "✓";
+  content: "";
   position: absolute;
-  right: 12px;
-  font-size: 16px;
+  right: 14px;
+  top: 50%;
+  width: 6px;
+  height: 11px;
+  border: solid #ffffff;
+  border-width: 0 2.5px 2.5px 0;
+  transform: translateY(-65%) rotate(45deg);
 }
 
 .co2-scale {
@@ -431,8 +443,9 @@ h3 {
 }
 
 .dpe-page,
-.energy-page {
-  font-family: Arial, sans-serif;
+.energy-page,
+.usage-page {
+  font-family: "Joya Sans", "Segoe UI", Arial, sans-serif;
   position: relative;
 }
 
