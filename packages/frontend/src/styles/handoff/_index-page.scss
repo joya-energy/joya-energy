@@ -35,10 +35,7 @@
 }
 .jchart { width: 100%; background: #fff; border-radius: 18px; padding: clamp(16px,2vw,24px) clamp(15px,2vw,24px) clamp(12px,1.5vw,18px); box-shadow: 0 22px 46px -26px rgba(15,42,68,0.4); font-family: var(--font-body); }
 #solution .howto__body .eyebrow { margin-bottom: 22px; }
-#solution .howto__body h2 { font-size: clamp(28px, 3.2vw, 44px); line-height: 1.1; letter-spacing: -0.035em; color: var(--navy); margin: 0 0 16px; white-space: nowrap; }
-@media (max-width: 520px) {
-  #solution .howto__body h2 { white-space: normal; }
-}
+#solution .howto__body h2 { font-size: clamp(28px, 3.2vw, 44px); line-height: 1.15; letter-spacing: -0.035em; color: var(--navy); margin: 0 0 16px; }
 .howto__body > p { font-size: 17px; line-height: 1.6; color: var(--ink); opacity: 0.72; max-width: 44ch; margin: 0 0 28px; }
 /* replaced by the ::before dot */
 .howto__cta { align-self: flex-start; }
