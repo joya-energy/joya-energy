@@ -16,7 +16,7 @@ export const routes: Routes = [
     path: '',
     loadComponent: () =>
       import('./pages/landing/landing.component').then((m) => m.LandingComponent),
-    title: 'Solaire pour entreprises en Tunisie | Joya Energy',
+    title: 'Joya Energy — Joya investit. Vous économisez.',
     data: { hideFooter: false },
   },
   {

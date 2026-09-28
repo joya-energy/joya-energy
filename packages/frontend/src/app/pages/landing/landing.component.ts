@@ -65,19 +65,20 @@ export class LandingComponent implements OnInit, AfterViewInit {
   protected readonly sectors: SectorTeaser[] = [
     {
       n: '01',
-      title: 'Industrie',
-      body: 'Réduisez vos coûts énergétiques et sécurisez votre production avec une énergie maîtrisée.',
+      title: 'Industrie & agroalimentaire',
+      body: 'Vos machines tournent le jour, le soleil aussi. Joya investit, votre facture baisse.',
       bullets: [
-        'Analyse de vos pics de consommation',
-        "Réduction directe sur la facture d'électricité",
-        'Production sécurisée, sans coupure',
+        'Facture réduite dès le 1er mois',
+        'Zéro immobilisation de capital',
+        'Maintenance et garantie de performance incluse',
       ],
       image: '/handoff/images/sector-industry-power-plant-solar-wind.jpg',
       alt: 'Centrale industrielle avec panneaux solaires et éoliennes au coucher du soleil',
       graph: {
         kind: 'tri',
         title: 'Résultats concrets',
-        ariaLabel: 'Industrie : réduction CO₂ 38 %, économies annuelles 31 %, valorisation 12 %.',
+        ariaLabel:
+          'Industrie et agroalimentaire : réduction CO₂ 38 %, économies annuelles 31 %, valorisation 12 %.',
         cols: [
           { value: 38, height: '76%', delay: '0s', label: 'Réduction CO₂' },
           { value: 31, height: '62%', delay: '.14s', label: 'Économies annuelles' },
@@ -87,19 +88,20 @@ export class LandingComponent implements OnInit, AfterViewInit {
     },
     {
       n: '02',
-      title: 'Tertiaire',
-      body: 'Optimisez votre consommation et réduisez durablement vos charges énergétiques.',
+      title: 'Éducation & santé',
+      body: 'Écoles, cliniques : des charges allégées sans toucher à votre budget.',
       bullets: [
-        'Pilotage fin de la consommation',
-        'Charges énergétiques réduites durablement',
-        'Confort maintenu, coûts maîtrisés',
+        'Charges fixes réduites',
+        "Budget d'investissement préservé",
+        'Économies suivies dans Joya OS',
       ],
       image: '/handoff/images/sector-tertiary-wind-turbine-hills.jpg',
       alt: 'Éoliennes sur des collines dorées au coucher du soleil',
       graph: {
         kind: 'tri',
         title: 'Résultats concrets',
-        ariaLabel: 'Tertiaire : réduction CO₂ 30 %, économies annuelles 18 %, valorisation 12 %.',
+        ariaLabel:
+          'Éducation et santé : réduction CO₂ 30 %, économies annuelles 18 %, valorisation 12 %.',
         cols: [
           { value: 30, height: '60%', delay: '0s', label: 'Réduction CO₂' },
           { value: 18, height: '36%', delay: '.14s', label: 'Économies annuelles' },
@@ -109,12 +111,12 @@ export class LandingComponent implements OnInit, AfterViewInit {
     },
     {
       n: '03',
-      title: 'Agriculture',
-      body: 'Produisez votre propre énergie et réduisez votre dépendance aux prix du réseau.',
+      title: 'Hôtellerie & commerce',
+      body: 'Climatisation, froid, éclairage : vos pics de facture deviennent des économies.',
       bullets: [
-        'Autonomie face aux prix du réseau',
-        'Incitations et avantages fiscaux',
-        'Énergie produite directement sur site',
+        'Moins exposé aux hausses STEG',
+        'Risques portés par Joya',
+        'Installation clé en main',
       ],
       image: '/handoff/images/sector-agriculture-aerial-wind-turbine.jpg',
       alt: 'Éolienne vue du ciel au milieu de champs cultivés',
@@ -122,7 +124,7 @@ export class LandingComponent implements OnInit, AfterViewInit {
         kind: 'gauge',
         title: 'Incitations énergétiques',
         ariaLabel:
-          'Agriculture : incitations et avantages fiscaux, estimés à 12 % du coût du projet.',
+          'Hôtellerie et commerce : incitations et avantages fiscaux, estimés à 12 % du coût du projet.',
         value: 12,
         offset: '110',
         label: 'Incitations & avantages fiscaux',
@@ -132,13 +134,13 @@ export class LandingComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.seoService.setSEO({
-      title: 'Joya Energy — Passez au solaire. Payez moins cher.',
+      title: 'Joya Energy — Joya investit. Vous économisez.',
       description:
-        "Installation, suivi et service énergétique en un seul contrat. 0 DT d'investissement initial pour les PME en Tunisie.",
+        "0 DT d'investissement initial. Joya installe et mesure, vous payez sur résultat, suivi en direct dans Joya OS.",
       url: 'https://joya-energy.com/',
       image: 'https://joya-energy.com/handoff/images/hero-solar-roof-sunset.jpg',
       keywords:
-        'solaire Tunisie, énergie solaire PME, Joya Energy, service énergétique, panneaux solaires entreprise',
+        'solaire Tunisie, énergie solaire PME, Joya Energy, tiers-investissement, économies énergie entreprise',
     });
   }
 
