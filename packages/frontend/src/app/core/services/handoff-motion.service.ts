@@ -599,46 +599,6 @@ export class HandoffMotionService {
     };
     impact.addEventListener('mousemove', this.impactMoveHandler);
     impact.addEventListener('mouseleave', this.impactLeaveHandler);
-
-    const metrics = this.document.getElementById('impactMetrics');
-    if (!metrics || metrics.dataset['counted'] === '1') return;
-
-    const runCount = (): void => {
-      if (metrics.dataset['counted'] === '1') return;
-      metrics.dataset['counted'] = '1';
-      metrics.querySelectorAll('.impact-count').forEach((node, i) => {
-        const el = node as HTMLElement;
-        const state = { v: 0 };
-        const to = parseFloat(el.getAttribute('data-target') || '0');
-        gsap.to(state, {
-          v: to,
-          duration: 1.6,
-          delay: i * 0.08,
-          ease: 'power2.out',
-          onUpdate: () => {
-            el.textContent = String(Math.round(state.v)).replace(/\B(?=(\d{3})+(?!\d))/g, '\u202f');
-          },
-        });
-      });
-    };
-
-    if ('IntersectionObserver' in window) {
-      const cIo = new IntersectionObserver(
-        (es) => {
-          es.forEach((e) => {
-            if (e.isIntersecting) {
-              runCount();
-              cIo.disconnect();
-            }
-          });
-        },
-        { threshold: 0.3 }
-      );
-      cIo.observe(metrics);
-      this.staggerIos.push(cIo);
-    } else {
-      runCount();
-    }
   }
 
   /** Handoff: .jg / .jchart loop only while on screen. */

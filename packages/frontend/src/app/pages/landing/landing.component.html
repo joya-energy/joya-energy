@@ -328,7 +328,7 @@
       </div>
     </section>
 
-    <section class="impact-cine" id="impact" data-scenes>
+    <section class="impact-cine" id="impact" data-scenes #impactSection>
       <div class="impact-cine__bg" id="impactBg" aria-hidden="true"></div>
       <div class="impact-cine__veil" aria-hidden="true"></div>
       <div class="impact-cine__seam" aria-hidden="true"></div>
@@ -342,22 +342,12 @@
           <span class="t-m">Pour une installation type, chaque année.</span>
         </p>
         <div class="impact-cine__stats reveal reveal-d3" id="impactMetrics">
+          @for (stat of impactStats; track stat.label) {
           <div class="impact-stat">
-            <b><span class="impact-count" data-target="7700">0</span><i>&nbsp;DT</i></b>
-            <span>économisés par an</span>
+            <b>{{ stat.prefix }}<span class="impact-count"></span><i>{{ stat.suffix }}</i></b>
+            <span>{{ stat.label }}</span>
           </div>
-          <div class="impact-stat">
-            <b><span class="impact-count" data-target="14">0</span><i>&nbsp;t</i></b>
-            <span>de CO&#8322; évitées par an</span>
-          </div>
-          <div class="impact-stat">
-            <b>Jusqu'à&nbsp;<span class="impact-count" data-target="20">0</span><i>%</i></b>
-            <span>d'économies sur la facture</span>
-          </div>
-          <div class="impact-stat">
-            <b><span class="impact-count" data-target="0">0</span><i>&nbsp;DT</i></b>
-            <span>investi par nos clients</span>
-          </div>
+          }
         </div>
       </div>
     </section>

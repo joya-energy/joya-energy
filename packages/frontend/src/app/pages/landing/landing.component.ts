@@ -1,11 +1,17 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
+  ElementRef,
+  NgZone,
   OnInit,
+  PLATFORM_ID,
   ViewEncapsulation,
+  afterNextRender,
   inject,
+  viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SEOService } from '../../core/services/seo.service';
@@ -47,6 +53,14 @@ interface SectorTeaser {
   graph: SectorTriGraph | SectorGaugeGraph;
 }
 
+interface ImpactStat {
+  from: number;
+  to: number;
+  prefix: string;
+  suffix: string;
+  label: string;
+}
+
 @Component({
   selector: 'app-landing',
   standalone: true,
@@ -59,8 +73,30 @@ interface SectorTeaser {
 export class LandingComponent implements OnInit, AfterViewInit {
   private readonly seoService = inject(SEOService);
   private readonly motion = inject(HandoffMotionService);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly zone = inject(NgZone);
+
+  private readonly impactSection = viewChild<ElementRef<HTMLElement>>('impactSection');
 
   protected readonly faqItems: FaqItem[] = FAQ_ITEMS.slice(0, 6);
+
+  protected readonly impactStats: ImpactStat[] = [
+    { from: 0, to: 7700, prefix: '', suffix: '\u00a0DT', label: 'économisés par an' },
+    { from: 0, to: 14, prefix: '', suffix: '\u00a0t', label: 'de CO₂ évitées par an' },
+    {
+      from: 0,
+      to: 20,
+      prefix: "Jusqu'à\u00a0",
+      suffix: '%',
+      label: "d'économies sur la facture",
+    },
+    { from: 100000, to: 0, prefix: '', suffix: '\u00a0DT', label: 'investi par nos clients' },
+  ];
+
+  private impactIo: IntersectionObserver | null = null;
+  private impactRafs: number[] = [];
+  private impactTimers: ReturnType<typeof setTimeout>[] = [];
 
   protected readonly sectors: SectorTeaser[] = [
     {
@@ -132,6 +168,12 @@ export class LandingComponent implements OnInit, AfterViewInit {
     },
   ];
 
+  constructor() {
+    afterNextRender(() => {
+      this.wireImpactCounts();
+    });
+  }
+
   ngOnInit(): void {
     this.seoService.setSEO({
       title: 'Joya Energy — Joya investit. Vous économisez.',
@@ -146,5 +188,96 @@ export class LandingComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.motion.refresh();
+  }
+
+  private formatImpact(value: number): string {
+    return String(Math.round(value)).replace(/\B(?=(\d{3})+(?!\d))/g, '\u202f');
+  }
+
+  private wireImpactCounts(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const section = this.impactSection()?.nativeElement;
+    if (!section) return;
+
+    this.destroyRef.onDestroy(() => {
+      this.stopImpactCounts();
+      this.impactIo?.disconnect();
+      this.impactIo = null;
+    });
+
+    // Paint starting values once (no Angular CD loop).
+    this.paintImpactStart(section);
+
+    this.zone.runOutsideAngular(() => {
+      if (!('IntersectionObserver' in window)) {
+        this.playImpactCounts(section);
+        return;
+      }
+
+      this.impactIo = new IntersectionObserver(
+        (entries) => {
+          const entry = entries[0];
+          if (!entry) return;
+          if (entry.isIntersecting) {
+            this.playImpactCounts(section);
+          } else {
+            this.stopImpactCounts();
+            this.paintImpactStart(section);
+          }
+        },
+        { threshold: 0.2 }
+      );
+      this.impactIo.observe(section);
+    });
+  }
+
+  private impactNodes(section: HTMLElement): HTMLElement[] {
+    return Array.from(section.querySelectorAll<HTMLElement>('.impact-count'));
+  }
+
+  private paintImpactStart(section: HTMLElement): void {
+    const nodes = this.impactNodes(section);
+    this.impactStats.forEach((stat, index) => {
+      const node = nodes[index];
+      if (node) node.textContent = this.formatImpact(stat.from);
+    });
+  }
+
+  private stopImpactCounts(): void {
+    this.impactTimers.forEach((id) => clearTimeout(id));
+    this.impactTimers = [];
+    this.impactRafs.forEach((id) => cancelAnimationFrame(id));
+    this.impactRafs = [];
+  }
+
+  private playImpactCounts(section: HTMLElement): void {
+    this.stopImpactCounts();
+    this.paintImpactStart(section);
+    const nodes = this.impactNodes(section);
+
+    this.impactStats.forEach((stat, index) => {
+      const node = nodes[index];
+      if (!node) return;
+
+      const delayId = setTimeout(() => {
+        const duration = stat.from > stat.to ? 2800 : 1600;
+        const start = performance.now();
+
+        const tick = (now: number): void => {
+          const progress = Math.min(1, (now - start) / duration);
+          const eased =
+            stat.from > stat.to ? progress : 1 - Math.pow(1 - progress, 3);
+          node.textContent = this.formatImpact(stat.from + (stat.to - stat.from) * eased);
+          if (progress < 1) {
+            this.impactRafs[index] = requestAnimationFrame(tick);
+          }
+        };
+
+        this.impactRafs[index] = requestAnimationFrame(tick);
+      }, index * 100);
+
+      this.impactTimers.push(delayId);
+    });
   }
 }

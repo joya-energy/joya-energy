@@ -81,7 +81,7 @@ export class ContactComponent implements OnInit, AfterViewInit {
       value: 'hello@joya-energy.com',
       link: 'mailto:hello@joya-energy.com',
     },
-    { icon: 'lucidePhone', label: 'Téléphone', value: '+216 54 433 617', link: 'tel:+21654433617' },
+    { icon: 'lucidePhone', label: 'Téléphone', value: '26 788 876', link: 'tel:+21626788876' },
     {
       icon: 'lucideMapPin',
       label: 'Adresse',
