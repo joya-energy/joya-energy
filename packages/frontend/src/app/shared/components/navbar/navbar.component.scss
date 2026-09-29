@@ -367,10 +367,6 @@
     display: flex;
   }
 
-  .nav.nav--full .btn-primary {
-    display: none;
-  }
-
   .nav__mobile-panel {
     display: none;
     position: absolute;
@@ -406,17 +402,24 @@
     height: 28px;
   }
 
+  .nav__logo {
+    margin-right: 8px;
+  }
+
   .nav__contact {
-    margin-left: auto;
+    margin-left: 0;
     min-height: 36px;
     padding: 0 12px;
     font-size: 12.5px;
   }
 
   .nav.nav--full .btn-primary {
+    display: inline-flex;
+    margin-left: auto;
     min-height: 36px;
     padding: 0 12px;
     font-size: 12.5px;
+    flex: none;
   }
 
   .nav.nav--full .btn-primary .btn-puck {
