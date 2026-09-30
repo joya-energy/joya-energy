@@ -52,10 +52,11 @@ export class SecteursComponent implements OnInit, AfterViewInit, OnDestroy {
         { small: 'Consommation', span: 'Élevée en journée' },
         { small: 'Postes principaux', span: 'Climatisation, éclairage, équipements' },
       ],
-      example: {
-        title: 'Exemple',
-        text: 'Premier site installé par Joya — économies mesurées dès le premier trimestre.',
-      },
+      // TODO: restore real example when available
+      // example: {
+      //   title: 'Exemple',
+      //   text: 'Premier site installé par Joya — économies mesurées dès le premier trimestre.',
+      // },
       image: '/handoff/images/sector-education-classroom-golden-light.jpg',
       alt: 'Salle de classe vide, baignée de lumière dorée',
       objectPosition: '50% 45%',
@@ -69,10 +70,11 @@ export class SecteursComponent implements OnInit, AfterViewInit, OnDestroy {
         { small: 'Consommation', span: 'Continue et critique' },
         { small: 'Postes principaux', span: 'Réfrigération, équipements médicaux' },
       ],
-      example: {
-        title: 'Exemple',
-        text: 'Pharmacie Chouikha, Clinique Majus El Fahs — déployés et suivis via Joya OS.',
-      },
+      // TODO: restore real example when available
+      // example: {
+      //   title: 'Exemple',
+      //   text: 'Pharmacie Chouikha, Clinique Majus El Fahs — déployés et suivis via Joya OS.',
+      // },
       image: '/handoff/images/sector-health-nurse-stethoscope.jpg',
       alt: 'Soignant en blouse orange tenant un stéthoscope',
       objectPosition: '40% 50%',
@@ -112,10 +114,11 @@ export class SecteursComponent implements OnInit, AfterViewInit, OnDestroy {
         { small: 'Consommation', span: 'Régulière et prévisible' },
         { small: 'Idéal pour', span: 'Un contrat de service énergétique long terme' },
       ],
-      example: {
-        title: 'Exemple',
-        text: 'Kiosque Shell Manouba, MCW Mghira.',
-      },
+      // TODO: restore real example when available
+      // example: {
+      //   title: 'Exemple',
+      //   text: 'Kiosque Shell Manouba, MCW Mghira.',
+      // },
       image: '/handoff/images/sector-industry-sme-plant-sunset.jpg',
       alt: 'Site industriel avec cheminée et convoyeurs au coucher du soleil',
       objectPosition: '62% 42%',
