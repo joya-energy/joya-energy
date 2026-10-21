@@ -35,13 +35,23 @@ const PAGINATION_DEFAULTS = {
   MAX_LIMIT: 100,
 } as const;
 
-const EXTERNAL_APIS = {
-  GOOGLE_MAPS: {
-    URL: process.env['GOOGLE_MAPS_API_URL'] ?? '',
-    API_KEY: process.env['GOOGLE_MAPS_API_KEY'] ?? '',
-    TIMEOUT: Number(process.env['EXTERNAL_APIS_TIMEOUT']),
-  },
-} as const;
+const DEFAULT_GEOCODE_TIMEOUT_MS = 30_000;
+const DEFAULT_GEOCODE_URL = 'https://maps.googleapis.com/maps/api/geocode/json';
+
+/** Strip accidental quotes from .env values (e.g. KEY='value'). */
+function envValue(key: string, fallback = ''): string {
+  const raw = process.env[key] ?? fallback;
+  return raw.trim().replace(/^['"]|['"]$/g, '');
+}
+
+function googleMapsConfig(): { url: string; apiKey: string; timeoutMs: number } {
+  const timeoutRaw = Number(envValue('EXTERNAL_APIS_TIMEOUT', String(DEFAULT_GEOCODE_TIMEOUT_MS)));
+  return {
+    url: envValue('GOOGLE_MAPS_API_URL', DEFAULT_GEOCODE_URL),
+    apiKey: envValue('GOOGLE_MAPS_API_KEY'),
+    timeoutMs: Number.isFinite(timeoutRaw) && timeoutRaw > 0 ? timeoutRaw : DEFAULT_GEOCODE_TIMEOUT_MS,
+  };
+}
 
 /** MT Tarif uniforme HT 0.291 DT/kWh → TTC avec TVA 19 %; used for amount→kWh conversion */
 const MT_TARIFF_UNIFORME_DT_PER_KWH = 0.291 * 1.19;
@@ -323,22 +333,34 @@ export class AuditSolaireSimulationService extends CommonService<
   }
 
   private async geocodeAddress(address: string): Promise<GeoCoordinates> {
-    const apiKey = EXTERNAL_APIS.GOOGLE_MAPS.API_KEY;
+    const { url, apiKey, timeoutMs } = googleMapsConfig();
 
+    if (!apiKey) {
+      throw new HTTP400Error(
+        'Google Geocoding is not configured: set GOOGLE_MAPS_API_KEY in packages/backend/.env.development'
+      );
+    }
 
     Logger.info(`Geocoding address: ${address}`);
 
     try {
-      const response = await axios.get(EXTERNAL_APIS.GOOGLE_MAPS.URL, {
+      const response = await axios.get(url, {
         params: { address, key: apiKey },
-        timeout: EXTERNAL_APIS.GOOGLE_MAPS.TIMEOUT,
+        timeout: timeoutMs,
       });
 
       return this.parseGoogleMapsResponse(response, address);
-
     } catch (error) {
+      if (error instanceof HTTP400Error) {
+        throw error;
+      }
       Logger.error('Google Maps API request failed', error);
-      throw new HTTP400Error('Failed to contact Google Geocoding service', error);
+      const detail =
+        error instanceof Error ? error.message : 'unknown network error';
+      throw new HTTP400Error(
+        `Failed to contact Google Geocoding service (${detail})`,
+        error
+      );
     }
   }
 
