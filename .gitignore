@@ -2,6 +2,7 @@
 node_modules/
 dist/
 build/
+.tools/
 
 # Logs
 logs/
@@ -31,3 +32,6 @@ coverage/
 # OS files
 .DS_Store
 Thumbs.db
+
+.tools/
+*.rar
