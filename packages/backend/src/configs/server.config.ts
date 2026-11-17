@@ -1,5 +1,6 @@
 import { isNotNullish } from '@shared/functions/nullish';
 import {
+  ANTHROPIC_DEFAULT_MODEL,
   OPENROUTER_DEFAULT_APP_NAME,
   OPENROUTER_DEFAULT_BASE_URL,
   OPENROUTER_DEFAULT_MODEL,
@@ -15,10 +16,16 @@ export interface IOpenRouterConfig {
   appName: string;
 }
 
+export interface IAnthropicConfig {
+  apiKey: string;
+  model: string;
+}
+
 export interface IServerConfig {
   nodeEnv: string;
   dbUri: string;
   openrouter: IOpenRouterConfig;
+  anthropic: IAnthropicConfig;
   jwtSecret: string;
   logLevel: string;
   port: number;
@@ -92,6 +99,12 @@ export class ServerConfig {
         appName: isNotNullish(process.env.OPENROUTER_APP_NAME)
           ? process.env.OPENROUTER_APP_NAME
           : OPENROUTER_DEFAULT_APP_NAME,
+      },
+      anthropic: {
+        apiKey: process.env.ANTHROPIC_API_KEY ?? '',
+        model: isNotNullish(process.env.ANTHROPIC_MODEL)
+          ? process.env.ANTHROPIC_MODEL
+          : ANTHROPIC_DEFAULT_MODEL,
       },
       jwtSecret: process.env.JWT_SECRET,
       logLevel: process.env.LOG_LEVEL,

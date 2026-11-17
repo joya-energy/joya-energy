@@ -45,7 +45,7 @@ async function enhanceBillPng(buffer: Buffer): Promise<Buffer> {
 }
 
 /**
- * Downscale + JPEG so OpenRouter detail=high stays under prompt-token credit limits.
+ * Downscale + JPEG so vision prompts stay within practical token/cost limits.
  */
 export async function downscaleBillImageForVision(
   buffer: Buffer,
