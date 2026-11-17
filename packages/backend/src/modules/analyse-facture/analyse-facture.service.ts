@@ -1,7 +1,12 @@
-import type OpenAI from 'openai';
+import type Anthropic from '@anthropic-ai/sdk';
 import { Logger } from '@backend/middlewares';
 import { HTTP400Error } from '@backend/errors';
-import { createOpenRouterClient, getLlmModel } from '@backend/common/llm';
+import {
+  completeVisionExtraction,
+  createAnthropicClient,
+  getLlmModel,
+  resolveLlmMaxTokens,
+} from '@backend/common/llm';
 import type { StegAnalyseResponse } from '@shared/interfaces/analyse-facture.interface';
 import { billExtractionService } from '../bill-extraction/bill-extraction.service';
 import { getStegExtractionFacturePrompt } from './analyse-facture.prompt';
@@ -33,52 +38,18 @@ function isUsableRefineValue(value: string | undefined): value is string {
   return value !== undefined && value !== '-' && value.trim() !== '';
 }
 
-/**
- * Full extraction JSON needs room; production/dev use up to 16384 on gpt-4o.
- * Override with OPENROUTER_MAX_TOKENS. Prefer openai/gpt-4o locally (same as prod) —
- * gpt-4.1 is priced higher so OpenRouter "can only afford N" drops sharply on the same balance.
- */
+/** Full extraction JSON needs room. Override with ANTHROPIC_MAX_TOKENS. */
 const ANALYSE_FACTURE_MAX_TOKENS_DEFAULT = 8192;
-const ANALYSE_FACTURE_MIN_TOKENS = 800;
 /** First-pass vision prep (sharper than legacy 1600/q85). */
 const ANALYSE_VISION_PREP = { maxEdgePx: 2048, jpegQuality: 90 } as const;
 /** Second-pass MT refine uses a larger edge when quality is weak. */
 const ANALYSE_VISION_REFINE_PREP = { maxEdgePx: 2560, jpegQuality: 92 } as const;
 
-function resolveMaxTokens(): number {
-  const fromEnv = Number.parseInt(process.env.OPENROUTER_MAX_TOKENS ?? '', 10);
-  if (Number.isFinite(fromEnv) && fromEnv >= ANALYSE_FACTURE_MIN_TOKENS) {
-    return fromEnv;
-  }
-  return ANALYSE_FACTURE_MAX_TOKENS_DEFAULT;
-}
-
-/**
- * Analyse-facture defaults to high (digit OCR). Independent of OPENROUTER_VISION_DETAIL
- * so other cheaper flows can stay on low. Override with ANALYSE_FACTURE_VISION_DETAIL=low.
- */
-function resolveVisionDetail(): 'low' | 'high' {
-  const analyse = (process.env.ANALYSE_FACTURE_VISION_DETAIL ?? 'high').toLowerCase();
-  return analyse === 'low' ? 'low' : 'high';
-}
-
-function parseAffordableMaxTokens(errorText: string): number | null {
-  const match = errorText.match(/can only afford\s+(\d+)/i);
-  if (match === null) {
-    return null;
-  }
-  const affordable = Number.parseInt(match[1], 10);
-  if (!Number.isFinite(affordable) || affordable < ANALYSE_FACTURE_MIN_TOKENS) {
-    return null;
-  }
-  return Math.max(ANALYSE_FACTURE_MIN_TOKENS, affordable - 40);
-}
-
 export class AnalyseFactureService {
-  private readonly llmClient: OpenAI;
+  private readonly llmClient: Anthropic;
 
   constructor() {
-    this.llmClient = createOpenRouterClient();
+    this.llmClient = createAnthropicClient();
   }
 
   public async analyzeBillFromImage(
@@ -104,11 +75,10 @@ export class AnalyseFactureService {
       const dataUrl = `data:${preparedMimeType};base64,${base64Image}`;
       const prompt = getStegExtractionFacturePrompt();
       const model = getLlmModel();
-      const maxTokens = resolveMaxTokens();
-      const visionDetail = resolveVisionDetail();
+      const maxTokens = resolveLlmMaxTokens(ANALYSE_FACTURE_MAX_TOKENS_DEFAULT);
 
       Logger.info(
-        `Sending extraction to vision LLM via OpenRouter (model=${model}, prompt length=${prompt.length}, dataUrl length=${dataUrl.length}, max_tokens=${maxTokens}, vision_detail=${visionDetail})`
+        `Sending extraction to vision LLM via Anthropic (model=${model}, prompt length=${prompt.length}, dataUrl length=${dataUrl.length}, max_tokens=${maxTokens})`
       );
 
       const startTime = Date.now();
@@ -116,8 +86,7 @@ export class AnalyseFactureService {
         model,
         prompt,
         dataUrl,
-        maxTokens,
-        visionDetail
+        maxTokens
       );
       Logger.info(`STEG extraction LLM response received in ${Date.now() - startTime}ms`);
 
@@ -159,8 +128,7 @@ export class AnalyseFactureService {
         enriched,
         imageBuffer,
         mimeType,
-        dataUrl,
-        model
+        dataUrl
       );
 
       if (isStegAnalyseResponseEmpty(refined)) {
@@ -182,17 +150,28 @@ export class AnalyseFactureService {
       const errorText = String(error);
       if (errorText.includes('429') || errorText.toLowerCase().includes('quota')) {
         throw new HTTP400Error(
-          'Quota LLM dépassé. Vérifiez la facturation de votre clé OpenRouter ou réessayez plus tard.'
+          'Quota LLM dépassé. Vérifiez la facturation Anthropic (console.anthropic.com) ou réessayez plus tard.'
+        );
+      }
+
+      if (
+        errorText.includes('401')
+        || errorText.toLowerCase().includes('invalid api key')
+        || errorText.toLowerCase().includes('authentication')
+      ) {
+        throw new HTTP400Error(
+          'Clé Anthropic invalide ou manquante. Vérifiez ANTHROPIC_API_KEY (local .env ou Railway).'
         );
       }
 
       if (
         errorText.includes('402')
-        || errorText.toLowerCase().includes('credits')
-        || errorText.toLowerCase().includes('prompt tokens limit')
+        || errorText.toLowerCase().includes('credit')
+        || errorText.toLowerCase().includes('billing')
+        || errorText.toLowerCase().includes('insufficient')
       ) {
         throw new HTTP400Error(
-          'Crédits OpenRouter insuffisants pour cette image/prompt. Ajoutez des crédits, ou gardez OPENROUTER_VISION_DETAIL=low et OPENROUTER_MAX_TOKENS bas dans .env.'
+          'Crédits Anthropic insuffisants pour cette analyse. Ajoutez du crédit sur console.anthropic.com, ou baissez ANTHROPIC_MAX_TOKENS.'
         );
       }
 
@@ -210,8 +189,7 @@ export class AnalyseFactureService {
     response: StegAnalyseResponse,
     originalBuffer: Buffer,
     originalMimeType: string,
-    fallbackDataUrl: string,
-    model: string
+    fallbackDataUrl: string
   ): Promise<StegAnalyseResponse> {
     const raw = response.facture_extraite as {
       type_facture?: string;
@@ -252,11 +230,9 @@ export class AnalyseFactureService {
           : fallbackDataUrl;
 
       const content = await this.createExtractionCompletion(
-        model,
         STEG_MT_POWER_REFINE_PROMPT,
         refineDataUrl,
-        MT_POWER_REFINE_MAX_TOKENS,
-        'high'
+        MT_POWER_REFINE_MAX_TOKENS
       );
       const jsonString = content.replace(/```json/g, '').replace(/```/g, '').trim();
       const refined = JSON.parse(jsonString) as MtPowerRefineFields;
@@ -377,81 +353,47 @@ export class AnalyseFactureService {
     model: string,
     prompt: string,
     dataUrl: string,
-    maxTokens: number,
-    visionDetail: 'low' | 'high'
+    maxTokens: number
   ): Promise<string> {
     try {
-      return await this.createExtractionCompletion(
-        model,
-        prompt,
-        dataUrl,
-        maxTokens,
-        visionDetail
-      );
+      return await this.createExtractionCompletion(prompt, dataUrl, maxTokens);
     } catch (error: unknown) {
-      const errorText = String(error);
+      const errorText = String(error).toLowerCase();
       const isCreditsError =
         errorText.includes('402')
-        || errorText.toLowerCase().includes('credits')
-        || errorText.toLowerCase().includes('prompt tokens limit');
+        || errorText.includes('credit')
+        || errorText.includes('billing')
+        || errorText.includes('insufficient');
 
       if (!isCreditsError) {
         throw error;
       }
 
-      // Do not retry on 402 — each attempt burns remaining balance and makes the next run worse.
-      const affordable = parseAffordableMaxTokens(errorText);
-      const affordHint =
-        affordable !== null
-          ? ` Solde actuel ≈ ${affordable + 40} tokens reserve; il faut au moins ~${ANALYSE_FACTURE_MAX_TOKENS_DEFAULT}.`
-          : '';
       throw new HTTP400Error(
-        `Crédits OpenRouter insuffisants pour model=${model} / vision_detail=${visionDetail} / max_tokens=${maxTokens}.${affordHint} ` +
-          'Vérifiez OPENROUTER_MODEL (prod/dev = openai/gpt-4o ; gpt-4.1 consomme le solde beaucoup plus vite) ' +
-          'ou ajoutez des crédits sur openrouter.ai/settings/credits.'
+        `Crédits Anthropic insuffisants pour model=${model} / max_tokens=${maxTokens}. ` +
+          'Ajoutez du crédit sur console.anthropic.com ou baissez ANTHROPIC_MAX_TOKENS.'
       );
     }
   }
 
   private async createExtractionCompletion(
-    model: string,
     prompt: string,
     dataUrl: string,
-    maxTokens: number,
-    visionDetail: 'low' | 'high'
+    maxTokens: number
   ): Promise<string> {
-    const response = await this.llmClient.chat.completions.create({
-      model,
-      messages: [
-        {
-          role: 'system',
-          content:
-            'You are an expert STEG Tunisia bill extraction agent. You output only valid JSON matching the requested schema. Never invent values. Never compute financial studies.',
-        },
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: prompt },
-            {
-              type: 'image_url',
-              image_url: {
-                url: dataUrl,
-                detail: visionDetail,
-              },
-            },
-          ],
-        },
-      ],
-      max_tokens: maxTokens,
-      temperature: 0,
-    });
-
-    const content = response.choices[0]?.message?.content;
-    if (content === null || content === undefined || content === '') {
-      Logger.error('LLM returned empty content for STEG extraction');
-      throw new Error('No content returned from LLM');
+    try {
+      return await completeVisionExtraction(this.llmClient, {
+        system:
+          'You are an expert STEG Tunisia bill extraction agent. You output only valid JSON matching the requested schema. Never invent values. Never compute financial studies.',
+        prompt,
+        dataUrl,
+        maxTokens,
+        effort: 'low',
+      });
+    } catch (error: unknown) {
+      Logger.error(`LLM returned empty or failed for STEG extraction: ${String(error)}`);
+      throw error;
     }
-    return content;
   }
 }
 

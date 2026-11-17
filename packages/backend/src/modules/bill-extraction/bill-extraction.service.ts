@@ -1,7 +1,11 @@
-import type OpenAI from 'openai';
+import type Anthropic from '@anthropic-ai/sdk';
 import { Logger } from '@backend/middlewares';
 import { HTTP400Error } from '@backend/errors';
-import { createOpenRouterClient, getLlmModel } from '@backend/common/llm';
+import {
+  completeVisionExtraction,
+  createAnthropicClient,
+  getLlmModel,
+} from '@backend/common/llm';
 import type { ExtractedBillData } from '@shared/interfaces/bill-extraction.interface';
 import {
   convertPdfBillToPng,
@@ -11,10 +15,10 @@ import {
 } from './pdf-bill-image.util';
 
 export class BillExtractionService {
-  private readonly llmClient: OpenAI;
+  private readonly llmClient: Anthropic;
 
   constructor() {
-    this.llmClient = createOpenRouterClient();
+    this.llmClient = createAnthropicClient();
   }
 
   private parseBillNumber(value: string | number | null | undefined): number | null {
@@ -64,7 +68,7 @@ export class BillExtractionService {
   }
 
   /**
-   * Extract data from a bill image using vision LLM (OpenRouter)
+   * Extract data from a bill image using vision LLM (Anthropic)
    * @param imageBuffer Buffer of the image
    * @param mimeType Mime type of the image
    */
@@ -108,7 +112,7 @@ export class BillExtractionService {
 
       Logger.info(
         `Base64 encoding complete. Data URL length: ${dataUrl.length} characters. ` +
-        `Sending to vision LLM via OpenRouter...`
+        `Sending to vision LLM via Anthropic...`
       );
 
       const prompt = `
@@ -253,49 +257,22 @@ export class BillExtractionService {
       const startTime = Date.now();
       
       const model = getLlmModel();
-      Logger.info('Sending request to vision LLM via OpenRouter...');
-      Logger.info(`Request details: model=${model}, dataUrl length=${dataUrl.length} chars, prompt length=${prompt.length} chars`);
-      
-      const response = await this.llmClient.chat.completions.create({
-        model,
-        messages: [
-          {
-            role: 'system',
-            content:
-              'You are an expert in data extraction from documents. You output only valid JSON.',
-          },
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: prompt },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: dataUrl,
-                  detail: 'high', // Request high detail for better OCR accuracy
-                },
-              },
-            ],
-          },
-        ],
-        max_tokens: 2000,
-        temperature: 0.1,
+      Logger.info('Sending request to vision LLM via Anthropic...');
+      Logger.info(
+        `Request details: model=${model}, dataUrl length=${dataUrl.length} chars, prompt length=${prompt.length} chars`
+      );
+
+      const content = await completeVisionExtraction(this.llmClient, {
+        system:
+          'You are an expert in data extraction from documents. You output only valid JSON.',
+        prompt,
+        dataUrl,
+        maxTokens: 2000,
+        effort: 'low',
       });
 
       const responseTime = Date.now() - startTime;
       Logger.info(`LLM response received in ${responseTime}ms`);
-
-      const content = response.choices[0]?.message?.content;
-
-      if (content === null || content === undefined || content === '') {
-        Logger.error('LLM returned empty content');
-        Logger.error('Response structure:', {
-          choices: response.choices?.length,
-          firstChoice: response.choices?.[0],
-          finishReason: response.choices?.[0]?.finish_reason,
-        });
-        throw new Error('No content returned from LLM');
-      }
 
       Logger.info(`LLM content received (length: ${content.length} chars), parsing JSON...`);
       Logger.debug('Raw LLM content (first 500 chars):', content.substring(0, 500));

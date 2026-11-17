@@ -24,7 +24,7 @@ export function createOpenRouterClient(): OpenAI {
   });
 }
 
-export function getLlmModel(): string {
+export function getOpenRouterModel(): string {
   const model = ServerConfig.config.openrouter.model;
   return model !== '' ? model : OPENROUTER_DEFAULT_MODEL;
 }

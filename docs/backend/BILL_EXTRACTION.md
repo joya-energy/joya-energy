@@ -655,9 +655,9 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 ## Environment Variables Required
 
-- `OPENROUTER_API_KEY` - OpenRouter API key for vision API access
-- `OPENROUTER_MODEL` - Model identifier (default: `openai/gpt-4o`)
-- `OPENROUTER_BASE_URL` - API base URL (default: `https://openrouter.ai/api/v1`)
+- `ANTHROPIC_API_KEY` - Anthropic API key for vision extraction
+- `ANTHROPIC_MODEL` - Model identifier (default: `claude-sonnet-5-5`)
+- `ANTHROPIC_MAX_TOKENS` - Optional max output tokens (default: `8192`)
 
 ---
 

@@ -19,6 +19,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.9.0",
     "@google-cloud/storage": "^7.18.0",
     "@types/multer": "^2.0.0",
     "@types/nodemailer": "^7.0.3",
