@@ -70,13 +70,14 @@
   --select-text-placeholder: var(--neutral-400);
   --select-icon: #64748b;
   --select-check: var(--orange-solar);
-  --select-box-bg: var(--neutral-100);
-  --select-box-bg-hover: var(--neutral-100);
-  --select-box-bg-selected: var(--ocean-blue);
-  --select-box-border: var(--neutral-300);
-  --select-box-border-selected: var(--ocean-blue-outliner);
-  --select-box-text: var(--text-primary);
-  --select-box-text-selected: var(--teal-deep);
+  --select-box-bg: #ffffff;
+  --select-box-bg-hover: #ffffff;
+  --select-box-bg-selected: #ffffff;
+  --select-box-border: rgba(23, 59, 94, 0.18);
+  --select-box-border-selected: var(--coral, #e37051);
+  --select-box-text: var(--navy, #173b5e);
+  --select-box-text-selected: var(--coral-dark, #c85a3c);
+  --select-border-focus-shadow: rgba(227, 112, 81, 0.14);
 
 
 

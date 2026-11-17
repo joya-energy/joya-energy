@@ -77,5 +77,16 @@
     padding: 1rem 1.25rem !important;
     font-size: var(--font-size-base) !important;
     box-sizing: border-box;
+
+    &.selected {
+      background: #fff !important;
+      border-color: #e37051 !important;
+      color: #cf5a3d !important;
+      box-shadow: 0 0 0 3px rgba(227, 112, 81, 0.12);
+
+      .box-label {
+        color: #cf5a3d !important;
+      }
+    }
   }
 }

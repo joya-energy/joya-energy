@@ -262,6 +262,9 @@ export class SolarAuditComponent implements OnInit, AfterViewInit, OnDestroy {
 
   protected readonly billFileSelected = signal(false);
   protected readonly billFile = signal<File | null>(null);
+  /** Invoice uploaded on full-audit step 1 (hasInvoice = yes). */
+  protected readonly invoiceBillFile = signal<File | null>(null);
+  protected readonly isExtractingInvoice = signal(false);
 
   protected readonly buildingTypeCards: BuildingTypeCard[] = BUILDING_CARD_CONFIG;
   /** Building type options adapted for ui-select dropdown-icon variant (with icons). */
@@ -584,17 +587,80 @@ export class SolarAuditComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  protected onInvoiceBillFileChange(file: File | null): void {
+    this.invoiceBillFile.set(file);
+    this.form.get('consumption.billAttachment')?.setValue(file);
+    if (!file) {
+      this.billExtractionStore.clear();
+    }
+  }
+
+  /** Extract bill on Continuer, then advance to the next step. */
+  private extractInvoiceThenContinue(billFile: File, stepNumber: number): void {
+    this.isExtractingInvoice.set(true);
+    this.billExtractionStore.setExtracting(true);
+
+    const formData = new FormData();
+    formData.append('billImage', billFile);
+
+    this.billExtractionService
+      .extractBillData(formData)
+      .pipe(
+        finalize(() => {
+          this.isExtractingInvoice.set(false);
+          this.billExtractionStore.setExtracting(false);
+        })
+      )
+      .subscribe({
+        next: (response) => {
+          if (!response.success || !response.data) {
+            this.notificationStore.addNotification({
+              type: 'error',
+              title: 'Erreur d\'extraction',
+              message: 'Échec de l\'extraction. Veuillez réessayer.',
+            });
+            return;
+          }
+
+          this.billExtractionStore.setExtractedData(response.data);
+          this.autoPopulateFromBillExtraction();
+          this.autoPopulatePersonalInfoFromBillExtraction();
+
+          if (!this.validateBillUploadStep()) {
+            return;
+          }
+
+          this.goForwardFrom(stepNumber);
+        },
+        error: (error: { error?: { message?: string }; message?: string }) => {
+          this.notificationStore.addNotification({
+            type: 'error',
+            title: 'Erreur d\'extraction',
+            message:
+              error?.error?.message ||
+              error?.message ||
+              'Impossible d\'extraire les données de la facture. Vérifiez que le document est lisible.',
+          });
+        },
+      });
+  }
+
   private validateBillUploadStep(): boolean {
     const extractedData = this.billExtractionStore.getExtractedData();
     const solarAuditFields = extractSolarAuditFields(extractedData);
 
     if (!solarAuditFields) {
+      const hasFile = !!this.invoiceBillFile() || !!this.billFile();
       this.notificationStore.addNotification({
         type: 'warning',
-        title: 'Extraction incomplète',
-        message: this.isBillAnalysisMode()
-          ? 'Veuillez télécharger et extraire votre facture avant de continuer.'
-          : 'Veuillez télécharger et extraire votre facture, ou choisissez de saisir manuellement.',
+        title: hasFile ? 'Extraction incomplète' : 'Facture requise',
+        message: hasFile
+          ? this.isBillAnalysisMode()
+            ? 'Impossible d\'extraire les données. Réessayez avec une facture plus lisible.'
+            : 'Impossible d\'extraire les données. Réessayez ou saisissez manuellement.'
+          : this.isBillAnalysisMode()
+            ? 'Veuillez télécharger votre facture avant de continuer.'
+            : 'Veuillez télécharger votre facture, ou choisissez de saisir manuellement.',
       });
       return false;
     }
@@ -663,7 +729,22 @@ export class SolarAuditComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     if (hasInvoiceControl.value === 'yes') {
-      return this.validateBillUploadStep();
+      const alreadyExtracted = !!extractSolarAuditFields(
+        this.billExtractionStore.getExtractedData()
+      );
+      if (alreadyExtracted) {
+        return this.validateBillUploadStep();
+      }
+      if (!this.invoiceBillFile()) {
+        this.notificationStore.addNotification({
+          type: 'warning',
+          title: 'Facture requise',
+          message:
+            'Veuillez télécharger votre facture, ou choisissez de saisir manuellement.',
+        });
+        return false;
+      }
+      return true;
     }
 
     const measuredAmountControl = this.form.get('consumption.measuredAmountTnd');
@@ -728,6 +809,26 @@ export class SolarAuditComponent implements OnInit, AfterViewInit, OnDestroy {
       if (!this.validateFullAuditStep1()) {
         return;
       }
+
+      const hasInvoice = this.form.get('consumption.hasInvoice')?.value === 'yes';
+      const alreadyExtracted = !!extractSolarAuditFields(
+        this.billExtractionStore.getExtractedData()
+      );
+      const invoiceFile = this.invoiceBillFile();
+
+      if (hasInvoice && !alreadyExtracted) {
+        if (!invoiceFile) {
+          this.notificationStore.addNotification({
+            type: 'warning',
+            title: 'Facture requise',
+            message: 'Veuillez télécharger votre facture avant de continuer.',
+          });
+          return;
+        }
+        this.extractInvoiceThenContinue(invoiceFile, stepNumber);
+        return;
+      }
+
       // Advance directly after step-1 validation — do not re-gate on canProceed/stepProgress
       this.goForwardFrom(stepNumber);
       return;
@@ -1213,6 +1314,8 @@ export class SolarAuditComponent implements OnInit, AfterViewInit, OnDestroy {
         this.hasInvoiceValue.set(value ?? 'yes');
         if (value === 'no') {
           this.billExtractionStore.clear();
+          this.invoiceBillFile.set(null);
+          this.form.get('consumption.billAttachment')?.setValue(null);
         }
         this.cdr.markForCheck();
       });

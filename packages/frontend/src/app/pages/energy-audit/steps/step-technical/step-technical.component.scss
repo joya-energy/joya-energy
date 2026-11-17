@@ -78,6 +78,17 @@
     font-size: var(--font-size-base) !important;
     box-sizing: border-box;
 
+    &.selected {
+      background: #fff !important;
+      border-color: #e37051 !important;
+      color: #cf5a3d !important;
+      box-shadow: 0 0 0 3px rgba(227, 112, 81, 0.12);
+
+      .box-label {
+        color: #cf5a3d !important;
+      }
+    }
+
     @media (max-width: 768px) {
       font-size: var(--font-size-xs) !important; // Smaller so "Chauffage électrique" / "Chauffage par climatisation" fit
       padding: 0.625rem 0.75rem !important;

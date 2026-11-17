@@ -21,15 +21,15 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at top right, rgba(243, 163, 28, 0.08), transparent 60%);
+    background: radial-gradient(circle at top right, rgba(227, 112, 81, 0.08), transparent 60%);
     opacity: 0;
     transition: opacity 0.3s ease;
   }
 
   &:hover {
-    border-color: var(--orange-solar);
+    border-color: var(--coral, #e37051);
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(243, 163, 28, 0.12);
+    box-shadow: 0 8px 24px rgba(227, 112, 81, 0.12);
 
     &::before {
       opacity: 1;
@@ -37,13 +37,13 @@
 
     .bill-extractor-icon {
       transform: scale(1.1) rotate(5deg);
-      color: var(--orange-solar);
+      color: var(--coral, #e37051);
     }
   }
 
   &--dragover {
-    border-color: var(--orange-solar);
-    background: rgba(243, 163, 28, 0.05);
+    border-color: var(--coral, #e37051);
+    background: rgba(227, 112, 81, 0.05);
     transform: scale(1.02);
 
     &::before {
@@ -121,8 +121,8 @@
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: var(--orange-solar);
-    box-shadow: 0 4px 12px rgba(243, 163, 28, 0.1);
+    border-color: var(--coral, #e37051);
+    box-shadow: 0 4px 12px rgba(227, 112, 81, 0.1);
   }
 }
 
@@ -130,8 +130,8 @@
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 0.5rem;
-  background: rgba(243, 163, 28, 0.1);
-  color: var(--orange-solar);
+  background: rgba(227, 112, 81, 0.1);
+  color: var(--coral, #e37051);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -191,13 +191,14 @@
   border: none;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  background: linear-gradient(135deg, var(--orange-solar), #ee7b3a);
+  background: var(--navy, #173b5e);
   color: white;
-  box-shadow: 0 4px 12px rgba(243, 163, 28, 0.3);
+  box-shadow: 0 4px 12px rgba(23, 59, 94, 0.3);
 
   &:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(243, 163, 28, 0.4);
+    background: var(--navy-2, #0f2a44);
+    box-shadow: 0 8px 20px rgba(23, 59, 94, 0.4);
   }
 
   &:active:not(:disabled) {

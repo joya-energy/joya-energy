@@ -105,7 +105,10 @@
 
                 @if (hasInvoice()) {
           <div class="f">
-                  <app-ui-bill-extractor></app-ui-bill-extractor>
+                  <app-ui-bill-extractor
+                    [hideExtractButton]="true"
+                    (fileChange)="onInvoiceBillFileChange($event)"
+                  ></app-ui-bill-extractor>
                 </div>
                 }
 
@@ -250,10 +253,12 @@
             <button
               type="button"
               class="btn-next aud__continue"
-              [disabled]="isSubmitting()"
+              [disabled]="isSubmitting() || isExtractingInvoice()"
               (click)="nextStep()"
             >
-              @if (isSubmitting()) {
+              @if (isExtractingInvoice()) {
+              <span>Extraction en cours...</span>
+              } @else if (isSubmitting()) {
               <span>{{ primaryActionLabel() }}</span>
               } @else {
               <span>Continuer</span>
